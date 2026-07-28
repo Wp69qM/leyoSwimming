@@ -127,13 +127,13 @@
 |------|----------|----------|
 | 游客 → 注册用户 | 微信 OAuth / 手机号注册 | 注册成功 |
 | 注册用户 → 学员 | 支付成功 + 创建 package（active）| 身份 = 学员 |
-| 学员 → 注册用户 | 不存在任何有效套餐（status=active AND total>0 AND 未过期）| 身份回退 |
+| 学员 → 注册用户 | 不存在任何有效套餐（status=active）| 身份回退 |
 | 学员 → 学员（同教练加课） | 购买该教练的额外套餐 | 身份保持学员，套餐数 +1 |
 | 学员 → 注册用户 → 学员（**教练切换**，必经中转） | (1) 退订所有 active 套餐 → (2) 购买新教练套餐 | 身份经"注册用户"中转，**不直接跳转** |
 | 学员 → 学员（封禁） | 管理员后台封禁 | 身份保持"学员"标签但所有操作拒绝 |
 | 学员 → 学员（主动注销） | 用户主动注销 | 保留订单/套餐历史 90 天，超期匿名化 |
 | 学员 → 学员（教练离职） | coach.status 变为"已离职" | 身份保持，提示"绑定教练已离职" |
-| 学员 → 学员（套餐耗尽） | 单个 active 套餐 available=0 且 reserved+consumed=total_hours → exhausted | 身份保持（如有其他 active） |
+| 学员 → 学员（套餐耗尽） | 单个 active 套餐 available=0 且 reserved=0 → exhausted | 身份保持（如有其他 active） |
 | 注册用户 → 注册用户 | 已购套餐已全部失效 | 保持 |
 
 ### 3.4 状态与计数对照表 `[MVP]`
@@ -145,7 +145,7 @@
 | 状态 | 含义 | 触发 |
 |------|------|------|
 | `active` | 有效，未过期，total_hours > 0 | 订单支付成功 |
-| `exhausted` | 课时耗尽（available=0） | 应用层事件：available=0 时自动 |
+| `exhausted` | 课时耗尽（available=0 且 reserved=0） | 应用层事件：available=0 且 reserved=0 时自动 |
 | `expired` | 时间过期（now() >= expire_at） | 定时任务：每小时巡检 |
 | `refunded` | 用户退款 | 退款流程完成 |
 
@@ -182,7 +182,7 @@
 3. **计数变化是唯一来源**：reserved 增加只能来自"用户预约"；consumed 增加只能来自"教练确认"
 4. **状态-计数对应关系**：
    - `active` → 必有 `available + reserved > 0`（否则应是 exhausted）
-   - `exhausted` → 必有 `available = 0` 且 `reserved + consumed = total_hours`
+   - `exhausted` → 必有 `available = 0` 且 `reserved = 0`（即 `consumed = total_hours`）
    - `expired` → 必有 `now() >= expire_at`（与计数无关）
    - `refunded` → 必有 `refunded_at IS NOT NULL`（与计数无关）
 
@@ -195,8 +195,8 @@
 
 ### 3.5 关键约束 `[MVP]`
 
-- **"有效套餐"** 定义：`package.status = active` AND `(reserved + consumed + available) > 0` AND `now() < expire_at`
-- **同一时间仅 1 名教练**：用户购买新套餐时校验"是否已有 active 套餐中包含其他教练"，如有则**强制**先退款
+- **"有效套餐"** 定义：`package.status = active`
+- **同一时间仅 1 名教练**：用户购买新套餐时校验"是否已有 active 套餐中包含其他教练"，如有则**购买失败**，提示"您已持有其他教练的有效套餐，需先退订后方可购买新教练套餐"
 - **退级触发机制（应用层事件 + 定时任务兜底）**：
   - **应用层事件**：package status 变更时（active→exhausted/expired/refunded）通过消息队列（如 Kafka）触发身份重算，事件入队 ≤ 100ms
   - **定时任务兜底**：每小时巡检一次身份视图与 `package` 实际状态差异，修正遗漏（防事件丢失）
@@ -209,8 +209,7 @@
 | 订单状态 | package.status | 用户身份 | UI 文案 |
 |---------|---------------|---------|---------|
 | 已支付-正常 | active | 学员 | "当前有效套餐 N 节" |
-| 退款申请中 | active | 学员 | "退款处理中，预计 3-7 工作日到账" |
-| 退款审批中 | active | 学员 | "退款处理中，管理员 3 工作日内决定" |
+| 退款审批中 | active | 学员 | "退款处理中，预计 3-7 工作日到账" |
 | 争议退款处理中 | active | 学员 | "争议处理中，3 工作日内反馈结果" |
 | 已退款 | refunded | 注册用户（如无其他 active 套餐）| "退款已到账，您的套餐已失效" |
 | 退款被拒 | active | 学员 | "退款未通过，原因为：{reason}" |
@@ -218,8 +217,9 @@
 **关键约束**：
 - 退款申请提交后，package.status 仍为 active，**直到"已退款"才变**
 - 中间状态身份保持"学员"（包未真退），但 UI **必须**显式提示"退款处理中"
+- **退款审批中 / 争议退款处理中 的订单，关联 package 冻结约课**：不可新增预约，已预约课程自动取消并释放课时
 - "已退款"触发时，身份重算（异步事件）
-- "退款被拒"时，package.status 回 active，身份无变化，UI 提示原因
+- "退款被拒"时，package.status 回 active，身份无变化，已释放课时**不自动恢复**，UI 提示原因
 
 ### 3.7 边界场景处理 `[MVP]`
 
@@ -256,7 +256,7 @@
 
 | 类型 | 数量约束 | 有效期 | 备注 |
 |------|----------|--------|------|
-| 体验套餐 | 1 份/用户（active 状态）| 30 天 | 价格较低，1 课时 |
+| 体验套餐 | 1 份/用户（active 或 exhausted 状态）| 30 天 | 价格较低，1 课时 |
 | 正式套餐（一对一） | 多份/用户 | 灵活（购买时选） | 同一教练 |
 
 **套餐扣减规则**：
@@ -285,7 +285,7 @@
 | 状态 | 含义 | 转换触发 |
 |------|------|----------|
 | active | 有效 | 订单支付成功 |
-| **exhausted** | **已耗尽** | **应用层事件：reserved+consumed+available=0 时自动转换** |
+| **exhausted** | **已耗尽** | **应用层事件：available=0 且 reserved=0（即 consumed=total_hours）时自动转换** |
 | expired | 过期 | 定时任务：expire_at 到期自动 |
 | refunded | 已退款 | 退款流程完成 |
 
@@ -317,27 +317,32 @@ package:
 reserved_count + consumed_count + available_count = total_hours
 
 # 状态不变量
-status = active     → (reserved + consumed + available) > 0 AND now() < expire_at
-                      AND exhausted_at IS NULL AND refunded_at IS NULL
-status = exhausted  → reserved_count + consumed_count = total_hours
+status = active     → exhausted_at IS NULL AND refunded_at IS NULL
+status = exhausted  → consumed_count = total_hours
                       AND available_count = 0
+                      AND reserved_count = 0
                       AND exhausted_at IS NOT NULL
 status = expired    → now() >= expire_at (或 previous status ∈ {active, exhausted})
 status = refunded   → refunded_at IS NOT NULL AND consumed_count 已 freeze
 
 # 状态自动转换（应用层事件 + 定时任务）
-active → exhausted: 应用层事件检测 (reserved + consumed + available) = 0 时触发
+active → exhausted: 应用层事件检测 available = 0 且 reserved = 0（即 consumed = total_hours）时触发
 active → expired:   定时任务每小时巡检，now() >= expire_at
 exhausted → expired: 定时任务每小时巡检，now() >= expire_at
 任何状态 → refunded: 退款流程
 
 # 教练不变量
-用户在任意时刻，所有 active 套餐的 coach_id 必须相同
+同一 user_id 下，所有 status = active 的 package.coach_id 必须相同
 （exhausted/expired/refunded 状态的套餐不参与约束）
 
+# 业务含义
+- 同一教练名下可有多份 active 套餐（按时长、课时数区分）
+- 不同教练的 active 套餐不能共存，必须经"注册用户"中转（先退旧 → 购新）
+- 验证时机：购买新套餐时、教练离职转接套餐时
+
 # 体验不变量
-package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
-（exhausted/expired 状态的体验课不占用"1 份"名额，可再次购买）
+package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类型套餐不超过 1 份
+（expired 且 available > 0 / refunded 状态的体验课不占用"1 份"名额，可再次购买）
 ```
 
 ### 4.5 体验课特殊规则 `[MVP]`
@@ -346,8 +351,8 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 |------|------|
 | 首次购买体验课 | 允许，状态：active，30 天有效 |
 | 体验课已 active 状态时再次购买 | 拒绝（"您已有体验套餐"） |
-| 体验课耗尽（status=exhausted）| 允许再购（作为"第二次体验"） |
-| 体验课过期（status=expired）| 允许再购 |
+| 体验课耗尽（status=exhausted）| 拒绝再购（已完整体验过） |
+| 体验课过期（status=expired 且 available > 0）| 允许再购 |
 | 体验课退款（status=refunded）| 允许再购 |
 
 **扣减优先级**：体验套餐 > 正式套餐（先扣体验课，避免过期浪费）。
@@ -365,6 +370,13 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 - 用户在套餐过期后/前，可随时购买新套餐
 - 新套餐与旧套餐可共存（同一教练下多份 active 套餐合法）
 - 购买时选择教练 + 课时数，无前置条件
+
+**管理员手动延期**（后台"保留"操作）：
+- 仅允许对 `status = expired` 且 `available + reserved > 0` 的套餐执行延期
+- 延期操作：更新 `expire_at`，并将 `status` 从 `expired` 恢复为 `active`
+- `available` 保持原样，延期只延长使用时间，不增加课时
+- 过期时被释放的 `reserved` **不自动恢复**，用户需重新预约
+- `status = exhausted` 或 `refunded` 的套餐**不允许**延期，提示"课时已耗尽/已退款，请购买新套餐"
 
 ### 4.7 套餐相关 Phase 标签汇总
 
@@ -550,8 +562,8 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 4. 查看所有订单，确认或拒绝订单。
 5. 处理退款、价格调整、套餐次数调整。
 6. **订单生效规则**：
-   - 未设置教练审批的套餐，用户支付后订单自动生效，身份 = 学员。
-   - 设置教练审批的套餐，生成订单后教练需在 24 小时内完成确认 / 拒绝 / 协商；超时未处理，系统自动取消该订单并通知用户。
+   - 用户支付成功后订单立即生效，身份 = 学员。
+   - 教练协商 / 价格修改属于 P2 功能，MVP 阶段不实施；MVP 期间教练私下与学员沟通优惠，平台不感知。
 
 #### 5.5.4 场馆与公告
 1. 配置场馆名称、地址、导航、开业年限、泳池状态。
@@ -652,11 +664,11 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
  ↓ 用户提交订单
 [待支付]
  ↓ 支付成功              ↓ 超时未支付（24h）
-[已支付] ────────────→ [已关闭]
+[已支付] ────────────→ [已取消]
  ↓ 申请退款
-[退款申请中]
+[退款审批中]
  ↓
- ├─ 教练同意(24h 内) → [退款审批中]
+ ├─ 教练同意(24h 内) → 进入管理员审批（3 工作日）
  │                       ↓ 管理员批准
  │                    [已退款]  ← 终态
  │
@@ -674,13 +686,11 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 | 0 - 无 | 初始 | 初始 |
 | 1 - 待支付 | 订单创建后 | 提交订单 |
 | 2 - 已支付 | 支付成功 | 支付回调 |
-| 3 - 已关闭 | 超时未支付 / 用户取消 | 定时任务 / 用户操作 |
-| 4 - 退款申请中 | 用户申请退款 | 用户提交退款 |
-| 5 - 退款审批中 | 教练同意后 | 教练同意 |
-| 6 - 争议退款处理中 | 特殊原因申诉 | 用户提交申诉 |
-| 7 - 已退款 | 退款完成 | 管理员批准 |
-| 8 - 退款被拒 | 申诉失败 | 管理员驳回 |
-| 9 - 已取消 | 用户主动取消（已支付后）| 用户操作 |
+| 3 - 已取消 | 超时未支付 / 用户主动取消 | 定时任务 / 用户操作 |
+| 4 - 退款审批中 | 用户提交退款后 | 用户提交退款 |
+| 5 - 争议退款处理中 | 特殊原因申诉 | 用户提交申诉 |
+| 6 - 已退款 | 退款完成 | 管理员批准 |
+| 7 - 退款被拒 | 申诉失败 | 管理员驳回 |
 
 ### 6.3 课时预占/扣除/回滚模型 `[MVP]`
 
@@ -692,6 +702,7 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 [课程开始]  →  无变化（预占保持，状态切换不影响课时池）
 [教练确认]  →  预占 -1, 消耗 +1
 [课程取消]  →  预占 -1 (释放)
+[退款申请提交]  →  冻结约课 + 释放全部 reserved
 ```
 
 #### 6.3.2 时序示例（10 课时套餐）
@@ -730,6 +741,7 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 | 预占时发现可用课时不足 | 拒绝预约，提示"课时不足" |
 | 教练确认扣课时失败 | 重试 + 通知管理员 |
 | 退款时 reserved 未释放 | 强制释放 reserved 后退款 |
+| 退款中尝试预约 | 拒绝预约，提示"该套餐正在退款中，暂不可预约" |
 | 课程开始但状态未自动切换 | 定时任务兜底 |
 
 ### 6.4 退款规则 `[MVP]`
@@ -740,20 +752,52 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 |--------|------|------|
 | 用户 | 主动申请退款 | 标准退款流程 |
 | 用户 | 24h 内取消被教练拒绝 + 特殊原因申诉 | 争议退款流程（3 工作日内处理）|
+| 用户 | expired 套餐剩余课时退款 | 允许退款，按 `available` 比例计算；退款通过后 `package.status: expired → refunded` |
 | 教练 | 课程质量问题 / 教练请假导致课程取消 | 触发自动退款 |
 | 平台 | 场馆闭馆 / 教练离职 / 系统异常 | 强制退款 |
 | 管理员 | 订单异常审核 | 强制退款 |
 
 #### 6.4.2 退款金额计算
 
+**单 package 公式**（每个 package 独立计算）：
 ```
-可退金额 = 套餐价 × (未消耗课时 / 总课时)
-        = 套餐价 × (available + reserved) / total_hours
+可退金额 = paid_amount × (total_hours - consumed_count) / total_hours
+```
+
 其中：
-  - available: 可用课时
-  - reserved: 预占中（退款申请时全部释放）
-  - consumed: 已消耗（不参与退款）
-```
+- `paid_amount`：实付金额（标准 package = standard_amount；赠送 package = 0）
+- `consumed_count`：该 package 已消耗节数
+- `reserved_count`：退款申请时全部释放
+
+**赠送课时的退款处理**：
+- 赠送是独立 package（paid_amount=0），按其公式退款金额 = 0；
+- 赠送不参与标准 package 的退款金额计算；
+- 标准 package 退款时，关联的赠送 package **一起作废**（`status = refunded`），不退还给用户。
+
+**为什么不需要白嫖漏洞防护**：
+- 扣减顺序：**标准节优先，赠送节仅在标准 exhausted 后才可扣**（见 §6.3.1）；
+- 状态机判断消耗只看**标准节**，赠送节不影响 package 状态；
+- 学员用完标准节后，赠送节才能用；赠送节用完前，标准已 exhausted；
+- 退款只算标准，赠送已消耗不影响标准可退金额。
+
+**举例**：
+- 标准 10 节（1800）+ 赠送 1 节（独立 package, paid=0）
+- 用户上 9 节标准 + 1 节赠送
+  - 前 10 次预约：扣标准 10 节，赠送未动
+  - 标准 exhausted 后：第 11 次预约才能扣赠送
+- 此时用户申请退款
+  - 标准可退 = 1800 × (10-10)/10 = 0 元
+  - 赠送可退 = 0 元
+  - **总退款 = 0 元** ✓
+- 用户实付 1800，用完 10 节标准 + 1 节赠送，全部消耗完毕
+
+- 另一种场景：上 9 节标准 + 0 节赠送，申请退款
+  - 标准可退 = 1800 × (10-9)/10 = 180 元
+  - 赠送 package 跟着标准作废（用户未用过赠送节，但标准退了则赠送也作废）
+  - **总退款 = 180 元** ✓
+  - 用户实付 1800，扣 1620（9 节 × 180/节），剩 180 ✓
+
+**协商订单退款**：退款金额按 `paid_amount` 计算，不按 `standard_amount` 计算。
 
 #### 6.4.3 退款手续费 `[MVP]`
 
@@ -895,9 +939,31 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 | 套餐续期（购买新套餐）| `[MVP]` |
 | 协议签署 | `[MVP]` |
 | 争议退款 | `[MVP]` |
+| 教练协商 / 价格调整 | `[P2]` |
+| 赠送课时发放 | `[P2]` |
 | 周期性预约 | `[P2]` |
 | 转赠套餐 | `[P3]` |
 | 套餐合并/拆分 | `[P2]` |
+
+### 6.12 教练协商（购买定制方案）`[P2]`
+
+**MVP 阶段不实施**，数据模型预留（`order_negotiation` / `bonus_grant` 表已定义）。
+
+**业务定位**：教练协商是教练**主动给予**的特殊优惠，不是学员申请的折扣。学员端始终只看到标准价。
+
+**核心规则**：
+- 协商订单转化为正式订单后，**不再有"待教练确认"状态**，走标准订单状态机；
+- 价格差异通过 `order.standard_amount` 与 `order.amount` 体现，不污染主流程；
+- 赠送课时是**独立 package**（paid_amount=0，package_type=2），通过 `bonus_grant` 关联到标准 package；
+- 扣减顺序：**标准优先，赠送仅在标准 exhausted 后才可扣**；
+- 状态机仅看标准节，赠送节不影响 package 状态；
+- 标准 package 退款时，关联的赠送 package **一起作废**（status=refunded）。
+
+**触发场景**（P2 实施时参考）：
+- 老学员续费激励；
+- 老带新活动；
+- 节日/双 11 活动；
+- 投诉补偿。
 
 ---
 
@@ -997,7 +1063,7 @@ package_type = 体验 → 用户名下同类型 active 套餐不超过 1 份
 [系统计算可退金额] → [释放 reserved]
     ↓
 [判断退款类型]
-    ├─ 标准退款 → [进入退款申请中] → [教练 24h 内审批] → [管理员 3 工作日审批] → [原路退款 3-7 工作日]
+    ├─ 标准退款 → [进入退款审批中] → [教练 24h 内审批] → [管理员 3 工作日审批] → [原路退款 3-7 工作日]
     └─ 争议退款 → [进入争议处理中] → [管理员 3 工作日决定] → [退款/拒绝]
 ```
 
@@ -1053,10 +1119,12 @@ erDiagram
     schedule_slot ||--o{ waitlist : "1:N 候补"
 
     package ||--o{ booking : "1:N 预占"
+    package ||--o{ bonus_grant : "1:N 赠送记录（P2）"
     order ||--|| package : "1:1 生成"
     order ||--o{ payment : "1:N 支付流水"
     order ||--o| refund : "1:1 退款单"
     order ||--o{ agreement : "1:N 协议签署"
+    order_negotiation ||--o| order : "1:1 转化为订单（P2）"
 
     venue ||--o{ venue_closure : "1:N 闭馆/换水"
     venue ||--o{ schedule_slot : "1:N 关联排班"
@@ -1133,13 +1201,16 @@ erDiagram
 |------|------|------|------|
 | package_id | BIGINT PK | | |
 | user_id | BIGINT FK | IDX | |
-| coach_id | BIGINT FK | IDX | 同时仅 1 个 active 正价包 |
-| order_id | BIGINT FK | | 关联订单 |
-| package_type | TINYINT | | 0=体验 1=正式一对一 |
+| coach_id | BIGINT FK | IDX | 同一用户所有 active 套餐的 coach_id 必须相同（详见 §4.4 教练不变量）|
+| order_id | BIGINT FK | | 关联订单（赠送 package 为 NULL）|
+| package_type | TINYINT | | 0=体验 1=正式一对一 2=赠送（P2）|
 | total_hours | INT | | 总课时 |
 | reserved_count | INT | | 预占中 |
 | consumed_count | INT | | 已消耗 |
 | available_count | INT | | 可用 = total - reserved - consumed |
+| standard_amount | DECIMAL(10,2) | | 套餐标准金额（赠送 package 为 0）|
+| paid_amount | DECIMAL(10,2) | | 实付金额（≤ standard_amount；赠送 package 为 0）|
+| source | TINYINT | | 0=标准购买 1=教练协商 2=赠送/活动发放 |
 | expire_at | DATETIME | IDX | |
 | status | TINYINT | IDX | active/exhausted/expired/refunded |
 | purchased_at | DATETIME | | |
@@ -1149,7 +1220,15 @@ erDiagram
 **不变量**：
 ```
 reserved_count + consumed_count + available_count = total_hours  -- 事务内校验
+paid_amount <= standard_amount
 ```
+
+**关键设计**：
+- 赠送课时是**独立 package**（paid_amount=0，package_type=2），不通过字段附加到标准 package；
+- **扣减顺序**：体验套餐 > 标准套餐 > 赠送套餐（标准优先，赠送仅在标准 exhausted 后才可扣）；
+- **状态机判断**：仅看标准节，赠送节不影响 package 状态；
+- 赠送 package 过期时间可短于标准 package（独立 `expire_at`）；
+- 标准 package 退款时，关联的赠送 package **一起作废**（`status = refunded`）。
 
 #### 9.2.7 `order`（订单）
 
@@ -1159,7 +1238,9 @@ reserved_count + consumed_count + available_count = total_hours  -- 事务内校
 | user_id | BIGINT FK | IDX | |
 | package_id | BIGINT FK | | 生成课时包后回填 |
 | coach_id | BIGINT FK | | |
-| amount | DECIMAL(10,2) | | |
+| amount | DECIMAL(10,2) | | 订单实际金额 |
+| standard_amount | DECIMAL(10,2) | | 套餐标准金额（协商场景下 amount ≤ standard_amount）|
+| source | TINYINT | | 0=标准购买 1=教练协商 2=管理员后台发放 |
 | course_type | TINYINT | | 0=体验课 1=正价一对一 |
 | status | TINYINT | IDX | 见订单状态机 |
 | payment_method | TINYINT | | 0=微信 1=支付宝 |
@@ -1195,7 +1276,61 @@ reserved_count + consumed_count + available_count = total_hours  -- 事务内校
 | created_at | DATETIME | | |
 | completed_at | DATETIME | | |
 
-#### 9.2.10 `agreement`（协议签署记录）
+#### 9.2.10 `order_negotiation`（教练协商订单，`[P2]` MVP 不实施）
+
+| 字段 | 类型 | 索引 | 备注 |
+|------|------|------|------|
+| negotiation_id | BIGINT PK | | |
+| coach_id | BIGINT FK | IDX | 发起协商的教练 |
+| user_id | BIGINT FK | IDX | 协商对象学员 |
+| package_type | TINYINT | | 0=体验 1=正式 |
+| total_hours | INT | | 标准课时 |
+| bonus_hours | INT | | 赠送课时 |
+| original_amount | DECIMAL(10,2) | | 套餐原价 |
+| negotiated_amount | DECIMAL(10,2) | | 协商价（≤ original_amount）|
+| bonus_reason | VARCHAR(200) | | 赠送原因（老带新/双11/投诉补偿等）|
+| status | TINYINT | IDX | 0=待学员确认 1=已接受 2=已拒绝 3=已过期 |
+| proposed_at | DATETIME | | 教练提出时间 |
+| expire_at | DATETIME | | 学员确认有效期（默认 48h）|
+| user_confirmed_at | DATETIME | | |
+| created_order_id | BIGINT FK→order | | 学员接受后生成的标准订单 |
+| created_at | DATETIME | | |
+
+**流程**：
+```
+教练发起协商 → [order_negotiation.status=0]
+  ├─ 学员接受 → 生成 order（source=1）+ package → 状态=1
+  ├─ 学员拒绝 → 状态=2
+  └─ 48h 未响应 → 状态=3
+```
+
+**说明**：
+- MVP 阶段此表不写入任何数据，仅保留数据模型用于 P2；
+- 协商订单转化为正式订单后，走标准订单状态机（无"待教练确认"状态）；
+- 价格差异在 `order.standard_amount` 和 `order.amount` 中体现。
+
+#### 9.2.11 `bonus_grant`（赠送课时记录，`[P2]` MVP 不实施）
+
+| 字段 | 类型 | 索引 | 备注 |
+|------|------|------|------|
+| grant_id | BIGINT PK | | |
+| package_id | BIGINT FK | IDX | 关联"标准"课时包（赠送挂载到哪个标准包）|
+| target_package_id | BIGINT FK | IDX | 关联"赠送"课时包（实际的赠送 package）|
+| user_id | BIGINT FK | | 受益学员 |
+| coach_id | BIGINT FK | | 发起教练 |
+| grant_type | TINYINT | | 0=教练赠送 1=管理员补偿 2=系统活动 |
+| hours | INT | | 赠送节数（= target_package.total_hours）|
+| reason | VARCHAR(200) | | 赠送原因 |
+| status | TINYINT | | 0=待领取 1=已生效 2=已过期 |
+| created_at | DATETIME | | |
+
+**说明**：
+- 赠送是**独立 package**（paid_amount=0，package_type=2），不是附加字段；
+- `bonus_grant` 是关联表，记录"哪个标准包对应哪个赠送包"；
+- 扣减顺序：标准 package 的课时优先扣，标准 exhausted 后才可扣赠送 package；
+- 标准 package 退款时，关联的赠送 package **一起作废**（status=refunded）。
+
+#### 9.2.12 `agreement`（协议签署记录）
 
 | 字段 | 类型 | 索引 | 备注 |
 |------|------|------|------|
@@ -1206,7 +1341,7 @@ reserved_count + consumed_count + available_count = total_hours  -- 事务内校
 | signed_at | DATETIME | | |
 | ip_address | VARCHAR(45) | | 审计 |
 
-#### 9.2.11 `notice`（首页通知栏）
+#### 9.2.13 `notice`（首页通知栏）
 
 | 字段 | 类型 | 索引 | 备注 |
 |------|------|------|------|
@@ -1220,7 +1355,7 @@ reserved_count + consumed_count + available_count = total_hours  -- 事务内校
 | end_at | DATETIME | | |
 | created_by | BIGINT FK→admin | | |
 
-#### 9.2.12 `audit_log`（操作日志，append-only）
+#### 9.2.14 `audit_log`（操作日志，append-only）
 
 | 字段 | 类型 | 索引 | 备注 |
 |------|------|------|------|
@@ -1246,8 +1381,9 @@ ALTER TABLE package ADD CONSTRAINT chk_package_status CHECK (
     AND refunded_at IS NULL)
   OR
   (status = 'exhausted'
-    AND (reserved_count + consumed_count) = total_hours
+    AND consumed_count = total_hours
     AND available_count = 0
+    AND reserved_count = 0
     AND exhausted_at IS NOT NULL)
   OR
   (status = 'expired')
@@ -1258,12 +1394,12 @@ ALTER TABLE package ADD CONSTRAINT chk_package_status CHECK (
 -- 体验套餐全局唯一（PostgreSQL 专用，partial index）
 CREATE UNIQUE INDEX idx_user_one_experience 
 ON package(user_id) 
-WHERE package_type = 0 AND status = 'active';
+WHERE package_type = 0 AND status IN ('active', 'exhausted');
 
 -- MySQL 兼容方案：应用层唯一性校验
 -- 事务中执行：
 --   SELECT COUNT(*) AS cnt FROM package 
---   WHERE user_id = ? AND package_type = 0 AND status = 'active' FOR UPDATE;
+--   WHERE user_id = ? AND package_type = 0 AND status IN ('active', 'exhausted') FOR UPDATE;
 --   若 cnt > 0 则拒绝购买并返回"您已有体验套餐"
 
 -- 单教练约束（应用层校验，DB 仅索引辅助）
@@ -1761,10 +1897,10 @@ GROUP BY package_type;
 | D3 | 退级条件 = 所有 active 套餐都失效 | **新增** |
 | D4 | 同时仅 1 名教练 | **保留** |
 | D5 | 同教练可多份套餐 | **新增** |
-| D6 | 体验套餐仅 1 份（active 状态，耗尽/过期后允许再购）| **新增** |
+| D6 | 体验套餐仅 1 份（active 或 exhausted 状态，过期/退款后允许再购）| **新增** |
 | D7 | 取消"续费"概念，改为"购买新套餐" | **新增** |
 | D8 | 换教练必经"注册用户"中转（先退旧 → 购新）| **新增** |
-| D9 | 体验课耗尽/过期后允许再购 | **新增** |
+| D9 | 体验课过期/退款后允许再购 | **新增** |
 | D10 | 套餐扣减 FIFO 自动，体验课优先 | **新增** |
 | D11 | 套餐状态机 = active → exhausted → expired（终态）/ refunded | **新增** |
 | D12 | 退级双机制（应用层事件 ≤ 1s + 定时任务兜底 ≤ 1h）| **新增** |
@@ -1818,13 +1954,14 @@ GROUP BY package_type;
 | D61 | 同时仅可绑定 1 名教练 | **保留** |
 | D62 | 课前 24h 取消可随时取消，< 24h 需教练审批 | **保留** |
 | D63 | 签到为自愿行为，不扣课时 | **保留** |
-| D64 | 教练 24h 内未审批订单自动取消 | **保留** |
+| D64 | 教练 24h 内未审批订单自动取消 | **废弃**（MVP 不实施教练审批订单，协商功能 P2）|
 | D65 | 争议退款 3 工作日内处理 | **保留** |
 | D66 | 微信/支付宝原路退回 3-7 工作日 | **保留** |
 | D67 | 退款到账 3-7 工作日 | **保留** |
 | D68 | 学员评价 7 天内提交，逾期不可补评 | **保留** |
 | D69 | 教练可回复评价，回复后学员不可修改 | **保留** |
-| D70 | 家长账号首期不单独设计 | **保留** |
+| D70 | 教练协商 P2 实施（数据模型已预留，MVP 不实施）| **新增** |
+| D71 | 家长账号首期不单独设计 | **保留** |
 
 ### 16.2 第二阶段决策 `[P2]`
 
