@@ -72,7 +72,7 @@
 ## 8. 页面发布规范
 
 ### 8.1 适用范围
-本规范适用于 MVP 范围内所有 ★ 标记的关键页面（清单见 [readme_v8_mvp_supplement.md §9](readme_v8_mvp_supplement.md)，共 55 个）。P2 / P3 页面可参考执行，但不强制。
+本规范适用于 MVP 范围内所有 ★ 标记的关键页面（清单见 [docs/archive/v8_mvp_supplement.md](docs/archive/v8_mvp_supplement.md)，共 55 个）。P2 / P3 页面可参考执行，但不强制。
 
 ### 8.2 四步上线检查（缺一不可）
 每个 ★ 页面在上线前必须依次通过以下四个环节：
@@ -110,7 +110,7 @@
 
 ```
 [1] 拆分用户故事        PRD 粒度：用户故事级（跨页面），非页面级
-        ↓
+   ↓ 遵循 [docs/user-story-specification.md](docs/user-story-specification.md)
 [2] PRD 评审通过        验收标准统一用 Gherkin (Given-When-Then)
         ↓
 [3] SDD 规格编写        spec.md (WHAT/WHY) + plan.md (API/数据/状态机) + tasks.md (TDD 任务清单)
