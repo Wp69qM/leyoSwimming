@@ -26,12 +26,12 @@ rules:
     - Capabilities 必须用 kebab-case（如 coach-browsing, package-purchase）
     - 引用 PRD 章节（如 §5.1, §13.3）
   specs:
-    - 使用 "## ADDED Requirements" delta header
-    - 每个需求用 "### Requirement: REQ-XXX 标题" 格式
-    - 描述必须含 MUST 或 SHALL（RFC 2119 规范动词）
-    - 每个 Requirement 至少 1 个 "#### Scenario:" 块
-    - Scenario 用 Gherkin (Given-When-Then)
-    - 场景数量 ≥ 3（1 正常 + 2 异常）
+    - "Use ## ADDED Requirements delta header"
+    - "Use ### Requirement: REQ-XXX Title format for each requirement"
+    - "Description must contain MUST or SHALL (RFC 2119)"
+    - "Each Requirement must have at least 1 #### Scenario: block"
+    - "Scenarios use Gherkin (Given-When-Then)"
+    - "At least 3 scenarios (1 normal + 2 abnormal)"
   design:
     - 数据模型必须列出涉及的表 + 操作类型（读/写）
     - API 设计必须含路径、鉴权、Response 码、错误码
