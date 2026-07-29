@@ -1,0 +1,58 @@
+schema: spec-driven
+
+# Project context — shown to AI when creating artifacts
+context: |
+  项目：leyoSwimming（乐游游泳馆预约系统）
+  技术栈：
+    - Backend: Node.js + Koa + Knex (MySQL) + Redis
+    - Frontend: Taro + React（微信小程序用户端/教练端）+ React Web（管理端）
+    - Test: Jest + Supertest（后端）、Jest + Testing Library（前端）
+  业务领域：游泳馆教练预约 SaaS（MVP 范围 50 个用户故事）
+  文档结构：
+    - docs/prd/prd.md = Master PRD（唯一业务真相源）
+    - docs/spec/ = 规范类文档（user-story / tech-design / test-plan / figma）
+    - docs/stories/US-XXX-.../ = US 三件套（user-story.md / tech-design.md / test-plan.md）
+    - openspec/ = OpenSpec CLI 工作区（changes/ + specs/ + archive/）
+  硬约束：
+    - US 生成必须遵循 AGENTS.md §8（15 章 + 12 步流程）
+    - TDD 严格执行 RED→GREEN→COMMIT
+    - 不主动 push GitHub（仅响应用户明确指令）
+    - MVP 能力 10 项必全覆盖（PRD §13.1）
+
+# Per-artifact rules
+rules:
+  proposal:
+    - 保持 1-2 页，聚焦 Why 和 What Changes
+    - Capabilities 必须用 kebab-case（如 coach-browsing, package-purchase）
+    - 引用 PRD 章节（如 §5.1, §13.3）
+  specs:
+    - 使用 "## ADDED Requirements" delta header
+    - 每个需求用 "### Requirement: REQ-XXX 标题" 格式
+    - 描述必须含 MUST 或 SHALL（RFC 2119 规范动词）
+    - 每个 Requirement 至少 1 个 "#### Scenario:" 块
+    - Scenario 用 Gherkin (Given-When-Then)
+    - 场景数量 ≥ 3（1 正常 + 2 异常）
+  design:
+    - 数据模型必须列出涉及的表 + 操作类型（读/写）
+    - API 设计必须含路径、鉴权、Response 码、错误码
+    - 缓存策略必须含 Key 格式 + TTL + 失效策略
+    - 性能指标必须可量化（P50/P99/QPS）
+  tasks:
+    - 每个 Task = 2-5 分钟可执行单元
+    - 每个 Task 必须标注对应 REQ-XXX 和 Scenario
+    - 严格 RED → GREEN → COMMIT 5 步循环
+    - 每 Task = 1 commit
+    - 禁止 placeholder（TBD / TODO）
+
+# Per-operation guidance
+operations:
+  apply:
+    guidance:
+      - 按 tasks.md 顺序执行，不可跳步
+      - 每 Task 完成后跑 openspec validate 确认无回归
+      - TDD per-task commit 不 push（遵循 AGENTS.md §2.4）
+  archive:
+    guidance:
+      - 归档前确认 openspec validate 通过
+      - 归档后更新 docs/stories/INDEX.md 状态
+      - 归档后更新 AGENTS.md §8.4 覆盖性自检报告

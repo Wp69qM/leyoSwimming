@@ -144,7 +144,7 @@ git commit -m "<type>(<scope>): <description>"
 
 本规范**不绑死**具体技术栈，但代码示例假设：
 - **Backend**：TypeScript + Koa + MySQL（项目实际栈见 [docs/prd/prd.md](../../../prd/prd.md)）
-- **Frontend**：Taro + React（项目实际栈见 `agent.md §10.2`）
+- **Frontend**：Taro + React（项目实际栈见 `AGENTS.md §7`）
 - **测试**：Jest（前端） + supertest（后端 HTTP）
 
 如使用其他技术栈，**保持 5 步结构**即可，具体命令 / 代码相应替换。

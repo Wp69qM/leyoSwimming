@@ -1976,7 +1976,7 @@ GROUP BY package_type;
 
 ## 15. 启动 §9 SDD 工作流前置条件
 
-启动 [agent.md §9 SDD 工作流](file:///c:/AI/AI测试项目/leyoSwimming/agent.md) 前必须满足：
+启动 [AGENTS.md §6 SDD 工作流](file:///d:/AI%20Agent/leyoSwimming/AGENTS.md) 前必须满足：
 
 ### 15.1 文档完备性 ✅
 - [x] 用户故事级 PRD（v11 本文 + 待拆分 US）
@@ -2006,7 +2006,7 @@ GROUP BY package_type;
 - [x] Out of Scope 清单（§13.2）
 - [x] MVP 不实施固定搭档 / IM / 视频 / AI
 
-### 15.5 工程规范（[agent.md](file:///c:/AI/AI测试项目/leyoSwimming/agent.md)）
+### 15.5 工程规范（[AGENTS.md](file:///d:/AI%20Agent/leyoSwimming/AGENTS.md)）
 - [x] 4 步上线检查（PRD → UI → 联调 → 测试）
 - [x] §9 SDD 工作流
 - [x] TDD 严格 RED → GREEN → REFACTOR
