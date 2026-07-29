@@ -124,6 +124,8 @@
 [7] 触发 §8 页面发布    PRD→UI→联调→测试 四步全过后才合并
 ```
 
+> **§9 文档目录已并入 §10**，§10 定义顶层 8 个目录的约束；本节仅描述 SDD 工作流内 US-001 等的子目录组织。
+
 ### 9.3 文档目录约定
 
 每个用户故事一个独立目录，禁止多故事混写：
@@ -197,3 +199,113 @@ specify init --ai claude
 | [6] 一致性体检 | 0.5h | AI 辅助 |
 | [7] §8 上线检查 | 1.0h | 含联调 |
 | **合计** | **~9h / 故事** | 1~1.5 个工作日 |
+
+---
+
+## 10. 项目目录结构
+
+> 本节定义 leyoSwimming 项目**顶层目录**的约束。子目录由各自的子 Agent 维护（见 §10.5）。
+
+### 10.1 顶层目录布局（最终态）
+
+```
+leyoSwimming/
+├── agent.md                       # 项目总规范（AI 协作 / GitHub 同步）
+├── docs/                          # 产品与开发文档
+│   ├── prd/                       # Master PRD（唯一，readme_v11_prd_final.md）
+│   ├── stories/                   # US 库（每个文件 = 1 份 Story PRD）
+│   ├── spec/                      # SDD 规格（spec.md / plan.md / tasks.md）
+│   └── figma/                     # Figma 原型 + 状态截图
+├── miniapp-user/                  # 微信小程序 - 用户端（学员）
+├── miniapp-coach/                 # 微信小程序 - 教练端
+├── web-admin/                     # Web 后台 - 管理端（管理员）
+├── backend/                       # 后端 API 服务
+├── shared/                        # 跨应用共享代码（types / constants / utils）
+├── deploy/                        # 部署与运维（docker / k8s / ci-cd）
+└── tools/                         # 工具与脚本（迁移 / 测试数据生成）
+```
+
+### 10.2 目录用途
+
+| 目录 | 用途 | 关键技术（待定）|
+|------|------|----------------|
+| `agent.md` | 项目级 AI 协作规范 | Markdown |
+| `docs/prd/` | Master PRD 唯一落档 | Markdown |
+| `docs/stories/` | US 库（30-50 个）| Markdown + Gherkin |
+| `docs/spec/` | SDD 规格（按 US 编号组织）| Markdown |
+| `docs/figma/` | Figma 原型与状态截图 | Figma + PNG |
+| `miniapp-user/` | 学员使用的小程序 | 微信原生 / Taro / uni-app |
+| `miniapp-coach/` | 教练使用的小程序 | 同上 |
+| `web-admin/` | 管理员使用的 Web 后台 | React / Vue + Ant Design |
+| `backend/` | 后端 API 服务 | Node.js / Go / Java + MySQL |
+| `shared/` | 跨端共享（类型、常量、工具）| TypeScript |
+| `deploy/` | 部署配置 + CI/CD | Docker + k8s + GitHub Actions |
+| `tools/` | 工具脚本 | Node.js / Python / Shell |
+
+### 10.3 约束规则（红线）
+
+| # | 规则 | 违反后果 |
+|---|------|----------|
+| 1 | **顶层目录固定为 8 个**：`docs/` + 3 个前端 + `backend/` + `shared/` + `deploy/` + `tools/` | 目录结构混乱 |
+| 2 | **子目录由子 Agent 约束**：每个代码目录内部结构由各自的 `AGENT.md` 定义 | 与全局规范冲突 |
+| 3 | **文档单向引用代码**：`docs/` → 代码目录（仅路径引用，不修改）| 文档与代码同步困难 |
+| 4 | **代码目录禁止互引用**：`miniapp-user/`、`miniapp-coach/`、`web-admin/` 之间**不允许直接互相引用** | 架构混乱 |
+| 5 | **跨端通过 backend + shared 通信**：前端 → `backend/`（API）+ `shared/`（类型）| 重复实现 |
+| 6 | **每个代码目录可有独立 AGENT.md**：约定子目录结构、技术栈、命名规范 | 跨目录风格不一致 |
+
+### 10.4 跨目录引用矩阵
+
+| From \ To | docs/ | miniapp-* | web-admin/ | backend/ | shared/ | deploy/ | tools/ |
+|-----------|-------|-----------|------------|----------|---------|---------|--------|
+| docs/ | ✅ | 引用路径 | 引用路径 | 引用路径 | — | — | — |
+| miniapp-* | ❌ | ❌ | ❌ | ✅ API | ✅ 类型 | ❌ | ❌ |
+| web-admin/ | ❌ | ❌ | ❌ | ✅ API | ✅ 类型 | ❌ | ❌ |
+| backend/ | ❌ | ❌ | ❌ | ❌ | ✅ 引用 | ❌ | ✅ 脚本 |
+| shared/ | ❌ | ❌ | ❌ | ✅ 被引用 | ❌ | ❌ | ❌ |
+| deploy/ | ❌ | ❌ | ❌ | ✅ 部署 | — | ❌ | ❌ |
+| tools/ | ❌ | ❌ | ❌ | ✅ 迁移 | — | ❌ | ❌ |
+
+> ✅ = 允许引用；❌ = 禁止引用；— = 不适用
+
+### 10.5 子 Agent 预留
+
+每个代码目录可由独立的子 Agent 维护（推荐结构）：
+
+| 目录 | 预留的子 Agent 文件 | 职责 |
+|------|--------------------|------|
+| `miniapp-user/` | `AGENT.md` | 用户端小程序规范（页面结构、组件、状态管理）|
+| `miniapp-coach/` | `AGENT.md` | 教练端小程序规范 |
+| `web-admin/` | `AGENT.md` | Web 后台规范（路由、组件、权限）|
+| `backend/` | `AGENT.md` | 后端 API 规范（路由、ORM、中间件、测试）|
+| `shared/` | `AGENT.md` | 共享代码规范（类型定义、命名、版本）|
+| `deploy/` | `AGENT.md` | 部署规范（环境变量、镜像、流水线）|
+
+**当前已具备的 Agent**：
+- `agent.md`（本文件，根级，规范整个项目）
+
+### 10.6 与 §9 SDD 工作流的关系
+
+`docs/` 是 §9 SDD 工作流的产物存放地：
+- `docs/stories/` ← §9 Step [1][2] US 库
+- `docs/spec/` ← §9 Step [3] SDD 规格
+- `docs/figma/` ← §9 Step [4] Figma 原型
+
+代码目录是 §9 Step [5] TDD 实现的产物：
+- `miniapp-user/`, `miniapp-coach/`, `web-admin/`, `backend/` ← 实际代码
+- `shared/` ← 跨端共享类型与工具
+- `deploy/` ← 部署配置
+
+### 10.7 迁移计划
+
+当前所有文档位于项目根目录：
+- `readme_v11_prd_final.md`
+- `readme_v7.md`, `readme_v8_mvp_supplement.md`, `readme_v9_prd_closure.md`, `readme_v10_identity_refactor.md`
+- `user_story_specification.md`
+- `agent.md`
+
+**计划分阶段迁移**：
+1. **阶段 1**（当前）：根目录暂存文档，agent.md 先行定义规范
+2. **阶段 2**（US 拆分启动时）：创建 `docs/prd/`、`docs/stories/`、`docs/spec/`、`docs/figma/`，迁移文档
+3. **阶段 3**（代码开发启动时）：创建 `miniapp-*`、`web-admin/`、`backend/`、`shared/`、`deploy/`、`tools/`
+
+每个阶段开始时由 PM 决策是否迁移，避免影响当前工作。
