@@ -65,6 +65,7 @@
 | v1.0 | 2026-07-27 | 初版：GitHub 同步规范 |
 | v1.1 | 2026-07-28 | 新增 §8 页面发布规范（PRD 评审 → UI → 联调 → 测试 四步检查） |
 | v1.2 | 2026-07-28 | 新增 §9 规范驱动开发工作流（SDD + TDD + Figma MCP 七步流水线） |
+| v1.3 | 2026-07-29 | 新增 [user_story_specification.md](user_story_specification.md)，§9 Step [1] 强制引用 |
 
 ---
 
