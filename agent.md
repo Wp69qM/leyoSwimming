@@ -67,6 +67,9 @@
 | v1.2 | 2026-07-28 | 新增 §9 规范驱动开发工作流（SDD + TDD + Figma MCP 七步流水线） |
 | v1.3 | 2026-07-29 | 新增 [user_story_specification.md](user_story_specification.md)，§9 Step [1] 强制引用 |
 | v1.4 | 2026-07-30 | US 拆分规范迁移至 docs/stories/SPECIFICATION.md；新增 §11 用户故事生成硬约束 |
+| v1.5 | 2026-07-30 | §10 目录结构升级：US 规范迁至 docs/spec/user-story/；US 文档改为子目录结构（user-story.md + tech-design.md + test-plan.md + figma.md 四件套）；预留 docs/spec/{tech-design, test-plan, figma}/ 子目录 |
+| v1.6 | 2026-07-30 | test-plan.md 升级为双重角色（TDD 任务清单 + 测试计划），承担 superpowers tasks.md 角色；US-001 完成 5 task 完整示范 |
+| v1.7 | 2026-07-30 | 拆分为 3 件套：删除故事级 figma.md，Figma 内容合并到 user-story.md §13-15；章节数 12 → 15；docs/spec/figma/ 保留为 L1 全局设计系统规范 |
 
 ---
 
@@ -213,10 +216,18 @@ specify init --ai claude
 leyoSwimming/
 ├── agent.md                       # 项目总规范（AI 协作 / GitHub 同步）
 ├── docs/                          # 产品与开发文档
-│   ├── prd/                       # Master PRD（唯一，readme_v11_prd_final.md）
-│   ├── stories/                   # US 库（每个文件 = 1 份 Story PRD）
-│   ├── spec/                      # SDD 规格（spec.md / plan.md / tasks.md）
-│   └── figma/                     # Figma 原型 + 状态截图
+│   ├── prd/                       # Master PRD（唯一）
+│   ├── spec/                      # 规范类文档（按主题分子目录）
+│   │   ├── user-story/            #   - US 规范：INDEX / SPECIFICATION / TEMPLATE / EXAMPLE
+│   │   ├── tech-design/           #   - 技术设计规范（待补）
+│   │   ├── test-plan/             #   - 测试计划规范（待补）
+│   │   └── figma/                 #   - Figma 规范（待补）
+│   ├── stories/                   # US 库（每个 US = 1 个子目录，含 3 份文档）
+│   │   └── US-001-游客-浏览教练列表与详情/
+│   │       ├── user-story.md      #   业务 GWT + Figma 链接 + 设计决策 + 评审
+│   │       ├── tech-design.md     #   API/数据/状态机
+│   │       └── test-plan.md       #   TDD 任务清单 + 测试用例
+│   └── archive/                   # 历史版本（v1~v10）
 ├── miniapp-user/                  # 微信小程序 - 用户端（学员）
 ├── miniapp-coach/                 # 微信小程序 - 教练端
 ├── web-admin/                     # Web 后台 - 管理端（管理员）
@@ -232,9 +243,12 @@ leyoSwimming/
 |------|------|----------------|
 | `agent.md` | 项目级 AI 协作规范 | Markdown |
 | `docs/prd/` | Master PRD 唯一落档 | Markdown |
-| `docs/stories/` | US 库（30-50 个）| Markdown + Gherkin |
-| `docs/spec/` | SDD 规格（按 US 编号组织）| Markdown |
-| `docs/figma/` | Figma 原型与状态截图 | Figma + PNG |
+| `docs/spec/user-story/` | US 拆分规范：INDEX（注册表）/ SPECIFICATION / TEMPLATE / EXAMPLE | Markdown |
+| `docs/spec/tech-design/` | 技术设计规范（待补） | Markdown |
+| `docs/spec/test-plan/` | 测试计划规范（待补） | Markdown |
+| `docs/spec/figma/` | Figma 规范（待补） | Markdown |
+| `docs/stories/` | US 库（30-50 个），每个 US 一个子目录，含 3 份文档：user-story.md（含 Figma 链接 + 设计决策）/ tech-design.md / test-plan.md | Markdown + Gherkin |
+| `docs/archive/` | 历史版本（v1~v10） | Markdown |
 | `miniapp-user/` | 学员使用的小程序 | 微信原生 / Taro / uni-app |
 | `miniapp-coach/` | 教练使用的小程序 | 同上 |
 | `web-admin/` | 管理员使用的 Web 后台 | React / Vue + Ant Design |
@@ -287,9 +301,11 @@ leyoSwimming/
 ### 10.6 与 §9 SDD 工作流的关系
 
 `docs/` 是 §9 SDD 工作流的产物存放地：
-- `docs/stories/` ← §9 Step [1][2] US 库
-- `docs/spec/` ← §9 Step [3] SDD 规格
-- `docs/figma/` ← §9 Step [4] Figma 原型
+- `docs/spec/user-story/` ← §11 用户故事规范
+- `docs/stories/US-XXX-.../` ← §9 Step [1][2] US 库（每个 US 3 份文档聚拢）
+  - `user-story.md` ← 业务级 GWT 验收 + Figma 链接（§13）+ 页面级设计决策（§14）+ 设计评审记录（§15）
+  - `tech-design.md` ← §9 Step [3] plan.md 角色
+  - `test-plan.md` ← §9 Step [5][6] **双重角色**：TDD 任务清单（superpowers tasks 风格）+ 测试计划
 
 代码目录是 §9 Step [5] TDD 实现的产物：
 - `miniapp-user/`, `miniapp-coach/`, `web-admin/`, `backend/` ← 实际代码
@@ -301,12 +317,11 @@ leyoSwimming/
 当前所有文档位于项目根目录：
 - `readme_v11_prd_final.md`
 - `readme_v7.md`, `readme_v8_mvp_supplement.md`, `readme_v9_prd_closure.md`, `readme_v10_identity_refactor.md`
-- `docs/stories/SPECIFICATION.md`（US 拆分规范）
 - `agent.md`
 
 **计划分阶段迁移**：
 1. **阶段 1**（当前）：根目录暂存文档，agent.md 先行定义规范
-2. **阶段 2**（US 拆分启动时）：创建 `docs/prd/`、`docs/stories/`、`docs/spec/`、`docs/figma/`，迁移文档
+2. **阶段 2**（US 拆分启动时）：创建 `docs/prd/`、`docs/spec/user-story/`、`docs/stories/`，迁移文档；US 改为子目录结构（含 user-story / tech-design / test-plan / figma）
 3. **阶段 3**（代码开发启动时）：创建 `miniapp-*`、`web-admin/`、`backend/`、`shared/`、`deploy/`、`tools/`
 
 每个阶段开始时由 PM 决策是否迁移，避免影响当前工作。
@@ -316,19 +331,19 @@ leyoSwimming/
 ## 11. 用户故事生成硬约束
 
 > 本节是 AI Agent **每次生成 / 拆分 / 修订用户故事时**必须强制遵守的红线条款。
-> 详细规则见 [docs/stories/SPECIFICATION.md](docs/stories/SPECIFICATION.md)，模板见 [docs/stories/TEMPLATE.md](docs/stories/TEMPLATE.md)，示例见 [docs/stories/EXAMPLE.md](docs/stories/EXAMPLE.md)。
+> 详细规则见 [docs/spec/user-story/SPECIFICATION.md](docs/spec/user-story/SPECIFICATION.md)，模板见 [docs/spec/user-story/TEMPLATE.md](docs/spec/user-story/TEMPLATE.md)，示例见 [docs/spec/user-story/EXAMPLE.md](docs/spec/user-story/EXAMPLE.md)，注册表见 [docs/spec/user-story/INDEX.md](docs/spec/user-story/INDEX.md)。
 
 ### 11.1 输入与产物（强制）
 
 | # | 约束 | 违反后果 |
 |---|------|----------|
-| 1 | **三件套同源**：每次生成 US 前必须**同时**读取 `SPECIFICATION.md` + `TEMPLATE.md` + `EXAMPLE.md` | 章节结构 / 命名 / GWT 风格漂移 |
-| 2 | **基于模板复制**：必须先 `cp TEMPLATE.md → US-XXX-标题.md`，再在副本上填写，**禁止**白手起家 | 章节缺失 |
-| 3 | **产出落档位置**：所有 US 文件统一存放于 `docs/stories/`，文件名严格遵循 `US-XXX-[角色]-[动作].md` | 与 PRD / spec 引用脱节 |
+| 1 | **三件套同源**：每次生成 US 前必须**同时**读取 `docs/spec/user-story/SPECIFICATION.md` + `TEMPLATE.md` + `EXAMPLE.md` | 章节结构 / 命名 / GWT 风格漂移 |
+| 2 | **基于模板复制**：必须先在 `docs/stories/US-XXX-.../` 子目录下创建 `user-story.md`（从 `docs/spec/user-story/TEMPLATE.md` 复制，含 §13-15 Figma 章节），同时建立 `tech-design.md` / `test-plan.md` 占位，**禁止**白手起家 | 章节缺失 |
+| 3 | **产出落档位置**：所有 US 子目录统一存放于 `docs/stories/`，目录名严格遵循 `US-XXX-[角色]-[动作]/`；US 主文档固定为 `user-story.md` | 与 PRD / spec 引用脱节 |
 
-### 11.2 章节完整性（强制 12 章）
+### 11.2 章节完整性（强制 15 章）
 
-每份 US **必须**包含且仅包含以下 12 个章节，顺序固定：
+每份 US **必须**包含且仅包含以下 15 个章节，顺序固定：
 
 ```
 1. 基本信息             → 6 字段（编号/标题/角色/价值/优先级/估时）
@@ -343,6 +358,9 @@ leyoSwimming/
 10. INVEST 自检         → 6 项 checkbox
 11. 完整性检查           → 字段 / 规则 / 标准 / 场景 4 大类
 12. 备注                → 幂等键 / 事务边界 / 性能要求
+13. Figma 链接          → Figma file URL + 关键 frame + 状态截图清单
+14. 页面级设计决策       → 本故事独有的设计决策（不重复全局规范）
+15. 设计评审记录         → 评审人/反馈/处置
 ```
 
 **少任一章 = 不合格，不允许进入 §9 Step [2] PRD 评审。**
@@ -384,7 +402,7 @@ leyoSwimming/
 ```markdown
 ## 覆盖性自检报告
 
-### 1. MVP 能力覆盖（v11 §13.1 11 项必全覆盖）
+### 1. MVP 能力覆盖（v11 §13.1 10 项必全覆盖）
 | 能力 | 涉及 US |
 |------|---------|
 | ... | ... |
@@ -412,12 +430,13 @@ leyoSwimming/
 ```markdown
 ## Agent 自检（每次交付必填）
 
-- [ ] 已读取 `docs/stories/SPECIFICATION.md`
-- [ ] 已读取 `docs/stories/TEMPLATE.md`
-- [ ] 已参考 `docs/stories/EXAMPLE.md`
-- [ ] 12 个章节齐全，顺序与模板一致
+- [ ] 已读取 `docs/spec/user-story/SPECIFICATION.md`
+- [ ] 已读取 `docs/spec/user-story/TEMPLATE.md`
+- [ ] 已参考 `docs/spec/user-story/EXAMPLE.md`
+- [ ] US 子目录 `docs/stories/US-XXX-.../` 下已建立 user-story.md / tech-design.md / test-plan.md 三份文件
+- [ ] 15 个章节齐全（§1-§15），顺序与模板一致
 - [ ] 标题符合 `[角色] + [动作] + [目标]`
-- [ ] 文件名符合 `US-XXX-[角色]-[动作].md`
+- [ ] 目录名符合 `US-XXX-[角色]-[动作]/`
 - [ ] ≥ 3 个 GWT 场景（1 正常 + 2 异常）
 - [ ] ≥ 3 个边界场景
 - [ ] 业务规则引用 v11 PRD 章节（§x.y.z）

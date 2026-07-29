@@ -136,8 +136,8 @@ US-036 ──→ US-044
 
 ## 5. 后续步骤
 
-1. 按本表顺序逐个编写 `US-XXX-[角色]-[动作].md`。
-2. 每份 US 必须从 [TEMPLATE.md](./TEMPLATE.md) 复制，遵循 [SPECIFICATION.md](./SPECIFICATION.md)。
+1. 按本表顺序逐个创建 `US-XXX-[角色]-[动作]/` 子目录。
+2. 复制 [TEMPLATE.md](./TEMPLATE.md) 为子目录内的 `user-story.md`（含 §13-15 Figma 章节），遵循 [SPECIFICATION.md](./SPECIFICATION.md)；同时新建 `tech-design.md`（开发填）、`test-plan.md`（开发+QA 共同填）占位。
 3. 完成单个 US 后，将本表对应行状态从 `[DRAFT]` 更新为 `[APPROVED]`。
 4. 每完成一批 US，重新跑 §2 + §3 覆盖性检查。
 
