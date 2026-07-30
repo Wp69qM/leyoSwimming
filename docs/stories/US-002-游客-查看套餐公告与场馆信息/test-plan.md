@@ -13,7 +13,7 @@
 - **TDD 任务清单**（superpowers 风格）：每个 task = 2-5 分钟可执行单元
 - **测试计划**：覆盖 [user-story.md](./user-story.md) 中所有 GWT 场景
 
-每个 Task 严格遵循 **RED → GREEN → COMMIT** 循环，不允许跳步。
+每个 Task 严格遵循 **RED → GREEN → REFACTOR → COMMIT** 循环，不允许跳步。
 
 ---
 
@@ -71,6 +71,14 @@ describe('PackageTemplateRepository.findPublicList', () => {
     });
   });
 
+  it('filters out price=0 gift templates', async () => {
+    const repo = new PackageTemplateRepository();
+    const result = await repo.findPublicList({});
+    result.items.forEach(item => {
+      expect(item.price).toBeGreaterThan(0);
+    });
+  });
+
   it('returns empty array when no published templates (场景 2)', async () => {
     const repo = new PackageTemplateRepository();
     const result = await repo.findPublicList({});
@@ -106,6 +114,7 @@ export class PackageTemplateRepository {
     const query = db('package_template')
       .where({ status: 1 })                    // 仅上架
       .whereIn('package_type', [0, 1])         // 排除自定义（2），自定义套餐走 US-020 入口
+      .where('price', '>', 0)                  // 过滤 price=0 的赠送类模板
       .orderBy('sort_order', 'asc')
       .orderBy('package_type', 'asc');         // 体验在前
     if (params.type === 'experience') query.andWhere({ package_type: 0 });
@@ -125,9 +134,20 @@ export class PackageTemplateRepository {
 - [ ] **Step 4: 跑测试确认通过**
 
 Run: `npm test -- package_template.test.ts`
-Expected: PASS（3 个测试全过）
+Expected: PASS（4 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: 重构（REFACTOR）**
+
+- 检查 WHERE 条件顺序与索引匹配
+- 提取 `PUBLIC_PACKAGE_TYPES = [0, 1]` 常量
+- 优化字段别名命名一致性
+
+- [ ] **Step 6: 跑测试确认通过（重构后）**
+
+Run: `npm test -- package_template.test.ts`
+Expected: PASS（4 个测试全过）
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add backend/src/repositories/package_template.ts backend/tests/repositories/package_template.test.ts
@@ -233,7 +253,18 @@ export class AnnouncementRepository {
 Run: `npm test -- announcement.test.ts`
 Expected: PASS（3 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: 重构（REFACTOR）**
+
+- 提取 `MAX_ANNOUNCEMENT_LIMIT = 10` 常量
+- 确认 `idx_notice_time_priority` 索引覆盖时间窗 + priority 排序
+- 将时间窗查询封装为可复用 helper
+
+- [ ] **Step 6: 跑测试确认通过（重构后）**
+
+Run: `npm test -- announcement.test.ts`
+Expected: PASS（3 个测试全过）
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add backend/src/repositories/announcement.ts backend/tests/repositories/announcement.test.ts
@@ -357,7 +388,18 @@ export class VenueRepository {
 Run: `npm test -- venue.test.ts`
 Expected: PASS（3 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: 重构（REFACTOR）**
+
+- 提取闭馆/换水类型映射函数 `mapClosureType`
+- 显式处理 `venue` 表为空时的 null 返回
+- 统一 `closureNotice` 字段构造逻辑
+
+- [ ] **Step 6: 跑测试确认通过（重构后）**
+
+Run: `npm test -- venue.test.ts`
+Expected: PASS（3 个测试全过）
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add backend/src/repositories/venue.ts backend/tests/repositories/venue.test.ts
@@ -410,10 +452,10 @@ describe('GET /announcements', () => {
     expect(res.body.items).toEqual([]);
   });
 
-  it('returns 400 for invalid limit (> 10)', async () => {
+  it('clips limit to max 10 and returns 200 (limit=999)', async () => {
     const res = await request(app).get('/announcements?limit=999');
-    // limit=999 应被截断为 10，返回 200；但 limit=abc 非法应 400
-    expect([200, 400]).toContain(res.status);
+    expect(res.status).toBe(200);
+    expect(res.body.items.length).toBeLessThanOrEqual(10);
   });
 });
 
@@ -463,7 +505,7 @@ export async function listAnnouncements(ctx) {
   const limit = Number(ctx.query.limit) || 5;
   if (isNaN(limit) || limit < 1) {
     ctx.status = 400;
-    ctx.body = { error: 'INVALID_LIMIT', message: 'limit 必须为 1-10 的整数' };
+    ctx.body = { error: 'INVALID_LIMIT', message: 'limit 必须为 ≥1 的整数' };
     return;
   }
   const result = await announcementRepo.findActiveList({ limit });
@@ -498,7 +540,18 @@ export default router;
 Run: `npm test -- guest_info.test.ts`
 Expected: PASS（7 个测试全过：套餐 2 + 公告 3 + 场馆 2）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: 重构（REFACTOR）**
+
+- 提取 `parseLimit` 校验 helper，统一参数校验逻辑
+- 统一 404 / 400 错误响应结构
+- 确认 router 前缀与 tech-design 一致（`/api/v1`）
+
+- [ ] **Step 6: 跑测试确认通过（重构后）**
+
+Run: `npm test -- guest_info.test.ts`
+Expected: PASS（7 个测试全过：套餐 2 + 公告 3 + 场馆 2）
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add backend/src/controllers/guest_info.ts backend/src/routes/guest_info.ts backend/tests/controllers/guest_info.test.ts
@@ -510,7 +563,7 @@ git commit -m "feat(api): add 3 public guest info endpoints (packages, announcem
 ## 3. 任务执行纪律
 
 - **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4
-- **每步必须可见**：Step 1（写测试）→ Step 2（看失败）→ Step 3（写实现）→ Step 4（看通过）→ Step 5（commit）
+- **每步必须可见**：Step 1（写测试）→ Step 2（看失败）→ Step 3（写实现）→ Step 4（看通过）→ Step 5（重构）→ Step 6（看通过）→ Step 7（commit）
 - **不允许 placeholder**：任何 "TBD" / "TODO" / "实现 later" / "类似 Task N" = 立即返工
 - **每个 Task 结束 = 1 次 commit**：禁止跨 Task 累积 commit
 - **P0 必做**：MVP 阶段 4 个 Task 全部为 P0
@@ -532,3 +585,4 @@ git commit -m "feat(api): add 3 public guest info endpoints (packages, announcem
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：4 个 Task（3 个 Repository + 1 个 3 端点 API），覆盖 4 个 GWT 场景；严格 RED→GREEN→COMMIT 5 步循环 |
+| v1.1 | 2026-07-30 | Dev | 合规修复：引入 REFACTOR 步骤；补充 price=0 过滤与 limit 钳制规则；GWT 场景增至 6 个 |

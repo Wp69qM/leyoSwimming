@@ -35,7 +35,7 @@ CREATE INDEX idx_package_template_status ON package_template(status, sort_order)
 
 ### 状态过滤规则
 
-- `package_template`：仅 `status=1`（上架）且 `package_type ∈ {0, 1}`（体验/正式）返回
+- `package_template`：仅 `status=1`（上架）且 `package_type ∈ {0, 1}`（体验/正式）且 `price > 0` 返回
 - `notice`：仅 `visible_scope='all'` 且 `start_at <= NOW() < end_at` 返回
 - `venue_closure`：命中当前时间窗才填充 `closureNotice` 字段
 
@@ -53,10 +53,10 @@ CREATE INDEX idx_package_template_status ON package_template(status, sort_order)
 ### GET /api/v1/announcements（公告列表）
 
 - 鉴权：否
-- Query: `limit`（默认 5，最大 10）
+- Query: `limit`（默认 5，最大 10；Repository 将 `limit` 钳制为 `Math.min(limit, 10)`）
 - 过滤：`visible_scope='all'` 且 `start_at <= NOW() < end_at`
 - 排序：`priority DESC, start_at DESC`
-- Response 200: `{ items: AnnouncementItem[] }`
+- Response 200: `{ items: AnnouncementItem[] }`（`limit > 10` 仍返回 200，最多 10 条）
 - 空列表返回 200 + `items: []`（前端隐藏通知栏区域）
 
 ### GET /api/v1/venue（场馆信息）
@@ -91,7 +91,7 @@ CREATE INDEX idx_package_template_status ON package_template(status, sort_order)
 
 - 三个接口均无需登录
 - 防刷：同一 IP 1 分钟 > 200 次 → 429 限流
-- 防注入：query 参数类型校验（`limit` 必须为 1-10 整数，`type` 必须为枚举值）
+- 防注入：query 参数类型校验（`limit` 必须为 ≥1 整数，大于 10 时由 Repository 钳制为 10；`type` 必须为枚举值）
 - 不暴露管理端字段（`created_by` / `updated_at` 等不返回游客）
 
 ## Cross-US Dependencies

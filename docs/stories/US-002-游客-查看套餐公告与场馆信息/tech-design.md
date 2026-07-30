@@ -104,6 +104,7 @@ CREATE INDEX idx_package_template_status ON package_template(status, sort_order)
 **业务规则**
 - 仅返回 `status = 1`（上架）的模板
 - 仅返回 `package_type ∈ {0 体验, 1 正式}` 的模板；`package_type = 2 自定义` 不在列表接口返回（自定义套餐无固定价格，仅展示入口）
+- 过滤 `price = 0` 的赠送类模板（避免被错误上架后出现在游客列表）
 - 按 `sort_order ASC` 排序，`sort_order` 相同时 `package_type ASC`（体验在前）
 - 空列表返回 200 + `items: []`，不报错
 
@@ -143,7 +144,8 @@ CREATE INDEX idx_package_template_status ON package_template(status, sort_order)
 - 仅返回 `visible_scope = 'all'`（游客可见）的公告
 - 仅返回 `start_at <= NOW() < end_at` 的公告（时间窗内生效）
 - 按 `priority DESC, start_at DESC` 排序
-- 按 `limit` 截断（默认 5，最大 10）
+- `limit` 默认 5；Repository 将其上限钳制为 10，即 `Math.min(limit, 10)`
+- Controller 对 `limit > 10` 不返回 400，直接返回 200 并最多返回 10 条；仅对非整数或 `limit < 1` 返回 400
 - 空列表返回 200 + `items: []`，前端隐藏通知栏区域
 
 ### 2.3 GET /venue（场馆信息）
@@ -273,7 +275,7 @@ venue_closure 时间窗
 
 - 三个接口均**无需登录**（游客可访问）
 - 防刷：同一 IP 1 分钟内请求 > 200 次，触发限流 429
-- 防注入：所有 query 参数做类型校验（`limit` 必须为 1-10 的整数，`type` 必须为枚举值）
+- 防注入：所有 query 参数做类型校验（`limit` 必须为 ≥1 的整数；大于 10 时由 Repository 钳制为 10，Controller 仍返回 200；`type` 必须为枚举值）
 - 不暴露管理端字段：`package_template` 的 `created_by` / `updated_at` 等管理端字段不返回给游客
 
 ---
@@ -300,6 +302,8 @@ venue_closure 时间窗
 | 场馆未配置 | 场馆信息接口返回 404 + `VENUE_NOT_CONFIGURED`，前端展示占位文案 |
 | 公告 `visible_scope` 不含游客 | 后端 SQL 过滤 `visible_scope = 'all'`，游客看不到 student/coach 类公告 |
 | 赠送类套餐模板被错误上架 | 后端 SQL 过滤 `package_type IN (0, 1)`，不返回 `package_type = 2` |
+| 套餐模板 `price = 0` | 后端 SQL 过滤 `price > 0`，不返回赠送类模板 |
+| 公告 `limit > 10` | Repository 钳制为 10，Controller 仍返回 200 |
 | Redis 宕机 | 降级直接查 DB，记录告警 |
 | DB 慢查询 | 超过 50ms 触发慢查询告警 |
 | 闭馆换水时间窗命中 | `venue.closureNotice` 字段填充，前端置顶红色提示条 |
@@ -333,3 +337,4 @@ venue_closure 时间窗
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版完整填写：3 个只读 API + 4 张表读取 + Redis 缓存（套餐 300s / 公告 60s / 场馆 3600s）+ 性能指标 + 安全防刷 |
+| v1.1 | 2026-07-30 | Dev | 合规修复：明确 package_template 过滤 price=0；明确 limit 钳制为 10 且 Controller 返回 200 |

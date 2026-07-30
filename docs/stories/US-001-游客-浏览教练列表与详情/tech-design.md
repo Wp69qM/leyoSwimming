@@ -45,8 +45,8 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 
 | 字段 | 类型 | 取值范围 | 业务含义 | 公开可见规则 |
 |------|------|---------|---------|-------------|
-| `status` | TINYINT | 0=申请中, 1=在职, 2=休息, 3=离职审批中, 4=已离职 | 入驻生命周期状态 | 仅 status=1 出现在公开列表 |
-| `real_time_status` | TINYINT/VARCHAR | 空闲中/上课中/休息中/已下班/请假中 | 当日实时可约状态 | status=1 时展示，影响"立即预约"按钮 |
+| `status` | TINYINT | 0=待审核, 1=已通过, 2=驳回, 3=已离职, 4=申请离职中 | 入驻生命周期状态 | 公开列表/详情仅允许 status IN (1, 4)；status=4 不展示任何状态标签 |
+| `real_time_status` | TINYINT/VARCHAR | 空闲中/上课中/休息中/已下班/请假中 | 当日实时可约状态 | status=1 时展示，影响"立即预约"按钮；status=4 仍可见但不得展示状态标签 |
 
 ---
 
@@ -75,6 +75,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
     {
       "id": 1,
       "name": "王教练",
+      "status": 1,
       "avatar": "https://cdn.example.com/avatar/1.jpg",
       "rating": 4.9,
       "yearsOfTeaching": 8,
@@ -89,7 +90,10 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 ```
 
 **业务规则**
-- 仅返回 `coach.status = 1`（在职）的记录
+- 仅返回 `coach.status IN (1, 4)` 的记录
+  - status=1（已通过）正常展示实时状态徽标
+  - status=4（申请离职中）仍可被返回，但 UI 不得展示"申请离职中"等任何状态标签
+  - status=0（待审核）、status=2（驳回）、status=3（已离职）均不返回
 - 按 `rating DESC` 排序
 - `realTimeStatus` 返回中文文案，映射规则见 PRD §5.2.2
 
@@ -113,6 +117,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 {
   "id": 1,
   "name": "王教练",
+  "status": 1,
   "avatar": "https://cdn.example.com/avatar/1.jpg",
   "rating": 4.9,
   "yearsOfTeaching": 8,
@@ -141,9 +146,11 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 
 **业务规则**
 - `id` 不存在 → 404
-- `coach.status = 0`（申请中） → 404（与不存在等效处理）
-- `coach.status = 4`（已离职） → 404
-- 其他 status（1/2/3）均可查，但 `realTimeStatus` 决定"立即预约"按钮是否展示
+- `coach.status = 0`（待审核）、`status = 2`（驳回）、`status = 3`（已离职） → 404（与不存在等效处理）
+- `coach.status = 1`（已通过）或 `status = 4`（申请离职中） → 可查询
+  - status=4 时 UI 不得展示"申请离职中"等任何状态标签
+  - status=4 时"立即预约"按钮是否展示由产品/设计另行决定，本 US 阶段不强制变更
+- `realTimeStatus` 决定"立即预约"按钮是否展示
 
 ---
 
@@ -153,21 +160,19 @@ US-001 是**只读 US**，不修改任何实体状态。但读取依赖以下状
 
 ```
 coach.status
-  0 申请中 ──→ 不公开
-  1 在职   ──→ 公开，且 real_time_status 决定 UI
-  2 休息   ──→ 公开（教练可自己标记）
-  3 离职审批中 ──→ 公开？待 PM 确认（当前按 PRD 保守处理为不公开）
-  4 已离职 ──→ 不公开
+  0 待审核     ──→ 不公开
+  1 已通过     ──→ 公开，且 real_time_status 决定 UI
+  2 驳回       ──→ 不公开
+  3 已离职     ──→ 不公开
+  4 申请离职中 ──→ 公开，但 UI 不得展示"申请离职中"等任何状态标签
 
-coach.real_time_status（仅 status=1 时有效）
+coach.real_time_status（status=1 时正常展示；status=4 时仍返回但不得展示状态标签）
   空闲中   ──→ 展示"立即预约"
   上课中   ──→ 不展示"立即预约"
   休息中   ──→ 不展示"立即预约"
   已下班   ──→ 不展示"立即预约"
   请假中   ──→ 不展示"立即预约" + 顶部提示条
 ```
-
-> **待确认项**：status=3（离职审批中）是否公开？当前按"不公开"处理，避免法律风险。
 
 ---
 
@@ -236,9 +241,9 @@ coach.real_time_status（仅 status=1 时有效）
 
 | 场景 | 处理 |
 |------|------|
-| 无在职教练 | 列表返回 `items: []` + 200，前端展示空状态 |
+| 无公开教练（status IN (1, 4)） | 列表返回 `items: []` + 200，前端展示空状态 |
 | coach_id 不存在 | 404 + `COACH_NOT_FOUND` |
-| coach.status = 0/4 | 与不存在等效处理，404 + `COACH_NOT_FOUND` |
+| coach.status = 0/2/3 | 与不存在等效处理，404 + `COACH_NOT_FOUND` |
 | Redis 宕机 | 降级直接查 DB，记录告警 |
 | DB 慢查询 | 超过 100ms 触发慢查询告警 |
 

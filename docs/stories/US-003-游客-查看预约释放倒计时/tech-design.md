@@ -164,8 +164,8 @@ function shouldShowCountdown(releaseAt: Date, serverNow: Date): { show: boolean;
 
 | 条件 | 文案 |
 |------|------|
-| `isReleaseDay = false` 且 `show = true` | 「距离下周预约开放还有 XX 小时」（XX = `Math.ceil(remainingSeconds / 3600)`） |
-| `isReleaseDay = true` 且 `show = true` | 「今日 10:00 开放下周预约」（10:00 取自 `release_time`） |
+| `isReleaseDay = false` 且 `show = true` | 「距离下周预约开放还有 XX 小时」（XX = `Math.ceil(remainingSeconds / 3600)`，释放前 24 小时内动态显示） |
+| `isReleaseDay = true` 且 `show = true` | 「今日 10:00 开放下周预约」（固定文案，具体时间取自 `release_time`） |
 | `show = false` | 无文案（组件隐藏） |
 
 ---
@@ -246,8 +246,8 @@ manual_override_at（由 US-015 维护）
 
 | 场景 | 处理 |
 |------|------|
-| `release_rule` 表无数据 | 返回 `show: false`，记录 WARN 日志 `release_rule not configured` |
-| `release_rule.status = 0` | 返回 `show: false`，记录 INFO 日志 `release_rule disabled` |
+| `release_rule` 表无数据 | 返回 `show: false`，记录 WARN 日志 `release_rule not configured or disabled` |
+| `release_rule.status = 0` | 返回 `show: false`，记录 WARN 日志 `release_rule not configured or disabled` |
 | `manual_override_at` 已过期 | 忽略该字段，按常规规则计算下次释放时刻 |
 | Redis 宕机 | 降级直接查 DB，记录告警 |
 | 客户端时间漂移 | 前端以 `serverNow` 为基准，每 10s 校准 |

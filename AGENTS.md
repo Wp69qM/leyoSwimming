@@ -1,7 +1,7 @@
 # AGENTS.md — leyoSwimming AI 协作规范
 
 > **文件性质**：项目级硬约束，所有 AI Agent（Trae / Claude / Cursor / Copilot 等）进入本项目后**必须首先读取本文件**。
-> **最后更新**：2026-07-30
+> **最后更新**：2026-07-30（v2.2）
 
 ---
 
@@ -46,6 +46,8 @@ AI Agent 首次进入本项目时，**必须**读取以下文件：
 | 2 | 用户说"写 US"但跳过 `openspec-new-change` skill | 破坏 SDD 流程 |
 | 3 | 用户说"写代码"但跳过 `test-driven-development` skill | 破坏 TDD |
 | 4 | 未读 SPECIFICATION.md 就生成 US | 章节结构漂移 |
+| 5 | **生成/修订 US 时未同步创建或更新 OpenSpec 4 件套** | `docs/stories/` 与 `openspec/changes/` 脱节，CLI 无法校验 |
+| 6 | **OpenSpec 4 件套未通过 `openspec validate` 就视为 US 完成** | 破坏规范校验流程，可能导致 archive 失败 |
 
 ---
 
@@ -128,12 +130,20 @@ openspec/
 | `openspec status --change <name>` | 查看变更状态 |
 | `openspec archive <name>` | 归档变更到 `openspec/specs/` |
 
-### 2.5.4 约束
+### 2.5.4 约束（强规范）
 
-- `docs/stories/` 是**主文档**，`openspec/changes/` 是 CLI 校验用的**映射版**
-- 每次 US 定稿后，同步更新 OpenSpec 4 件套并跑 `openspec validate`
-- `openspec validate` 必须通过才能 archive
-- archive 后 `openspec/specs/` 自动生成"源真相"层
+> **核心纪律**：`docs/stories/` 与 `openspec/changes/` 必须同步创建、同步更新，缺一不可。OpenSpec 不是 US 定稿后的"补做项"，而是 US 生成工作流的必要组成部分。
+
+| # | 约束 | 违反后果 |
+|---|------|----------|
+| 1 | **每次生成或修订 US 时，必须同步创建/更新 `openspec/changes/us-XXX-.../` 下的 4 件套**（`.openspec.yaml` / `proposal.md` / `specs/*/spec.md` / `design.md` / `tasks.md`） | `docs/stories/` 与 OpenSpec 映射层不一致，后续 `archive` 失败 |
+| 2 | **OpenSpec 4 件套生成后，必须立即运行 `openspec validate <change-name> --json` 并确保通过** | 无法进入 archive 阶段，CI 校验失败 |
+| 3 | **US 状态从 `[DRAFT]` 转为 `[REVIEW]` 或 `[APPROVED]` 前，必须先通过 `openspec validate`** | 状态迁移缺乏规范校验背书 |
+| 4 | `docs/stories/` 是**主文档**，`openspec/changes/` 是 CLI 校验用的**映射版** | — |
+| 5 | `openspec validate` 必须通过才能 `archive` | — |
+| 6 | archive 后 `openspec/specs/` 自动生成"源真相"层 | — |
+
+**历史教训**：US-005 ~ US-014 曾因将 OpenSpec 视为"定稿后补做项"而漏生成映射层，导致 `docs/stories/` 与 `openspec/changes/` 不同步。此后严禁重复。
 
 ---
 
@@ -192,7 +202,12 @@ openspec/
 [1] 拆分用户故事
     │  必须调用 skill: openspec-new-change
     │  必须读取: SPECIFICATION.md + TEMPLATE.md + EXAMPLE.md
-    │  产物: docs/stories/US-XXX-.../user-story.md
+    │  产物:
+    │    - docs/stories/US-XXX-.../user-story.md
+    │    - docs/stories/US-XXX-.../tech-design.md
+    │    - docs/stories/US-XXX-.../test-plan.md
+    │    - openspec/changes/us-XXX-.../ 4 件套（同步创建，不是后续补做）
+    │  产物必须通过 `openspec validate us-XXX-... --json`
     ↓
 [2] PRD 评审
     │  验收标准统一用 Gherkin (Given-When-Then)
@@ -311,11 +326,20 @@ Step 8: 创建 tech-design.md + test-plan.md 占位
     ↓
 Step 9: 填写 user-story.md（15 章完整）
     ↓
-Step 10: 附加 Agent 自检清单（§8.5）
+Step 10: 同步创建 OpenSpec 4 件套
+    │  创建 openspec/changes/us-XXX-[kebab-case]/ 目录
+    │  生成 .openspec.yaml / proposal.md / specs/<capability>/spec.md / design.md / tasks.md
+    │  内容从 docs/stories/US-XXX-.../ 三件套映射而来
     ↓
-Step 11: 更新 INDEX.md 注册表
+Step 11: 运行 `openspec validate us-XXX-[kebab-case] --json` 并确保通过
+    │  未通过则修复文档，禁止跳过
     ↓
-Step 12: 输出覆盖性自检报告（§8.4）
+Step 12: 附加 Agent 自检清单（§8.5）
+    ↓
+Step 13: 更新 INDEX.md 注册表
+    │  仅当 OpenSpec validate 通过后才允许将状态从 [DRAFT] 更新为 [REVIEW]
+    ↓
+Step 14: 输出覆盖性自检报告（§8.4）
 ```
 
 **红线**：跳过任何一步 = 不合格。
@@ -385,6 +409,8 @@ Step 12: 输出覆盖性自检报告（§8.4）
 - [ ] ≥ 3 个边界场景
 - [ ] 业务规则引用 prd.md §x.y.z
 - [ ] §10 INVEST 至少 5/6 通过
+- [ ] **OpenSpec change 目录 `openspec/changes/us-XXX-.../` 已同步创建 4 件套**
+- [ ] **`openspec validate us-XXX-... --json` 已通过（valid: true, issues: []）**
 - [ ] 覆盖性自检报告已生成
 ```
 
@@ -444,3 +470,4 @@ test-plan.md    → 开发+QA：TDD 任务清单（RED→GREEN→COMMIT）+ 测�
 | v1.7 | 2026-07-30 | 拆分为 3 件套，删除故事级 figma.md |
 | v2.0 | 2026-07-30 | **重命名为 AGENTS.md**；新增 §0 启动检查（Skills 触发规则）；收紧 US 生成流程为 12 步强制；统一 MVP 能力为 10 项 |
 | v2.1 | 2026-07-30 | 接入 OpenSpec CLI v1.7.0；新增 §2.5（目录结构 + 文档映射 + 常用命令）；US-001 迁移完成并通过 `openspec validate` |
+| v2.2 | 2026-07-30 | **强规范**：US 生成时必须同步创建/更新 OpenSpec 4 件套并通过 `openspec validate`；新增 §0.3 禁止项 5-6、§2.5.4 强规范约束、§6.2 流水线产物、§8.1 Step 10-11、§8.5 OpenSpec 自检项；记录 US-005~US-014 漏生成 OpenSpec 的历史教训 |

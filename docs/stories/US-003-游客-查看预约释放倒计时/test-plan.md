@@ -13,7 +13,7 @@
 - **TDD 任务清单**（superpowers 风格）：每个 task = 2-5 分钟可执行单元
 - **测试计划**：覆盖 [user-story.md](./user-story.md) 中所有 GWT 场景
 
-每个 Task 严格遵循 **RED → GREEN → COMMIT** 循环，不允许跳步。
+每个 Task 严格遵循 **RED → GREEN → REFACTOR → COMMIT** 循环，不允许跳步。
 
 ---
 
@@ -38,7 +38,7 @@
 
 **对应 GWT**：[user-story.md §6.1 场景 1](./user-story.md#61-场景-1释放前-24-小时显示倒计时正常路径)、[§6.4 场景 4](./user-story.md#64-场景-4释放规则未配置时不显示倒计时异常路径)
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: RED — 写失败测试**
 
 ```typescript
 // backend/tests/repositories/release-rule.test.ts
@@ -80,7 +80,7 @@ describe('ReleaseRuleRepository.findActive', () => {
 Run: `npm test -- release-rule.test.ts`
 Expected: FAIL with `Cannot find module '../../src/repositories/release-rule'`
 
-- [ ] **Step 3: 写最小实现**
+- [ ] **Step 3: GREEN — 写最小实现**
 
 ```typescript
 // backend/src/repositories/release-rule.ts
@@ -127,7 +127,13 @@ export class ReleaseRuleRepository {
 Run: `npm test -- release-rule.test.ts`
 Expected: PASS（3 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: REFACTOR — 优化代码**
+
+- 检查字段别名映射是否统一，避免多处拼写不一致。
+- 若存在重复查询条件，提取私有方法或复用已有的 query builder。
+- 确认 `findActive` 语义明确（仅返回 `status=1` 的规则）。
+
+- [ ] **Step 6: COMMIT**
 
 ```bash
 git add backend/src/repositories/release-rule.ts backend/tests/repositories/release-rule.test.ts
@@ -144,7 +150,7 @@ git commit -m "feat(release): add ReleaseRuleRepository.findActive for active ru
 
 **对应 GWT**：[user-story.md §6.1 场景 1](./user-story.md#61-场景-1释放前-24-小时显示倒计时正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2释放当天显示今日-1000-开放下周预约正常路径)、[§6.3 场景 3](./user-story.md#63-场景-3非释放时段不显示倒计时异常路径)
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: RED — 写失败测试**
 
 ```typescript
 // backend/tests/services/release-countdown-service.test.ts
@@ -172,7 +178,7 @@ describe('ReleaseCountdownService.calculate', () => {
 
     expect(result.show).toBe(true);
     expect(result.isReleaseDay).toBe(false);
-    expect(result.message).toContain('距离下周预约开放还有');
+    expect(result.message).toBe('距离下周预约开放还有 22 小时');
     expect(result.remainingSeconds).toBe(22 * 3600);  // 22 小时
   });
 
@@ -234,7 +240,7 @@ describe('ReleaseCountdownService.calculate', () => {
 Run: `npm test -- release-countdown-service.test.ts`
 Expected: FAIL with `Cannot find module '../../src/services/release-countdown-service'`
 
-- [ ] **Step 3: 写最小实现**
+- [ ] **Step 3: GREEN — 写最小实现**
 
 ```typescript
 // backend/src/services/release-countdown-service.ts
@@ -332,7 +338,13 @@ export class ReleaseCountdownService {
 Run: `npm test -- release-countdown-service.test.ts`
 Expected: PASS（7 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: REFACTOR — 优化代码**
+
+- 提取时间格式化/日期比较等纯函数到独立 util，便于单测复用。
+- 将 24h 窗口判断、释放当天判断、文案生成分解为独立私有方法，提高可读性。
+- 消除 `calculate` 中重复返回的隐藏对象，必要时引入常量或工厂函数。
+
+- [ ] **Step 6: COMMIT**
 
 ```bash
 git add backend/src/services/release-countdown-service.ts backend/tests/services/release-countdown-service.test.ts
@@ -350,7 +362,7 @@ git commit -m "feat(release): add countdown calculation service with 24h window 
 
 **对应 GWT**：[user-story.md §6.1](./user-story.md#61-场景-1释放前-24-小时显示倒计时正常路径)、[§6.2](./user-story.md#62-场景-2释放当天显示今日-1000-开放下周预约正常路径)、[§6.3](./user-story.md#63-场景-3非释放时段不显示倒计时异常路径)、[§6.4](./user-story.md#64-场景-4释放规则未配置时不显示倒计时异常路径)
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: RED — 写失败测试**
 
 ```typescript
 // backend/tests/controllers/release-countdown.test.ts
@@ -358,22 +370,24 @@ import request from 'supertest';
 import { app } from '../../src/app';
 
 describe('GET /api/v1/release-countdown', () => {
-  it('§6.1 场景1: 释放前 24h 内返回 show=true + 倒计时文案', async () => {
+  it('§6.1 场景1: 释放前 24h 内返回 show=true + "距离下周预约开放还有 XX 小时" 文案', async () => {
     const res = await request(app).get('/api/v1/release-countdown');
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       show: expect.any(Boolean),
       serverNow: expect.any(String),
     });
+    if (res.body.show && !res.body.isReleaseDay) {
+      expect(res.body.message).toMatch(/^距离下周预约开放还有 \d+ 小时$/);
+    }
   });
 
-  it('§6.2 场景2: 释放当天返回 isReleaseDay=true + "今日 XX:XX 开放" 文案', async () => {
+  it('§6.2 场景2: 释放当天返回 isReleaseDay=true + "今日 10:00 开放下周预约" 文案', async () => {
     // 需 mock 当前时间为释放当天，或 mock service 返回值
     const res = await request(app).get('/api/v1/release-countdown');
     expect(res.status).toBe(200);
     if (res.body.isReleaseDay) {
-      expect(res.body.message).toContain('今日');
-      expect(res.body.message).toContain('开放下周预约');
+      expect(res.body.message).toBe('今日 10:00 开放下周预约');
     }
   });
 
@@ -403,7 +417,7 @@ describe('GET /api/v1/release-countdown', () => {
 Run: `npm test -- release-countdown.test.ts`
 Expected: FAIL with `Cannot find module '../../src/app'` 或 404
 
-- [ ] **Step 3: 写最小实现**
+- [ ] **Step 3: GREEN — 写最小实现**
 
 ```typescript
 // backend/src/controllers/release-countdown.ts
@@ -466,7 +480,13 @@ export default router;
 Run: `npm test -- release-countdown.test.ts`
 Expected: PASS（5 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: REFACTOR — 优化代码**
+
+- 将 `db.raw('SELECT NOW()')` 和 Redis 缓存逻辑抽取到可复用的 server-time / cache 工具中。
+- 检查 `logger.warn` 调用是否统一，确保规则缺失/禁用均记录 WARN 日志。
+- 验证响应结构序列化/反序列化不会丢失 `null` 字段语义。
+
+- [ ] **Step 6: COMMIT**
 
 ```bash
 git add backend/src/controllers/release-countdown.ts backend/src/routes/release-countdown.ts backend/tests/controllers/release-countdown.test.ts
@@ -483,7 +503,7 @@ git commit -m "feat(api): add GET /release-countdown endpoint with 10s redis cac
 
 **对应 GWT**：[user-story.md §6.1 场景 1](./user-story.md#61-场景-1释放前-24-小时显示倒计时正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2释放当天显示今日-1000-开放下周预约正常路径)、[§6.3 场景 3](./user-story.md#63-场景-3非释放时段不显示倒计时异常路径)
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: RED — 写失败测试**
 
 ```typescript
 // miniapp-user/src/components/release-countdown/index.test.tsx
@@ -505,7 +525,7 @@ describe('ReleaseCountdown', () => {
     } as any);
 
     const { findByText } = render(<ReleaseCountdown />);
-    expect(await findByText(/距离下周预约开放还有/)).toBeInTheDocument();
+    expect(await findByText('距离下周预约开放还有 22 小时')).toBeInTheDocument();
   });
 
   it('§6.2 场景2: show=true 且 isReleaseDay=true 时显示"今日 10:00 开放下周预约"', async () => {
@@ -559,7 +579,7 @@ describe('ReleaseCountdown', () => {
 Run: `npm test -- release-countdown/index.test.tsx`
 Expected: FAIL with `Cannot find module './index'`
 
-- [ ] **Step 3: 写最小实现**
+- [ ] **Step 3: GREEN — 写最小实现**
 
 ```tsx
 // miniapp-user/src/components/release-countdown/index.tsx
@@ -647,7 +667,13 @@ export default function ReleaseCountdown() {
 Run: `npm test -- release-countdown/index.test.tsx`
 Expected: PASS（4 个测试全过）
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: REFACTOR — 优化代码**
+
+- 将定时器清理逻辑提取为统一 hooks 或工具函数，避免重复 `clearInterval`。
+- 检查 `localRemaining` 是否与 `data.message` 文案保持一致（释放当天固定文案不显示动态小时）。
+- 将内联样式抽取为组件级 CSS/SCSS 或 Taro 样式变量，便于主题切换。
+
+- [ ] **Step 6: COMMIT**
 
 ```bash
 git add miniapp-user/src/components/release-countdown/
@@ -659,7 +685,7 @@ git commit -m "feat(miniapp): add release countdown component with 10s api calib
 ## 3. 任务执行纪律
 
 - **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4
-- **每步必须可见**：Step 1（写测试）→ Step 2（看失败）→ Step 3（写实现）→ Step 4（看通过）→ Step 5（commit）
+- **每步必须可见**：Step 1（RED 写测试）→ Step 2（看失败）→ Step 3（GREEN 写实现）→ Step 4（看通过）→ Step 5（REFACTOR）→ Step 6（COMMIT）
 - **不允许 placeholder**：任何 "TBD" / "TODO" / "实现 later" / "类似 Task N" = 立即返工
 - **每个 Task 结束 = 1 次 commit**：禁止跨 Task 累积 commit
 - **P0 必做 / P1 选做**：MVP 阶段只跑 P0（Task 1-3），P1（Task 4）视进度决定

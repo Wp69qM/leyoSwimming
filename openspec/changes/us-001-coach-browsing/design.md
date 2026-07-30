@@ -25,13 +25,13 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 
 ### status 可见性规则
 
-| status | 含义 | 公开可见 |
-|--------|------|---------|
-| 0 | 申请中 | ❌ |
-| 1 | 在职 | ✅ |
-| 2 | 休息 | ✅ |
-| 3 | 离职审批中 | ❌（保守处理，避免法律风险）|
-| 4 | 已离职 | ❌ |
+| status | 含义 | 公开可见 | UI 标签 |
+|--------|------|---------|--------|
+| 0 | 待审核 | ❌ | — |
+| 1 | 已通过 | ✅ | 展示实时状态徽标 |
+| 2 | 驳回 | ❌ | — |
+| 3 | 已离职 | ❌ | — |
+| 4 | 申请离职中 | ✅ | 不展示任何状态标签 |
 
 ## API Design
 
@@ -40,14 +40,15 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 - 鉴权：否（游客可访问）
 - Query: `page`（默认 1）、`size`（默认 10，最大 50）
 - 排序：`rating DESC`
-- 过滤：`status = 1`
+- 过滤：`status IN (1, 4)`（status=0/2/3 不返回；status=4 不展示任何状态标签）
 - Response 200: `{ items: CoachListItem[], total, page, size }`
 - 空列表也返回 200 + `items: []`
 
 ### GET /api/v1/coaches/:id（详情）
 
 - 鉴权：否
-- `id` 不存在 / status=0 / status=4 → 404 `COACH_NOT_FOUND`
+- `id` 不存在 / status=0（待审核）/ status=2（驳回）/ status=3（已离职） → 404 `COACH_NOT_FOUND`
+- status=1（已通过）或 status=4（申请离职中） → 200；status=4 不展示任何状态标签
 - Response 200: 含 certificates、reviews、availableTimes、realTimeStatus
 
 ## Caching
@@ -85,7 +86,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 
 ## Open Questions
 
-- status=3（离职审批中）是否公开？当前按"不公开"处理，待 PM 确认。
+- status=4 的教练在详情页是否允许展示"立即预约"按钮？当前由产品/设计在页面级设计决策中另行规定，本 US 实现仅保证状态标签不展示。
 
 ## Mapping to Source Documents
 
