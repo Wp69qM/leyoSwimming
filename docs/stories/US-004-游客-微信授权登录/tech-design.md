@@ -27,7 +27,22 @@
 | 表名 | 操作 | 字段 | 说明 |
 |------|------|------|------|
 | `user` | 新增（首次登录时 INSERT） | `id`, `openid`, `union_id`, `identity_status`, `profile_completed`, `status`, `created_at`, `updated_at` | 首次登录时插入新用户记录 |
-| `user_session` | 新增 | `id`, `user_id`, `session_key_encrypted`, `refresh_token_hash`, `expires_at`, `created_at` | 会话管理；session_key 加密存储 |
+| `user_session` | 新增 | `id`, `user_id`, `session_key_encrypted`, `refresh_token_hash`, `expires_at`, `device_name`, `device_id`, `last_active_at`, `created_at`, `updated_at` | 会话管理；session_key 加密存储；device_* 字段供 US-008 设备管理使用 |
+
+> **user_session 表统一说明**（P1 修复 C3）：本表为 US-004 与 US-008 共享的会话表。US-004 写入 `session_key_encrypted` / `refresh_token_hash` / `expires_at`；US-008 读写 `device_name` / `device_id` / `last_active_at`（设备管理）。完整字段如下：
+
+| 字段 | 类型 | 约束 | 写入 US | 说明 |
+|------|------|------|---------|------|
+| `id` | BIGINT | PK | US-004 | 会话 ID |
+| `user_id` | BIGINT | FK | US-004 | 用户 ID |
+| `session_key_encrypted` | VARCHAR(256) | 非空 | US-004 | 微信 session_key 加密存储 |
+| `refresh_token_hash` | VARCHAR(128) | 非空 | US-004 | refresh_token 的 SHA-256 hash |
+| `expires_at` | DATETIME | 非空 | US-004 | 会话过期时间 |
+| `device_name` | VARCHAR(64) | 可空 | US-008 | 设备名（如"iPhone 15"） |
+| `device_id` | VARCHAR(128) | 可空，索引 | US-008 | 设备标识 |
+| `last_active_at` | DATETIME | 可空 | US-008 | 最后活跃时间 |
+| `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | US-004 | 创建时间 |
+| `updated_at` | DATETIME | 默认 CURRENT_TIMESTAMP ON UPDATE | US-004/US-008 | 更新时间 |
 
 ### 1.2 user 表关键字段说明
 
@@ -38,16 +53,16 @@
 | `union_id` | VARCHAR(64) | 微信 union_id | 跨小程序/公众号唯一（需绑定微信开放平台）|
 | `identity_status` | VARCHAR(20) | `游客` / `注册用户` / `学员` | 用户身份状态机字段 |
 | `profile_completed` | BOOLEAN | `true` / `false` | 是否已补充资料（US-005 完成后置 true） |
-| `status` | VARCHAR(20) | `active` / `deleted` | 账号生命周期状态；注销后软删除置 `deleted` |
+| `status` | TINYINT | `0=正常` / `1=软删除` / `2=封禁` | 账号生命周期状态；注销后软删除置 1 |
 
 ### 1.3 索引
 
 ```sql
 -- union_id 是核心查询键，必须唯一索引
-CREATE UNIQUE INDEX idx_user_union_id ON user(union_id) WHERE status = 'active';
+CREATE UNIQUE INDEX idx_user_union_id ON user(union_id) WHERE status = 0;
 
 -- openid 兜底唯一键（union_id 缺失场景）
-CREATE UNIQUE INDEX idx_user_openid ON user(openid) WHERE status = 'active';
+CREATE UNIQUE INDEX idx_user_openid ON user(openid) WHERE status = 0;
 
 -- user_session 按用户查询
 CREATE INDEX idx_user_session_user_id ON user_session(user_id);
@@ -56,7 +71,7 @@ CREATE INDEX idx_user_session_user_id ON user_session(user_id);
 CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 ```
 
-> **约束说明**：`union_id` 唯一索引带 `WHERE status = 'active'` 条件，允许已注销账号（status='deleted'）的 union_id 被新账号复用，符合 PRD [§5.2.1 第 4 条](../../prd/prd.md)。
+> **约束说明**：`union_id` 唯一索引带 `WHERE status = 0` 条件，允许已注销账号（status=1）的 union_id 被新账号复用，符合 PRD [§5.2.1 第 4 条](../../prd/prd.md)。
 
 ---
 
@@ -137,9 +152,9 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 
 **业务规则**
 - `code` 调用 `code2session` 失败时按 errcode 区分：`40029` → 401，`45011` → 502（频率限制），其他 → 502
-- `union_id` 命中已有 `status='active'` 用户 → 复用，`isNewUser=false`
+- `union_id` 命中已有 `status=0` 用户 → 复用，`isNewUser=false`
 - `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，`profile_completed=false`，`isNewUser=true`
-- `union_id` 命中已有 `status='deleted'` 用户 → 按 PRD §5.2.1 第 4 条，新建账号，不绑定原数据
+- `union_id` 命中已有 `status=1` 用户 → 按 PRD §5.2.1 第 4 条，新建账号，不绑定原数据
 - 事务边界：`查询用户 + 创建用户 + 签发 token + 写 session` 必须在同一事务内
 
 ---
@@ -168,7 +183,7 @@ async function loginWithWechat(code: string) {
   const wechatSession = await code2session(code);  // 调用微信
   const existingUser = await userRepo.findByUnionId(wechatSession.unionid);
 
-  if (existingUser && existingUser.status === 'active') {
+  if (existingUser && existingUser.status === 0) {
     // 老用户：复用账号，不修改 identity_status
     return issueToken(existingUser, { isNewUser: false });
   }
@@ -179,7 +194,7 @@ async function loginWithWechat(code: string) {
     union_id: wechatSession.unionid,
     identity_status: '注册用户',  // 状态转换
     profile_completed: false,
-    status: 'active',
+    status: 0,
   });
 
   return issueToken(newUser, { isNewUser: true });
@@ -311,7 +326,7 @@ async function loginWithWechat(code: string) {
 |----|---------|------|
 | US-005 | 依赖本 US | 用户补充资料：本 US 创建用户记录并置 `profile_completed=false`，US-005 完成后置 `true` |
 | US-006 | 共享 | 手机号/密码登录：共享 `user` 表、JWT 签发逻辑、`user_session` 表 |
-| US-007 | 依赖本 US | 账号注销：软删除本 US 创建的用户记录，`status='deleted'` |
+| US-007 | 依赖本 US | 账号注销：软删除本 US 创建的用户记录，`status=1` |
 | US-008 | 依赖本 US | 账号安全设置：依赖已登录态 |
 | US-009 | 依赖本 US | 隐私协议授权：依赖已登录态 |
 | US-017 | 依赖本 US | 购买体验课：需先完成登录 |
@@ -327,7 +342,7 @@ async function loginWithWechat(code: string) {
 | 微信 code2session 返回 errcode=45011 | 502 `WECHAT_API_ERROR`（频率限制） |
 | 微信 code2session 超时（> 3s） | 504 `WECHAT_API_TIMEOUT` |
 | `union_id` 缺失（用户未绑定开放平台） | 以 `openid` 兜底，记录告警日志 |
-| `union_id` 命中已注销账号（status='deleted'） | 新建账号，不绑定原数据（PRD §5.2.1 第 4 条） |
+| `union_id` 命中已注销账号（status=1） | 新建账号，不绑定原数据（PRD §5.2.1 第 4 条） |
 | 相同 code 5 分钟内重复提交 | 返回首次结果（幂等） |
 | 事务部分失败 | 整个事务回滚，返回 500 `LOGIN_FAILED` |
 | Redis 宕机 | 降级不缓存 session_key（影响后续解密能力），记录告警，登录仍可成功 |
@@ -365,3 +380,4 @@ async function loginWithWechat(code: string) {
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：数据模型 / API / 状态机 / 微信 OAuth 流程 / JWT / 缓存 / 性能 / 安全 / 跨 US 依赖 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：user.status 字段类型统一为整型 TINYINT（0=正常/1=软删除/2=封禁），对齐 PRD §9.2.1 |

@@ -19,13 +19,14 @@
 
 ## Decisions
 
-1. **`frozen_reason` 使用枚举值**
-   - 理由：保证学员端文案与后台筛选一致性
-   - 枚举：`pending_review` / `admin_manual` / `court_order`
+1. **`frozen_reason` 使用统一枚举（v3 评审 P0-1 修复）**
+   - 理由：原使用 TINYINT 整型 `0=pending_review 1=admin_manual 2=court_order` 与 PRD §3.7 `coach_resigned`、§5.5.1.2 字符串枚举不一致，现统一为 VARCHAR(32) 三值枚举
+   - 枚举：`coach_resigned`（教练离职，系统自动）/ `refund_pending`（退款处理中，US-027/US-028 触发）/ `admin_frozen`（管理员手动冻结，细分原因记录在 audit_log.remark）
 
 2. **冻结时同步取消未上课 booking**
    - 理由：frozen 状态禁止约课，已预约未上课的课程必须释放，否则学员/教练端状态不一致
    - 范围：`start_time > NOW()` 且状态为已预约/待上课
+   - cancel_reason：`6`（套餐冻结，v3 评审 P0-1 修复，TINYINT 整型）
 
 3. **`package` 表增加 `version` 乐观锁**
    - 理由：防止并发冻结/解冻导致状态覆盖
@@ -33,6 +34,10 @@
 
 4. **解冻不恢复 reserved 课时**
    - 理由：冻结时已释放 reserved→available，解冻后学员需重新预约，不应自动预占课时
+
+5. **请求体使用 `reason_detail` 而非 `reason`（v3 评审 P0-1 修复）**
+   - 理由：frozen_reason 固定写入 `admin_frozen`，细分原因由管理员填写并写入 audit_log.remark
+   - 请求字段：`reason_detail`（描述性字符串，非枚举）
 
 ## Risks / Trade-offs
 

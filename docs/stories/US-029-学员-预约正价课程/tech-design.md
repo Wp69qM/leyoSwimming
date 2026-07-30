@@ -21,6 +21,7 @@
 | `package_id` | FK |
 | `schedule_slot_id` | FK |
 | `status` | 已预约 / 待上课 / 上课中 / 已完成 / 已取消 / 旷课 |
+| `operator` | 操作来源：`student` / `coach` / `system`（本 US 学员自助预约时 = `student`，与 US-031 教练代约 = `coach` 区分） |
 | `start_time` | 课程开始时间 |
 | `end_time` | 课程结束时间 |
 | `created_at` | 创建时间 |

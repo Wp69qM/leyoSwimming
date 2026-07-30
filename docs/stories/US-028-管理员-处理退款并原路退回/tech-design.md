@@ -70,13 +70,33 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 
 ## 3. 状态机
 
-| 实体 | 转换 | 触发条件 |
-|------|------|---------|
-| `order` | 退款审批中 → 已退款 | 管理员批准且渠道退款受理 |
-| `order` | 退款审批中 → 已支付 | 管理员驳回 |
-| `refund` | 待审批 → 管理员批准 / 管理员驳回 | 管理员操作 |
-| `package` | active/frozen → refunded | 管理员批准 |
-| `package` | active（冻结）→ active | 管理员驳回 |
+> **两阶段退款时序**（v3 评审 P0 修复，对齐 PRD §6.2.1/§6.2.2 与 user-story §7.3）：批准后不直接到「已退款」，先进入中间态「退款处理中」，待渠道回调成功后才到「已退款」；渠道失败则回滚到「退款审批中」。
+
+### 3.1 order 状态机
+
+| # | 实体 | 转换 | 触发条件 | 说明 |
+|---|------|------|---------|------|
+| 1 | `order` | 退款审批中（4）→ 退款处理中（8） | 管理员批准且渠道退款受理 | 中间态，等待渠道回调 |
+| 2 | `order` | 退款处理中（8）→ 已退款（6） | 渠道退款成功回调 | 终态；同步 package frozen→refunded |
+| 3 | `order` | 退款处理中（8）→ 退款审批中（4） | 渠道退款失败/超时 | 回滚中间态，管理员可重试 |
+| 4 | `order` | 退款审批中（4）→ 退款被拒（7） | 管理员驳回 | 终态；package frozen→active（解冻） |
+
+### 3.2 refund 状态机
+
+| # | 实体 | 转换 | 触发条件 |
+|---|------|------|---------|
+| 1 | `refund` | 待审批 → 管理员批准 | 管理员批准（order 进入退款处理中） |
+| 2 | `refund` | 待审批 → 管理员驳回 | 管理员驳回（order 进入退款被拒） |
+| 3 | `refund` | 管理员批准 → 退款成功 | 渠道退款成功回调 |
+| 4 | `refund` | 管理员批准 → 退款失败 | 渠道退款失败/超时（可重试） |
+
+### 3.3 package 状态机
+
+| # | 实体 | 转换 | 触发条件 | 说明 |
+|---|------|------|---------|------|
+| 1 | `package` | active/frozen → frozen（frozen_reason='refund_pending'） | US-027 学员提交退款申请 | 由 US-027 触发，本 US 不负责 |
+| 2 | `package` | frozen（refund_pending）→ refunded | order 进入已退款（渠道成功回调后） | 终态 |
+| 3 | `package` | frozen（refund_pending）→ active | order 进入退款被拒（管理员驳回）或渠道失败回滚 | 解冻恢复 |
 
 ## 4. 缓存
 
@@ -117,3 +137,10 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 | 渠道退款失败 | `test_admin_refund_channel_fail` |
 | 重复审批 | `test_admin_refund_approve_idempotent` |
 | 非管理员越权 | `test_admin_refund_forbidden` |
+
+## 9. 变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§3 状态机重构为两阶段时序（退款审批中→退款处理中→已退款/退款审批中），对齐 PRD §6.2.1/§6.2.2 与 user-story §7.3；新增 §3.1/§3.2/§3.3 三表分别覆盖 order/refund/package 状态机 |

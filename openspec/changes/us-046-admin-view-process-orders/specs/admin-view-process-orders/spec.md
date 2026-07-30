@@ -72,7 +72,7 @@ And   订单状态不变
 Given 存在一笔状态为"退款审批中"的订单 R-003，paid_amount=1000.00
 When  管理员提交退款金额 1200.00
 Then  系统返回 HTTP 400
-And   返回错误码 REFUND_AMOUNT_EXCEEDED
+And   返回错误码 REFUND_AMOUNT_MISMATCH
 And   提示"退款金额不能超过已支付金额"
 ```
 

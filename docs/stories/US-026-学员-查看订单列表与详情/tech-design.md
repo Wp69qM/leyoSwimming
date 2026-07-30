@@ -20,9 +20,11 @@
 | `user_id` | FK |
 | `coach_id` | FK |
 | `amount` | 订单金额（分）|
-| `status` | 待支付 / 已支付 / 已取消 / 已退款 |
+| `status` | 0-无 / 1-待支付 / 2-已支付 / 3-已取消 / 4-退款审批中 / 5-争议退款处理中 / 6-已退款 / 7-退款被拒 / 8-退款处理中（与 PRD §6.2.2 v11.1 统一） |
 | `created_at` | 创建时间 |
 | `paid_at` | 支付时间 |
+| `refunded_at` | 退款完成时间（渠道成功回调时回填，US-028 写入） |
+| `refund_status` | 退款子状态（无 / 处理中 / 成功 / 失败，用于细化 order.status=8 时的渠道状态） |
 
 ### 1.2 索引
 
@@ -54,7 +56,9 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 | 层 | Key | TTL | 失效策略 |
 |----|-----|-----|---------|
 | Redis 订单列表 | `orders:list:{user_id}:{page}:{size}:{status}` | 60s | order 状态变更时删除 |
-| Redis 订单详情 | `order:detail:{order_id}` | 300s | order/payment/refund 变更时删除 |
+| Redis 订单详情 | `order:detail:{user_id}:{order_id}` | 300s | order/payment/refund 变更时删除 |
+
+> **安全约束**：订单详情缓存 Key 必须包含 `user_id`，防止跨用户越权读取缓存。读缓存前先校验 `order.user_id = current_user.id`。
 
 ## 5. 性能
 
@@ -66,9 +70,10 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 
 ## 6. 安全
 
-- 严格订单归属校验
+- 严格订单归属校验（DB 查询 + 缓存 Key 双重防护）
 - 禁止跨用户查询
 - 只返回当前用户订单
+- 缓存 Key 含 user_id，防止越权缓存命中
 
 ## 7. 跨 US 依赖
 

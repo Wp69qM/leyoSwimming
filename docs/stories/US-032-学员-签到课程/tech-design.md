@@ -1,4 +1,4 @@
-# Tech Design: US-032 学员签到/签退课程
+# Tech Design: US-032 学员签到课程
 
 ## 1. 数据模型
 
@@ -7,9 +7,10 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `booking` | 修改 | 记录 checked_in_at |
-| `course_record` | 读/修改 | 读取教练记录，保存学员总结 |
+| `course_record` | 读/修改 | 读取教练记录，保存学员总结（由 US-033 创建） |
+| `student_summary_draft` | 新增 | 临时学员总结草稿，course_record 尚未创建时使用 |
 
-#### course_record
+#### course_record（由 US-033 创建，本 US 仅读写 student_summary_json）
 
 | 字段 | 说明 |
 |------|------|
@@ -26,10 +27,26 @@
 | `created_at` | 创建时间 |
 | `updated_at` | 更新时间 |
 
+#### student_summary_draft（本 US 新增）
+
+| 字段 | 说明 |
+|------|------|
+| `id` | PK |
+| `booking_id` | FK，1:1（唯一索引） |
+| `user_id` | FK |
+| `body_feeling` | 身体感受 |
+| `learning_effect` | 学习效果 |
+| `feedback` | 问题反馈 |
+| `created_at` | 创建时间 |
+| `updated_at` | 更新时间 |
+
+> **course_record 时序说明**：course_record 由 US-033 教练确认上课时创建。若学员在教练确认前提交总结，系统先写入 `student_summary_draft`；US-033 创建 course_record 时，将 draft 合并到 `course_record.student_summary_json` 并删除 draft 记录。
+
 ### 1.2 索引
 
 ```sql
 CREATE UNIQUE INDEX idx_course_record_booking ON course_record(booking_id);
+CREATE UNIQUE INDEX idx_student_summary_draft_booking ON student_summary_draft(booking_id);
 CREATE INDEX idx_booking_user_status ON booking(user_id, status);
 CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 ```

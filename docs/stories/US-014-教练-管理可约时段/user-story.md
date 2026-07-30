@@ -132,9 +132,10 @@ And   学员点击后可进入预约流程
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | schedule_slot | 新增/修改/删除 | 可约时段记录 |
-| 2 | booking | 读取 | 判断时段是否被预约 |
-| 3 | coach_schedule_log | 新增 | 排班变更历史 |
+| 1 | schedule_slot | 新增/修改/删除 | 可约时段记录（具体日期实例） |
+| 2 | coach_availability_template | 新增/修改/删除 | 教练可约时段模板（周循环配置，供 US-016 定时释放使用） |
+| 3 | booking | 读取 | 判断时段是否被预约 |
+| 4 | coach_schedule_log | 新增 | 排班变更历史 |
 
 ### 7.2 API 影响
 
@@ -145,6 +146,9 @@ And   学员点击后可进入预约流程
 | 3 | /api/coach/schedule-slots/{id} | PUT | 新增 | 修改可约时段 |
 | 4 | /api/coach/schedule-slots/{id} | DELETE | 新增 | 删除可约时段 |
 | 5 | /api/coach/schedule-slots/copy-last-week | POST | 新增 | 复制上周排班 |
+| 6 | /api/coach/availability-templates | GET | 新增 | 获取可约时段模板（周循环） |
+| 7 | /api/coach/availability-templates | POST | 新增 | 批量添加/更新模板 |
+| 8 | /api/coach/availability-templates/{id} | DELETE | 新增 | 删除单个模板 |
 
 ### 7.3 状态机影响
 
@@ -294,6 +298,7 @@ And   学员点击后可进入预约流程
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | Dev/PM | P1 修复：补充 `coach_availability_template` 表定义（周循环模板），消除 US-016 引用断裂；新增模板管理 API；扩展 coach_schedule_log 支持 template 操作审计 |
 
 ---
 

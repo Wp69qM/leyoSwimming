@@ -68,6 +68,36 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 | 订单详情 | `order:detail:{order_id}` | 300s | order 状态变更后删除 |
 | package | `package:{package_id}` | 300s | package 状态变更后删除 |
 
+## State Machine
+
+### order 状态机（两阶段退款，v3 评审 P0 修复）
+
+| 转换 | 触发条件 | 说明 |
+|------|---------|------|
+| 退款审批中（4）→ 退款处理中（8） | 管理员批准且渠道退款受理 | 中间态，等待渠道回调 |
+| 退款处理中（8）→ 已退款（6） | 渠道退款成功回调 | 终态；同步 package frozen→refunded |
+| 退款处理中（8）→ 退款审批中（4） | 渠道退款失败/超时 | 回滚中间态，可重试 |
+| 退款审批中（4）→ 退款被拒（7） | 管理员驳回 | 终态；package frozen→active（解冻） |
+
+### refund 状态机（v3 评审 P0 修复）
+
+| 转换 | 触发条件 |
+|------|---------|
+| 待审批 → 管理员批准 | 管理员批准（order 进入退款处理中） |
+| 待审批 → 管理员驳回 | 管理员驳回（order 进入退款被拒） |
+| 管理员批准 → 退款成功 | 渠道退款成功回调 |
+| 管理员批准 → 退款失败 | 渠道退款失败/超时（可重试） |
+
+### package 状态机（v3 评审 P0 修复）
+
+| 转换 | 触发条件 | 说明 |
+|------|---------|------|
+| active → frozen | 学员提交退款（US-027） | 冻结禁止预约 |
+| frozen → refunded | 渠道退款成功（阶段 2 成功） | 关联赠送 package 同步作废 |
+| frozen → active | 管理员驳回 或 渠道失败回滚 | 约课能力恢复 |
+
+> **package frozen 转换说明**（v3 评审 P0 修复）：退款流程中 package 的状态转换路径明确为 `active → frozen（学员提交退款时，US-027 触发）→ refunded（渠道成功）/ active（驳回或失败回滚）`。frozen 是退款流程的中间态，由 US-027 在学员提交退款申请时设置，本 US（US-028）只处理 frozen 的出口转换。
+
 ## Performance Targets
 
 | 指标 | 目标 |

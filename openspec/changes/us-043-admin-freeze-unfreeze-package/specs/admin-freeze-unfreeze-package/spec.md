@@ -8,11 +8,12 @@ The system MUST allow an admin to freeze an active package, select a reason, rel
 
 - **GIVEN** admin M is logged in with `MANAGE_PACKAGE` permission
 - **AND** package P1 is active with `reserved_count = 2` and `available_count = 3`
-- **WHEN** admin M freezes P1 with reason "投诉处理中"
+- **WHEN** admin M freezes P1 with reason_detail "投诉处理中"
 - **THEN** `package.status` is updated to `frozen`
-- **AND** `frozen_reason` is set to `pending_review`
+- **AND** `frozen_reason` is set to `admin_frozen`（v3 评审 P0-1 修复：对齐 PRD §5.5.1.2 VARCHAR(32) 统一枚举）
 - **AND** `reserved_count` becomes `0` and `available_count` becomes `5`
-- **AND** one `audit_log` entry with `action = 'ADMIN_FREEZE_PACKAGE'` is created
+- **AND** upcoming bookings are cancelled with `cancel_reason = 6`（套餐冻结）
+- **AND** one `audit_log` entry with `action = 'ADMIN_FREEZE_PACKAGE'` and `remark = "投诉处理中"` is created
 - **AND** the API returns HTTP 200 with message "套餐已冻结"
 
 ### Requirement: REQ-002 Admin shall unfreeze a frozen package
@@ -22,7 +23,7 @@ The system MUST allow an admin to unfreeze a frozen package and restore it to ac
 #### Scenario: Unfreeze frozen package successfully
 
 - **GIVEN** admin M has package management permission
-- **AND** package P1 is frozen with `frozen_reason = "admin_manual"`
+- **AND** package P1 is frozen with `frozen_reason = "admin_frozen"`
 - **WHEN** admin M unfreezes P1
 - **THEN** `package.status` is updated to `active`
 - **AND** `frozen_reason` is cleared

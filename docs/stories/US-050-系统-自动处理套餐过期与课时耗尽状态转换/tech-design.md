@@ -20,7 +20,7 @@
 | `package` | 修改 | 复用已有字段：`status`、`available`、`reserved`、`consumed`、`expire_at` |
 | `package_status_log` | 新增 | 状态转换审计日志 |
 | `cron_job_lock` | 新增 | 定时任务分布式锁 |
-| `lesson_record` | 读取 | 教练确认上课时触发计数扣减 |
+| `course_record` | 读取 | 教练确认上课时触发计数扣减（表名与 US-032/US-033 统一，v3 评审 P1 修复） |
 
 ### 1.2 `package_status_log` 字段
 
@@ -170,3 +170,4 @@ package.status:
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P1 修复：§1.1 表名 lesson_record 改为 course_record（与 US-032/US-033 统一） |

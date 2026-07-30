@@ -20,22 +20,24 @@
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
-| `user_id` | BIGINT | PK | 用户 ID |
+| `id` | BIGINT | PK | 用户 ID（与 US-004 统一，原 `user_id` 为笔误） |
 | `phone` | VARCHAR(16) | 唯一索引 | 手机号 |
-| `password_hash` | VARCHAR(128) | 非空 | bcrypt 哈希 |
+| `password_hash` | VARCHAR(128) | 可空 | bcrypt 哈希（US-004 微信登录新用户无密码，可空；US-008 设置密码后写入） |
 | `email` | VARCHAR(128) | 可空 | 邮箱 |
 | `phone_changed_at` | DATETIME | 可空 | 上次换绑时间 |
 
-**user_session 表**
+**user_session 表**（与 US-004 共享，完整字段定义见 [US-004 tech-design §1.1](../US-004-游客-微信授权登录/tech-design.md)）
+
+> **P1 修复 C3**：user_session 表由 US-004 创建，本 US 仅读写 device_* 字段。原 US-008 重复定义了简化版字段（session_id/user_id/device_name/device_id/last_active_at/created_at）与 US-004 的字段定义（id/session_key_encrypted/refresh_token_hash/expires_at/...）不一致。已统一为 US-004 §1.1 的完整字段定义。
+
+本 US 读写以下字段：
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
-| `session_id` | BIGINT | PK | 会话 ID |
-| `user_id` | BIGINT | FK | 用户 ID |
-| `device_name` | VARCHAR(64) | 可空 | 设备名 |
-| `device_id` | VARCHAR(128) | 索引 | 设备标识 |
-| `last_active_at` | DATETIME | 可空 | 最后活跃时间 |
-| `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
+| `device_name` | VARCHAR(64) | 可空 | 设备名（如"iPhone 15"） |
+| `device_id` | VARCHAR(128) | 可空，索引 | 设备标识 |
+| `last_active_at` | DATETIME | 可空 | 最后活跃时间，每次请求时刷新 |
+| `updated_at` | DATETIME | ON UPDATE | 更新时间 |
 
 ---
 

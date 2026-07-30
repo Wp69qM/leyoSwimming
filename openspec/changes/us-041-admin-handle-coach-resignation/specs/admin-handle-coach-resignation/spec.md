@@ -23,7 +23,7 @@ The system MUST allow an admin to approve a resignation after all checklist item
 - **AND** future schedule slots are cleared
 - **WHEN** admin M clicks "通过审批"
 - **THEN** `coach.status` is updated to `3`
-- **AND** all future bookings are cancelled with `cancel_reason = "教练离职"`
+- **AND** all future bookings are cancelled with `cancel_reason = 2（教练离职）`
 - **AND** `package.reserved_count` is reset to `0` and `available_count` is increased accordingly
 - **AND** all 3 active packages become `frozen` with `frozen_reason = "coach_resigned"`
 - **AND** future `schedule_slot` records are updated to `hidden`

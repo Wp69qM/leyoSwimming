@@ -28,7 +28,7 @@
 
 - **触发方**：系统
 - **触发动作**：
-  1. 定时任务每小时巡检套餐 `expire_at`；
+  1. 定时任务每小时巡检套餐 `expire_at`（扫描范围：`status='active'` 与 `status='exhausted'`）；
   2. 应用层事件：教练确认上课后 `available` 与 `reserved` 计数变化；
   3. 应用层事件：学员取消/改约后计数恢复。
 - **触发时机**：到达有效期、课时计数归零、或计数恢复时
@@ -54,6 +54,7 @@
 4. 若更新后 `available=0` 且 `reserved=0`，原子更新 `status='exhausted'`
 5. 学员取消预约后，系统恢复 `available`、扣减 `reserved`
 6. 恢复后仅重新校验状态，不将 `exhausted/expired/refunded/frozen` 回退为 `active`
+7. **exhausted → expired 转换**：定时任务同时扫描 `status='exhausted'` 且 `expire_at <= NOW()` 的记录，原子更新 `status='expired'`（套餐已耗尽但仍可能到达有效期边界，此为前进转换，非回退）
 
 ### 4.2 异常分支
 
@@ -135,6 +136,18 @@ And   套餐 E 的 status 保持 'exhausted'
 And   available / reserved / consumed 保持不变
 ```
 
+### 6.6 场景 6：已耗尽套餐到达有效期边界转为 expired
+
+```gherkin
+Given 套餐 F 的 status='exhausted'，expire_at='2026-07-29 23:59:59'
+And   available=0，reserved=0，consumed=10
+And   当前系统时间为 2026-07-30 01:00:00
+When  系统每小时套餐过期巡检任务执行（扫描 active 与 exhausted）
+Then  套餐 F 的 status 从 'exhausted' 更新为 'expired'
+And   available / reserved / consumed 保持不变
+And   系统记录状态转换日志：from='exhausted', to='expired', reason='EXPIRE_CRON'
+```
+
 ---
 
 ## 7. 数据/API/状态机影响
@@ -147,7 +160,7 @@ And   available / reserved / consumed 保持不变
 |---|------|------|------|
 | 1 | `package` | 修改 | 新增/更新 `status`、`available`、`reserved`、`consumed`、`expire_at` |
 | 2 | `package_status_log` | 新增 | 记录每次状态转换：from、to、reason、created_at |
-| 3 | `lesson_record` | 读取 | 教练确认上课时触发套餐计数扣减 |
+| 3 | `course_record` | 读取 | 教练确认上课时触发套餐计数扣减（表名与 US-032/US-033 统一） |
 
 ### 7.2 API 影响
 
@@ -161,7 +174,8 @@ And   available / reserved / consumed 保持不变
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
 | 1 | `package.status` | active → expired | 定时任务检测到 `now() >= expire_at` | 终态，不自动回退 |
-| 2 | `package.status` | active → exhausted | 事件触发后 `available=0` 且 `reserved=0` | 终态，不自动回退 |
+| 2 | `package.status` | active → exhausted | 事件触发后 `available=0` 且 `reserved=0` | 中间态，仍可能 expired |
+| 3 | `package.status` | exhausted → expired | 定时任务检测到 `now() >= expire_at`（扫描 exhausted） | 前进转换，非回退；终态 |
 
 ---
 
@@ -307,6 +321,7 @@ And   available / reserved / consumed 保持不变
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | P1 修复：§2/§4.1/§7.3 补充 `exhausted → expired` 状态转换（定时任务扫描 exhausted）；新增场景 6 验证该转换 |
 
 ---
 

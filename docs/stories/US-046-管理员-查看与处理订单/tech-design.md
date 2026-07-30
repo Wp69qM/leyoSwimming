@@ -51,7 +51,7 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 - 鉴权：管理员登录 + `order:write`
 - Body：`{ amount, remark }`
 - Response 200 / 400 / 409
-- 错误码：`ORDER_STATUS_INVALID`, `REFUND_AMOUNT_EXCEEDED`
+- 错误码：`ORDER_STATUS_INVALID`, `REFUND_AMOUNT_MISMATCH`
 
 ### 2.4 POST /api/admin/orders/:id/reject-refund
 
@@ -65,12 +65,17 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 
 ```
 order.status:
-  退款审批中 ──[批准退款]──→ 已退款
+  退款审批中 ──[管理员批准（阶段1受理）]──→ 退款处理中
+  退款处理中 ──[渠道退款成功回调（阶段2成功）]──→ 已退款（终态）
+  退款处理中 ──[渠道退款失败（阶段2失败）]──→ 退款审批中（回滚，重试队列）
   退款审批中 ──[拒绝退款]──→ 退款被拒
 
 package.status:
-  active ──[退款完成]──→ refunded
+  frozen ──[渠道退款成功（阶段2成功）]──→ refunded
+  frozen ──[拒绝退款 或 渠道失败回滚]──→ active
 ```
+
+> **对齐说明**（P1 修复）：本 US 状态机已对齐 US-028 P1 修复的两阶段退款时序与 PRD §6.2.2 v11.1 新增的「8 - 退款处理中」状态。原"退款审批中 → 已退款"的单步转换已废弃。
 
 ---
 
@@ -118,7 +123,7 @@ package.status:
 |------|------|
 | 订单不存在 | 404 ORDER_NOT_FOUND |
 | 状态非法 | 400 ORDER_STATUS_INVALID |
-| 金额超额 | 400 REFUND_AMOUNT_EXCEEDED |
+| 金额超额 | 400 REFUND_AMOUNT_MISMATCH |
 | 重复提交 | 幂等返回已有结果 |
 | 无权限 | 403 FORBIDDEN |
 

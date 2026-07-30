@@ -34,7 +34,7 @@ And   存在 2026-08-01 09:00 的已预约课程 5 节
 When  管理员设置 2026-08-01 全天闭馆（原因：换水）
 Then  系统返回 HTTP 200
 And   closure 表新增记录
-And   5 节预约状态变更为"已取消"，cancel_reason='venue_closure'
+And   5 节预约状态变更为"已取消"，cancel_reason=4（场馆闭馆）
 And   释放 package.reserved → available
 And   向学员与教练发送闭馆通知
 ```

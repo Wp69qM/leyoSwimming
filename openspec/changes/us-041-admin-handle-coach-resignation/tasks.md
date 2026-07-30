@@ -19,7 +19,7 @@
 
 ## 4. Batch Updates
 
-- [ ] 4.1 Cancel future bookings with `cancel_reason = "教练离职"`
+- [ ] 4.1 Cancel future bookings with `cancel_reason = 2（教练离职）`
 - [ ] 4.2 Reset `package.reserved_count` and move active packages to frozen
 - [ ] 4.3 Hide future schedule slots
 - [ ] 4.4 Wrap coach.status, ticket, booking, package, schedule_slot updates in one transaction

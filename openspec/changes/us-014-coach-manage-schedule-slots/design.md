@@ -13,9 +13,19 @@ US-014 让通过入驻审核的教练管理未来可约时段，支持添加、�
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
 | `schedule_slot` | INSERT/UPDATE/DELETE | `slot_id`、`coach_id`、`start_time`、`end_time`、`status`、`created_at`、`updated_at` |
+| `coach_availability_template` | INSERT/UPDATE | `template_id`、`coach_id`、`day_of_week`、`start_time`、`end_time`、`status`、`created_at`、`updated_at` |
 | `coach_schedule_log` | INSERT | `log_id`、`coach_id`、`slot_id`、`action`、`from_value`、`to_value`、`created_at` |
 | `booking` | SELECT | 判断时段是否已被预约 |
 | `venue_closure` | SELECT | 复制上周排班时跳过闭馆日期 |
+
+### status 字段命名（v3 评审 P0 修复）
+
+| 表 | status 取值 | 说明 |
+|----|------------|------|
+| `schedule_slot` | `available` / `booked` / `closed` / `hidden` | 时段实例状态 |
+| `coach_availability_template` | `enabled` / `disabled` | 模板启用/禁用，**避免与 schedule_slot.status 的 `available` 语义冲突** |
+
+> 模板表 status 使用 `enabled / disabled`，与 slot 表的 `available / booked / closed / hidden` 区分清晰。
 
 ### 索引
 

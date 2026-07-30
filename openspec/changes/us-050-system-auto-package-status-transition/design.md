@@ -20,7 +20,7 @@ US-050 是系统后台自动化 US，核心新增 `package_status_log` 与 `cron
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
 | `package` | 状态与计数更新 | status, available, reserved, consumed, expire_at |
-| `lesson_record` | 教练确认上课触发计数变化 | id, package_id, status |
+| `course_record` | 教练确认上课触发计数变化（v3 评审 P1 修复：表名与 US-032/US-033 统一） | id, package_id, status |
 
 ### 索引
 

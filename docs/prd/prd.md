@@ -601,8 +601,8 @@ package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类�
    UPDATE package SET reserved_count = 0,
      available_count = available_count + reserved_count
    WHERE coach_id = ? AND status = 'active';
-   -- 3. 所有 active package → frozen
-   UPDATE package SET status = 'frozen', frozen_reason = 0
+   -- 3. 所有 active package → frozen（教练离职场景，frozen_reason='coach_resigned'，与 §3.7/§6.4.5 枚举一致）
+   UPDATE package SET status = 'frozen', frozen_reason = 'coach_resigned'
    WHERE coach_id = ? AND status = 'active';
    -- 4. 隐藏未来排班
    UPDATE schedule_slot SET status = 'hidden'
@@ -617,12 +617,14 @@ package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类�
 
 ##### 5.5.1.2 手动冻结/解冻 package `[MVP]`
 
-**冻结触发场景**：
-| 场景 | frozen_reason | 学员端文案 |
-|------|---------------|-----------|
-| 投诉处理中 | `pending_review` | "套餐处理中，请等待" |
-| 异常订单 | `admin_manual` | "套餐已冻结，请联系客服" |
-| 司法冻结（P3）| `court_order` | "套餐已冻结" |
+**冻结触发场景**（`frozen_reason` 字段为 VARCHAR(32)，全项目统一 3 值枚举）：
+| 场景 | frozen_reason | 触发方 | 学员端文案 |
+|------|---------------|--------|-----------|
+| 教练离职 | `coach_resigned` | 系统自动（§4.2.1/§5.5.1.1）| "教练已离职，请换新教练或申请退款" |
+| 退款处理中 | `refund_pending` | 系统（US-027/US-028 触发）| "套餐处理中，请等待" |
+| 管理员手动冻结 | `admin_frozen` | 管理员（含投诉处理/异常订单/司法冻结等细分原因，细分原因记录在 audit_log）| "套餐已冻结，请联系客服" |
+
+> **枚举裁决说明**（v3 评审 P0-1）：原 §5.5.1.2 使用 `pending_review/admin_manual/court_order` 三值与 §3.7 `coach_resigned`、§5.5.1.1 整数 0 不一致，现统一为 `coach_resigned / refund_pending / admin_frozen` 三值。原 `pending_review` 并入 `refund_pending`；原 `admin_manual/court_order` 并入 `admin_frozen`（细分场景由 audit_log.remark 记录）。
 
 **操作流程**：
 1. 管理员在 [用户管理] → [套餐管理] 找到目标 package
@@ -763,8 +765,12 @@ package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类�
 [退款审批中]
  ↓
  ├─ 教练同意(24h 内) → 进入管理员审批（3 工作日）
- │                       ↓ 管理员批准
+ │                       ↓ 管理员批准（阶段 1 受理）
+ │                    [退款处理中]（中间态，等待渠道回调）
+ │                       ↓ 渠道退款成功回调（阶段 2 成功）
  │                    [已退款]  ← 终态
+ │                       ↓ 渠道退款失败（阶段 2 失败）
+ │                    [退款审批中]（回滚，进入重试队列）
  │
  └─ 教练拒绝/超时 → [已支付](保持)
                        ↓ 提交特殊原因申诉
@@ -772,6 +778,8 @@ package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类�
                        ↓ 管理员决定
                     [已退款] / [已支付](申诉被拒)
 ```
+
+> **两阶段退款时序说明**（v11.1 新增）：管理员批准退款后，订单先进入「退款处理中」中间态（阶段 1 受理），等待微信/支付宝渠道异步回调。渠道成功 → 已退款（终态）；渠道失败 → 回滚为退款审批中，进入重试队列。此设计避免原"批准即已退款"与渠道失败场景的矛盾。
 
 #### 6.2.2 状态定义
 
@@ -783,8 +791,9 @@ package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类�
 | 3 - 已取消 | 超时未支付 / 用户主动取消 | 定时任务 / 用户操作 |
 | 4 - 退款审批中 | 用户提交退款后 | 用户提交退款 |
 | 5 - 争议退款处理中 | 特殊原因申诉 | 用户提交申诉 |
-| 6 - 已退款 | 退款完成 | 管理员批准 |
+| 6 - 已退款 | 退款完成 | 渠道退款成功回调 |
 | 7 - 退款被拒 | 申诉失败 | 管理员驳回 |
+| 8 - 退款处理中 | 管理员已批准，等待渠道回调 | 管理员批准（阶段 1 受理） |
 
 ### 6.3 课时预占/扣除/回滚模型 `[MVP]`
 
@@ -925,12 +934,12 @@ package_type = 体验 → 用户名下 status ∈ {active, exhausted} 的同类�
 | 换新教练 | ✅ 走 v10 流程 | frozen → active (新教练) |
 | 申请退款 | ✅ 走 §6.4 流程 | frozen → refunded |
 
-**退费比例**（按 frozen_reason 分）：
+**退费比例**（按 frozen_reason 分，与 §5.5.1.2 枚举一致）：
 | frozen_reason | 退费比例 | 备注 |
 |---------------|---------|------|
 | `coach_resigned`（教练离职）| **100%** | 非学员原因 |
-| `admin_manual`（管理员手动冻结）| 按 §6.4.2 公式 | 需先联系管理员解冻 |
-| `pending_review`（投诉处理中）| 需先处理投诉 | 申诉完成后由管理员决定 |
+| `admin_frozen`（管理员手动冻结）| 按 §6.4.2 公式 | 需先联系管理员解冻 |
+| `refund_pending`（退款处理中）| 需先处理退款申请 | 申诉完成后由管理员决定 |
 
 **管理员审核 "平台原因" 退款**：
 - 学员可随时选"平台原因"作为退款理由（**不**仅 frozen 状态）

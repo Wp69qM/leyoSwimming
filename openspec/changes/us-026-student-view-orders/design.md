@@ -12,11 +12,27 @@ US-026 是只读 US，为学员提供订单列表与详情查询能力，含分�
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `order` | 列表 + 详情主表 | `id`, `user_id`, `amount`, `status`, `created_at`, `paid_at` |
+| `order` | 列表 + 详情主表 | `id`, `user_id`, `amount`, `status`, `created_at`, `paid_at`, `refunded_at`, `refund_status` |
 | `package` | 详情套餐信息 | `id`, `total_hours`, `available_count`, `status` |
 | `coach` | 详情教练信息 | `id`, `name` |
 | `payment` | 详情支付时间 | `order_id`, `paid_at`, `status` |
 | `refund` | 详情退款信息 | `order_id`, `amount`, `status`, `completed_at` |
+
+### order.status 枚举（v3 评审 P0 修复，对齐 PRD §6.2.2 v11.1）
+
+| 值 | 业务含义 |
+|----|---------|
+| `0` | 无 |
+| `1` | 待支付 |
+| `2` | 已支付 |
+| `3` | 已取消 |
+| `4` | 退款审批中 |
+| `5` | 争议退款处理中 |
+| `6` | 已退款 |
+| `7` | 退款被拒 |
+| `8` | 退款处理中 |
+
+> `refund_status` 字段：退款子状态（无 / 处理中 / 成功 / 失败），用于细化 order.status=8 时的渠道状态。`refunded_at` 由 US-028 渠道成功回调时回填。
 
 ### 索引
 

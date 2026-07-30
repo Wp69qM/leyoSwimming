@@ -48,7 +48,7 @@
 3. 系统校验：无 active 套餐、无未完成订单
 4. 用户输入登录密码或验证码进行二次确认
 5. 用户勾选「已阅读注销协议」并点击「确认注销」
-6. 系统将账号标记为注销状态，`user.status = 2`
+6. 系统将账号标记为软删除状态，`user.status = 1`（PRD §9.2.1：0=正常 1=软删除 2=封禁）
 7. 系统清除登录态，跳转至登录页
 
 ### 4.2 异常分支
@@ -78,7 +78,7 @@
 ```gherkin
 Given 用户已登录且无 active 套餐、无未完成订单
 When  用户完成二次确认并点击「确认注销」
-Then  user.status = 2（已注销）
+Then  user.status = 1（软删除）
 And   登录态被清除
 And   页面跳转至登录页
 And   历史订单数据保留 90 天
@@ -91,7 +91,7 @@ Given 用户已登录且存在 active 套餐
 When  用户尝试注销账号
 Then  返回错误码 ACTIVE_PACKAGE_EXISTS
 And   前端提示"您还有未完成的套餐，无法注销"
-And   user.status 保持 1（正常）
+And   user.status 保持 0（正常）
 ```
 
 ### 6.3 场景 3：存在未完成订单时注销
@@ -101,7 +101,7 @@ Given 用户已登录且存在待支付订单
 When  用户尝试注销账号
 Then  返回错误码 PENDING_ORDER_EXISTS
 And   前端提示"您有未完成订单，请完成后注销"
-And   user.status 保持 1（正常）
+And   user.status 保持 0（正常）
 ```
 
 ---
@@ -112,7 +112,7 @@ And   user.status 保持 1（正常）
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | user | 修改 | status = 2, deleted_at = now() |
+| 1 | user | 修改 | status = 1（软删除）, deleted_at = now() |
 | 2 | user_identity_log | 新增 | 记录注销事件 |
 | 3 | user_session | 删除 | 清除所有登录态 |
 
@@ -127,7 +127,7 @@ And   user.status 保持 1（正常）
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | user.status | 正常(1) → 已注销(2) | 用户确认注销 | 软删除 |
+| 1 | user.status | 正常(0) → 软删除(1) | 用户确认注销 | 软删除 |
 
 ---
 

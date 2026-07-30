@@ -98,6 +98,30 @@ And   frozen 套餐显示"教练已离职，请更换教练或申请退款"
 And   接口返回 HTTP 200
 ```
 
+### 6.4 场景 4：展示已耗尽套餐（exhausted）
+
+```gherkin
+Given 用户已登录且名下有 1 个 active 套餐和 1 个 exhausted 套餐（consumed_count = total_hours）
+When  用户进入「我的套餐」页面
+Then  active 套餐在「可用」分组正常展示
+And   exhausted 套餐在「已耗尽」分组展示，卡片显示"课时已用完"标签
+And   exhausted 套餐卡片不展示「预约」按钮
+And   顶部汇总仅统计 active 套餐（exhausted 不纳入）
+And   接口返回 HTTP 200
+```
+
+### 6.5 场景 5：展示已过期套餐（expired，含剩余课时）
+
+```gherkin
+Given 用户已登录且名下有 1 个 expired 套餐（available_count = 3，now() > expire_at）
+When  用户进入「我的套餐」页面
+Then  expired 套餐在「已过期」分组展示，卡片显示"已过期"标签与过期日期
+And   expired 套餐卡片提示"套餐已过期，剩余 3 节课时未使用"
+And   expired 套餐卡片展示「申请退款」入口（PRD §6.4.1 允许 expired 且 available>0 退款）
+And   顶部汇总不纳入 expired 套餐
+And   接口返回 HTTP 200
+```
+
 ---
 
 ## 7. 数据/API/状态机影响
@@ -230,6 +254,7 @@ And   接口返回 HTTP 200
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§6 新增场景 4（exhausted 展示）和场景 5（expired 含剩余课时展示+退款入口），对齐 PRD §6.4.1 expired 退款规则 |
 
 ---
 

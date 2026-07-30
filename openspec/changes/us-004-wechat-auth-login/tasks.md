@@ -12,7 +12,7 @@
 **Spec coverage:** REQ-002 Scenarios "首次登录触发游客→注册用户状态转换", "老用户登录不修改 identity_status", "user 表唯一约束"
 
 - [ ] **RED:** Write 4 failing tests — `findByUnionId` returns active user (老用户复用); returns null for deleted user (软删除不复用); returns null for not found (新用户); `create` inserts with `identity_status='注册用户'` (状态机转换)
-- [ ] **GREEN:** Implement `UserRepository.findByUnionId(unionId)` — `WHERE union_id=? AND status='active'`; `create(input)` — INSERT with `identity_status='注册用户'`, `profile_completed=false`, `status='active'`
+- [ ] **GREEN:** Implement `UserRepository.findByUnionId(unionId)` — `WHERE union_id=? AND status=0`; `create(input)` — INSERT with `identity_status='注册用户'`, `profile_completed=false`, `status=0`
 - [ ] **COMMIT:** `feat(user): add UserRepository with findByUnionId and create (identity_status transition)`
 
 ## Task 2: 微信 OAuth Service — code2session + 用户创建/查询 [P0]

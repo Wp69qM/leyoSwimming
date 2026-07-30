@@ -34,6 +34,30 @@
 4. **checklist 后端强制校验**
    - 理由：前端勾选可辅助但不可信，关键检查项必须由后端执行
 
+## State Machine（v3 评审 P0 修复同步）
+
+### 教练状态
+
+- `4` 申请中 → `3` 已离职（通过）
+- `4` 申请中 → `1` 已通过（拒绝）
+
+### 离职工单状态
+
+- `pending_audit` → `approved`
+- `pending_audit` → `rejected`
+
+### package 状态
+
+- `active` → `frozen`（frozen_reason = `coach_resigned`）
+
+### booking 状态
+
+- `已预约` / `待上课` → `已取消`（cancel_reason = 2，教练离职）
+
+> **cancel_reason 字段类型**（v3 评审 P0 修复）：TINYINT 整型，全项目统一枚举 `1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 使用 `2=教练离职`。
+
+> **注**：booking 状态机不含「待支付」。「待支付」是 order 实体的状态（PRD §6.2.1/§6.2.2），不应出现在 booking 状态转换中。
+
 ## Risks / Trade-offs
 
 - **[Risk]** 批量 package 数量大导致事务超时 → **Mitigation**: 100 份以内单事务；超过 100 份分批并在 Saga 中补偿（P2）

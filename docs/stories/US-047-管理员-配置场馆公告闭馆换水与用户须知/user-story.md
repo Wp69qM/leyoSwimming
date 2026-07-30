@@ -65,6 +65,8 @@
 | 3 | 《用户须知》版本管理与签署记录 | [§5.5.4](../../prd/prd.md) |
 | 4 | 用户须知更新后向所有注册用户推送提醒 | [§6.9](../../prd/prd.md) / [§7.2](../../prd/prd.md) |
 
+> **booking.cancel_reason 字段类型统一说明**（v3 评审 P0 修复）：`cancel_reason` 字段为 TINYINT 整型，全项目枚举值：`1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 闭馆取消使用 `4=场馆闭馆`。
+
 ---
 
 ## 6. 验收标准（业务级 Gherkin）
@@ -83,17 +85,21 @@ And   notice 表新增 1 条记录，status='published'
 And   游客端/学员端首页通知栏展示"暑期课程安排"
 ```
 
-### 6.2 场景 2：管理员设置闭馆并自动取消受影响预约
+### 6.2 场景 2：管理员设置闭馆并异步取消受影响预约
 
 ```gherkin
 Given 场馆正常开放
 And   存在 2026-08-01 09:00 的已预约课程 5 节
 When  管理员设置 2026-08-01 全天闭馆（原因：换水）
-Then  系统返回 HTTP 200
+Then  系统返回 HTTP 202 Accepted
+And   响应体含 { task_id, affected_bookings: 5, status: "processing" }
 And   closure 表新增记录
-And   5 节预约状态变更为"已取消"，cancel_reason='venue_closure'
+And   系统异步执行取消任务（与 §12 性能要求一致）
+When  异步任务完成（数秒内）
+Then  5 节预约状态变更为"已取消"，cancel_reason=4（场馆闭馆）
 And   释放 package.reserved → available
 And   向学员与教练发送闭馆通知
+And   管理员后台可查询 task_id 的最终状态为 "completed"
 ```
 
 ### 6.3 场景 3：管理员更新《用户须知》并触发重新签署
@@ -157,7 +163,7 @@ And   不创建新版本
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | `booking.status` | 已预约 → 已取消 | 闭馆设置 | cancel_reason='venue_closure' |
+| 1 | `booking.status` | 已预约 → 已取消 | 闭馆设置 | cancel_reason=4（场馆闭馆） |
 | 2 | `terms_of_service.is_active` | true → false | 新版本发布 | 仅一个版本 active |
 | 3 | `user_terms_sign.status` | 已签署 → 待重新签署 | 用户须知版本更新 | — |
 
@@ -301,6 +307,8 @@ And   不创建新版本
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | P1 修复：§6.2 修复异步执行与同步断言矛盾，改为 HTTP 202 Accepted + task_id 异步处理模式，与 §12/§14.3 一致 |
+| v1.2 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（4=场馆闭馆） |
 
 ---
 

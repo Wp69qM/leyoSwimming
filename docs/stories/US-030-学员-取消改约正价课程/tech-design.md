@@ -6,7 +6,7 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `booking` | 读写 | 更新为已取消 |
+| `booking` | 读写 | 更新为已取消；写入 operator 字段（student/coach/system）标识取消发起方（v3 评审 P0 修复：与 US-029/US-031 的 operator 字段统一） |
 | `package` | 读写 | 释放预占课时 |
 | `booking_cancellation` | 新增/修改 | 记录取消申请与审批 |
 
@@ -98,3 +98,10 @@ CREATE INDEX idx_cancel_status ON booking_cancellation(status);
 | 教练同意 | `test_cancel_coach_approve` |
 | 申请超时 | `test_cancel_request_timeout` |
 | 重复取消 | `test_cancel_already_cancelled` |
+
+## 9. 变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§1.1 booking 表补 operator 字段说明（student/coach/system），与 US-029/US-031 统一 |

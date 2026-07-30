@@ -31,11 +31,13 @@
 
 | 字段 | 类型 | 索引 | 备注 |
 |------|------|------|------|
-| status | TINYINT | IDX | 0=active 1=frozen ... |
-| frozen_reason | TINYINT | IDX | 0=pending_review 1=admin_manual 2=court_order |
+| status | TINYINT | IDX | 0=active 1=frozen 2=exhausted 3=expired 4=refunded |
+| frozen_reason | VARCHAR(32) | IDX | NULL 或 `coach_resigned`/`refund_pending`/`admin_frozen`（v3 评审 P0-1 修复：对齐 PRD §5.5.1.2 统一枚举） |
 | reserved_count | INT | | |
 | available_count | INT | | |
 | version | INT | | 乐观锁 |
+
+> **frozen_reason 枚举说明**（v3 评审 P0-1 修复）：原 tech-design 使用 TINYINT 整型 `0=pending_review 1=admin_manual 2=court_order` 与 PRD §3.7 `coach_resigned`、§5.5.1.2 字符串枚举不一致，现统一为 VARCHAR(32) 三值枚举：`coach_resigned`（教练离职，系统自动）/ `refund_pending`（退款处理中，US-027/US-028 触发）/ `admin_frozen`（管理员手动冻结，细分原因记录在 audit_log.remark）。
 
 ### 3.2 读取/修改表
 
@@ -49,7 +51,7 @@
 ### 4.1 `POST /api/admin/v1/packages/{package_id}/freeze`
 
 - **鉴权**：管理员 JWT，`MANAGE_PACKAGE`
-- **请求体**：`{ "reason": "pending_review", "version": 1 }`
+- **请求体**：`{ "reason_detail": "投诉处理中", "version": 1 }`（frozen_reason 固定写入 `admin_frozen`，细分原因写入 audit_log.remark）
 - **响应 200**：`{ "message": "套餐已冻结" }`
 - **错误码**：
   - `ADMIN_PERMISSION_DENIED`（403）
@@ -79,7 +81,7 @@
 
 ### 5.2 booking 状态
 
-- `已预约` / `待上课` → `已取消`（冻结时，cancel_reason = package_frozen）
+- `已预约` / `待上课` → `已取消`（冻结时，cancel_reason = 6，套餐冻结）
 
 ---
 
@@ -124,3 +126,10 @@
 | 非 active 冻结 | `test_freeze_not_active_package` | 集成 |
 | 非 frozen 解冻 | `test_unfreeze_not_frozen_package` | 集成 |
 | 并发冻结 | `test_concurrent_freeze_package` | 集成 |
+
+## 11. 变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P0-1 修复：frozen_reason 字段类型从 TINYINT 改为 VARCHAR(32)，对齐 PRD §5.5.1.2 统一枚举（coach_resigned/refund_pending/admin_frozen）；§4.1 请求体 reason 改为 reason_detail（frozen_reason 固定 admin_frozen）；§5.2 cancel_reason 改为整型 6 |

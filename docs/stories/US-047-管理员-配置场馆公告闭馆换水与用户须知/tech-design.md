@@ -69,10 +69,12 @@ CREATE INDEX idx_terms_active ON terms_of_service(is_active);
 ## 3. 状态机影响
 
 ```
-booking.status: 已预约 ──[闭馆]──→ 已取消 (cancel_reason='venue_closure')
+booking.status: 已预约 ──[闭馆]──→ 已取消 (cancel_reason = 4，场馆闭馆)
 terms_of_service.is_active: 仅一个 true
 user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 ```
+
+> **cancel_reason 字段类型**（v3 评审 P0 修复）：TINYINT 整型，全项目统一枚举 `1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 闭馆取消课程使用 `4=场馆闭馆`。
 
 ---
 
@@ -147,3 +149,4 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§3 booking 状态机 cancel_reason 从字符串 'venue_closure' 改为整型 `4`（场馆闭馆），与全项目枚举一致 |

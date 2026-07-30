@@ -78,6 +78,8 @@
 | 3 | 请假审批通过后，系统自动取消已预约课程并发送通知 | [§5.4.5](../../prd/prd.md) |
 | 4 | 教练请假和换水都是主动取消，预占必须释放 | [§8.5](../../prd/prd.md) |
 
+> **booking.cancel_reason 字段类型统一说明**（v3 评审 P0 修复）：`cancel_reason` 字段为 TINYINT 整型，全项目枚举值：`1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 请假通过时取消已预约课程使用 `5=教练请假`。
+
 ---
 
 ## 6. 验收标准（业务级 Gherkin）
@@ -92,7 +94,7 @@ And   教练 C 提交了 2026-08-01 全天的请假申请，状态为 pending
 And   该时段内有 2 个已预约的 booking
 When  管理员 M 点击「通过」
 Then  leave_request.status 更新为 approved
-And   2 个 booking 状态更新为「已取消」，cancel_reason = "教练请假"
+And   2 个 booking 状态更新为「已取消」，cancel_reason = 5（教练请假）
 And   对应 package 的 reserved_count 减少，available_count 增加
 And   系统向学员发送课程取消通知
 And   返回 HTTP 200 与提示"请假已通过"
@@ -176,7 +178,7 @@ And   schedule_slot 不发生变更
 |---|------|------|---------|------|
 | 1 | coach_leave_request | pending → approved | 管理员通过 | 取消课程并通知 |
 | 2 | coach_leave_request | pending → rejected | 管理员拒绝 | 保持原排班 |
-| 3 | booking | 已预约 → 已取消 | 请假通过 | cancel_reason = 教练请假 |
+| 3 | booking | 已预约 → 已取消 | 请假通过 | cancel_reason = 5（教练请假） |
 
 ---
 
@@ -322,6 +324,7 @@ And   schedule_slot 不发生变更
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（5=教练请假）；§5 新增 cancel_reason 枚举说明 |
 
 ---
 

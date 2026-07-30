@@ -42,6 +42,7 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 - 鉴权：管理员登录 + `order:write`
 - Body: `{ amount, remark }`
 - Response 200 / 400 / 403
+- 错误码：`ORDER_STATUS_INVALID`, `REFUND_AMOUNT_MISMATCH`（v3 评审 P1 修复：原 `REFUND_AMOUNT_EXCEEDED` 全局统一为 `REFUND_AMOUNT_MISMATCH`）
 
 ### POST /api/admin/orders/:id/reject-refund
 

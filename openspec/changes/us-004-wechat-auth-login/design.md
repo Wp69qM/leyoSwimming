@@ -12,17 +12,27 @@ US-004 是注册登录模块的首个 US，也是用户身份状态机的起点�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `user` | INSERT（首次登录） | `id`, `openid`, `union_id`, `identity_status='注册用户'`, `profile_completed=false`, `status='active'`, `created_at` |
+| `user` | INSERT（首次登录） | `id`, `openid`, `union_id`, `identity_status='注册用户'`, `profile_completed=false`, `status=0`, `created_at` |
 | `user_session` | INSERT（每次登录） | `id`, `user_id`, `session_key_encrypted`, `refresh_token_hash`, `expires_at`, `created_at` |
+
+### user.status 字段类型
+
+| 值 | 业务含义 | 触发 US |
+|----|---------|---------|
+| `0` | 正常 | US-004（首次登录时设置）、US-007（重新注册） |
+| `1` | 软删除 | US-007（账号注销） |
+| `2` | 封禁 | 管理员后台（US-042） |
+
+> **字段类型**（v3 评审 P0 修复）：`status` 为 TINYINT 整型，对齐 PRD §9.2.1。
 
 ### 索引
 
 ```sql
--- union_id 唯一索引（仅 active 账号，允许 deleted 账号的 union_id 被新账号复用）
-CREATE UNIQUE INDEX idx_user_union_id ON user(union_id) WHERE status = 'active';
+-- union_id 唯一索引（仅 status=0 正常账号，允许 status=1 软删除账号的 union_id 被新账号复用）
+CREATE UNIQUE INDEX idx_user_union_id ON user(union_id) WHERE status = 0;
 
 -- openid 兜底唯一键
-CREATE UNIQUE INDEX idx_user_openid ON user(openid) WHERE status = 'active';
+CREATE UNIQUE INDEX idx_user_openid ON user(openid) WHERE status = 0;
 
 -- user_session 查询索引
 CREATE INDEX idx_user_session_user_id ON user_session(user_id);
@@ -54,9 +64,9 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 ### 业务规则
 
 - `code` 调用 `code2session` 失败时按 errcode 区分：`40029` → 401，其他 → 502
-- `union_id` 命中 `status='active'` 用户 → 复用，`isNewUser=false`
+- `union_id` 命中 `status=0` 用户 → 复用，`isNewUser=false`
 - `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，`isNewUser=true`
-- `union_id` 命中 `status='deleted'` 用户 → 新建账号，不绑定原数据（PRD §5.2.1 第 4 条）
+- `union_id` 命中 `status=1` 用户 → 新建账号，不绑定原数据（PRD §5.2.1 第 4 条）
 - `union_id` 缺失 → 以 `openid` 兜底
 - 事务边界：`查询用户 + 创建用户 + 签发 token + 写 session` 必须在同一事务内
 

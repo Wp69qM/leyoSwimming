@@ -1,9 +1,9 @@
 # US-004 用户微信授权登录
 
-> **状态**：[DRAFT]（草稿）
+> **状态**：[REVIEW]（评审中）
 > **优先级**：[MVP]
 > **估时**：1 人天
-> **作者**：PM　|　**最后更新**：2026-07-30
+> **作者**：PM　|　**最后更新**：2026-07-31
 
 ---
 
@@ -155,7 +155,7 @@ And   不创建任何用户记录
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `user` | 新增 | 首次登录时插入新记录：`openid`、`union_id`、`identity_status='注册用户'`、`profile_completed=false`、`status='active'` |
+| 1 | `user` | 新增 | 首次登录时插入新记录：`openid`、`union_id`、`identity_status='注册用户'`、`profile_completed=false`、`status=0`（TINYINT，0=正常/1=软删除/2=封禁，与 PRD §9.2.1 一致） |
 | 2 | `user_session` | 新增 | 写入会话记录：`user_id`、`session_key`（加密）、`expires_at`、`refresh_token_hash` |
 
 ### 7.2 API 影响
@@ -336,6 +336,7 @@ And   不创建任何用户记录
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版：15 章完整，含 5 个 GWT 场景（2 正常 + 3 异常）、6 个边界场景、状态机影响（游客→注册用户） |
+| v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§1 状态从 [DRAFT] 改为 [REVIEW]；§7.1 user.status 字段从 VARCHAR 'active' 改为 TINYINT 0（与 tech-design.md v1.1 / PRD §9.2.1 一致） |
 
 ---
 

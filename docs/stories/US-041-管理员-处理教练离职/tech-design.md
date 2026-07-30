@@ -97,7 +97,11 @@
 
 ### 5.4 booking 状态
 
-- `已预约` / `待支付` / `待上课` → `已取消`（cancel_reason = 教练离职）
+- `已预约` / `待上课` → `已取消`（cancel_reason = 2，教练离职）
+
+> **cancel_reason 字段类型**（v3 评审 P0 修复）：TINYINT 整型，全项目统一枚举 `1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 使用 `2=教练离职`。
+
+> **注**：booking 状态机不含「待支付」。「待支付」是 order 实体的状态（PRD §6.2.1/§6.2.2），不应出现在 booking 状态转换中。原 §5.4 错误列入「待支付」已修正。
 
 ---
 
@@ -146,3 +150,10 @@
 | 非 pending_audit 工单 | `test_approve_ticket_not_pending` | 集成 |
 | 并发审批 | `test_concurrent_approve_idempotent` | 集成 |
 | 大量 package 批量处理 | `test_approve_bulk_packages` | 集成/性能 |
+
+## 11. 变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§5.4 booking 状态转换 cancel_reason 从字符串「教练离职」改为整型 `2`；删除「待支付」状态（待支付是 order 实体状态，非 booking 状态） |

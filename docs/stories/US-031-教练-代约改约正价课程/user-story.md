@@ -110,7 +110,7 @@ And   学员 A 已存在 booking.status = 已预约，开课时间为明日 9:00
 And   明日 14:00 有可约时段
 When  教练为学员 A 提交改约到明日 14:00
 Then  原 booking.status = 已取消，package 原课时释放
-And   新 booking 创建成功，status = 已预约
+And   新 booking 创建成功，status = 已预约，operator = coach
 And   package.reserved_count 保持 1，available_count = 4
 And   学员 A 收到改约通知
 And   HTTP 状态码 = 200
@@ -261,7 +261,7 @@ And   不创建新 booking
 - **幂等键**：`idempotency_key = {coach_id}:{student_id}:{slot_id}:{date}`
 - **事务边界**：改约时"取消原预约 + 创建新预约 + package 释放/预占"在同一事务
 - **性能要求**：代约提交接口 P99 < 300ms，改约接口 P99 < 400ms
-- **授权记录**：建议在 `booking` 或 `audit_log` 记录 operator = coach 及 coach_id
+- **授权记录**：在 `booking` 表记录 `operator = coach` 及 `coach_id`（v3 评审 P0 修复：从"建议"改为已落地，与 US-029 tech-design 的 operator 字段统一）
 
 ---
 
@@ -317,6 +317,7 @@ And   不创建新 booking
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§6.2 场景 2 补充 operator = coach 断言；§12 授权记录从"建议"改为已落地 |
 
 ---
 

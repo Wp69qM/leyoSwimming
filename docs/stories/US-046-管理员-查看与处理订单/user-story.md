@@ -52,7 +52,7 @@
 ### 4.2 异常分支
 
 - **分支 1**：订单状态不允许当前操作 → 返回 `ORDER_STATUS_INVALID`
-- **分支 2**：退款金额超过已支付金额 → 返回 `REFUND_AMOUNT_EXCEEDED`
+- **分支 2**：退款金额超过已支付金额 → 返回 `REFUND_AMOUNT_MISMATCH`
 - **分支 3**：管理员无权限 → 返回 HTTP 403
 
 ---
@@ -82,15 +82,20 @@ And   管理员点击订单 O-001
 Then  详情页展示订单 O-001 的支付流水、套餐信息、退款记录
 ```
 
-### 6.2 场景 2：管理员批准退款
+### 6.2 场景 2：管理员批准退款（两阶段时序，对齐 US-028）
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-001，paid_amount=2000.00
-When  管理员批准该退款
-Then  系统返回 HTTP 200
-And   order.status 更新为"已退款"
+When  管理员批准该退款（阶段 1 受理）
+Then  系统返回 HTTP 202 Accepted
+And   order.status 更新为"退款处理中"（中间态）
+And   package.status 保持 frozen（不立即变 refunded）
+And   生成退款记录 refund.amount=2000.00，refund_transaction.status="处理中"
+And   向学员发送"退款处理中"受理通知
+When  渠道退款成功回调（阶段 2 成功）
+Then  order.status 更新为"已退款"（终态）
 And   package.status 更新为"refunded"
-And   生成退款记录 refund.amount=2000.00
+And   refund_transaction.status="成功"
 And   向学员发送退款到账通知
 ```
 
@@ -108,12 +113,14 @@ And   学员端显示"退款未通过，原因为：未提供有效凭证"
 ### 6.4 场景 4：管理员对非退款审批中订单执行退款
 
 ```gherkin
-Given 存在一笔状态为"已取消"的订单 C-001
+Given 存在一笔状态为"已取消"的订单 C-001（或 order.status ∈ {已支付, 已退款, 退款处理中, 退款被拒}）
 When  管理员尝试批准该订单退款
 Then  系统返回 HTTP 400
 And   返回错误码 ORDER_STATUS_INVALID
 And   订单状态不变
 ```
+
+> **说明**：order.status = 退款处理中时也不可重复批准（已受理，等待渠道回调），按 US-028 §6.4 场景 4 处理。
 
 ### 6.5 场景 5：退款金额超过已支付金额
 
@@ -121,8 +128,8 @@ And   订单状态不变
 Given 存在一笔状态为"退款审批中"的订单 R-003，paid_amount=1000.00
 When  管理员提交退款金额 1200.00
 Then  系统返回 HTTP 400
-And   返回错误码 REFUND_AMOUNT_EXCEEDED
-And   提示"退款金额不能超过已支付金额"
+And   返回错误码 REFUND_AMOUNT_MISMATCH（与 US-028 §6.2 异常分支 2 统一）
+And   提示"退款金额异常，请核对"
 ```
 
 ---
@@ -151,9 +158,12 @@ And   提示"退款金额不能超过已支付金额"
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | `order.status` | 退款审批中 → 已退款 | 管理员批准 | 触发原路退回 |
-| 2 | `order.status` | 退款审批中 → 退款被拒 | 管理员拒绝 | 恢复 package 可约课 |
-| 3 | `package.status` | active → refunded | 退款完成 | 身份重算异步触发 |
+| 1 | `order.status` | 退款审批中 → 退款处理中 | 管理员批准（阶段 1 受理） | 中间态，对齐 US-028 / PRD §6.2.2 |
+| 2 | `order.status` | 退款处理中 → 已退款 | 渠道退款成功回调（阶段 2 成功） | 终态 |
+| 3 | `order.status` | 退款处理中 → 退款审批中 | 渠道退款失败（阶段 2 失败） | 回滚，进入重试队列 |
+| 4 | `order.status` | 退款审批中 → 退款被拒 | 管理员拒绝 | 恢复 package 可约课 |
+| 5 | `package.status` | frozen → refunded | 渠道退款成功（阶段 2 成功） | 身份重算异步触发 |
+| 6 | `package.status` | frozen → active | 管理员拒绝 或 渠道失败回滚 | 约课能力恢复 |
 
 ---
 
@@ -165,11 +175,11 @@ And   提示"退款金额不能超过已支付金额"
 - **预期行为**：幂等处理，第二次返回成功但不重复生成退款记录
 - **用户可见反馈**：提示"该退款已处理"
 
-### 8.2 边界场景 2：退款审批期间学员再次约课
+### 8.2 边界场景 2：退款审批/处理期间学员再次约课
 
-- **触发条件**：订单处于退款审批中，学员仍尝试约课
-- **预期行为**：系统阻止新预约并提示退款处理中
-- **用户可见反馈**："退款处理中，暂不可约课"
+- **触发条件**：order.status ∈ {退款审批中, 退款处理中}，package.status = frozen，学员仍尝试约课
+- **预期行为**：系统阻止新预约（package.frozen 不可约课），提示退款处理中
+- **用户可见反馈**："退款处理中，暂不可约课"（UI 文案；order.status 为订单状态枚举值，非 UI 文案）
 
 ### 8.3 边界场景 3：争议退款超过 3 工作日未处理
 
@@ -209,7 +219,7 @@ And   提示"退款金额不能超过已支付金额"
 
 - [x] 15 个章节全部填写
 - [x] 无"待定"/"TBD"占位符（除 Figma 链接待设计填写）
-- [x] 错误码明确（ORDER_STATUS_INVALID / REFUND_AMOUNT_EXCEEDED / FORBIDDEN）
+- [x] 错误码明确（ORDER_STATUS_INVALID / REFUND_AMOUNT_MISMATCH / FORBIDDEN）
 
 ### 11.2 业务规则
 
@@ -293,6 +303,7 @@ And   提示"退款金额不能超过已支付金额"
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§6.2/§7.3/tech-design §3 状态机对齐 US-028 两阶段退款时序与 PRD §6.2.2「8-退款处理中」状态；§6.4 补退款处理中不可重复批准；§8.2 明确语义；§6.5 错误码与 US-028 统一为 REFUND_AMOUNT_MISMATCH |
 
 ---
 

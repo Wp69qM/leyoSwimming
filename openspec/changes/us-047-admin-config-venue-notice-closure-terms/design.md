@@ -62,6 +62,16 @@ CREATE INDEX idx_terms_active ON terms_of_service(is_active);
 | Redis | `notices:active` | 300s | 公告变更时失效 |
 | Redis | `terms:active` | 600s | 用户须知变更时失效 |
 
+## State Machine（v3 评审 P0 修复同步）
+
+```
+booking.status: 已预约 ──[闭馆]──→ 已取消 (cancel_reason = 4，场馆闭馆)
+terms_of_service.is_active: 仅一个 true
+user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
+```
+
+> **cancel_reason 字段类型**（v3 评审 P0 修复）：TINYINT 整型，全项目统一枚举 `1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 闭馆取消课程使用 `4=场馆闭馆`。
+
 ## Performance Targets
 
 | 指标 | 目标 |

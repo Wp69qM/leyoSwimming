@@ -76,6 +76,9 @@
 | 2 | 审批通过后执行批量同步事务：取消未来 booking、释放预占、active→frozen、隐藏未来排班 | [§5.5.1.1](../../prd/prd.md) |
 | 3 | 审批拒绝后 `coach.status: 4 → 1`，不回滚已登记的学员处理结果 | [§5.5.1.1](../../prd/prd.md) |
 | 4 | 教练离职时清算已消耗课时，学员退款成功后教练费同步扣回 | [§5.5.1.1](../../prd/prd.md) |
+| 5 | `package.frozen_reason` 字段类型为 VARCHAR，取值 `'coach_resigned'`（与 PRD §3.7 line 230 数据模型定义一致） | [§3.7](../../prd/prd.md) |
+
+> **frozen_reason 类型统一说明**（P1 修复）：PRD §5.5.1.1 line 605 的示例 SQL 中出现 `frozen_reason = 0`（整型），与 PRD §3.7 line 230 的数据模型定义 `frozen_reason='coach_resigned'`（字符串）矛盾。本 US 统一采用**字符串类型**（与 §3.7 数据模型定义一致，权威性更高）。已忽略 §5.5.1.1 line 605 SQL 示例的整型写法，视为笔误。后续实现时 `package.frozen_reason` 字段为 VARCHAR(32)，取值枚举：`'coach_resigned'` / `'refund_pending'` / `'admin_frozen'`。
 
 ---
 
@@ -92,7 +95,7 @@ And   教练 C 名下 3 份 active 套餐均已登记处理结果
 And   未来排班已清空
 When  管理员 M 点击「通过审批」
 Then  coach.status 更新为 3（已离职）
-And   所有未来 booking 状态更新为「已取消」且 cancel_reason = "教练离职"
+And   所有未来 booking 状态更新为「已取消」且 cancel_reason = 2（教练离职）
 And   package.reserved_count = 0，available_count 增加对应数值
 And   3 份 active package 更新为 frozen，frozen_reason = "coach_resigned"
 And   未来 schedule_slot 更新为 hidden
@@ -178,7 +181,7 @@ And   coach.status 保持 4
 | 3 | coach_resignation_ticket | pending_audit → approved | 通过审批 | — |
 | 4 | coach_resignation_ticket | pending_audit → rejected | 拒绝审批 | — |
 | 5 | package | active → frozen | 通过审批 | frozen_reason = coach_resigned |
-| 6 | booking | 已预约 → 已取消 | 通过审批 | cancel_reason = 教练离职 |
+| 6 | booking | 已预约 → 已取消 | 通过审批 | cancel_reason = 2（教练离职） |
 
 ---
 
@@ -326,6 +329,8 @@ And   coach.status 保持 4
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | P1 修复：§5 统一 `frozen_reason` 为字符串类型（与 PRD §3.7 数据模型定义一致），明确 PRD §5.5.1.1 line 605 整型写法为笔误；补充字段枚举值 |
+| v1.2 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（2=教练离职） |
 
 ---
 

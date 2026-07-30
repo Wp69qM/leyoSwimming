@@ -48,14 +48,17 @@
 2. 系统展示待处理退款申请：订单号、学员、教练、申请金额、原因、提交时间
 3. 管理员点击某条记录查看详情：订单信息、package 消耗情况、可退金额计算过程
 4. 管理员选择处理方式：
-   - **批准退款**：系统调用微信/支付宝退款接口，创建 refund_transaction 记录；order.status → 已退款；package.status → refunded；关联赠送 package 同步作废；异步触发身份重算
-   - **驳回退款**：order.status → 已支付；package.status 回 active；已释放的 reserved 不再自动恢复；填写驳回原因并通知学员
-5. 系统发送处理结果通知（微信订阅消息 / 短信）
+   - **批准退款**（两阶段）：
+     - **阶段 1 受理**：order.status → 退款处理中；package.status 保持不变（仍冻结）；refund_transaction.status = 处理中；记录受理时间与受理管理员
+     - **阶段 2 渠道回调**：渠道退款成功回调 → order.status → 已退款；package.status → refunded；关联赠送 package 同步作废；refund_transaction.status = 成功；异步触发身份重算
+     - **阶段 2 失败**：渠道退款失败 → order.status 回滚为 退款审批中；package.status 解冻恢复；refund_transaction.status = 失败；进入重试队列并通知管理员
+   - **驳回退款**：order.status → 已支付；package.status 回 active（含解冻）；已释放的 reserved 不再自动恢复；填写驳回原因并通知学员
+5. 系统发送处理结果通知（微信订阅消息 / 短信）：受理时发送"退款处理中"，渠道成功后发送"已退款"，失败时发送"退款失败，正在重试"
 
 ### 4.2 异常分支
 
-- **分支 1**：渠道退款接口调用失败 → refund_transaction.status = 失败，order/package 保持不变，进入重试队列并通知管理员
-- **分支 2**：退款金额与原支付金额不一致 → 系统拒绝审批，提示管理员核对
+- **分支 1**：渠道退款接口调用失败（阶段 2 失败）→ refund_transaction.status = 失败，order.status 从「退款处理中」回滚为「退款审批中」，package 解冻恢复，进入重试队列并通知管理员
+- **分支 2**：退款金额与原支付金额不一致 → 系统拒绝审批，返回错误码 `REFUND_AMOUNT_MISMATCH`，提示管理员核对
 - **分支 3**：重复点击批准/驳回 → 幂等处理，返回当前最终状态
 - **分支 4**：无权限人员访问 → 返回 403 FORBIDDEN
 
@@ -77,7 +80,7 @@
 
 ## 6. 验收标准（业务级 Gherkin）
 
-### 6.1 场景 1：管理员批准标准退款
+### 6.1 场景 1：管理员批准标准退款（含两阶段时序）
 
 ```gherkin
 Given 管理员已登录
@@ -85,11 +88,16 @@ And   存在 refund.status = 待审批，amount = 1440 分的退款申请
 And   对应 order.status = 退款审批中，package.total_hours = 10，consumed_count = 2
 And   原支付渠道为微信支付
 When  管理员点击「批准退款」
-Then  系统调用微信退款接口，创建 refund_transaction.status = 处理中
-And   order.status = 已退款
+Then  阶段 1：系统调用微信退款接口受理成功，创建 refund_transaction.status = 处理中
+And   order.status = 退款处理中
+And   package.status 保持原状态（仍冻结）
+And   学员收到"退款处理中"受理通知
+And   返回 HTTP 202 Accepted
+When  微信渠道异步回调成功
+Then  阶段 2：order.status = 已退款
 And   package.status = refunded
-And   学员收到退款受理通知
-And   返回 HTTP 200
+And   refund_transaction.status = 成功
+And   学员收到"已退款"成功通知
 ```
 
 ### 6.2 场景 2：管理员驳回退款
@@ -106,17 +114,19 @@ And   学员收到驳回通知，展示原因
 And   返回 HTTP 200
 ```
 
-### 6.3 场景 3：渠道退款接口失败
+### 6.3 场景 3：渠道退款接口失败（阶段 2 失败回滚）
 
 ```gherkin
 Given 管理员已登录
-And   退款申请状态为待审批
+And   退款申请状态为待审批，order.status = 退款审批中
 And   微信退款接口返回失败
 When  管理员点击「批准退款」
-Then  系统创建 refund_transaction.status = 失败
-And   order.status 保持退款审批中
-And   package.status 保持不变
+Then  阶段 1：系统尝试调用微信退款接口失败
+And   refund_transaction.status = 失败
+And   order.status 从「退款处理中」回滚为「退款审批中」
+And   package.status 解冻恢复原状态
 And   系统提示管理员"渠道退款失败，已加入重试队列"
+And   refund 进入重试队列，5 分钟后自动重试
 ```
 
 ### 6.4 场景 4：重复批准退款
@@ -166,11 +176,16 @@ And   不修改任何退款/订单状态
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | `order` | 退款审批中 → 已退款 | 管理员批准且渠道退款受理 | 终态 |
-| 2 | `order` | 退款审批中 → 已支付 | 管理员驳回 | 恢复可用 |
-| 3 | `package` | active/frozen → refunded | 管理员批准 | 关联赠送 package 同步作废 |
-| 4 | `package` | active（冻结）→ active | 管理员驳回 | 约课能力恢复 |
-| 5 | `user` | 学员 → 注册用户 | 退款完成后无其他 active package | 异步重算 |
+| 1 | `order` | 退款审批中 → 退款处理中 | 管理员批准（阶段 1 受理）| 中间态，等待渠道回调 |
+| 2 | `order` | 退款处理中 → 已退款 | 渠道退款成功回调（阶段 2 成功）| 终态 |
+| 3 | `order` | 退款处理中 → 退款审批中 | 渠道退款失败（阶段 2 失败）| 回滚，进入重试队列 |
+| 4 | `order` | 退款审批中 → 已支付 | 管理员驳回 | 恢复可用 |
+| 5 | `package` | active → frozen | 学员提交退款（US-027）| 冻结禁止预约 |
+| 6 | `package` | frozen → refunded | 渠道退款成功（阶段 2 成功）| 关联赠送 package 同步作废 |
+| 7 | `package` | frozen → active | 管理员驳回 或 渠道失败回滚 | 约课能力恢复 |
+| 8 | `user` | 学员 → 注册用户 | 退款完成后无其他 active package | 异步重算 |
+
+> **package frozen 转换说明**（v3 评审 P0 修复）：退款流程中 package 的状态转换路径明确为 `active → frozen（学员提交退款时，US-027 触发）→ refunded（渠道成功）/ active（驳回或失败回滚）`。frozen 是退款流程的中间态，由 US-027 在学员提交退款申请时设置，本 US（US-028）只处理 frozen 的出口转换。
 
 ---
 
@@ -303,6 +318,8 @@ And   不修改任何退款/订单状态
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | P1 修复：明确两阶段退款状态机时序（受理→退款处理中→渠道回调→已退款/失败回滚），消除原 §4.1/§6.1 与 §6.3 矛盾 |
+| v1.2 | 2026-07-31 | PM | v3 评审 P0 修复：§7.3 明确 package frozen 转换路径（active→frozen→refunded/active），补充 frozen 中间态由 US-027 触发的说明 |
 
 ---
 

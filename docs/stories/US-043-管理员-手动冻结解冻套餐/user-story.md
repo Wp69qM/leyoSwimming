@@ -47,7 +47,7 @@
 3. 管理员点击「冻结」
 4. 系统弹出原因选择：投诉处理中 / 异常订单 / 司法冻结（P3）
 5. 管理员选择原因并确认
-6. 系统将 package.status 从 active 更新为 frozen，并写入 frozen_reason
+6. 系统将 package.status 从 active 更新为 frozen，并写入 frozen_reason = `admin_frozen`（统一枚举，细分原因记录在 audit_log.remark）
 7. 系统释放该 package 的 reserved 课时（reserved→available）
 8. 系统记录审计日志
 9. 返回冻结成功提示
@@ -79,6 +79,10 @@
 | 3 | 解冻后 package.status 恢复 active，frozen_reason 清除 | [§5.5.1.2](../../prd/prd.md) |
 | 4 | 冻结触发场景包括投诉处理中、异常订单、司法冻结 | [§5.5.1.2](../../prd/prd.md) |
 
+> **booking.cancel_reason 字段类型统一说明**（v3 评审 P0 修复）：`cancel_reason` 字段为 TINYINT 整型，全项目枚举值：`1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 冻结时取消已预约课程使用 `6=套餐冻结`。
+
+> **package.frozen_reason 字段类型统一说明**（v3 评审 P0 修复，对齐 PRD §5.5.1.2）：`frozen_reason` 字段为 VARCHAR(32)，全项目统一 3 值枚举：`coach_resigned`（教练离职，系统自动）/ `refund_pending`（退款处理中，US-027/US-028 触发）/ `admin_frozen`（管理员手动冻结，细分原因如投诉处理中/异常订单/司法冻结记录在 audit_log.remark）。本 US 使用 `admin_frozen`。
+
 ---
 
 ## 6. 验收标准（业务级 Gherkin）
@@ -92,7 +96,7 @@ Given 管理员 M 已登录且具有套餐管理权限
 And   学员 S 的 package P1 当前 status = active，reserved_count = 2，available_count = 3
 When  管理员 M 对 P1 点击「冻结」并选择原因="投诉处理中"
 Then  package P1 的 status 更新为 frozen
-And   frozen_reason = "pending_review"
+And   frozen_reason = "admin_frozen"（细分原因"投诉处理中"记录在 audit_log.remark）
 And   reserved_count = 0，available_count = 5
 And   audit_log 新增 1 条 action='ADMIN_FREEZE_PACKAGE' 记录
 And   返回 HTTP 200 与提示"套餐已冻结"
@@ -102,7 +106,7 @@ And   返回 HTTP 200 与提示"套餐已冻结"
 
 ```gherkin
 Given 管理员 M 已登录且具有套餐管理权限
-And   学员 S 的 package P1 当前 status = frozen，frozen_reason = "admin_manual"
+And   学员 S 的 package P1 当前 status = frozen，frozen_reason = "admin_frozen"
 When  管理员 M 对 P1 点击「解冻」并确认
 Then  package P1 的 status 更新为 active
 And   frozen_reason 清空
@@ -167,7 +171,7 @@ And   package 状态保持 active 不变
 |---|------|------|---------|------|
 | 1 | package | active → frozen | 管理员冻结 | 需释放 reserved |
 | 2 | package | frozen → active | 管理员解冻 | 清除 frozen_reason |
-| 3 | booking | 已预约 → 已取消 | 冻结时 | cancel_reason = "package_frozen" |
+| 3 | booking | 已预约 → 已取消 | 冻结时 | cancel_reason = 6（套餐冻结） |
 
 ---
 
@@ -310,6 +314,8 @@ And   package 状态保持 active 不变
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（6=套餐冻结）；§5 新增 cancel_reason 枚举说明 |
+| v1.2 | 2026-07-31 | PM | v3 评审 P0-1 修复：frozen_reason 对齐 PRD §5.5.1.2 统一枚举（coach_resigned/refund_pending/admin_frozen）；§6.1/§6.2 改为 `admin_frozen`；§5 新增 frozen_reason 枚举说明；§4.1 步骤 6 明确 frozen_reason 取值 |
 
 ---
 
