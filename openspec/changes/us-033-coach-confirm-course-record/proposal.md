@@ -4,18 +4,18 @@ US-029~US-032 完成了预约、取消/改约、签到与课后总结，但课�
 
 ## What Changes
 
-- 新增 `POST /api/coach/bookings/{booking_id}/confirm`：教练确认上课并扣除课时
-- 新增 `POST /api/admin/bookings/{booking_id}/return-hour`：管理员返还课时
+- 新增 `POST /api/coach/bookings/{booking_id}/confirm`：教练在课程结束后 24 小时内确认上课并扣除课时
+- 新增 `POST /api/coach/bookings/{booking_id}/mark-absent`：教练在课程结束后标记学员旷课并自动扣课时
 - 新增 `course_record` 表记录教练上课记录
-- 新增 `hour_return` 表记录管理员返还课时
 - 新增教练端课程确认页与上课记录填写弹窗
 - 课程结束后 24 小时内教练可确认，超时由系统定时任务处理
+- 管理员返还课时职责已迁移至 US-035
 
 ## Capabilities
 
 ### New Capabilities
 
-- `coach-confirm-course-record`: 教练确认上课记录并扣除课时，含管理员返还课时
+- `coach-confirm-course-record`: 教练在课程结束后确认上课记录并扣除课时；教练在课程结束后标记学员旷课并自动扣课时
 
 ### Modified Capabilities
 
@@ -24,8 +24,8 @@ US-029~US-032 完成了预约、取消/改约、签到与课后总结，但课�
 
 ## Impact
 
-- **数据表**：新增 `course_record`、`hour_return`；修改 `booking`、`package`；写 `audit_log`
-- **API**：新增 2 个端点
+- **数据表**：新增 `course_record`；修改 `booking`、`package`；写 `audit_log`
+- **API**：新增 2 个端点（confirm / mark-absent）
 - **定时任务**：超时未确认自动扣课时
-- **前端**：新增教练端课程确认页、管理端返还课时入口
-- **依赖**：依赖 US-029、US-032；被 US-034 依赖
+- **前端**：新增教练端课程确认页
+- **依赖**：依赖 US-029、US-032；被 US-034、US-035 依赖

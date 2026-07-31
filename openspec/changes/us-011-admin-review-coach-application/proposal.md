@@ -6,7 +6,7 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求入驻资质需管理员审核；[
 
 ## What Changes
 
-- 新增 `GET /api/admin/coach/applications` 接口（待审核列表）
+- 新增 `GET /api/admin/coach/applications` 接口（待审核列表，仅返回 `status=0` 且 `submitted_at IS NOT NULL` 的记录，避免草稿进入审核队列）
 - 新增 `POST /api/admin/coach/applications/{id}/approve` 接口（审核通过）
 - 新增 `POST /api/admin/coach/applications/{id}/reject` 接口（审核驳回）
 - 修改 `coach` 表：`status`、`approved_at`、`rejection_reason`、`auditor_id`
@@ -14,8 +14,8 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求入驻资质需管理员审核；[
 - 新增 `notification` 表发送审核通知给教练
 - 新增 Redis 缓存：`admin:coach:applications`、`coach:{coach_id}`
 - 新增 Web 管理后台"教练审核列表页"与"审核详情页"
-- 触发教练状态机：**待审核(0) → 已通过(1) / 驳回(2)**
-- 边界处理：无权限审核、重复审核、审核过程中教练撤回
+- 触发教练状态机：**待审核(0) → 已通过(1) / 驳回(2)**；驳回后可在 US-010 重新提交（2 → 0）
+- 边界处理：无权限审核、重复审核、已驳回重新提交后再次审核
 
 ## Capabilities
 

@@ -11,9 +11,9 @@
 
 **Spec coverage:** REQ-031-1
 
-- [ ] **RED:** Write failing tests — coach books for student with FIFO package selection; reject taken slot / no quota / no bound coach / unavailable slot
-- [ ] **GREEN:** Implement `CoachBookingService.bookForStudent(coachId, studentId, slotId, idempotencyKey)`
-- [ ] **REFACTOR:** Extract slot validator, package selector, and ownership checker
+- [ ] **RED:** Write failing tests — coach books for student with FIFO package selection; reject taken slot / no quota / no bound coach / unavailable slot / unauthorized coach; <24h booking requires student confirmation
+- [ ] **GREEN:** Implement `CoachBookingService.bookForStudent(coachId, studentId, slotId, idempotencyKey)` with authorization check and <24h confirmation flow
+- [ ] **REFACTOR:** Extract slot validator, package selector, authorization checker, and confirmation handler
 - [ ] **COMMIT:** `feat(booking): add coach book-for-student service`
 
 ## Task 2: Coach Reschedule Service — 教练改约 [P0]
@@ -24,9 +24,9 @@
 
 **Spec coverage:** REQ-031-2
 
-- [ ] **RED:** Write failing tests — reschedule cancels old booking and creates new one; reject non-reschedulable states; reject taken new slot
-- [ ] **GREEN:** Implement `CoachBookingService.reschedule(coachId, bookingId, newSlotId, idempotencyKey)` within transaction
-- [ ] **REFACTOR:** Extract reschedule validator and reuse booking creation logic
+- [ ] **RED:** Write failing tests — reschedule cancels old booking and creates new one; reject non-reschedulable states; reject taken new slot; reject unauthorized coach; <24h reschedule requires student confirmation and keeps original booking if not confirmed
+- [ ] **GREEN:** Implement `CoachBookingService.reschedule(coachId, bookingId, newSlotId, idempotencyKey)` with authorization check and <24h confirmation flow within transaction
+- [ ] **REFACTOR:** Extract reschedule validator, authorization checker, and reuse booking creation logic
 - [ ] **COMMIT:** `feat(booking): add coach reschedule-for-student service`
 
 ## Task 3: Coach Booking API [P0]
@@ -37,7 +37,7 @@
 
 **Spec coverage:** REQ-031-1 / REQ-031-2
 
-- [ ] **RED:** Write failing tests — 201 book; 200 reschedule; 400 errors; 403 forbidden
+- [ ] **RED:** Write failing tests — 201 book; 202 book pending confirmation; 200 reschedule; 202 reschedule pending confirmation; 400 errors; 403 forbidden
 - [ ] **GREEN:** Implement controller + route
 - [ ] **REFACTOR:** Share ownership validation with student booking controller
 - [ ] **COMMIT:** `feat(api): add coach booking and reschedule endpoints`

@@ -36,28 +36,50 @@ Then  系统返回 HTTP 403，错误码 FORBIDDEN
 ```gherkin
 Given 管理员已登录
 And   存在 refund.status = 待审批，amount = 1440 分的退款申请
-And   对应 order.status = 退款审批中
+And   对应 order.status = 退款审批中，package.status = active，package.booking_frozen = true
 And   原支付渠道为微信支付
 When  管理员批准该退款
 Then  系统创建 refund_transaction.status = 处理中
-And   order.status = 已退款
+And   order.status = 退款处理中
+And   package.status = active
+And   package.booking_frozen = true
+When  渠道异步回调成功
+Then  order.status = 已退款
 And   package.status = refunded
+And   refund_transaction.status = 成功
 And   HTTP 状态码 = 200
 ```
 
 #### Scenario: 重复批准退款
 
 ```gherkin
-Given 订单已退款成功，order.status = 已退款
+Given 订单已退款成功，order.status = 已退款，package.status = refunded
 When  管理员再次批准同一退款
 Then  系统返回 HTTP 200
 And   不重复创建 refund_transaction
 And   order.status 仍为已退款
+And   package.status 仍为 refunded
+```
+
+#### Scenario: 渠道退款失败回滚
+
+```gherkin
+Given 管理员已登录
+And   存在 refund.status = 待审批，amount = 1440 分的退款申请
+And   对应 order.status = 退款审批中，package.status = active，package.booking_frozen = true
+And   微信退款接口返回失败
+When  管理员批准该退款
+Then  系统创建 refund_transaction.status = 失败
+And   order.status = 退款审批中
+And   package.status = active
+And   package.booking_frozen = true
+And   refund 进入重试队列
+And   HTTP 状态码 = 200
 ```
 
 ### Requirement: REQ-028-3 管理员驳回退款
 
-系统 MUST 允许管理员驳回退款申请。驳回后订单状态 MUST 恢复为已支付，套餐状态 MUST 恢复为 active，系统 MUST 通知学员并记录驳回原因。
+系统 MUST 允许管理员驳回退款申请。驳回后订单状态 MUST 更新为 退款被拒（7），package.status MUST 保持 active，package.booking_frozen MUST 置为 false，package.reserved_count 保持当前值（申请阶段未释放），系统 MUST 通知学员并记录驳回原因。只有用户主动撤销退款申请时，订单状态才回到已支付。
 
 #### Scenario: 驳回退款
 
@@ -66,8 +88,10 @@ Given 管理员已登录
 And   存在 refund.status = 待审批
 And   order.status = 退款审批中
 When  管理员驳回该退款并填写原因"资料不足"
-Then  order.status = 已支付
+Then  order.status = 退款被拒（7）
 And   package.status = active
+And   package.booking_frozen = false
+And   package.reserved_count 保持提交前数值
 And   refund.status = 管理员驳回
 And   学员收到驳回通知
 And   HTTP 状态码 = 200

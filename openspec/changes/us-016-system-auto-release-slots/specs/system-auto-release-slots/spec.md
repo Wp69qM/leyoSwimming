@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 自动释放可约时段
 
-系统 MUST 在到达 `release_rule` 配置的释放时间时，自动读取所有已通过教练的可约时段模板，并按规则生成 `schedule_slot`。系统 MUST 防止重复释放同一周期时段。
+系统 MUST 在到达 `release_rule` 配置的释放时间时，自动读取 `coach.status IN (1, 4)` 且未离职教练的可约时段模板，并按规则生成 `schedule_slot`。系统 MUST 排除 `status=3`（已离职）教练。系统 MUST 防止重复释放同一周期时段。
 
 #### Scenario: 正常释放下周整周时段
 
@@ -57,4 +57,16 @@ Given 本周释放任务已执行成功
 When  释放任务再次触发
 Then  系统检查 release_log 后跳过本次释放
 And   返回幂等响应 "本周已释放"
+```
+
+#### Scenario: 申请离职中教练继续释放
+
+```gherkin
+Given 当前为周三 10:00
+And   教练 D 的 coach.status = 4（申请离职中）
+And   教练 D 已设置周一至周日 10:00-11:00 可约
+When  释放任务触发
+Then  系统为教练 D 生成 7 条 schedule_slot 记录
+And   每条 slot.status = "available"
+And   release_log 记录 generated_slots 包含教练 D 的 7 条 slot
 ```

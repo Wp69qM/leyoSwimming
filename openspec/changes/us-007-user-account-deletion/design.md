@@ -12,16 +12,13 @@ US-007 实现用户主动注销账号功能，采用软删除策略保留历史�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `user` | UPDATE | `status=2`, `deleted_at`, `anonymous_after` |
+| `user` | UPDATE | `status=2`, `deleted_at` |
 | `user_session` | DELETE | 清除该用户所有会话 |
 | `audit_log` | INSERT | `action='account_cancel'`, `user_id`, `ip`, `device`, `created_at` |
 
 ### 索引
 
 ```sql
--- 注销时间查询索引（用于定时匿名化任务）
-CREATE INDEX idx_user_anonymous_after ON user(anonymous_after) WHERE status = 2;
-
 -- 审计日志查询索引
 CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 ```
@@ -39,7 +36,7 @@ CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 - 鉴权：是
 - 幂等：是（`cancel:{user_id}:{timestamp}`，TTL 300s）
 - Request: `{ verify_code: string, agreement_version: 'v1.0' }`
-- Response 200: `{ cancelled: true, anonymous_after: '2026-10-28T12:00:00Z' }`
+- Response 200: `{ cancelled: true }`
 - Response 400: `ACTIVE_PACKAGE_EXISTS`（存在 active 套餐）
 - Response 400: `PENDING_ORDER_EXISTS`（存在未完成订单）
 - Response 401: `INVALID_CREDENTIALS`（二次验证失败）
@@ -82,7 +79,7 @@ CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 - 必须二次验证（密码或验证码）
 - 注销前校验无 active 套餐、无未完成订单
 - 记录审计日志（操作人、时间、IP、设备）
-- 90 天后匿名化处理（定时任务）
+- 注销后执行数据保留策略：课程记录保留 2 年、套餐/订单记录保留 5 年、个人身份信息脱敏
 - 注销后所有 token 立即失效
 
 ## Cross-US Dependencies

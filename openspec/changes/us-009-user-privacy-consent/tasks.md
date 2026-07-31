@@ -27,7 +27,7 @@
 
 **Spec coverage:** REQ-003 Scenario "协议版本更新后未重新同意"
 
-- [ ] **RED:** Write 3 failing tests — 未同意返回 `none`；已同意返回版本；已撤回返回 `revoked`
+- [ ] **RED:** Write 4 failing tests — 游客访问返回 401；未同意返回 `none`；已同意返回版本；已撤回返回 `revoked`
 - [ ] **GREEN:** Implement `GET /api/user/privacy/status` with current policy comparison
 - [ ] **COMMIT:** `feat(privacy): add user privacy status endpoint`
 
@@ -39,7 +39,7 @@
 
 **Spec coverage:** REQ-001 Scenario "正常同意隐私协议"
 
-- [ ] **RED:** Write 2 failing tests — 同意当前版本返回 200 并写入记录；非当前版本返回 `VERSION_MISMATCH`
+- [ ] **RED:** Write 3 failing tests — 游客调用返回 401；同意当前版本返回 200 并写入记录；非当前版本返回 `VERSION_MISMATCH`
 - [ ] **GREEN:** Implement `POST /api/user/privacy/consent` with action='agree'
 - [ ] **COMMIT:** `feat(privacy): add privacy consent agreement endpoint`
 
@@ -52,7 +52,7 @@
 
 **Spec coverage:** REQ-002 Scenario "撤回隐私授权"
 
-- [ ] **RED:** Write 2 failing tests — 已同意用户撤回成功；未同意用户撤回返回 `ALREADY_REVOKED`
+- [ ] **RED:** Write 3 failing tests — 游客调用返回 401；已同意用户撤回成功；未同意用户撤回返回 `ALREADY_REVOKED`
 - [ ] **GREEN:** Implement `POST /api/user/privacy/consent` with action='revoke'
 - [ ] **COMMIT:** `feat(privacy): add privacy consent revoke endpoint`
 

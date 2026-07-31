@@ -11,7 +11,7 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `order` | 读/写 | 校验订单状态，更新为退款审批中 |
-| `package` | 读/写 | 校验套餐状态，更新为 frozen |
+| `package` | 读/写 | 校验套餐状态，保持 active，设置 booking_frozen = true |
 | `refund_record` | 写 | 新增退款申请记录 |
 | `notification` | 写 | 通知管理员与学员 |
 
@@ -60,7 +60,7 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
     ]
   }
   ```
-- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | ORDER_NOT_PAID }`
+- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | ORDER_NOT_PAID }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
 
 ### 2.2 POST /api/orders/{order_id}/refund
 
@@ -73,12 +73,13 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
   }
   ```
 - **Response 201**: `{ refund_id, status: "待审批" }`
-- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN }`
+- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
 
 ### 2.3 业务规则
 
 - 退款金额 = `paid_amount × (total_hours - consumed_count) / total_hours`（§6.4.2）
-- package.status ∉ {active, exhausted, expired} → 拒绝
+- package.status 必须 ∈ {active, exhausted, expired}，或 = frozen 且 frozen_reason = coach_resigned；否则拒绝
+- 提交后 package.status 保持 active，package.booking_frozen = true
 - 已存在 status=待审批 的 refund_record → 拒绝（REFUND_IN_PROGRESS）
 
 ---
@@ -87,7 +88,8 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 
 ```
 order: 已支付 ──[学员提交退款]──→ 退款审批中
-package: active/exhausted/expired ──[学员提交退款]──→ frozen
+package: active/exhausted/expired ──[学员提交退款]──→ active（保持），booking_frozen = true
+package: frozen(coach_resigned) ──[学员提交退款]──→ active，保留 frozen_reason，booking_frozen = true
 refund_record: 无 ──[学员提交]──→ 待审批
 ```
 
@@ -114,7 +116,7 @@ refund_record: 无 ──[学员提交]──→ 待审批
 
 - 登录鉴权 + 订单归属校验（仅订单所属用户可申请）
 - 幂等键：`{user_id}:{order_id}:refund`
-- 事务包裹：refund_record + order + package 同一事务
+- 事务包裹：refund_record + order + package.booking_frozen 设置在同一事务；reserved 不在本 US 释放，由 US-028 在 package.status → refunded 时处理；package.status 保持 active
 
 ---
 

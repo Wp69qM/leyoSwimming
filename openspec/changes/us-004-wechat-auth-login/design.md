@@ -72,7 +72,7 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 
 ## State Machine
 
-### 用户身份状态机（PRD §4）
+### 用户身份状态机（PRD §9.2 身份体系）
 
 ```
 游客 ──(US-004 微信授权登录)──→ 注册用户 ──(US-020 购买正价套餐)──→ 学员

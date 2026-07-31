@@ -47,7 +47,12 @@
 | `/api/admin/coach/applications/{id}/approve` | POST | 通过 |
 | `/api/admin/coach/applications/{id}/reject` | POST | 驳回 |
 
-### 2.1 POST /api/admin/coach/applications/{id}/approve
+### 2.1 GET /api/admin/coach/applications
+
+- **查询参数**：`status=0`、`submitted_at_not_null=true`、`page`、`page_size`
+- **说明**：待审核列表仅返回 `status=0` 且 `submitted_at IS NOT NULL` 的记录，避免草稿进入审核队列
+
+### 2.2 POST /api/admin/coach/applications/{id}/approve
 
 - **响应体**：
   ```json
@@ -69,6 +74,7 @@
 ```
 待审核(0) ──[通过]──→ 已通过(1)
 待审核(0) ──[驳回]──→ 驳回(2)
+驳回(2) ──[重新提交，US-040]──→ 待审核(0)
 ```
 
 ---

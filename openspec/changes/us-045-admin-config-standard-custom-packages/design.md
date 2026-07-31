@@ -13,7 +13,7 @@ US-045 是管理员后台配置 US，核心新增 `package_template` 与 `custom
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
 | `package_template` | 标准套餐模板 | id, name, coach_id, total_hours, valid_days, price, status |
-| `custom_package_config` | 自定义套餐规则 | min_hours, max_hours, default_valid_days |
+| `custom_package_config` | 自定义套餐规则 | min_hours, max_hours, default_valid_days, unit_price_floor |
 
 ### 读取表
 
@@ -53,8 +53,14 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 ### POST /api/admin/package-templates/:id/toggle-status
 
 - 鉴权：管理员登录 + `package:write`
-- Body: `{ status: 0 | 1 }`
+- Body：`{ status: 0 | 1 }`
 - Response 200 / 404
+
+### PUT /api/admin/package-templates/custom-config
+
+- 鉴权：管理员登录 + `package:write`
+- Body：`{ min_hours, max_hours, default_valid_days, unit_price_floor }`
+- Response 200 / 400
 
 ## Caching
 

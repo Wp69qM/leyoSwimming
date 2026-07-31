@@ -28,6 +28,8 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 ### POST /api/bookings/{booking_id}/check-in
 
 - 鉴权：必须登录且为 booking 所有者
+- 可用状态：仅允许 booking.status ∈ {待上课, 上课中}；status = 已预约 时返回 CHECKIN_WINDOW_NOT_OPEN
+- 签到窗口：当前时间 ∈ [start_time - 15min, end_time]
 - Response 200: `{ booking_id, checked_in_at }`
 - Response 400: `CHECKIN_WINDOW_NOT_OPEN | BOOKING_NOT_CHECKINABLE`
 - Response 403: `BOOKING_ACCESS_DENIED`
@@ -44,6 +46,12 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 - Request: `{ body_feeling: string, learning_effect: string, feedback: string }`
 - Response 200: `{ course_record_id, student_summary_json }`
 - Response 400: `SUMMARY_INVALID`
+
+## Business Rules
+
+- 签到仅允许 booking.status ∈ {待上课, 上课中}，status = 已预约 时不可签到
+- 待上课状态对应开课时间前 15 分钟至课程结束时间
+- 重复签到幂等返回，不重复发送通知
 
 ## State Machine
 
@@ -71,6 +79,7 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 ## Security
 
 - 严格校验 booking 归属
+- 签到状态服务端校验：仅允许 status ∈ {待上课, 上课中}，拒绝 已预约 状态签到
 - 签到窗口服务端校验，防止客户端绕过
 - 课后总结字段长度限制
 - 禁止修改不属于自己的记录
@@ -80,4 +89,5 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 | US | 方向 | 说明 |
 |----|------|------|
 | US-029 | 依赖 | 已存在 booking |
+| US-031 | 依赖 | 教练代约/改约产生 booking |
 | US-033 | 被依赖 | 教练确认上课记录 |

@@ -13,8 +13,8 @@
 **目标：**
 - 仅 status=1 的教练可提交离职申请
 - 提交后生成离职工单并变更教练状态
-- 教练可对每份 active 套餐登记处理结果
-- 登记完成后提交至管理员审批
+- 教练对每份 active 套餐确认全额退款
+- 确认完成后提交至管理员审批
 
 **非目标：**
 - 不实现管理员审批逻辑（US-041）
@@ -51,9 +51,21 @@
 | action_id | BIGINT PK | | |
 | ticket_id | BIGINT FK | IDX | |
 | package_id | BIGINT FK | IDX | |
-| action | TINYINT | | 0=transfer, 1=refund, 2=continue |
-| target_coach_id | BIGINT FK | nullable | 转新教练时填写 |
+| action | TINYINT | | 固定 1=refund（MVP 强制全额退款） |
+| target_coach_id | BIGINT FK | nullable | MVP 不使用，保留字段 |
 | status | TINYINT | | 0=registered, 1=approved, 2=rejected |
+| created_at | DATETIME | | |
+| updated_at | DATETIME | | |
+
+#### `refund_record`（新增）
+
+| 字段 | 类型 | 索引 | 备注 |
+|------|------|------|------|
+| refund_id | BIGINT PK | | |
+| package_id | BIGINT FK | IDX | |
+| ticket_id | BIGINT FK | IDX | 关联离职工单 |
+| refund_amount | DECIMAL(10,2) | | `单价 × 剩余课时`，已消耗课时不退 |
+| status | TINYINT | | 0=pending, 1=approved, 2=rejected, 3=completed |
 | created_at | DATETIME | | |
 | updated_at | DATETIME | | |
 
@@ -80,11 +92,14 @@
 - **功能**：返回当前教练的活跃工单详情与学员套餐清单
 - **响应 200**：ticket + packages + actions
 
-### 4.3 `PUT /api/coach/v1/resignation/tickets/{ticket_id}/packages/{package_id}/action`
+### 4.3 `PUT /api/coach/v1/resignation/tickets/{ticket_id}/packages/{package_id}/refund`
 
 - **鉴权**：教练 JWT，且 package 属于当前 coach
-- **请求体**：`{ "action": "transfer", "target_coach_id": 200 }`
+- **请求体**：`{ "confirmed": true }`
 - **响应 200**：更新后的 action
+- **业务规则**：
+  - 固定生成 `coach_resignation_action`（action='refund'）与 `refund_record`，`refund_amount = 套餐单价 × 剩余课时`（已消耗不退）；
+  - 工单提交至管理员时，未确认退款的 active 套餐默认按 `refund` 生成待退款记录。
 - **错误码**：`NOT_OWN_PACKAGE`（403）、`TICKET_NOT_PROCESSING`（409）
 
 ### 4.4 `POST /api/coach/v1/resignation/tickets/{ticket_id}/submit`
@@ -116,6 +131,11 @@
 - `processing` → `cancelled`（教练撤销）
 - `pending_audit` → `approved` / `rejected`（管理员审批，US-041）
 
+### 5.3 退款记录状态
+
+- `pending` → `approved` / `rejected` / `completed`（US-041 管理员审批或 US-028 处理退款）
+- 教练主动离职时，所有 active package 未消耗剩余课时强制 100% 退款
+
 ---
 
 ## 6. 缓存策略
@@ -137,7 +157,8 @@
 
 - 所有接口校验 JWT 中的 coach_id 与资源一致
 - 仅允许修改 status=processing 的工单
-- action 仅允许 transfer/refund/continue 枚举值
+- action 固定为 refund，不允许 transfer/continue 枚举值
+- 每个 active package 必须生成 `refund_record`，金额按「单价 × 剩余课时」计算，已消耗不退
 - 操作记录审计日志
 
 ---

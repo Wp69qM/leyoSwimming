@@ -80,3 +80,31 @@ Then  系统返回 HTTP 403
 And   返回错误码 FORBIDDEN
 And   package_template 表不新增记录
 ```
+
+---
+
+### Requirement: REQ-004 管理员配置自定义套餐规则
+
+系统 MUST 提供管理员配置自定义套餐全局规则接口。系统 MUST 校验 0 < min_hours ≤ max_hours ≤ 100，default_valid_days > 0，unit_price_floor ≥ 0；校验通过后写入 `custom_package_config` 表（全局仅保留一条记录）。
+
+#### Scenario: 管理员配置自定义套餐规则成功
+
+```gherkin
+Given 管理员已登录且具有套餐配置权限
+And   当前 custom_package_config 表无记录
+When  管理员提交自定义套餐规则：min_hours=5, max_hours=50, default_valid_days=180, unit_price_floor=200.00
+Then  系统返回 HTTP 200
+And   custom_package_config 表新增 1 条记录
+And   该记录 min_hours=5, max_hours=50, default_valid_days=180, unit_price_floor=200.00
+And   学员端购买自定义套餐时课时数可选范围变为 5~50
+```
+
+#### Scenario: 自定义套餐规则参数非法
+
+```gherkin
+Given 管理员已登录且具有套餐配置权限
+When  管理员提交自定义套餐规则：min_hours=0, max_hours=50, default_valid_days=0, unit_price_floor=-10
+Then  系统返回 HTTP 400
+And   返回错误码 INVALID_CUSTOM_PACKAGE_CONFIG
+And   custom_package_config 表不新增记录
+```

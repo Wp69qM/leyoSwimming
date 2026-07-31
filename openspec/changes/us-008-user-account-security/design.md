@@ -31,7 +31,7 @@ CREATE INDEX idx_audit_log_user_action ON audit_log(user_id, action);
 ### PUT /api/user/security/phone
 
 - 鉴权：是
-- Request: `{ new_phone: string, verify_code: string }`
+- Request: `{ new_phone: string, new_phone_code: string, old_phone_code?: string, current_password?: string }`
 - Response 200: `{ phone: '13900139000' }`
 - Response 400: `PHONE_ALREADY_BOUND`
 - Response 400: `INVALID_PHONE`
@@ -97,7 +97,7 @@ CREATE INDEX idx_audit_log_user_action ON audit_log(user_id, action);
 ## Security
 
 - 所有接口必须登录鉴权
-- 敏感操作必须二次验证（换绑手机用验证码，修改密码用原密码）
+- 敏感操作必须二次验证（换绑手机用原手机号短信验证码或当前密码，修改密码用原密码）
 - 记录审计日志（操作类型、前后值、IP、设备）
 - 换绑手机号限流 1 次/24 小时
 - 下线设备后立即失效 token

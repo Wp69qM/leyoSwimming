@@ -43,7 +43,7 @@ And   order.status = 已取消
 
 ### Requirement: REQ-025-2 处理支付回调
 
-系统 MUST 正确处理微信/支付宝异步支付回调，幂等更新订单与课时包状态。系统 MUST 验证回调签名与金额一致性。
+系统 MUST 正确处理微信/支付宝异步支付回调，幂等更新订单与课时包状态。系统 MUST 验证回调签名与金额一致性。系统 MUST 在处理订单超时取消（库存释放）与候补转正（US-023）时竞争同一分布式锁 `inventory:{coach_id}`，防止并发导致库存重复分配或超卖。
 
 #### Scenario: 微信支付回调成功
 
@@ -65,4 +65,16 @@ When  微信再次发送同一 channel_trade_no 的支付成功回调
 Then  系统返回 HTTP 200
 And   不重复创建 package
 And   order.status 仍 = 已支付
+```
+
+#### Scenario: 支付超时取消与候补转正并发竞争
+
+```gherkin
+Given 订单 O1 已创建 24 小时 01 分，status = 待支付，coach_id = A
+And   教练 A 存在候补学员 W1 等待转正
+When  订单超时取消任务释放 O1 库存的同时，W1 触发候补转正
+Then  两个操作竞争同一分布式锁 `inventory:A`
+And   仅有一个操作成功修改库存
+And   另一个操作基于最新库存重试或等待
+And   教练 A 的总可售名额不出现超卖或负库存
 ```

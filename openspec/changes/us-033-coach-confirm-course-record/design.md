@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-033 完成教练在课程结束后确认上课并扣除课时。核心流程：校验课程已开始且 booking 可确认 → 填写上课记录 → 事务内更新 booking/package/course_record → 通知学员。管理员返还课时职责已迁移至 US-035。
+US-033 完成教练在课程结束后确认上课并扣除课时。核心流程：校验课程已结束且 booking 可确认 → 填写上课记录 → 事务内更新 booking/package/course_record → 通知学员。管理员返还课时职责已迁移至 US-035。
 
 > **管理员返还课时已迁移至 US-035**（v3 评审 P0 修复）：原 `hour_return` 表与 `/api/admin/bookings/{booking_id}/return-hour` API 已移至 US-035 tech-design §1.2/§2.1 定义。本 US 仅负责教练侧确认/旷课标记，不再包含管理员返还职责。
 
@@ -49,7 +49,7 @@ CREATE INDEX idx_package_first_lesson ON package(package_id, first_lesson_confir
 - 鉴权：教练且为 booking.coach_id
 - Request: `{ content: string, focus_tags: string[], mastery_level: int, homework: string, media: string[] }`
 - Response 200: `{ booking_id, status: "已完成", package: { reserved_count, consumed_count, available_count } }`
-- Response 400: `CLASS_NOT_STARTED | BOOKING_NOT_CONFIRMABLE`
+- Response 400: `CLASS_NOT_ENDED | BOOKING_NOT_CONFIRMABLE`
 - Response 403: `BOOKING_ACCESS_DENIED`
 
 ### POST /api/coach/bookings/{booking_id}/mark-absent
@@ -57,7 +57,7 @@ CREATE INDEX idx_package_first_lesson ON package(package_id, first_lesson_confir
 - 鉴权：教练且为 booking.coach_id
 - Request: `{ remark?: string }`
 - Response 200: `{ booking_id, status: "旷课", cancel_reason: 3, package: { reserved_count, consumed_count, available_count } }`
-- Response 400: `CLASS_NOT_STARTED | BOOKING_NOT_CONFIRMABLE`
+- Response 400: `CLASS_NOT_ENDED | BOOKING_NOT_CONFIRMABLE`
 - Response 403: `BOOKING_ACCESS_DENIED`
 
 > 注：管理员返还课时 API 已迁移至 US-035 tech-design §2.1。
@@ -93,7 +93,7 @@ CREATE INDEX idx_package_first_lesson ON package(package_id, first_lesson_confir
 
 - 教练只能确认/标记旷课自己的课程
 - 幂等键防止重复确认/重复标记旷课
-- 防止课程未开始或已终态的确认
+- 防止课程未结束或已终态的确认/旷课标记
 
 ## Cross-US Dependencies
 

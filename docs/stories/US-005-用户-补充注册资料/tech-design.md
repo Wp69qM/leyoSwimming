@@ -1,6 +1,6 @@
 # US-005 用户补充注册资料 — 技术设计
 
-> **状态**：初稿　|　**最后更新**：2026-07-30
+> **状态**：初稿　|　**最后更新**：2026-07-31
 
 ---
 
@@ -10,8 +10,7 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `user` | 修改 | 补充手机号、用户名、密码哈希、邮箱 |
-| `user_identity_log` | 新增 | 记录身份变更日志 |
+| `user` | 修改 | 补充手机号、用户名、密码哈希、邮箱，设置 `profile_completed = true` |
 
 ### 1.2 字段定义
 
@@ -25,21 +24,11 @@
 | `username` | VARCHAR(32) | 唯一索引 | 用户名 |
 | `password_hash` | VARCHAR(128) | 非空 | bcrypt 哈希 |
 | `email` | VARCHAR(128) | 可空 | 邮箱 |
-| `identity` | TINYINT | 默认 0 | 0=游客, 1=注册用户, 2=学员 |
-| `status` | TINYINT | 默认 1 | 1=正常, 2=注销, 3=封禁 |
+| `identity_status` | VARCHAR(20) | 默认 '注册用户' | `游客`/`注册用户`/`学员`（已在 US-004 置为 '注册用户'，本 US 不修改） |
+| `profile_completed` | BOOLEAN | 默认 false | false=资料未完整, true=资料已完整（本 US 置为 true） |
+| `status` | TINYINT | 默认 0 | 0=正常, 1=软删除, 2=封禁 |
 | `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
 | `updated_at` | DATETIME | 默认 CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
-
-**user_identity_log 表**
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `log_id` | BIGINT | PK | 日志 ID |
-| `user_id` | BIGINT | FK → user | 用户 ID |
-| `from_identity` | TINYINT | 非空 | 变更前身份 |
-| `to_identity` | TINYINT | 非空 | 变更后身份 |
-| `trigger_event` | VARCHAR(64) | 非空 | 触发事件 |
-| `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 时间 |
 
 ---
 
@@ -72,7 +61,7 @@
     "code": 0,
     "data": {
       "user_id": 10001,
-      "identity": 1,
+      "identity_status": "注册用户",
       "username": "swimmer01"
     }
   }
@@ -87,13 +76,15 @@
 
 ## 3. 状态机
 
-### 3.1 用户身份状态机
+### 3.1 用户资料完成状态机
 
 ```
-游客(0) ──[资料补充完成]──→ 注册用户(1)
+profile_completed=false ──[资料补充完成]──→ profile_completed=true
 ```
 
-- 本 US 触发：游客 → 注册用户
+> `identity_status` 由 US-004 在首次微信登录时置为 `注册用户`，本 US 不再修改。
+
+- 本 US 触发：`profile_completed` false → true
 - 后续 US-020 购买套餐后：注册用户 → 学员
 
 ---
@@ -126,5 +117,6 @@
 
 ## 6. 跨 US 依赖
 
-- 依赖 US-004 完成微信 OAuth 登录
-- 支撑 US-008、US-009 的账号安全与隐私功能
+- 依赖 US-004 完成微信 OAuth 登录（已创建 `identity_status='注册用户'`、`profile_completed=false`）
+- 依赖 US-009 隐私协议授权能力（本 US 需校验用户已同意隐私协议）
+- 支撑 US-008 的账号安全设置功能

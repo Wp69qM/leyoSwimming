@@ -12,14 +12,14 @@ US-048 是管理员后台首页运营配置 US，复用 `notice` 表并新增 `h
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `homepage_banner` | 首页 Banner | id, name, image_url, link_url, visible_scope, sort_order, start_at, end_at, status |
-| `homepage_card` | 首页运营卡片 | id, title, icon_url, link_url, visible_scope, sort_order, start_at, end_at, status |
+| `homepage_banner` | 首页 Banner | id, name, image_url, link_url, visible_scope, sort_order, start_at, end_at, status, audit_status |
+| `homepage_card` | 首页运营卡片 | id, title, icon_url, link_url, visible_scope, sort_order, start_at, end_at, status, audit_status |
 
 ### 复用表
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `notice` | 通知栏公告 | id, title, content, visible_scope, priority, start_at, end_at, status |
+| `notice` | 通知栏公告 | id, title, content, visible_scope, priority, start_at, end_at, status, audit_status |
 
 ### 索引
 
@@ -81,6 +81,8 @@ CREATE INDEX idx_card_visible_time ON homepage_card(status, visible_scope, start
 - 所有管理接口登录 + RBAC
 - 内容 XSS 过滤
 - 图片 URL 域名白名单
+- 正式保存前调用内容安全审核服务（文本 + 图片），审核不通过拒绝写入
+- 预览接口不触发内容安全审核
 - 操作日志记录变更前后快照
 
 ## Cross-US Dependencies

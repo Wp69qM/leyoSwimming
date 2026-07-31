@@ -8,8 +8,8 @@
 
 - [ ] 2.1 Implement `POST /api/coach/v1/resignation/apply` with status check and idempotency — maps to REQ-001 / Scenario: Successful resignation application
 - [ ] 2.2 Implement `GET /api/coach/v1/resignation/ticket` to return ticket and active package list — maps to REQ-001 / Scenario: Successful resignation application
-- [ ] 2.3 Implement `PUT /api/coach/v1/resignation/tickets/{id}/packages/{package_id}/action` with ownership check — maps to REQ-002 / Scenario: Successful transfer action registration and REQ-005
-- [ ] 2.4 Implement `POST /api/coach/v1/resignation/tickets/{id}/submit` to move ticket to pending_audit
+- [ ] 2.3 Implement `PUT /api/coach/v1/resignation/tickets/{id}/packages/{package_id}/action` with ownership check — maps to REQ-002 / Scenario: Successful refund action registration with auto-generated refund record and REQ-005
+- [ ] 2.4 Implement `POST /api/coach/v1/resignation/tickets/{id}/submit` to move ticket to pending_audit and generate default refund records for unregistered active packages
 - [ ] 2.5 Implement `POST /api/coach/v1/resignation/tickets/{id}/cancel` to restore coach.status = 1
 
 ## 3. Validation & State Machine
@@ -18,6 +18,7 @@
 - [ ] 3.2 Reject duplicate apply when `coach.status = 4` — maps to REQ-004
 - [ ] 3.3 Enforce action enum values: transfer / refund / continue
 - [ ] 3.4 Validate `target_coach_id` required only when action = transfer
+- [ ] 3.5 Generate `refund_record` with `refund_amount = unit_price × remaining_hours` when action = refund or package remains unregistered at submit
 
 ## 4. Security & Audit
 

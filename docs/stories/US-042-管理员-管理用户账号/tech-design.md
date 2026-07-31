@@ -37,7 +37,7 @@
 | password_hash | VARCHAR(255) | | |
 | force_change_password | BOOLEAN | | 重置密码后强制修改 |
 | identity | TINYINT | IDX | 0=游客 1=注册用户 2=学员 |
-| status | TINYINT | IDX | 0=正常 1=注销 |
+| status | TINYINT | IDX | 0=正常 1=注销 2=封禁 |
 | created_at | DATETIME | IDX | |
 | updated_at | DATETIME | | |
 | version | INT | | 乐观锁 |
@@ -67,41 +67,57 @@
 
 ### 4.1 `GET /api/admin/v1/users`
 
-- **鉴权**：管理员 JWT，`MANAGE_USER_ACCOUNT`
+- **鉴权**：管理员 JWT + `USER:READ`
 - **查询参数**：`identity`、`start_date`、`end_date`、`keyword`、`page`、`page_size`
 - **响应 200**：用户列表分页
 
 ### 4.2 `GET /api/admin/v1/users/{user_id}`
 
-- **鉴权**：管理员 JWT
+- **鉴权**：管理员 JWT + `USER:READ`
 - **响应 200**：用户详情含角色列表
 - **错误码**：`USER_NOT_FOUND`（404）
 
 ### 4.3 `POST /api/admin/v1/users/{user_id}/reset-password`
 
-- **鉴权**：管理员 JWT
+- **鉴权**：管理员 JWT + `USER:PASSWORD_RESET`
 - **功能**：生成随机密码，更新 password_hash，设置 force_change_password=true
 - **响应 200**：`{ "message": "密码已重置" }`
 
 ### 4.4 `PUT /api/admin/v1/users/{user_id}/phone`
 
-- **鉴权**：管理员 JWT
-- **请求体**：`{ "phone": "13900139000", "version": 1 }`
+- **鉴权**：管理员 JWT + `USER:WRITE`
+- **请求体（正常变更）**：`{ "phone": "13900139000", "sms_code": "123456", "version": 1 }`
+- **请求体（强制变更）**：`{ "phone": "13900139000", "force": true, "force_reason": "原手机号已停机", "version": 1 }`
 - **响应 200**：更新后的用户信息
-- **错误码**：`PHONE_ALREADY_EXISTS`（409）、`USER_CONCURRENTLY_UPDATED`（409）
+- **错误码**：`PHONE_ALREADY_EXISTS`（409）、`USER_CONCURRENTLY_UPDATED`（409）、`PHONE_OWNERSHIP_VERIFY_FAILED`（400）
 
 ### 4.5 `PUT /api/admin/v1/users/{user_id}/email`
 
-- **鉴权**：管理员 JWT
+- **鉴权**：管理员 JWT + `USER:WRITE`
 - **请求体**：`{ "email": "new@example.com", "version": 1 }`
 - **响应 200**：更新后的用户信息
 - **错误码**：`EMAIL_ALREADY_EXISTS`（409）
 
 ### 4.6 `PUT /api/admin/v1/users/{user_id}/roles`
 
-- **鉴权**：管理员 JWT
+- **鉴权**：管理员 JWT + `USER:ROLE_ASSIGN`
 - **请求体**：`{ "role_ids": [1, 2] }`
 - **响应 200**：更新后的角色列表
+- **约束**：`admin` 角色不可授予 `super_admin`（role_id=1）
+
+### 4.7 `POST /api/admin/v1/users/{user_id}/ban`
+
+- **鉴权**：管理员 JWT + `USER:BAN`
+- **请求体**：`{ "reason": "涉嫌违规" }`
+- **响应 200**：更新后的用户信息
+- **业务规则**：仅允许对 `status=0` 的用户执行；更新 `status=2` 并写入 `audit_log`
+
+### 4.8 `POST /api/admin/v1/users/{user_id}/unban`
+
+- **鉴权**：管理员 JWT + `USER:BAN`
+- **请求体**：`{ "reason": "申诉通过" }`
+- **响应 200**：更新后的用户信息
+- **业务规则**：仅允许对 `status=2` 的用户执行；更新 `status=0` 并写入 `audit_log`
 
 ---
 
@@ -127,12 +143,36 @@
 
 ---
 
-## 8. 安全
+## 8. 安全 / RBAC 权限映射
 
-- 接口校验 `MANAGE_USER_ACCOUNT` 权限
-- 禁止修改超级管理员（user_id=1 或角色 SUPER_ADMIN）的关键字段
+### 8.1 权限码定义
+
+| 权限码 | 说明 |
+|--------|------|
+| `USER:READ` | 查看用户列表与详情 |
+| `USER:WRITE` | 修改用户手机号、邮箱 |
+| `USER:PASSWORD_RESET` | 重置用户密码 |
+| `USER:ROLE_ASSIGN` | 配置用户角色权限 |
+| `USER:BAN` | 封禁/解封用户账号 |
+
+### 8.2 角色权限矩阵
+
+| 操作 | `super_admin` | `admin` | 说明 |
+|------|---------------|---------|------|
+| 查看用户列表/详情 | ✅ | ✅ | 均持有 `USER:READ` |
+| 修改手机号/邮箱 | ✅ | ✅（仅限非管理员用户） | 均持有 `USER:WRITE`；`admin` 不可修改 `super_admin` 或其他 `admin` |
+| 重置密码 | ✅ | ✅（仅限非管理员用户） | 均持有 `USER:PASSWORD_RESET`；`admin` 不可重置 `super_admin` 密码 |
+| 配置角色权限 | ✅ | ✅（不可授予 `super_admin`） | 均持有 `USER:ROLE_ASSIGN`；`admin` 不可将普通用户提升为 `super_admin` |
+| 封禁/解封账号 | ✅ | ✅（仅限非管理员用户） | 均持有 `USER:BAN`；`admin` 不可封禁 `super_admin` |
+| 删除账号 | ❌ | ❌ | 管理员无删除权限；账号注销由 US-007 用户自助完成 |
+
+### 8.3 其他安全约束
+
+- 接口按上表校验 JWT 与细粒度权限码
+- 禁止修改超级管理员（user_id=1 或角色 `super_admin`）的关键字段
 - 重置密码使用加密安全的随机字符串
 - 敏感操作写入 audit_log
+- 修改手机号必须通过原手机号短信验证码验证所有权；无法验证时须强制变更并记录原因
 
 ---
 

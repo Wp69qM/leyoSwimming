@@ -6,16 +6,17 @@
 
 - 教练端「我的」新增「申请离职」入口，仅 `coach.status = 1` 可见
 - 教练提交离职申请后，`coach.status` 从 `1` 变为 `4`（申请中）
-- 系统自动生成「离职工单」，列出该教练名下所有 active 套餐及学员
-- 教练可在工单中对每份 active 套餐登记处理结果：转新教练 / 全额退款 / 继续上完
-- 教练处理完毕后将工单提交至管理员审批队列
+- 系统自动生成「离职工单」，列出该教练名下所有 active 套餐、学员及单价
+- 教练在工单中对每份 active 套餐确认「全额退款」处理结果并落库
+- 确认「全额退款」时，系统自动生成 100% 退款记录：`refund_amount = 单价 × 剩余课时`（已消耗课时不退）
+- 工单提交至管理员时，未确认退款的 active 套餐默认按「全额退款」生成待退款记录
 - 教练在管理员审批前可撤销申请，恢复 `coach.status = 1`
 
 ## Capabilities
 
 ### New Capabilities
 
-- `coach-request-resignation`: 教练主动申请离职、登记学员套餐处理结果并提交管理员审批
+- `coach-request-resignation`: 教练主动申请离职、确认学员套餐全额退款并提交管理员审批
 
 ### Modified Capabilities
 
@@ -23,7 +24,7 @@
 
 ## Impact
 
-- 后端：新增 `coach_resignation_ticket`、`coach_resignation_action` 表，新增 `/api/coach/v1/resignation/*` 系列接口、幂等键去重与审计日志
+- 后端：新增 `coach_resignation_ticket`、`coach_resignation_action`、`refund_record` 表，新增 `/api/coach/v1/resignation/*` 系列接口、幂等键去重与审计日志
 - 教练端小程序：新增「申请离职」入口、离职工单处理页
-- 管理端：US-041 可读取本 US 生成的 pending_audit 工单
+- 管理端：US-041 可读取本 US 生成的 pending_audit 工单与待退款记录
 - 依赖：US-012（教练主页管理）、US-020（学员购买正价套餐）

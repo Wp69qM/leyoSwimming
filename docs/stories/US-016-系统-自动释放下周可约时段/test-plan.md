@@ -19,9 +19,9 @@
 - Create: `backend/src/services/slot-generator.ts`
 - Test: `backend/tests/services/slot-generator.test.ts`
 
-**Spec coverage:** 正常释放、教练无模板
+**Spec coverage:** 正常释放、教练无模板、申请离职中教练继续释放
 
-- [ ] **RED:** Write failing tests — generates slots from templates; skips coaches with empty templates
+- [ ] **RED:** Write failing tests — generates slots from templates; skips coaches with empty templates; includes coaches with status=4 and excludes status=3
 - [ ] **GREEN:** Implement generator with closure-day filter
 - [ ] **REFACTOR:** Batch insert with chunk size
 - [ ] **COMMIT:** `feat(release): add slot generator from templates`

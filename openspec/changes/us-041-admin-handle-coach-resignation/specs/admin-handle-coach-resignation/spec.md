@@ -13,20 +13,23 @@ The system MUST provide an admin interface to list and view details of resignati
 
 ### Requirement: REQ-002 Admin shall approve coach resignation
 
-The system MUST allow an admin to approve a resignation after all checklist items pass, triggering batch updates.
+The system MUST allow an admin to approve a resignation after all checklist items pass, triggering batch updates. The checklist MUST include: ① active student count = 0; ② if active student count > 0, all active packages have confirmed full refund; ③ coach fees settled; ④ future schedule slots cleared. The system MUST NOT use "or" to weaken item ①.
 
 #### Scenario: Approve resignation successfully
 
 - **GIVEN** admin M has resignation approval permission
 - **AND** coach C has `coach.status = 4` and ticket status `pending_audit`
-- **AND** all 3 active packages under coach C have registered actions
+- **AND** coach C has 3 active packages all confirmed as full refund
+- **AND** active student count > 0
 - **AND** future schedule slots are cleared
 - **WHEN** admin M clicks "通过审批"
-- **THEN** `coach.status` is updated to `3`
-- **AND** all future bookings are cancelled with `cancel_reason = 2（教练离职）`
-- **AND** `package.reserved_count` is reset to `0` and `available_count` is increased accordingly
-- **AND** all 3 active packages become `frozen` with `frozen_reason = "coach_resigned"`
-- **AND** future `schedule_slot` records are updated to `hidden`
+- **THEN** the system executes the following steps in order within a single transaction (or Saga):
+  1. for all active packages (including those without confirmed refund), generate a pending `refund_record` with `refund_amount = unit_price × remaining_hours` (consumed hours are not refundable) and notify the student to choose refund or change coach;
+  2. cancel all future bookings with `cancel_reason = 2（教练离职）`
+  3. reset `package.reserved_count` to `0` and increase `available_count` accordingly (to absorb any residual reserved hours after booking cancellation)
+  4. update all active packages to `frozen` with `frozen_reason = "coach_resigned"`
+  5. update future `schedule_slot` records to `hidden`
+  6. update `coach.status` to `3`
 - **AND** the API returns HTTP 200 with message "审批通过"
 
 ### Requirement: REQ-003 Admin shall reject coach resignation
@@ -47,10 +50,10 @@ The system MUST allow an admin to reject a resignation and restore the coach to 
 
 The system MUST prevent approval when checklist items are not satisfied.
 
-#### Scenario: Approve blocked by unregistered package actions
+#### Scenario: Approve blocked by unconfirmed refund when active students exist
 
 - **GIVEN** admin M has resignation approval permission
-- **AND** coach C's ticket has 2 packages without registered actions
+- **AND** coach C's ticket has active students and 2 packages without confirmed full refund
 - **WHEN** admin M clicks "通过审批"
 - **THEN** the API returns HTTP 400 with error code `CHECKLIST_NOT_PASSED`
 - **AND** `coach.status` remains `4`

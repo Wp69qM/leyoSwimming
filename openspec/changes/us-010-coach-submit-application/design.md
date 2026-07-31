@@ -12,7 +12,7 @@ US-010 是教练端流程起点，教练提交资质资料后进入待审核状�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `coach` | INSERT | `coach_id`, `user_id`, `name`, `teaching_years`, `total_students`, `total_hours`, `bio`, `reference_price`, `status=0`, `created_at` |
+| `coach` | INSERT | `coach_id`, `user_id`, `name`, `teaching_years`, `total_students`, `total_hours`, `bio`, `reference_price`, `status=0`, `submitted_at`, `created_at` |
 | `coach_certificate` | INSERT | `cert_id`, `coach_id`, `image_url`, `sort_order` |
 | `coach_audit_log` | INSERT | `log_id`, `coach_id`, `action='submit'`, `created_at` |
 
@@ -43,7 +43,7 @@ CREATE INDEX idx_coach_certificate_coach_id ON coach_certificate(coach_id);
 - 鉴权：是（教练端登录态）
 - Request: `{ name, teaching_years, total_students, total_hours, bio, reference_price, certificates: string[] }`
 - Response 200: `{ coach_id, status: 0 }`
-- Response 400: `COACH_APPLICATION_PENDING`（已有待审核/已通过记录）
+- Response 400: `COACH_APPLICATION_PENDING`（已有待审核/已通过记录；已驳回记录可重新提交）
 - Response 400: `INVALID_REFERENCE_PRICE`（参考单价超出范围）
 - Response 400: `MISSING_REQUIRED_FIELDS`（必填项缺失）
 
@@ -51,12 +51,13 @@ CREATE INDEX idx_coach_certificate_coach_id ON coach_certificate(coach_id);
 
 - 鉴权：是
 - Request: 同提交接口（部分字段）
-- Response 200: `{ coach_id, status: 0, draft: true }`
+- Response 200: `{ coach_id, status: 0, submitted_at: null }`
+- 说明：保存草稿与提交审核均写入 `status=0`，不新增独立草稿态；`submitted_at` 为 NULL 表示草稿。US-011 审核列表必须过滤 `submitted_at IS NOT NULL` 的记录，避免草稿进入审核队列
 
 ### GET /api/coach/application
 
 - 鉴权：是
-- Response 200: `{ coach_id, status, submitted_at, draft }`
+- Response 200: `{ coach_id, status, submitted_at }`，`submitted_at` 为 NULL 表示草稿
 - Response 404: `NO_APPLICATION`
 
 ### POST /api/upload/image
@@ -73,9 +74,10 @@ CREATE INDEX idx_coach_certificate_coach_id ON coach_certificate(coach_id);
 
 ```
 无 ──[提交资料]──→ 待审核(0)
+驳回(2) ──[重新提交]──→ 待审核(0)
 ```
 
-本 US 触发教练状态机初始转换。后续 US-011 触发：0 → 1（通过）或 0 → 2（驳回）。
+本 US 触发教练状态机初始转换与驳回后重新提交转换。后续 US-011 触发：0 → 1（通过）或 0 → 2（驳回）。
 
 ## Caching
 

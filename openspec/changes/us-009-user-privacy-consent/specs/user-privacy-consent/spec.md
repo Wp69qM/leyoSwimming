@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 隐私协议同意
 
-系统 MUST 提供 `POST /api/user/privacy/consent` 接口，供用户提交隐私协议同意。系统 MUST 记录 `user_privacy_consent.version`、`agreed_at`、`status='agreed'`。系统 MUST 在首次注册/协议版本更新后强制用户同意，否则阻止进入首页。系统 MUST 对同一版本的重复同意做幂等处理。
+系统 MUST 提供 `POST /api/user/privacy/consent` 接口，供已登录用户提交隐私协议同意；游客调用 MUST 返回 `401 UNAUTHORIZED`。系统 MUST 记录 `user_privacy_consent.version`、`agreed_at`、`status='agreed'`。系统 MUST 比对用户最近一次同意的协议版本号与当前生效版本号；若版本号发生变化，触发重新授权流程。系统 MUST 在首次注册/协议版本更新后强制用户同意，否则阻止进入首页。系统 MUST 对同一版本的重复同意做幂等处理。
 
 #### Scenario: 正常同意隐私协议
 
@@ -42,7 +42,7 @@ And   返回已同意状态
 
 ### Requirement: REQ-002 隐私协议撤回
 
-系统 MUST 提供 `POST /api/user/privacy/consent` 接口（action=revoke），供已同意用户撤回隐私授权。系统 MUST 更新 `user_privacy_consent.status='revoked'` 并记录 `revoked_at`。系统 MUST 停止非必要的数据收集。系统 MUST 阻止用户访问需授权的功能（如购买套餐）。
+系统 MUST 提供 `POST /api/user/privacy/consent` 接口（action=revoke），供已登录且已同意用户撤回隐私授权；游客调用 MUST 返回 `401 UNAUTHORIZED`。系统 MUST 更新 `user_privacy_consent.status='revoked'` 并记录 `revoked_at`。系统 MUST 停止非必要的数据收集。系统 MUST 阻止用户访问需授权的功能（如购买套餐）。
 
 #### Scenario: 撤回隐私授权
 

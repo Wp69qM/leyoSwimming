@@ -45,7 +45,7 @@
 1. 管理员进入「套餐管理」并搜索目标 package
 2. 系统展示 package 基本信息与当前状态
 3. 管理员点击「冻结」
-4. 系统弹出原因选择：投诉处理中 / 异常订单 / 司法冻结（P3）
+4. 系统弹出原因选择：投诉处理中 / 异常订单 / 司法冻结（均归入 admin_frozen 细分场景，明细记入 audit_log.remark）
 5. 管理员选择原因并确认
 6. 系统将 package.status 从 active 更新为 frozen，并写入 frozen_reason = `admin_frozen`（统一枚举，细分原因记录在 audit_log.remark）
 7. 系统释放该 package 的 reserved 课时（reserved→available）

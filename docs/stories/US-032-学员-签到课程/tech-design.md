@@ -56,6 +56,8 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 ### 2.1 POST /api/bookings/{booking_id}/check-in
 
 - **鉴权**：必须登录且为 booking 所有者
+- **可用状态**：仅允许 booking.status ∈ {待上课, 上课中}；status = 已预约 时返回 CHECKIN_WINDOW_NOT_OPEN
+- **签到窗口**：当前时间 ∈ [start_time - 15min, end_time]（即 status = 待上课 或 上课中）
 - **Response 200**: `{ booking_id, checked_in_at }`
 - **Response 400**: `CHECKIN_WINDOW_NOT_OPEN | BOOKING_NOT_CHECKINABLE`
 - **Response 403**: `BOOKING_ACCESS_DENIED`
@@ -73,20 +75,26 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 - **Response 200**: `{ course_record_id, student_summary_json }`
 - **Response 400**: `SUMMARY_INVALID`
 
-## 3. 状态机
+## 3. 业务规则
+
+- 签到仅允许 status ∈ {待上课, 上课中}，status = 已预约 时不可签到
+- 待上课状态定义为开课时间前 15 分钟至课程结束时间；该状态切换由系统状态机或定时任务负责（不在本 US 实现）
+- 重复签到幂等返回，不重复发送通知
+
+## 4. 状态机
 
 | 实体 | 转换 | 触发条件 |
 |------|------|---------|
 | `booking` | 无状态转换 | 签到仅更新 checked_in_at |
 | `course_record` | 修改 | 提交课后总结 |
 
-## 4. 缓存
+## 5. 缓存
 
 - booking 缓存：`booking:{booking_id}`，TTL 300s，签到后删除
 - 我的预约列表：`bookings:list:{user_id}`，签到后删除
 - 上课记录缓存：`record:{booking_id}`，TTL 600s，总结提交后删除
 
-## 5. 性能
+## 6. 性能
 
 | 指标 | 目标 |
 |------|------|
@@ -94,21 +102,22 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 | 上课记录查询 P99 | < 200ms |
 | 课后总结提交 P99 | < 200ms |
 
-## 6. 安全
+## 7. 安全
 
 - 严格校验 booking 归属
 - 签到窗口服务端校验，防止客户端绕过
 - 课后总结字段长度限制
 - 禁止修改不属于自己的记录
 
-## 7. 跨 US 依赖
+## 8. 跨 US 依赖
 
 | US | 方向 | 说明 |
 |----|------|------|
 | US-029 | 依赖 | 已存在 booking |
+| US-031 | 依赖 | 教练代约/改约产生 booking |
 | US-033 | 被依赖 | 教练确认上课记录 |
 
-## 8. 测试映射
+## 9. 测试映射
 
 | 场景 | 测试方法 |
 |------|----------|

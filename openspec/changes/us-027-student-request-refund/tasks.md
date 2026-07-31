@@ -15,8 +15,9 @@
   - active package 返回 eligible + amount = paid × (total-consumed)/total
   - exhausted 体验套餐（consumed=total）返回 amount=0
   - expired 套餐有剩余课时返回 eligible=true
+  - frozen(coach_resigned) 返回 amount = paid_amount（100% 全额）
   - PACKAGE_ALREADY_REFUNDED 拒绝
-  - PACKAGE_FROZEN 拒绝
+  - PACKAGE_FROZEN 拒绝（非 coach_resigned）
   - ORDER_NOT_PAID 拒绝
   - REFUND_IN_PROGRESS 拒绝
 - [ ] **GREEN:** Implement `RefundEligibilityService.check(orderId, userId)` 返回 `{ eligible, refund_amount, calculation, reason_codes }`
@@ -32,10 +33,11 @@
 **Spec coverage:** REQ-027-2 全部场景（事务创建 refund_record + order/package 状态更新 + 通知 + 幂等）
 
 - [ ] **RED:** Write failing tests —
-  - 正常提交：创建 refund_record(status=0) + order→退款审批中 + package→frozen + reserved=0
+  - 正常提交：创建 refund_record(status=0) + order→退款审批中 + package.status 保持 active + package.booking_frozen=true + reserved=0
+  - frozen(coach_resigned) 提交：refund_amount = paid_amount（100% 全额），package.status 由 frozen 转回 active，保留 frozen_reason
   - 重复提交返回 REFUND_IN_PROGRESS，不创建新记录
   - PACKAGE_ALREADY_REFUNDED 拒绝
-  - PACKAGE_FROZEN 拒绝
+  - PACKAGE_FROZEN 拒绝（非 coach_resigned）
   - ORDER_NOT_PAID 拒绝
   - INVALID_REASON_TYPE 拒绝
   - 并发提交幂等（同一 user_id + order_id 第二次返回已存在）

@@ -112,6 +112,7 @@ CREATE INDEX idx_coach_schedule_log_coach_id ON coach_schedule_log(coach_id);
 - 删除/修改操作校验教练对 `slot_id` 的所有权
 - 已预约时段禁止删除，避免学员权益受损
 - 操作记录审计日志 `coach_schedule_log`
+- 手动修改/删除由 US-016 自动释放的时段时，需同步调整自动释放队列，避免重复释放或释放已删除模板时段
 
 ## Cross-US Dependencies
 

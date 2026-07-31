@@ -14,7 +14,8 @@ PRD [§11.2](../../../docs/prd/prd.md) 要求首次注册需用户同意隐私�
 - 新增 `audit_log` 表记录同意/撤回审计日志
 - 新增 Redis 缓存：`privacy_policy:current`、`user:privacy:{user_id}`
 - 新增小程序"隐私协议页"与"隐私设置页"
-- 边界处理：不同意协议阻止进入首页、协议版本更新后需重新同意、重复同意幂等
+- 边界处理：不同意协议阻止进入首页、协议版本号变化时触发重新授权、重复同意幂等
+- 游客态限制：`GET /api/privacy-policy/current` 对游客可见；`GET /api/user/privacy/status` 与 `POST /api/user/privacy/consent` 必须登录，游客调用返回 401
 
 ## Capabilities
 
@@ -33,5 +34,5 @@ PRD [§11.2](../../../docs/prd/prd.md) 要求首次注册需用户同意隐私�
 - **缓存**：新增 Redis key `privacy_policy:current`（TTL 1h）、`user:privacy:{user_id}`（TTL 30min）
 - **状态机**：触发隐私授权状态机 `未同意 → 已同意 → 已撤回`
 - **前端**：新增小程序"隐私协议页"、"隐私设置页"
-- **依赖**：依赖 US-005 用户身份
-- **安全**：协议内容不可篡改；同意/撤回记录不可删除，仅可追加；撤回后限制非必要数据收集
+- **依赖**：依赖 US-004 / US-005 用户身份
+- **安全**：协议内容不可篡改；同意/撤回记录不可删除，仅可追加；撤回后限制非必要数据收集；游客态禁止提交授权变更

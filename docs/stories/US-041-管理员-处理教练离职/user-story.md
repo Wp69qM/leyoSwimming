@@ -46,18 +46,19 @@
 2. 系统列出所有 `pending_audit` 的离职工单
 3. 管理员点击目标工单进入详情
 4. 系统展示：教练基本信息、工单进度、每份 active 套餐的处理结果
-5. 管理员逐项检查 checklist：
-   - ① active 学员数 = 0 或所有套餐已登记处理结果
-   - ② 所有学员处理结果已登记
-   - ③ 教练费已结算（含未消耗课时）
-   - ④ 未来排班已清空
+5. 管理员逐项检查 checklist（后端强制校验，缺一不可）：
+   - ① active 学员数 = 0；
+   - ② 若 active 学员数 > 0，所有 active 套餐已确认全额退款；
+   - ③ 教练费已结算（含未消耗课时）；
+   - ④ 未来排班已清空。
 6. 管理员点击「通过审批」
-7. 系统在同一个事务中执行：
-   - `coach.status: 4 → 3`（已离职）
-   - 取消该教练所有未来 booking
-   - `package.reserved → available`
-   - 所有 active package → frozen（frozen_reason = coach_resigned）
-   - 未来 schedule_slot → hidden
+7. 系统按以下顺序执行（建议在同一事务或 Saga 中按序执行，避免重复释放课时）：
+   1. 对所有 active package（含未确认退款的套餐），系统自动生成 100% 待退款记录 `refund_amount = 单价 × 剩余课时`（已消耗不退），并通知学员选择退款或换教练；
+   2. 取消该教练所有未来 booking（start_time > NOW() 且 status ∈ 已预约/待上课），释放对应 package 的 reserved 课时；
+   3. 将该教练所有 active package 的 reserved_count 归 0，available_count 相应增加（兜底，确保 booking 取消后残留 reserved 被清零）；
+   4. 将上述 active package 状态更新为 frozen，frozen_reason = coach_resigned；
+   5. 将未来 schedule_slot（start_time > NOW()）更新为 hidden；
+   6. 将 `coach.status` 从 4 更新为 3（已离职）。
 8. 系统返回审批成功提示
 
 ### 4.2 异常分支
@@ -91,10 +92,12 @@
 ```gherkin
 Given 管理员 M 已登录且具有离职审批权限
 And   教练 C 的 coach.status = 4，工单 status = pending_audit
-And   教练 C 名下 3 份 active 套餐均已登记处理结果
+And   教练 C 名下 3 份 active 套餐均已确认全额退款
+And   active 学员数 > 0
 And   未来排班已清空
 When  管理员 M 点击「通过审批」
 Then  coach.status 更新为 3（已离职）
+And   全额退款套餐自动生成 refund_record，refund_amount = 单价 × 剩余课时（已消耗不退）
 And   所有未来 booking 状态更新为「已取消」且 cancel_reason = 2（教练离职）
 And   package.reserved_count = 0，available_count 增加对应数值
 And   3 份 active package 更新为 frozen，frozen_reason = "coach_resigned"
@@ -114,11 +117,12 @@ And   已登记的学员处理结果保持不变
 And   返回 HTTP 200 与提示"已拒绝，教练可继续教学"
 ```
 
-### 6.3 场景 3：处理结果未全部登记时禁止通过
+### 6.3 场景 3：active 套餐存在且未全部确认退款时禁止通过
 
 ```gherkin
 Given 管理员 M 已登录且具有离职审批权限
-And   教练 C 的工单中有 2 份套餐未登记处理结果
+And   教练 C 的工单中有 2 份 active 套餐未确认全额退款
+And   active 学员数 > 0
 When  管理员 M 点击「通过审批」
 Then  返回错误码 CHECKLIST_NOT_PASSED
 And   HTTP 状态码 400
@@ -158,10 +162,11 @@ And   coach.status 保持 4
 |---|------|------|------|
 | 1 | `coach` | 修改 | `status` 4 → 3 或 4 → 1 |
 | 2 | `coach_resignation_ticket` | 修改 | status 更新为 approved / rejected |
-| 3 | `booking` | 批量修改 | 未来课程取消 |
-| 4 | `package` | 批量修改 | reserved→available，active→frozen |
-| 5 | `schedule_slot` | 批量修改 | 未来时段 hidden |
-| 6 | `audit_log` | 新增 | 记录审批操作与批量变更 |
+| 3 | `refund_record` | 新增 | 未消耗剩余课时 100% 退款记录：`refund_amount = 单价 × 剩余课时` |
+| 4 | `booking` | 批量修改 | 未来课程取消 |
+| 5 | `package` | 批量修改 | reserved→available，active→frozen |
+| 6 | `schedule_slot` | 批量修改 | 未来时段 hidden |
+| 7 | `audit_log` | 新增 | 记录审批操作与批量变更 |
 
 ### 7.2 API 影响
 
@@ -182,6 +187,7 @@ And   coach.status 保持 4
 | 4 | coach_resignation_ticket | pending_audit → rejected | 拒绝审批 | — |
 | 5 | package | active → frozen | 通过审批 | frozen_reason = coach_resigned |
 | 6 | booking | 已预约 → 已取消 | 通过审批 | cancel_reason = 2（教练离职） |
+| 7 | refund_record | 无 → pending | 通过审批 | 所有 active package 未消耗剩余课时 100% 退款：`refund_amount = 单价 × 剩余课时` |
 
 ---
 
@@ -263,7 +269,8 @@ And   coach.status 保持 4
 ## 12. 备注
 
 - **幂等键**：审批接口使用 `resignation:ticket:{ticket_id}:version:{ticket.updated_at}` 乐观锁
-- **事务边界**：coach.status + ticket + booking + package + schedule_slot 批量更新应在同一数据库事务
+- **事务边界**：coach.status + ticket + refund_record + booking + package + schedule_slot 批量更新应在同一数据库事务
+- **退款硬约束**：教练主动离职时，未消耗剩余课时须 100% 退还；审批通过时所有 active package 均生成待退款记录
 - **性能要求**：审批接口 P99 < 1s（含 100 份以内 package 批量处理）
 - **教练费结算**：审批通过时记录待结算教练费，实际结算由财务模块异步处理
 

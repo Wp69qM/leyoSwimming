@@ -1,6 +1,6 @@
 ## Why
 
-US-029 让学员成功预约了正价课程，但实际运营中学员常因临时变动需要取消或改约。本 US 让学员在不同时间窗内按规则取消或改约正价课程并释放/预占课时，减少客诉与纠纷。
+US-029 让学员成功预约了正价课程，但实际运营中学员常因临时变动需要取消预约。本 US 让学员在不同时间窗内按规则取消正价课程并释放课时，减少客诉与纠纷。改约功能由 US-031 单独实现。
 
 ## What Changes
 
@@ -9,13 +9,14 @@ US-029 让学员成功预约了正价课程，但实际运营中学员常因临�
 - 新增 `POST /api/coach/cancellation-requests/{id}/reject`：教练拒绝取消申请
 - 新增 `booking_cancellation` 表记录取消申请与审批结果
 - 新增定时任务：每分钟扫描超过 24h 未审批的取消申请，标记为已拒绝（超时）
-- 新增小程序取消/改约流程页面
+- 因特殊原因（场馆闭馆、教练离职等）被取消的学员，可在 US-049 客服工单中申诉
+- 新增小程序取消预约流程页面
 
 ## Capabilities
 
 ### New Capabilities
 
-- `student-cancel-reschedule-formal-course`: 学员取消/改约正价课程，含 24h 时间窗判断、教练审批、超时拒绝
+- `student-cancel-formal-course`: 学员取消正价课程，含 24h 时间窗判断、教练审批、超时拒绝
 
 ### Modified Capabilities
 

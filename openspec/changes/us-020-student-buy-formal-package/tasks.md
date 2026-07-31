@@ -6,9 +6,9 @@
 - Create: `backend/src/services/formal-purchase.ts`
 - Test: `backend/tests/services/formal-purchase.test.ts`
 
-**Spec coverage:** REQ-001 标准套餐、自定义课时、协议、教练冲突、教练不可用
+**Spec coverage:** REQ-001 标准套餐、自定义课时、协议、教练冲突、教练不可用、未成年人监护人
 
-- [ ] **RED:** Valid standard/custom orders; reject missing agreement / conflict / unavailable coach
+- [ ] **RED:** Valid standard/custom orders; reject missing agreement / conflict / unavailable coach / missing guardian phone for minor
 - [ ] **GREEN:** Implement eligibility, amount calculation, order creation
 - [ ] **REFACTOR:** Extract eligibility rules and amount calculator
 - [ ] **COMMIT:** `feat(formal): add formal package purchase service`

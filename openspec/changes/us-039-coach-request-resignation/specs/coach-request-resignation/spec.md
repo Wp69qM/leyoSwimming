@@ -2,7 +2,7 @@
 
 ### Requirement: REQ-001 Coach shall apply for resignation
 
-The system MUST allow a coach with `coach.status = 1` to apply for resignation, update the coach status to `4`, and create a resignation ticket listing all active packages under that coach.
+The system MUST allow a coach with `coach.status = 1` to apply for resignation, update the coach status to `4`, and create a resignation ticket listing all active packages under that coach. The system MUST generate a 100% refund record for any active package when the coach confirms refund or submits the ticket to the admin queue, where `refund_amount = unit_price × remaining_hours` and consumed hours are not refundable.
 
 #### Scenario: Successful resignation application
 
@@ -14,18 +14,19 @@ The system MUST allow a coach with `coach.status = 1` to apply for resignation, 
 - **AND** the ticket lists all 3 active packages with remaining hours
 - **AND** the API returns HTTP 200 with message "离职申请已提交，请处理学员套餐"
 
-### Requirement: REQ-002 Coach shall register package action on resignation ticket
+### Requirement: REQ-002 Coach shall confirm full refund for package on resignation ticket
 
-The system MUST allow a coach to register a handling decision for each active package on the resignation ticket, choosing between transfer, refund, or continue.
+The system MUST require a coach to confirm a full refund decision for each active package on the resignation ticket. The system MUST persist the confirmation in `coach_resignation_action` with `action = 'refund'`. The system MUST create a `refund_record` with `refund_amount = unit_price × remaining_hours` (consumed hours are not refundable). When the coach submits the ticket to the admin queue, any active package without a confirmed refund MUST default to "refund" and generate a pending `refund_record`.
 
-#### Scenario: Successful transfer action registration
+#### Scenario: Successful refund confirmation with auto-generated refund record
 
 - **GIVEN** coach C has a resignation ticket in "processing" status
-- **AND** student S's package P1 (active, 5 hours remaining) is in the ticket
-- **WHEN** coach C registers action "transfer" with `target_coach_id = 200`
+- **AND** student S's package P1 (active, 5 hours remaining, unit price 300 CNY) is in the ticket
+- **WHEN** coach C confirms "refund" for P1
 - **THEN** a `coach_resignation_action` record is created
-- **AND** `action = 'transfer'`, `target_coach_id = 200`, `status = 'registered'`
-- **AND** ticket progress is updated to "1 / 3 已处理"
+- **AND** `action = 'refund'`, `status = 'registered'`
+- **AND** a `refund_record` is created with `refund_amount = 1500` CNY
+- **AND** ticket progress is updated to "1 / 3 已确认"
 
 ### Requirement: REQ-003 System shall reject resignation application from non-approved coaches
 

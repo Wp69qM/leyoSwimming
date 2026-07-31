@@ -46,7 +46,10 @@
 2. 系统展示订单列表（分页、筛选、排序）
 3. 管理员点击某订单查看详情
 4. 系统展示订单状态、支付信息、关联套餐、退款记录
-5. 管理员执行处理：确认退款 / 拒绝退款 / 标记异常
+5. 管理员执行处理：
+   - 确认退款：系统进入两阶段退款流程（受理 → 渠道回调成功）
+   - 拒绝退款：系统更新订单状态为「退款被拒」并要求填写原因
+   - 标记异常：管理员将订单标记为「争议退款」，系统记录 `order.dispute_flag=true` 与 `dispute_reason`，同时自动生成一条关联该订单的客服工单（`support_ticket`，类型=退款申诉，见 US-049），并通知学员；该操作不改变订单当前状态
 6. 系统更新订单状态并触发后续流程（原路退回、通知用户等）
 
 ### 4.2 异常分支
@@ -70,19 +73,27 @@
 
 ## 6. 验收标准（业务级 Gherkin）
 
-> 本 US 为 L2（1.5 人天），场景数 = 2 正常 + 3 异常 = 5。
+> 本 US 为 L2（1.5 人天），场景数 = 6 正常 + 2 异常 = 8。
 
-### 6.1 场景 1：管理员查看订单列表与详情
+### 6.1 场景 1：管理员查看订单列表
 
 ```gherkin
 Given 系统中存在 3 笔已支付订单
 When  管理员进入订单管理页并选择"已支付"筛选
 Then  列表展示 3 笔订单，每行展示订单号、学员、教练、金额、状态
-And   管理员点击订单 O-001
-Then  详情页展示订单 O-001 的支付流水、套餐信息、退款记录
+And   返回 HTTP 200
 ```
 
-### 6.2 场景 2：管理员批准退款（两阶段时序，对齐 US-028）
+### 6.2 场景 2：管理员查看订单详情
+
+```gherkin
+Given 系统中存在订单 O-001，状态为"已支付"
+When  管理员点击订单 O-001 查看详情
+Then  详情页展示订单 O-001 的支付流水、套餐信息、退款记录
+And   返回 HTTP 200
+```
+
+### 6.3 场景 3：管理员批准退款受理成功
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-001，paid_amount=2000.00
@@ -92,6 +103,12 @@ And   order.status 更新为"退款处理中"（中间态）
 And   package.status 保持 frozen（不立即变 refunded）
 And   生成退款记录 refund.amount=2000.00，refund_transaction.status="处理中"
 And   向学员发送"退款处理中"受理通知
+```
+
+### 6.4 场景 4：渠道退款回调成功更新终态
+
+```gherkin
+Given 订单 R-001 已处于"退款处理中"，refund_transaction.status="处理中"
 When  渠道退款成功回调（阶段 2 成功）
 Then  order.status 更新为"已退款"（终态）
 And   package.status 更新为"refunded"
@@ -99,7 +116,7 @@ And   refund_transaction.status="成功"
 And   向学员发送退款到账通知
 ```
 
-### 6.3 场景 3：管理员拒绝退款
+### 6.5 场景 5：管理员拒绝退款
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-002
@@ -110,7 +127,7 @@ And   package.status 保持"active"
 And   学员端显示"退款未通过，原因为：未提供有效凭证"
 ```
 
-### 6.4 场景 4：管理员对非退款审批中订单执行退款
+### 6.6 场景 6：管理员对非退款审批中订单执行退款
 
 ```gherkin
 Given 存在一笔状态为"已取消"的订单 C-001（或 order.status ∈ {已支付, 已退款, 退款处理中, 退款被拒}）
@@ -122,7 +139,7 @@ And   订单状态不变
 
 > **说明**：order.status = 退款处理中时也不可重复批准（已受理，等待渠道回调），按 US-028 §6.4 场景 4 处理。
 
-### 6.5 场景 5：退款金额超过已支付金额
+### 6.7 场景 7：退款金额超过已支付金额
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-003，paid_amount=1000.00
@@ -130,6 +147,21 @@ When  管理员提交退款金额 1200.00
 Then  系统返回 HTTP 400
 And   返回错误码 REFUND_AMOUNT_MISMATCH（与 US-028 §6.2 异常分支 2 统一）
 And   提示"退款金额异常，请核对"
+```
+
+### 6.8 场景 8：管理员标记订单为争议退款并生成客服工单
+
+```gherkin
+Given 管理员 M 已登录且具有订单管理权限
+And   存在一笔状态为"已支付"的订单 D-001，order_id=10001
+And   学员 U 为订单 D-001 的购买者
+When  管理员 M 将订单 D-001 标记为争议退款并填写原因"学员对扣课时有异议"
+Then  系统返回 HTTP 200
+And   order.dispute_flag=true
+And   order.dispute_reason="学员对扣课时有异议"
+And   order.status 保持"已支付"不变
+And   support_ticket 表新增 1 条记录，type=3（退款申诉），order_id=10001，status=0（pending）
+And   学员 U 收到争议标记通知
 ```
 
 ---
@@ -140,19 +172,21 @@ And   提示"退款金额异常，请核对"
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `order` | 读取/修改 | 查询订单、更新 status |
+| 1 | `order` | 读取/修改 | 查询订单、更新 status；新增 `dispute_flag` 与 `dispute_reason` 字段 |
 | 2 | `package` | 读取/修改 | 退款批准后 status → refunded |
 | 3 | `refund_record` | 新增 | 记录退款金额、原因、处理人 |
 | 4 | `audit_log` | 新增 | 记录管理员操作日志 |
+| 5 | `support_ticket` | 新增 | 标记争议退款时自动生成关联客服工单（type=3 退款申诉）|
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/admin/orders` | GET | 新增 | 订单列表查询 |
-| 2 | `/api/admin/orders/:id` | GET | 新增 | 订单详情 |
-| 3 | `/api/admin/orders/:id/approve-refund` | POST | 新增 | 批准退款 |
-| 4 | `/api/admin/orders/:id/reject-refund` | POST | 新增 | 拒绝退款 |
+| 1 | `/api/admin/v1/orders` | GET | 新增 | 订单列表查询 |
+| 2 | `/api/admin/v1/orders/:id` | GET | 新增 | 订单详情 |
+| 3 | `/api/admin/v1/orders/:id/approve-refund` | POST | 新增 | 批准退款 |
+| 4 | `/api/admin/v1/orders/:id/reject-refund` | POST | 新增 | 拒绝退款 |
+| 5 | `/api/admin/v1/orders/:id/mark-dispute` | POST | 新增 | 标记争议退款 |
 
 ### 7.3 状态机影响
 
@@ -209,7 +243,7 @@ And   提示"退款金额异常，请核对"
 - [x] **V**aluable（有价值）- 完成交易闭环
 - [x] **E**stimable（可估算）- 1.5 人天明确
 - [x] **S**mall（足够小）- 一个 Sprint 内可完成
-- [x] **T**estable（可测试）- 5 个 GWT 场景可验证
+- [x] **T**estable（可测试）- 7 个 GWT 场景可验证
 
 ---
 
@@ -229,7 +263,7 @@ And   提示"退款金额异常，请核对"
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 GWT
+- [x] 6 正常 + 2 异常 GWT
 - [x] 每个 Then 含具体数值/状态码/错误码/DB 字段值
 - [x] 业务规则可被验证
 

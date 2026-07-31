@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 教练手动更新实时状态
 
-系统 MUST 提供 `GET /api/coach/realtime-status` 接口，供已登录且 `coach.status = 1` 的教练查询当前实时状态。系统 MUST 提供 `PUT /api/coach/realtime-status` 接口，供已登录且 `coach.status = 1` 的教练手动设置实时状态。实时状态 SHALL 为以下枚举之一：1=空闲中、2=上课中、3=休息中、4=已下班、5=请假中。系统 MUST 拒绝将状态设置为请假中，除非该教练存在审批通过的请假申请（由 US-036 同步）。系统 MUST 在手动更新成功后将 `status_override_flag` 置为 1，并记录 `coach_status_log`（source=manual）。系统 MUST 通过 WebSocket/SSE 将状态变更广播给正在查看该教练的学员端，P99 延迟小于 1 秒。
+系统 MUST 提供 `GET /api/coach/realtime-status` 接口，供已登录且 `coach.status = 1` 的教练查询当前实时状态。系统 MUST 提供 `PUT /api/coach/realtime-status` 接口，供已登录且 `coach.status = 1` 的教练手动设置实时状态。实时状态 SHALL 为以下枚举之一：1=空闲中、2=上课中、3=休息中、4=已下班、5=请假中。审批通过的请假时段内，系统 MUST 将 `coach.realtime_status` 强制为 5（请假中）并锁定手动修改入口。系统 MUST 拒绝将状态设置为请假中，除非该教练存在审批通过的请假申请（由 US-036 同步）。系统 MUST 在手动更新成功后将 `status_override_flag` 置为 1，并记录 `coach_status_log`（source=manual）。系统 MUST 通过 WebSocket/SSE 将状态变更广播给正在查看该教练的学员端，P99 延迟小于 1 秒。
 
 #### Scenario: 教练手动设置为空闲中
 
@@ -60,12 +60,13 @@ And   coach_status_log 新增 source=auto 的变更记录
 And   学员端教练列表展示"上课中"标签
 ```
 
-#### Scenario: 手动状态优先级高于自动状态
+#### Scenario: 非请假时段手动状态优先级高于自动状态
 
 ```gherkin
 Given 教练已通过审核且 coach.status = 1
 And   教练已手动设置为"休息中"且 status_override_flag = 1
 And   手动覆盖有效期未过期
+And   教练当前不在审批通过的请假时段
 And   教练明日 9:00 有一节已确认的预约课程
 When  当前时间到达明日 8:45
 Then  coach.realtime_status 保持 3（休息中）

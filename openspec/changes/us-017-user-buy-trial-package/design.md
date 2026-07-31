@@ -13,6 +13,7 @@
 | `order` | 写 | `user_id`, `coach_id`, `course_type=0`, `status`, `amount`, `expire_at` |
 | `package` | 写 | `user_id`, `coach_id`, `package_type=0`, `total_hours=1`, `available=1`, `status`, `expire_at` |
 | `payment` | 写 | `order_id`, `provider`, `out_trade_no`, `status` |
+| `agreement_sign` | 写 | `user_id`, `agreement_type`, `version`, `signed_at` |
 | `user` | 改 | `identity` |
 | `coach` | 读 | `status` |
 
@@ -24,9 +25,10 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 
 ## API Design
 
-- `POST /api/orders/trial`：创建体验课订单
+- `POST /api/orders/trial`：创建体验课订单（校验协议勾选）
 - `POST /api/orders/{id}/pay`：调起支付
-- `POST /api/payments/callback`：支付回调
+- `POST /api/payments/callback`：支付回调（事务内更新订单、创建套餐、记录协议签署、更新身份）
+- `GET /api/agreements/status`：查询用户协议签署状态
 
 ## Caching
 
@@ -44,6 +46,7 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 - 回调签名验证
 - 体验套餐唯一性校验
 - 教练状态校验
+- 协议签署版本校验
 
 ## Cross-US Dependencies
 

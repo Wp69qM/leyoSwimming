@@ -23,7 +23,7 @@
 | `user_id` | BIGINT | PK | 用户 ID |
 | `phone` | VARCHAR(16) | 唯一索引 | 手机号（加密）|
 | `password_hash` | VARCHAR(128) | 可空 | bcrypt 哈希 |
-| `status` | TINYINT | 默认 1 | 1=正常, 2=注销, 3=封禁 |
+| `status` | TINYINT | 默认 0 | 0=正常, 1=软删除, 2=封禁 |
 | `last_login_at` | DATETIME | 可空 | 最后登录时间 |
 | `failed_login_count` | TINYINT | 默认 0 | 连续失败次数 |
 | `locked_until` | DATETIME | 可空 | 锁定截止时间 |

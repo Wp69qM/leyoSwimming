@@ -1,4 +1,4 @@
-# Tasks: US-030 学员取消/改约正价课程
+# Tasks: US-030 学员取消正价课程
 
 > 本文档对应 `docs/stories/US-030-.../test-plan.md` 的 OpenSpec 映射版本。
 > 每个 Task 严格遵循 RED → GREEN → REFACTOR → COMMIT 循环。

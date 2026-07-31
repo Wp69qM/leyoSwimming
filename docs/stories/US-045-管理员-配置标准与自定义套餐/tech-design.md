@@ -18,7 +18,7 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `package_template` | 新增 | 标准套餐模板，字段见下 |
-| `custom_package_config` | 新增 | 自定义套餐全局配置（可选课时范围、默认有效期）|
+| `custom_package_config` | 新增 | 自定义套餐全局配置（允许课时范围 min/max、默认有效期、单价下限）|
 | `coach` | 读取 | 关联教练与 `reference_price` |
 
 ### 1.2 `package_template` 字段
@@ -74,6 +74,13 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 - **鉴权**：管理员登录 + `package:write` 权限
 - **Body**：`{ status: 0 | 1 }`
 - **Response 200**：更新后的模板对象
+
+### 2.5 PUT /api/admin/package-templates/custom-config
+
+- **鉴权**：管理员登录 + `package:write` 权限
+- **Body**：`{ min_hours, max_hours, default_valid_days, unit_price_floor }`
+- **Response 200**：更新后的全局配置对象
+- **Response 400**：`{ error: 'INVALID_CUSTOM_PACKAGE_CONFIG' }`
 
 ---
 

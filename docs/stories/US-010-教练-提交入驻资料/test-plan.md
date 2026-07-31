@@ -36,6 +36,10 @@ def test_coach_application_duplicate():
     """重复提交拒绝"""
     pass
 
+def test_coach_application_resubmit_after_rejection():
+    """已驳回教练重新提交"""
+    pass
+
 def test_coach_application_invalid_price():
     """参考单价超出范围"""
     pass
@@ -79,4 +83,5 @@ def test_e2e_coach_application():
 | 保存入驻资料草稿 | 草稿保存测试 |
 | 必填项缺失 | test_coach_application_missing_fields |
 | 重复提交入驻申请 | test_coach_application_duplicate |
+| 已驳回教练重新提交 | test_coach_application_resubmit_after_rejection |
 | 证书图片过大 | test_coach_application_image_too_large |

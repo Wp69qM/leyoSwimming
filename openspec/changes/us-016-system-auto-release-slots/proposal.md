@@ -5,7 +5,7 @@
 ## What Changes
 
 - 新增定时任务 `release-slots-job`，按 `release_rule` 触发
-- 新增 `schedule_slot` 批量生成逻辑
+- 新增 `schedule_slot` 批量生成逻辑，仅对 `coach.status IN (1, 4)` 生成，`status=3` 已离职教练排除
 - 新增 `release_log` 记录执行结果与幂等
 - 新增 5 分钟兜底补偿任务
 - 节假日/闭馆日自动跳过对应日期

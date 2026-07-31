@@ -6,9 +6,9 @@
 - Create: `backend/src/services/trial-purchase.ts`
 - Test: `backend/tests/services/trial-purchase.test.ts`
 
-**Spec coverage:** REQ-001 正常/重复/教练不可约
+**Spec coverage:** REQ-001 正常/重复/教练不可约/未签署协议
 
-- [ ] **RED:** Valid allowed; duplicate rejected; unavailable coach rejected
+- [ ] **RED:** Valid allowed; duplicate rejected; unavailable coach rejected; missing agreement rejected
 - [ ] **GREEN:** Implement eligibility and order/package creation
 - [ ] **REFACTOR:** Extract eligibility rules
 - [ ] **COMMIT:** `feat(trial): add purchase eligibility and order creation`

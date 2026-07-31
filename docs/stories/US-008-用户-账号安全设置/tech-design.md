@@ -43,21 +43,26 @@
 
 ## 2. API 设计
 
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `/api/user/security/phone` | PUT | 换绑手机号 |
-| `/api/user/security/password` | PUT | 修改密码 |
-| `/api/user/security/email` | PUT | 绑定/换绑邮箱 |
-| `/api/user/security/devices` | GET | 设备列表 |
-| `/api/user/security/devices/{id}` | DELETE | 下线设备 |
+### 2.1 接口列表
 
-### 2.1 PUT /api/user/security/phone
+| 接口 | 方法 | 说明 | 鉴权 |
+|------|------|------|------|
+| `/api/user/security/phone` | PUT | 换绑手机号 | 是 |
+| `/api/user/security/password` | PUT | 修改/首次设置密码 | 是 |
+| `/api/user/security/email` | PUT | 绑定/换绑邮箱 | 是 |
+| `/api/user/security/devices` | GET | 设备列表 | 是 |
+| `/api/user/security/devices/{id}` | DELETE | 下线设备 | 是 |
 
+### 2.2 PUT /api/user/security/phone
+
+- **二次验证**：`old_phone_code`（原手机号短信验证码）或 `current_password`（当前密码）二选一必填。
 - **请求体**：
   ```json
   {
     "new_phone": "13900139000",
-    "verify_code": "123456"
+    "new_phone_code": "123456",
+    "old_phone_code": "654321",
+    "current_password": "Abcd1234"
   }
   ```
 - **响应体**：
@@ -69,13 +74,108 @@
     }
   }
   ```
-- **错误码**：`PHONE_ALREADY_BOUND` (400301), `CODE_INVALID` (400302)
+- **错误码**：
+  - `PHONE_ALREADY_BOUND` (400301)
+  - `INVALID_PHONE` (400302)
+  - `CODE_INVALID` (400303)
+  - `INVALID_CREDENTIALS` (400304)
+  - `PHONE_CHANGE_LIMIT` (429301)
+
+### 2.3 PUT /api/user/security/password
+
+- **请求体**：
+  ```json
+  {
+    "old_password": "Abcd1234",
+    "new_password": "NewPass123"
+  }
+  ```
+  > **首次设置密码**：若 `password_hash` 为空（US-004 微信新用户未设置过密码），`old_password` 可传空或省略，直接设置新密码。
+- **响应体**：
+  ```json
+  {
+    "code": 0,
+    "data": {
+      "updated": true
+    }
+  }
+  ```
+- **错误码**：
+  - `INVALID_OLD_PASSWORD` (400305)
+  - `WEAK_PASSWORD` (400306)
+  - `NEW_PASSWORD_SAME_AS_OLD` (400307)
+- **会话策略**：修改密码后，**仅保留当前设备会话**，其他设备 token 立即失效（MVP 默认策略）。
+
+### 2.4 PUT /api/user/security/email
+
+- **请求体**：
+  ```json
+  {
+    "email": "a@b.com",
+    "verify_code": "123456"
+  }
+  ```
+- **响应体**：
+  ```json
+  {
+    "code": 0,
+    "data": {
+      "email": "a@b.com"
+    }
+  }
+  ```
+- **错误码**：
+  - `INVALID_EMAIL` (400308)
+  - `CODE_INVALID` (400309)
+
+### 2.5 GET /api/user/security/devices
+
+- **响应体**：
+  ```json
+  {
+    "code": 0,
+    "data": {
+      "devices": [
+        {
+          "session_id": 1001,
+          "device_name": "iPhone 15",
+          "device_id": "device_xxx",
+          "last_active_at": "2026-07-31T10:00:00Z",
+          "is_current": true
+        }
+      ]
+    }
+  }
+  ```
+
+### 2.6 DELETE /api/user/security/devices/{id}
+
+- **响应体**：204 No Content
+- **错误码**：
+  - `DEVICE_NOT_FOUND` (400310)
+  - `CANNOT_REVOKE_CURRENT` (400311)（MVP 默认允许下线当前设备，被下线端重新登录即可）
+
+### 2.7 幂等性设计
+
+所有写接口使用 `Idempotency-Key` 请求头，Redis 缓存 TTL 300s。相同幂等键 + 相同请求体重复提交返回首次结果；请求体不一致返回 409 `IDEMPOTENCY_REUSED`。
 
 ---
 
 ## 3. 状态机
 
-- 无身份状态变化
+### 3.1 会话状态机
+
+```
+有效 ──(设备下线 / 修改密码后非当前设备)──→ 失效
+```
+
+- 本 US 不改变用户 `identity_status`，仅使特定会话 token 失效。
+- 修改密码后保留当前设备会话，清除该用户其他所有会话。
+
+### 3.2 密码状态
+
+- `password_hash IS NULL`：仅通过微信登录，尚未设置密码。
+- `password_hash IS NOT NULL`：已设置密码，修改时需校验原密码。
 
 ---
 

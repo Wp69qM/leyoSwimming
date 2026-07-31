@@ -51,11 +51,12 @@
 4. 系统弹窗要求填写返还原因（必填）与备注（可选）
 5. 管理员确认提交
 6. 系统事务内执行：
+   - 查询该 booking 累计已返还课时 `returned_hours_sum`；若 `returned_hours_sum >= consumed_hours`，返回 `RETURN_QUOTA_EXCEEDED`
    - package.consumed_count -1
    - package.available_count +1
-   - 创建 hour_return 记录（关联 booking、管理员、原因）
+   - 创建 hour_return 记录（关联 booking、管理员、原因），`returned_hours = 1`
    - 记录 audit_log
-   - 若 package.status = expired 且返还后 available_count > 0，同步将 package.status 从 expired 恢复为 active（与 PRD §4.6 管理员手动延期规则一致）
+   - 若 package.status = expired 且返还后 available_count > 0，同步将 package.status 从 expired 恢复为 active，并按套餐原有效期时长从返还操作时间重新计算 `expire_at`（新 expire_at = 返还时刻 + 原有效期时长；原有效期时长 = 原 expire_at - purchased_at），保证状态与有效期一致（与 PRD §4.6 管理员手动延期规则一致）
 7. 系统通知学员「课时已返还」
 8. 返回成功
 
@@ -65,6 +66,7 @@
 - **分支 2**：booking 状态 ∉ {已完成, 旷课} → 返回 `BOOKING_NOT_RETURNABLE`
 - **分支 3**：非管理员或无权限 → 返回 403
 - **分支 4**：package.status = refunded → 返回 `PACKAGE_NOT_RETURNABLE`
+- **分支 5**：该 booking 累计已返还课时 ≥ 已扣课时 → 返回 `RETURN_QUOTA_EXCEEDED`
 
 ---
 
@@ -115,6 +117,23 @@ Then  系统返回 HTTP 400，错误码 BOOKING_NOT_RETURNABLE
 And   package 课时不变
 ```
 
+### 6.4 场景 4：返还 expired 套餐课时并恢复有效期
+
+```gherkin
+Given 管理员已登录且具有 MANAGE_BOOKING 权限
+And   存在 booking.status = 已完成
+And   对应 package.status = expired，consumed_count = 3，available_count = 0，total_hours = 3
+And   package.purchased_at = '2026-06-01T00:00:00'，原 expire_at = '2026-07-01T00:00:00'（原有效期 30 天）
+When  管理员在 '2026-07-31T12:00:00' 点击「返还课时」并填写原因"教练误操作"
+Then  package.consumed_count = 2，available_count = 1
+And   package.status = active
+And   package.expire_at = '2026-08-30T12:00:00'（按原 30 天有效期从返还时间重新计算）
+And   hour_return 记录创建，reason = "教练误操作"
+And   audit_log 记录管理员返还操作
+And   学员收到课时返还通知
+And   HTTP 状态码 = 200
+```
+
 ---
 
 ## 7. 数据/API/状态机影响
@@ -123,7 +142,7 @@ And   package 课时不变
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `package` | 修改 | consumed-1, available+1 |
+| 1 | `package` | 修改 | consumed-1, available+1；若从 expired 复活为 active，同步按原有效期时长更新 `expire_at` |
 | 2 | `hour_return` | 新增 | 返还记录（booking_id, admin_id, reason） |
 | 3 | `audit_log` | 新增 | 记录返还操作 |
 | 4 | `notification` | 新增 | 通知学员 |
@@ -140,7 +159,7 @@ And   package 课时不变
 |---|------|------|---------|------|
 | 1 | `package` | consumed → available | 管理员返还 | consumed-1, available+1 |
 | 2 | `package` | exhausted → active | 返还后若 consumed < total_hours | 套餐复活 |
-| 3 | `package` | expired → active | 返还后 available > 0 且管理员确认恢复 | 与 PRD §4.6 延期规则一致 |
+| 3 | `package` | expired → active | 返还后 available > 0 且管理员确认恢复 | 状态恢复同时按原有效期时长延长 `expire_at`，与 PRD §4.6 延期规则一致 |
 
 ---
 
@@ -154,9 +173,9 @@ And   package 课时不变
 
 ### 8.2 边界场景 2：重复返还同一 booking
 
-- **触发条件**：管理员对同一 booking 返回两次
-- **预期行为**：第二次校验 consumed_count，若仍 > 0 则允许（但需审计），若为 0 则拒绝
-- **用户可见反馈**：第二次提交时提示「该 booking 已返还过，请确认」
+- **触发条件**：管理员对同一 booking 再次点击「返还课时」
+- **预期行为**：系统校验该 booking 累计 `returned_hours_sum < consumed_hours`；若已返还课时等于或超过已扣课时，则返回 `RETURN_QUOTA_EXCEEDED`，禁止再次返还
+- **用户可见反馈**：提示「该 booking 可返还课时已用完，无法重复返还」
 
 ### 8.3 边界场景 3：返还与教练确认并发
 
@@ -167,7 +186,7 @@ And   package 课时不变
 ### 8.4 边界场景 4：返还 expired 套餐课时（v3 评审 P0 修复）
 
 - **触发条件**：package.status = expired，consumed_count > 0，管理员点击「返还课时」
-- **预期行为**：允许返还；返还后若 available_count > 0，package.status 从 expired 恢复为 active（与 PRD §4.6 管理员手动延期规则一致）；若返还后 available_count 仍为 0（如 consumed-1 后仍 ≥ total_hours，理论不可能），保持 expired
+- **预期行为**：允许返还；返还后若 available_count > 0，package.status 从 expired 恢复为 active，并按套餐原有效期时长从返还时间重新计算 `expire_at`（新 expire_at = 返还时刻 + 原有效期时长），避免状态为 active 但 expire_at 仍停留在过去；若返还后 available_count 仍为 0（如 consumed-1 后仍 ≥ total_hours，理论不可能），保持 expired
 - **用户可见反馈**：学员端提示「套餐已恢复可用，有效期已延长」
 - **特殊说明**：refunded 状态套餐不可返还（PRD §4.6 续期规则同理），系统返回 PACKAGE_NOT_RETURNABLE 错误码
 
@@ -192,7 +211,7 @@ And   package 课时不变
 - [x] **V**aluable（有价值）- 客诉兜底机制
 - [x] **E**stimable（可估算）- 0.5 人天明确
 - [x] **S**mall（足够小）- 单一返还操作
-- [x] **T**estable（可测试）- 3 个 GWT 场景可客观验证
+- [x] **T**estable（可测试）- 4 个 GWT 场景可客观验证
 
 ---
 
@@ -211,7 +230,7 @@ And   package 课时不变
 
 ### 11.3 验收标准
 
-- [x] 1 正常 + 2 异常 = 3 个 GWT 场景（L1 等级）
+- [x] 1 正常 + 3 异常 = 4 个 GWT 场景（L1 等级）
 - [x] 每个 Then 含具体数值/状态码/DB 字段值
 
 ### 11.4 配套文档
@@ -274,6 +293,8 @@ And   package 课时不变
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | P0 修复：从 US-033 拆分出独立 US-035「管理员返还课时」（沿用原未占用编号） |
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：明确 expired 套餐返还规则（允许返还，返还后恢复 active）；补充 refunded 不可返还错误码 PACKAGE_NOT_RETURNABLE；§7.3 新增 expired→active 转换；§8.4 新增边界场景 |
+| v1.2 | 2026-07-31 | PM | v5 评审修复：§4.1 增加 booking 累计返还课时校验；§4.2/§8.2 修改重复返还行为，新增 `RETURN_QUOTA_EXCEEDED` |
+| v1.3 | 2026-07-31 | PM | v6 评审 P0 修复：返还 expired 套餐复活为 active 时，同步按原有效期时长更新 `expire_at`，消除 status=active 但 expire_at 已过的状态机矛盾 |
 
 ---
 

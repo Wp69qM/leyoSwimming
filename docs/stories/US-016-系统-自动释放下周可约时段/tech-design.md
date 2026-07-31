@@ -50,9 +50,9 @@ CREATE UNIQUE INDEX idx_slot_coach_time ON schedule_slot(coach_id, start_time);
 
 ## 3. 状态机
 
-| 实体 | 转换 | 触发 |
-|------|------|------|
-| `schedule_slot` | 无 → available | 释放任务 |
+| 实体 | 转换 | 触发 | 说明 |
+|------|------|------|------|
+| `schedule_slot` | 无 → available | 释放任务 | 仅对 `coach.status IN (1, 4)` 生成；`status=3` 已离职教练排除 |
 
 ## 4. 缓存
 

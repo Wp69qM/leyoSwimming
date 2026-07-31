@@ -43,7 +43,7 @@
 
 - **[Risk]** 冻结导致学员即将开始的课程被取消，引发投诉 → **Mitigation**: 对 30 分钟内开始的课程增加二次确认，并通知学员/教练
 - **[Risk]** 频繁冻结/解冻导致缓存穿透 → **Mitigation**: 操作后立即失效相关缓存，并设置合理的缓存 TTL
-- **[Risk]** 司法冻结场景在 MVP 仅占位 → **Mitigation**: P3 功能，MVP 接口保留枚举值但不主动使用
+- **[Risk]** 司法冻结属于 admin_frozen 细分场景 → **Mitigation**: 与投诉处理中/异常订单一样，统一写入 `frozen_reason = admin_frozen`，具体司法冻结原因记入 `audit_log.remark`
 
 ## Migration Plan
 

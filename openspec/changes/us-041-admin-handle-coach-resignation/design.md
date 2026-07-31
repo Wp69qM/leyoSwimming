@@ -9,7 +9,8 @@
 - 管理员可查看 pending_audit 离职审批队列
 - 管理员可通过或拒绝离职申请
 - 通过时按 checklist 校验并执行批量同步变更
-- 拒绝时恢复 coach.status=1，不回滚已登记处理结果
+- 通过时对所有 active package 自动生成 100% 待退款记录
+- 拒绝时恢复 coach.status=1，不回滚已确认退款记录
 
 **Non-Goals:**
 
@@ -33,6 +34,7 @@
 
 4. **checklist 后端强制校验**
    - 理由：前端勾选可辅助但不可信，关键检查项必须由后端执行
+   - 独立检查项：① active 学员数 = 0；② 若 active 学员数 > 0，所有 active 套餐已确认全额退款；③ 教练费已结算；④ 未来排班已清空。禁止用「或」削弱第①项
 
 ## State Machine（v3 评审 P0 修复同步）
 
@@ -49,6 +51,12 @@
 ### package 状态
 
 - `active` → `frozen`（frozen_reason = `coach_resigned`）
+- 审批过程中：`reserved_count` 先随 booking 取消释放，再兜底归 0，`available_count` 相应增加
+
+### refund_record 状态
+
+- `pending` → `approved` / `rejected` / `completed`（US-028 处理退款）
+- 教练主动离职时，所有 active package 未消耗剩余课时强制 100% 退款
 
 ### booking 状态
 
@@ -57,6 +65,14 @@
 > **cancel_reason 字段类型**（v3 评审 P0 修复）：TINYINT 整型，全项目统一枚举 `1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 使用 `2=教练离职`。
 
 > **注**：booking 状态机不含「待支付」。「待支付」是 order 实体的状态（PRD §6.2.1/§6.2.2），不应出现在 booking 状态转换中。
+
+> **审批执行顺序**（v3 评审 P0 修复）：为避免 `reserved` 课时重复释放，通过审批时必须按以下顺序执行：
+> 1. 对所有 active package（含未确认退款的套餐），生成 `refund_record`：`refund_amount = 单价 × 剩余课时`（已消耗不退），并通知学员选择退款或换教练；
+> 2. 取消未来 booking（释放对应 package.reserved）；
+> 3. 兜底清零 active package.reserved_count，available_count 相应增加；
+> 4. active package → frozen（frozen_reason = coach_resigned）；
+> 5. 未来 schedule_slot → hidden；
+> 6. coach.status 4 → 3。
 
 ## Risks / Trade-offs
 
@@ -67,8 +83,9 @@
 ## Migration Plan
 
 1. 执行 Knex migration 为 `coach_resignation_ticket` 增加 `settlement_status` 与 `schedule_cleared` 字段
-2. 部署后端接口与管理端页面
-3. 回滚：删除新增字段并回退代码
+2. 执行 Knex migration 创建 `refund_record` 表及索引
+3. 部署后端接口与管理端页面
+4. 回滚：删除新增字段/表并回退代码
 
 ## Open Questions
 

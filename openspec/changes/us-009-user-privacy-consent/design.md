@@ -49,6 +49,8 @@ CREATE INDEX idx_user_privacy_consent_user_id ON user_privacy_consent(user_id);
 - Response 400: `INVALID_ACTION`
 - Response 409: `ALREADY_REVOKED`
 
+> **游客态拦截**：`GET /api/user/privacy/status` 与 `POST /api/user/privacy/consent` 必须登录；未登录统一返回 `401 UNAUTHORIZED`。`GET /api/privacy-policy/current` 对游客可见。
+
 ## State Machine
 
 ### 隐私授权状态机
@@ -56,6 +58,8 @@ CREATE INDEX idx_user_privacy_consent_user_id ON user_privacy_consent(user_id);
 ```
 未同意 ──[同意]──→ 已同意 ──[撤回]──→ 已撤回
 ```
+
+> **版本 diff 检测**：系统每次展示隐私协议前，比对用户最近一次同意的版本号与当前生效版本号；若版本号变化，强制回到「未同意」态并触发重新授权。
 
 本 US 触发的转换：
 

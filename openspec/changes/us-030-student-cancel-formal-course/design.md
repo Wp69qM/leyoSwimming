@@ -1,4 +1,4 @@
-# Design: US-030 学员取消/改约正价课程
+# Design: US-030 学员取消正价课程
 
 > 本文档对应 `docs/stories/US-030-.../tech-design.md` 的 OpenSpec 映射版本。
 
@@ -75,6 +75,7 @@ CREATE INDEX idx_cancel_status ON booking_cancellation(status);
 - 教练只能审批自己课程的取消申请
 - 幂等键防止重复提交
 - 防止取消已开始/已结束课程
+- 因特殊原因（场馆闭馆、教练离职等）被管理员/系统取消的 booking，学员端展示取消原因并提供 US-049 客服工单申诉入口
 
 ## Cross-US Dependencies
 

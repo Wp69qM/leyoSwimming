@@ -74,6 +74,7 @@ CREATE INDEX idx_coach_leave_coach_status ON coach_leave(coach_id, status);
 
 - 写接口校验教练 JWT 与 `coach.status = 1`
 - 列表查询按 `coach_id` 严格隔离，禁止越权
+- 已开始课程不可请假：`start_time >= NOW()`
 - 输入参数做 SQL 注入 / XSS 过滤
 - 敏感操作记录 `audit_log`
 - 限流：同一教练 1 分钟 > 60 次提交 → 429

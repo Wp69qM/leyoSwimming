@@ -1,4 +1,4 @@
-# Spec Delta: student-cancel-reschedule-formal-course
+# Spec Delta: student-cancel-formal-course
 
 > 本 spec 为 US-030 新增能力，使用 ADDED delta 标记。
 
@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-030-1 学员取消正价课程预约
 
-系统 MUST 允许学员在课程开始前取消 status ∈ {已预约, 待上课} 的 booking。系统 MUST 区分 24 小时时间窗：≥24h 直接取消并释放课时，<24h 创建 booking_cancellation 待教练审批。系统 MUST 对重复取消和非可取消状态返回明确错误。
+系统 MUST 允许学员在课程开始前取消 status ∈ {已预约, 待上课} 的 booking。系统 MUST 区分 24 小时时间窗：≥24h 直接取消并释放课时，<24h 创建 booking_cancellation 待教练审批。系统 MUST 对重复取消和非可取消状态返回明确错误。因特殊原因（场馆闭馆、教练离职等）被管理员或系统取消的 booking，学员 MUST 可在 US-049 客服工单中申诉。
 
 #### Scenario: 开课前 24 小时外直接取消
 
@@ -43,6 +43,16 @@ Given booking.status = 已取消
 When  学员再次点击「取消预约」
 Then  系统返回 HTTP 400，错误码 BOOKING_NOT_CANCELLABLE
 And   不创建新的取消申请
+```
+
+#### Scenario: 因特殊原因被取消后申诉
+
+```gherkin
+Given 学员已登录
+And   存在 booking.status = 已取消，cancel_reason = 4（场馆闭馆）
+When  学员进入该 booking 详情页
+Then  页面展示取消原因为「场馆闭馆」
+And   提供「申诉」入口跳转至 US-049 客服工单
 ```
 
 ### Requirement: REQ-030-2 教练审批 24 小时内取消申请

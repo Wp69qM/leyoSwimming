@@ -40,7 +40,7 @@
 
 ## 4. 业务流程
 
-### 4.1 主路径
+### 4.1 标准套餐配置
 
 1. 管理员进入「套餐配置」页面
 2. 系统展示标准套餐列表（含状态：上架/下架）
@@ -50,7 +50,16 @@
 6. 系统校验字段合法后写入 `package_template` 表，`status='active'`
 7. 返回列表并刷新
 
-### 4.2 异常分支
+### 4.2 自定义套餐配置
+
+1. 管理员在「套餐配置」页切换至「自定义套餐规则」Tab
+2. 系统展示当前自定义套餐全局规则：允许课时范围（min_hours / max_hours）、有效期默认值（default_valid_days）、单价下限（unit_price_floor）
+3. 管理员修改规则：最小/最大课时数、默认有效期、单价下限
+4. 系统校验：0 < min_hours ≤ max_hours ≤ 100，default_valid_days > 0，unit_price_floor ≥ 0
+5. 系统将规则写入 `custom_package_config` 表（全局仅保留一条生效配置）
+6. 返回保存成功提示
+
+### 4.3 异常分支
 
 - **分支 1**：课时数 ≤ 0 或售价 < 0 → 前端/后端返回 `INVALID_PACKAGE_PARAM`
 - **分支 2**：套餐名称重复 → 返回 `DUPLICATE_PACKAGE_NAME`
@@ -71,7 +80,7 @@
 
 ## 6. 验收标准（业务级 Gherkin）
 
-> 本 US 为 L2（1 人天），场景数 = 2 正常 + 3 异常 = 5。
+> 本 US 为 L2（1 人天），场景数 = 3 正常 + 3 异常 = 6。
 
 ### 6.1 场景 1：管理员新增标准套餐成功
 
@@ -95,7 +104,19 @@ And   package_template.status 更新为 'inactive'
 And   游客端/学员端不再展示该套餐
 ```
 
-### 6.3 场景 3：新增标准套餐时名称重复
+### 6.3 场景 3：管理员配置自定义套餐规则成功
+
+```gherkin
+Given 管理员已登录且具有套餐配置权限
+And   当前 custom_package_config 表无记录
+When  管理员提交自定义套餐规则：min_hours=5, max_hours=50, default_valid_days=180, unit_price_floor=200.00
+Then  系统返回 HTTP 200
+And   custom_package_config 表新增 1 条记录
+And   该记录 min_hours=5, max_hours=50, default_valid_days=180, unit_price_floor=200.00
+And   学员端购买自定义套餐时课时数可选范围变为 5~50
+```
+
+### 6.4 场景 4：新增标准套餐时名称重复
 
 ```gherkin
 Given 系统中已存在名称为"暑期 10 节课"的标准套餐
@@ -105,7 +126,7 @@ And   HTTP 状态码 409
 And   package_template 表不新增记录
 ```
 
-### 6.4 场景 4：新增标准套餐参数非法
+### 6.5 场景 5：新增标准套餐参数非法
 
 ```gherkin
 Given 管理员已登录
@@ -115,7 +136,7 @@ And   HTTP 状态码 400
 And   提示"课时数必须大于 0，售价不能为负数"
 ```
 
-### 6.5 场景 5：无权限管理员访问配置接口
+### 6.6 场景 6：无权限管理员访问配置接口
 
 ```gherkin
 Given 管理员已登录但角色无"套餐配置"权限
@@ -145,6 +166,7 @@ And   package_template 表不新增记录
 | 2 | `/api/admin/package-templates` | POST | 新增 | 管理员新增标准套餐 |
 | 3 | `/api/admin/package-templates/:id` | PUT | 新增 | 管理员编辑标准套餐 |
 | 4 | `/api/admin/package-templates/:id/toggle-status` | POST | 新增 | 上下架切换 |
+| 5 | `/api/admin/package-templates/custom-config` | PUT | 新增 | 自定义套餐全局规则配置 |
 
 ### 7.3 状态机影响
 
@@ -217,7 +239,7 @@ And   package_template 表不新增记录
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 GWT
+- [x] 3 正常 + 3 异常 GWT
 - [x] 每个 Then 含具体数值/状态码/错误码/DB 字段值
 - [x] 业务规则可被验证
 

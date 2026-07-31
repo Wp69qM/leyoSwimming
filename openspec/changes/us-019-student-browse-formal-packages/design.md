@@ -11,7 +11,7 @@
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
 | `coach` | 读 | `id`, `status`, `reference_price_per_hour` |
-| `standard_package` | 读 | `id`, `hours`, `price`, `validity_days`, `status` |
+| `standard_package` / `package_template` | 读 | `id`, `hours`, `price`, `validity_days`, `status` |
 
 ### standard_package 字段
 
@@ -53,13 +53,14 @@ CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
     "custom_hours_max": 50
   }
   ```
-- **Response 404**: `{ code: COACH_NOT_FOUND }`（教练不存在或 `status ∉ {1, 4}`）
+- **Response 404**: `{ code: COACH_NOT_FOUND }`（教练不存在或 `status ≠ 1` 或不可约）
 
 ### 业务规则
 
-- 仅返回 `coach.status IN (1, 4)` 的教练
+- 仅返回 `coach.status = 1`（已通过且可约）的教练
 - `reference_price` 为空时 `custom_package_enabled = false`
-- 标准套餐仅返回 `status = 1`（启用）的记录
+- 标准套餐仅返回 `package_template.status = active`（启用）的记录
+- 教练不可约（离职/冻结）时统一返回 404 `COACH_NOT_FOUND`
 
 ## Caching
 

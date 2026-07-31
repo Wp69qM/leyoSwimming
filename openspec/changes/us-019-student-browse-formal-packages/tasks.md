@@ -8,8 +8,8 @@
 
 **Spec coverage:** REQ-001 标准套餐列表、参考单价、自定义课时入口开关、教练状态可见性校验
 
-- [ ] **RED:** Return standard packages + reference price for valid coach (status=1); return custom_package_enabled=false when reference_price is null; return COACH_NOT_FOUND for status ∉ {1,4}; return empty standard_packages when no enabled package
-- [ ] **GREEN:** Implement query with coach status filter (IN 1,4) + standard_package status=1 filter
+- [ ] **RED:** Return standard packages + reference price for valid coach (status=1); return custom_package_enabled=false when reference_price is null; return COACH_NOT_FOUND for status ≠ 1 or not bookable; return empty standard_packages when no active package template
+- [ ] **GREEN:** Implement query with coach status filter (=1) + package_template.status=active filter
 - [ ] **REFACTOR:** Extract coach status visibility rule into shared helper
 - [ ] **COMMIT:** `feat(package): add coach package browsing service`
 

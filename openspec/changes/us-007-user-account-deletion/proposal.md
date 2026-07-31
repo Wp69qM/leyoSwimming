@@ -8,7 +8,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求账号注销后进入软删除状�
 
 - 新增 `GET /api/user/account/cancel/check` 接口（查询是否满足注销条件）
 - 新增 `POST /api/user/account/cancel` 接口（提交注销申请）
-- 修改 `user` 表：`status = 2`（已注销）、`deleted_at` 赋值、`anonymous_after` 赋值
+- 修改 `user` 表：`status = 2`（已注销）、`deleted_at` 赋值
 - 新增 `audit_log` 表记录注销审计日志
 - 删除 `user_session` 中该用户所有登录态
 - 新增 Redis 缓存失效：`cancel:check:{user_id}`、`session:{token}`
@@ -33,4 +33,4 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求账号注销后进入软删除状�
 - **状态机**：触发用户账号状态机 `正常(1) → 已注销(2)`
 - **前端**：新增小程序"注销确认页"
 - **依赖**：依赖 US-004 登录态；与 US-020/US-025 等订单/套餐状态联动
-- **安全**：必须二次验证（密码或验证码）；记录审计日志；90 天后匿名化处理
+- **安全**：必须二次验证（密码或验证码）；记录审计日志；按数据保留策略落档保留（课程记录 2 年、套餐/订单 5 年、个人身份信息脱敏）

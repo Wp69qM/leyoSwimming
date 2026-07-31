@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-035-001 管理员返还课时
 
-系统 MUST 允许具有 `MANAGE_BOOKING` 权限的管理员在特殊情况下对 `booking.status ∈ {已完成, 旷课}` 且 `package.consumed_count > 0` 的预约返还课时。系统 MUST 在单一事务内执行：`package.consumed_count -1`、`package.available_count +1`、创建 `hour_return` 记录、写 `audit_log`、发送学员通知。系统 MUST 要求管理员填写返还原因分类（`reason_type`）作为必填字段。系统 SHALL 在返还后 `package.consumed_count < package.total_hours` 且原状态为 `exhausted` 时将 `package.status` 复活为 `active`。系统 MUST 拒绝无可扣课时（`consumed_count = 0`）、不可返还的 booking 状态、以及无权限的操作。
+系统 MUST 允许具有 `MANAGE_BOOKING` 权限的管理员在特殊情况下对 `booking.status ∈ {已完成, 旷课}` 且 `package.consumed_count > 0` 的预约返还课时。系统 MUST 在单一事务内先校验该 booking 累计已返还课时 `returned_hours_sum < consumed_count`，否则返回 `RETURN_QUOTA_EXCEEDED`；然后执行：`package.consumed_count -1`、`package.available_count +1`、创建 `hour_return` 记录、写 `audit_log`、发送学员通知。系统 MUST 要求管理员填写返还原因分类（`reason_type`）作为必填字段。系统 SHALL 在返还后 `package.consumed_count < package.total_hours` 且原状态为 `exhausted` 时将 `package.status` 复活为 `active`。系统 SHALL 在原状态为 `expired` 且返还后 `package.available_count > 0` 时将 `package.status` 恢复为 `active`，并按套餐原有效期时长从返还操作时间重新计算 `package.expire_at`（新 `expire_at` = 返还时刻 + 原有效期时长；原有效期时长 = 返还前 `expire_at` - `purchased_at`）。系统 MUST 拒绝无可扣课时（`consumed_count = 0`）、不可返还的 booking 状态、累计返还课时超出已扣课时的请求、以及无权限的操作。
 
 #### Scenario: 管理员正常返还课时
 
@@ -56,6 +56,23 @@ When  管理员返还 1 课时
 Then  package.consumed_count = 9，available_count = 1
 And   package.status = active
 And   hour_return 记录创建
+And   HTTP 状态码 = 200
+```
+
+#### Scenario: 返还 expired 套餐课时并恢复有效期
+
+```gherkin
+Given 管理员已登录且具有 MANAGE_BOOKING 权限
+And   存在 booking.status = 已完成
+And   对应 package.status = expired，consumed_count = 3，available_count = 0，total_hours = 3
+And   package.purchased_at = '2026-06-01T00:00:00'，原 expire_at = '2026-07-01T00:00:00'（原有效期 30 天）
+When  管理员在 '2026-07-31T12:00:00' 调用 POST /api/admin/bookings/{booking_id}/return-hour 并提交 reason_type = 1
+Then  package.consumed_count = 2，available_count = 1
+And   package.status = active
+And   package.expire_at = '2026-08-30T12:00:00'（按原 30 天有效期从返还时间重新计算）
+And   hour_return 记录创建
+And   audit_log 记录管理员返还操作
+And   学员收到课时返还通知
 And   HTTP 状态码 = 200
 ```
 

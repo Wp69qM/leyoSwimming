@@ -44,8 +44,8 @@
 - Create: `backend/src/jobs/expire-unpaid-orders.ts`
 - Test: `backend/tests/jobs/expire-unpaid-orders.test.ts`
 
-- [ ] **RED:** Write failing tests — orders older than 24h are cancelled; orders within 24h remain pending
-- [ ] **GREEN:** Implement cron job
+- [ ] **RED:** Write failing tests — orders older than 24h are cancelled; orders within 24h remain pending; concurrent waitlist promotion competes for `inventory:{coach_id}` lock
+- [ ] **GREEN:** Implement cron job with inventory lock
 - [ ] **REFACTOR:** Extract schedule configuration
 - [ ] **COMMIT:** `feat(job): expire unpaid orders after 24h`
 

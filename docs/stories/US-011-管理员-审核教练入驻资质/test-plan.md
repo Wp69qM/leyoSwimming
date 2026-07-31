@@ -38,6 +38,10 @@ def test_coach_approve_no_permission():
 def test_coach_approve_not_pending():
     """非待审核状态拒绝"""
     pass
+
+def test_coach_audit_resubmitted_application():
+    """已驳回教练重新提交后再次审核"""
+    pass
 ```
 
 ### 集成测试
@@ -73,3 +77,4 @@ def test_e2e_coach_audit():
 | 审核通过 | test_coach_approve_success / test_api_coach_approve_200 |
 | 审核驳回 | test_coach_reject_success / test_api_coach_reject_200 |
 | 无权限审核 | test_coach_approve_no_permission |
+| 已驳回重新提交后审核 | test_coach_audit_resubmitted_application |

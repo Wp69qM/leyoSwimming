@@ -26,7 +26,8 @@
 | 4 | POST /api/admin/package-templates 新增 API | P0 | §6.1, §6.3, §6.4 |
 | 5 | PUT /api/admin/package-templates/:id 编辑与上下架 API | P0 | §6.2 |
 | 6 | Redis 缓存与失效策略 | P1 | §6.1, §6.2 |
-| 7 | 管理员权限中间件校验 | P0 | §6.5 |
+| 7 | 管理员权限中间件校验 | P0 | §6.6 |
+| 8 | 自定义套餐规则配置 | P0 | §6.3 |
 
 ---
 
@@ -190,15 +191,28 @@ describe('PackageTemplateRepository validation', () => {
 - Modify: `backend/src/middlewares/adminAuth.ts`
 - Test: `backend/tests/middlewares/adminAuth.test.ts`
 
-**对应 GWT**：[§6.5 场景 5](./user-story.md#65-场景-5无权限管理员访问配置接口)
+**对应 GWT**：[§6.6 场景 6](./user-story.md#66-场景-6无权限管理员访问配置接口)
 
 - [ ] **Step 1-6**: 校验 `package:write` 权限，无权限返回 403 FORBIDDEN；commit message `feat(auth): enforce package:write permission`
 
 ---
 
+### Task 8: 自定义套餐规则配置 [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/admin/packageTemplate.ts`
+- Modify: `backend/src/routes/admin/packageTemplate.ts`
+- Modify: `backend/tests/controllers/admin/packageTemplate.test.ts`
+
+**对应 GWT**：[§6.3 场景 3](./user-story.md#63-场景-3管理员配置自定义套餐规则成功)
+
+- [ ] **Step 1-6**: 实现 PUT /api/admin/package-templates/custom-config，覆盖 200 / 400；commit message `feat(admin): add custom package config endpoint`
+
+---
+
 ## 3. 任务执行纪律
 
-- **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4 → Task 5 → Task 6 → Task 7
+- **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4 → Task 5 → Task 6 → Task 7 → Task 8
 - **每步必须可见**：Step 1（RED）→ Step 2（看失败）→ Step 3（GREEN）→ Step 4（看通过）→ Step 5（REFACTOR）→ Step 6（COMMIT）
 - **不允许 placeholder**：任何 "TBD" / "TODO" / "实现 later" / "类似 Task N" = 立即返工
 - **每个 Task 结束 = 1 次 commit**：禁止跨 Task 累积 commit
@@ -220,3 +234,4 @@ describe('PackageTemplateRepository validation', () => {
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：7 个 task 覆盖 5 个 GWT 场景 |
+| v1.1 | 2026-07-31 | Dev | 增加 Task 8 覆盖自定义套餐规则配置 |

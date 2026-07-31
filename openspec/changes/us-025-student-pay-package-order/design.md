@@ -58,6 +58,7 @@ CREATE INDEX idx_package_order ON package(order_id);
 |----|-----|-----|---------|
 | Redis 分布式锁 | `payment:lock:{channel_trade_no}` | 30s | 回调处理完立即释放 |
 | Redis 订单状态 | `order:status:{order_id}` | 60s | order/payment 状态变更时删除 |
+| Redis 库存锁 | `inventory:{coach_id}` | 30s | 库存释放或候补转正操作完成后立即释放 |
 
 ## Performance Targets
 
@@ -74,6 +75,7 @@ CREATE INDEX idx_package_order ON package(order_id);
 - 订单归属校验
 - 回调金额与 order.amount 一致性校验
 - 幂等键与 channel_trade_no 去重
+- 订单超时取消与候补转正竞争同一库存锁 `inventory:{coach_id}`，防止并发超卖
 - HTTPS 全链路加密
 
 ## Cross-US Dependencies

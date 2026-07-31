@@ -12,7 +12,7 @@
 
 **Spec coverage:** REQ-001 Scenario "正常补充注册资料"
 
-- [ ] **RED:** Write 2 failing tests — `PUT /api/user/profile` 未登录返回 401；已登录提交完整资料返回 200 且 `identity=1`
+- [ ] **RED:** Write 2 failing tests — `PUT /api/user/profile` 未登录返回 401；已登录提交完整资料（含隐私协议同意）返回 200 且 `profile_completed=true`、`identity_status` 保持 '注册用户' 不变
 - [ ] **GREEN:** Implement `PUT /api/user/profile` controller skeleton with auth middleware, route registration, and basic response shape
 - [ ] **COMMIT:** `feat(user): add PUT /api/user/profile endpoint skeleton`
 
@@ -52,18 +52,18 @@
 - [ ] **GREEN:** Implement password validator (8-20 chars, letters + digits) and bcrypt hash service
 - [ ] **COMMIT:** `feat(user): add password strength validation and bcrypt hashing`
 
-## Task 5: 身份状态机转换 [P0]
+## Task 5: 资料完成状态转换 [P0]
 
 **Files:**
-- Create: `backend/src/services/user/identity.ts`
-- Create: `backend/src/repositories/user_identity_log.ts`
-- Test: `backend/tests/services/user/identity.test.ts`
+- Create: `backend/src/services/user/profile_completion.ts`
+- Modify: `backend/src/controllers/user/profile.ts`
+- Test: `backend/tests/services/user/profile_completion.test.ts`
 
-**Spec coverage:** REQ-001 Scenario "正常补充注册资料"（身份转换部分）
+**Spec coverage:** REQ-001 Scenario "正常补充注册资料"（资料完成状态转换部分）
 
-- [ ] **RED:** Write 2 failing tests — 资料保存成功后 `user.identity` 从 0 变为 1；`user_identity_log` 新增记录
-- [ ] **GREEN:** Implement identity transition service and repository; wrap update + log insert in transaction
-- [ ] **COMMIT:** `feat(user): implement identity transition 游客 → 注册用户`
+- [ ] **RED:** Write 2 failing tests — 资料保存成功后 `user.profile_completed` 从 false 变为 true；`identity_status` 保持 '注册用户' 不变
+- [ ] **GREEN:** Implement profile completion service; wrap update + cache invalidation in transaction
+- [ ] **COMMIT:** `feat(user): implement profile_completed false → true transition`
 
 ## Task 6: 幂等性处理 [P0]
 
@@ -99,8 +99,8 @@
 
 **Spec coverage:** REQ-001 Scenarios "正常补充注册资料", "必填项缺失"
 
-- [ ] **RED:** Write 3 failing tests — 未填手机号阻止提交；提交成功后跳转首页；接口错误展示提示
-- [ ] **GREEN:** Implement complete-profile page with form validation, API call, and redirect
+- [ ] **RED:** Write 4 failing tests — 未填手机号阻止提交；未勾选隐私协议阻止提交；提交成功后跳转首页；接口错误展示提示
+- [ ] **GREEN:** Implement complete-profile page with form validation, privacy consent checkbox, API call, and redirect
 - [ ] **COMMIT:** `feat(miniapp): add complete profile page`
 
 ---
@@ -111,7 +111,7 @@
 - 每 Task = 1 commit
 - 禁止 placeholder（TBD / TODO / "实现 later"）
 - P0 必做（Task 1-6），P1 选做（Task 7-8）
-- **状态机验证**：Task 5 必须显式断言 `user.identity=1`（游客→注册用户转换）
+- **状态机验证**：Task 5 必须显式断言 `user.profile_completed=true` 且 `identity_status` 保持 '注册用户' 不变（profile_completed false→true 转换）
 
 ## GWT Coverage Matrix
 

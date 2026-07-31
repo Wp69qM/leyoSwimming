@@ -15,7 +15,9 @@ Given 用户已登录且无 active 套餐、无未完成订单
 When  用户完成二次确认并点击「确认注销」
 Then  user.status = 2（已注销）
 And   user.deleted_at 为当前时间
-And   user.anonymous_after 为当前时间 + 90 天
+And   课程记录保留 2 年
+And   套餐/订单记录保留 5 年
+And   个人身份信息脱敏后落档
 And   登录态被清除
 And   页面跳转至登录页
 And   audit_log 新增一条注销记录

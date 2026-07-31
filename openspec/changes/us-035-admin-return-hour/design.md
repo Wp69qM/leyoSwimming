@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-035 让管理员在特殊情况下（教练误操作、客诉、争议）对已扣课时的 booking 手动返还课时。核心流程：校验管理员权限与 booking 可返还状态 → 校验 package 有可扣课时 → 事务内回滚 package 消耗、创建返还记录与审计日志、通知学员 → 若套餐原为 exhausted 且返还后 consumed < total_hours 则复活为 active。
+US-035 让管理员在特殊情况下（教练误操作、客诉、争议）对已扣课时的 booking 手动返还课时。核心流程：校验管理员权限与 booking 可返还状态 → 校验 package 有可扣课时 → 事务内回滚 package 消耗、创建返还记录与审计日志、通知学员 → 若套餐原为 exhausted 且返还后 consumed < total_hours 则复活为 active；若套餐原为 expired 且返还后 available > 0，则同步恢复为 active 并按原有效期时长延长 expire_at。
 
 ## Data Model
 
@@ -12,7 +12,7 @@ US-035 让管理员在特殊情况下（教练误操作、客诉、争议）对�
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `package` | 读/写 | `id`, `consumed_count`, `available_count`, `total_hours`, `status` |
+| `package` | 读/写 | `id`, `consumed_count`, `available_count`, `total_hours`, `status`, `expire_at`, `purchased_at` |
 | `booking` | 读 | `id`, `status` |
 | `hour_return` | 写 | `id`, `booking_id`, `package_id`, `admin_id`, `reason_type`, `reason_detail`, `returned_hours`, `created_at` |
 | `audit_log` | 写 | `id`, `action`, `operator_id`, `target_id`, `details` |
@@ -51,8 +51,8 @@ CREATE INDEX idx_hour_return_admin ON hour_return(admin_id);
     "reason_detail": "教练误操作标记旷课，实际学员已到场"
   }
   ```
-- **Response 200**: `{ package_id, consumed_count, available_count, status }`
-- **Response 400**: `{ code: "NO_CONSUMED_HOUR" | "BOOKING_NOT_RETURNABLE" | "INVALID_REASON_TYPE" | "PACKAGE_NOT_RETURNABLE" }`
+- **Response 200**: `{ package_id, consumed_count, available_count, status, expire_at }`
+- **Response 400**: `{ code: "NO_CONSUMED_HOUR" | "BOOKING_NOT_RETURNABLE" | "INVALID_REASON_TYPE" | "PACKAGE_NOT_RETURNABLE" | "RETURN_QUOTA_EXCEEDED" }`
 - **Response 401**: 未登录
 - **Response 403**: 非管理员或无 `MANAGE_BOOKING` 权限
 
@@ -77,7 +77,7 @@ CREATE INDEX idx_hour_return_admin ON hour_return(admin_id);
 
 复活判定逻辑：事务内更新 package 后：
 - 若 `package.status = exhausted` 且 `consumed_count < total_hours`，则将 `status` 置为 `active`
-- 若 `package.status = expired` 且返还后 `available_count > 0`，则将 `status` 从 `expired` 恢复为 `active`（与 PRD §4.6 管理员手动延期规则一致）
+- 若 `package.status = expired` 且返还后 `available_count > 0`，则将 `status` 从 `expired` 恢复为 `active`，并按原有效期时长重新计算 `expire_at`：新 `expire_at` = 返还操作时间 +（返还前 `expire_at` - `purchased_at`），保证 `status = active` 时必有 `now() < expire_at`（与 PRD §4.6 管理员手动延期规则一致）
 
 > **PACKAGE_NOT_RETURNABLE 错误码**（v3 评审 P0 修复）：当 `package.status = refunded` 时返回此错误码，refunded 状态套餐不可返还（PRD §4.6 续期规则同理）。
 
@@ -98,6 +98,7 @@ CREATE INDEX idx_hour_return_admin ON hour_return(admin_id);
 - 必填 `reason_type`，审计留痕
 - 事务包裹：`package` 更新 + `hour_return` 创建 + `audit_log` 写入 + `notification` 创建同一事务
 - `package` 乐观锁防返还与教练确认并发：UPDATE 语句带 `WHERE consumed_count = ?` 条件，影响行数为 0 时回滚并返回错误
+- 防重复返还：事务内校验该 booking 累计 `returned_hours_sum < consumed_count`，否则返回 `RETURN_QUOTA_EXCEEDED`
 - 防重提交：基于幂等键的短期去重
 
 ## Cross-US Dependencies

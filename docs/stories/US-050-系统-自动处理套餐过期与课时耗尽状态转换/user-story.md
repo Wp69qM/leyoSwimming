@@ -81,16 +81,17 @@
 
 ## 6. 验收标准（业务级 Gherkin）
 
-> 本 US 为 L2（1 人天），场景数 = 2 正常 + 3 异常 = 5。
+> 本 US 为 L2（1 人天），场景数 = 2 正常 + 4 异常 = 6。
 
 ### 6.1 场景 1：定时任务将到期套餐标记为 expired
 
 ```gherkin
-Given 系统中存在套餐 A，status='active'，expire_at='2026-07-29 23:59:59'
+Given 系统中存在套餐 A，status='active'，total_hours=10，available=3，reserved=2，consumed=5，expire_at='2026-07-29 23:59:59'
 And   当前系统时间为 2026-07-30 01:00:00
 When  系统每小时套餐过期巡检任务执行
 Then  套餐 A 的 status 更新为 'expired'
-And   不修改 total_hours / available / reserved / consumed 字段
+And   available 保持为 3，reserved 保持为 2，consumed 保持为 5
+And   available + reserved + consumed = total_hours
 And   系统记录状态转换日志：from='active', to='expired', reason='EXPIRE_CRON'
 ```
 
@@ -228,7 +229,7 @@ And   系统记录状态转换日志：from='exhausted', to='expired', reason='E
 - [x] **V**aluable（有价值）- 防止学员使用无效套餐预约，减少客服纠纷
 - [x] **E**stimable（可估算）- 1 人天明确
 - [x] **S**mall（足够小）- 一个 Sprint 内可完成
-- [x] **T**estable（可测试）- 5 个 GWT 场景可验证
+- [x] **T**estable（可测试）- 6 个 GWT 场景可验证
 
 ---
 
@@ -250,7 +251,7 @@ And   系统记录状态转换日志：from='exhausted', to='expired', reason='E
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 GWT
+- [x] 2 正常 + 4 异常 GWT
 - [x] 业务级 Gherkin，不绑死实现
 - [x] 用户可观察的结果可被验证
 
@@ -322,6 +323,7 @@ And   系统记录状态转换日志：from='exhausted', to='expired', reason='E
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | P1 修复：§2/§4.1/§7.3 补充 `exhausted → expired` 状态转换（定时任务扫描 exhausted）；新增场景 6 验证该转换 |
+| v1.2 | 2026-07-31 | PM | P1/P2 修复：§6.1 场景 1 改为部分消耗后过期断言（available + reserved + consumed = total_hours），避免 `consumed_count = 0` 误用 |
 
 ---
 

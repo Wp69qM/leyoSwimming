@@ -8,7 +8,7 @@
 
 **Spec coverage:** 全部 5 个 GWT 场景
 
-- [ ] **RED:** Write failing tests — approve refund updates order/package and creates transaction; reject refund restores order/package; channel failure keeps state; idempotent duplicate approval; forbid non-admin
+- [ ] **RED:** Write failing tests — approve refund updates order to 退款处理中 then 已退款 on channel success, package.status active→refunded, creates transaction; reject refund sets order.status=退款被拒（7）, keeps package active and sets booking_frozen=false; channel failure keeps package active and booking_frozen=true; idempotent duplicate approval; forbid non-admin
 - [ ] **GREEN:** Implement `RefundAdminService.approve(refundId, adminId, amount?, remark?)` and `RefundAdminService.reject(refundId, adminId, reason)`
 - [ ] **REFACTOR:** Extract channel refund adapter and amount validator
 - [ ] **COMMIT:** `feat(refund): add admin refund approval service`

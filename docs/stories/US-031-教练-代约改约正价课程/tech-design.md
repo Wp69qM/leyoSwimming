@@ -42,7 +42,11 @@ CREATE INDEX idx_schedule_slot_coach_time ON schedule_slot(coach_id, start_time)
 
 ### 2.1 POST /api/coach/bookings
 
-- **鉴权**：教练登录且为 booking.coach_id
+- **鉴权**：教练登录
+- **授权检查**：
+  1. 校验 `coach_authorization` 记录存在且有效（学员已授权该教练代约/改约）
+  2. 校验 `student_id` 与当前教练存在 `coach_student` 绑定关系（教练只能代约自己绑定的学员）
+  3. 校验目标 `schedule_slot_id.coach_id` 等于当前教练 ID
 - **Request**:
   ```json
   {
@@ -51,13 +55,19 @@ CREATE INDEX idx_schedule_slot_coach_time ON schedule_slot(coach_id, start_time)
     "idempotency_key": "uuid"
   }
   ```
-- **Response 201**: `{ booking_id, status, start_time, end_time }`
+- **Response 201**: `{ booking_id, status, start_time, end_time }`（直接代约成功）
+- **Response 202**: `{ confirmation_id, status: pending_confirmation }`（<24h 需学员确认，待确认后不创建 booking）
 - **Response 400**: `SLOT_TAKEN | NO_QUOTA | NO_BOUND_COACH | SLOT_NOT_AVAILABLE | PACKAGE_NOT_BOOKABLE`
-- **Response 403**: `BOOKING_ACCESS_DENIED`
+- **Response 403**: `BOOKING_ACCESS_DENIED | COACH_NOT_AUTHORIZED`
 
 ### 2.2 POST /api/coach/bookings/{booking_id}/reschedule
 
-- **鉴权**：教练登录且为原 booking.coach_id
+- **鉴权**：教练登录
+- **授权检查**：
+  1. 校验原 booking.coach_id 等于当前教练 ID
+  2. 校验原 booking.student_id 与当前教练存在 `coach_student` 绑定关系
+  3. 校验 `coach_authorization` 记录存在且有效
+- **<24h 确认流程**：若 `booking.start_time - now < 24h`，系统创建待确认改约请求，向学员发送确认通知，等待学员确认；学员未在有效期内确认或拒绝，则改约请求失效，原 booking 保持原状
 - **Request**:
   ```json
   {
@@ -65,9 +75,10 @@ CREATE INDEX idx_schedule_slot_coach_time ON schedule_slot(coach_id, start_time)
     "idempotency_key": "uuid"
   }
   ```
-- **Response 200**: `{ old_booking_id, new_booking_id, status, start_time, end_time }`
+- **Response 200**: `{ old_booking_id, new_booking_id, status, start_time, end_time }`（≥24h 直接改约成功）
+- **Response 202**: `{ confirmation_id, status: pending_confirmation }`（<24h 已发送确认，待确认）
 - **Response 400**: `SLOT_TAKEN | NO_QUOTA | SLOT_NOT_AVAILABLE | BOOKING_NOT_RESCHEDULABLE`
-- **Response 403**: `BOOKING_ACCESS_DENIED`
+- **Response 403**: `BOOKING_ACCESS_DENIED | COACH_NOT_AUTHORIZED`
 
 ### 2.3 GET /api/coaches/{coach_id}/slots
 
@@ -108,10 +119,12 @@ CREATE INDEX idx_schedule_slot_coach_time ON schedule_slot(coach_id, start_time)
 ## 6. 安全
 
 - 严格校验教练身份与 coach_id
-- 严格校验 package 归属与教练绑定关系
+- 严格校验 `coach_authorization` 记录，拒绝未授权教练操作
+- 严格校验 package 归属与教练绑定关系，教练只能代约/改约自己绑定的学员
 - 禁止教练预约/改约非绑定学员的课程
 - 幂等键防重放
 - 改约事务内完成，避免课时丢失
+- <24h 代约/改约须经学员在系统内确认，未确认不生效
 
 ## 7. 跨 US 依赖
 

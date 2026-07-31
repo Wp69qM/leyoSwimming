@@ -49,22 +49,25 @@
 
 ### Task 4：登记套餐处理结果
 
-- [ ] **4.1 RED**：编写正常登记 `transfer`/`refund`/`continue` 的测试
-- [ ] **4.2 RED**：编写登记非自己名下套餐返回 403 的测试
-- [ ] **4.3 RED**：编写工单非 processing 状态时登记失败的测试
-- [ ] **4.4 GREEN**：实现 action 登记接口与校验
-- [ ] **4.5 REFACTOR**：抽取 action validator
-- [ ] **4.6 COMMIT**：`feat(us-039): register resignation action for package`
+- [ ] **4.1 RED**：编写确认全额退款并自动生成 `refund_record` 的测试
+- [ ] **4.2 RED**：编写 `refund_record` 金额为「单价 × 剩余课时」的测试
+- [ ] **4.3 RED**：编写确认非自己名下套餐返回 403 的测试
+- [ ] **4.4 RED**：编写工单非 processing 状态时确认失败的测试
+- [ ] **4.5 RED**：编写提交时未确认套餐自动按 refund 生成 `refund_record` 的测试
+- [ ] **4.6 GREEN**：实现退款确认接口与校验，同步生成退款记录
+- [ ] **4.7 REFACTOR**：抽取 refund confirmation validator
+- [ ] **4.8 COMMIT**：`feat(us-039): register resignation refund confirmation with refund record`
 
 **对应**：user-story.md 场景 2、5 / tech-design §4.3
 
 ### Task 5：提交与撤销工单
 
 - [ ] **5.1 RED**：编写教练提交工单至 `pending_audit` 的测试
-- [ ] **5.2 RED**：编写撤销工单恢复 coach.status=1 的测试
-- [ ] **5.3 RED**：编写非 processing 状态不可撤销的测试
-- [ ] **5.4 GREEN**：实现 submit / cancel 接口
-- [ ] **5.5 COMMIT**：`feat(us-039): submit and cancel resignation ticket`
+- [ ] **5.2 RED**：编写提交时未确认套餐自动按 refund 生成 `refund_record` 的测试
+- [ ] **5.3 RED**：编写撤销工单恢复 coach.status=1 的测试
+- [ ] **5.4 RED**：编写非 processing 状态不可撤销的测试
+- [ ] **5.5 GREEN**：实现 submit / cancel 接口；submit 时未确认套餐默认生成退款记录
+- [ ] **5.6 COMMIT**：`feat(us-039): submit and cancel resignation ticket with default refund`
 
 **对应**：user-story.md 边界场景 1 / tech-design §4.4、§4.5
 
@@ -84,13 +87,14 @@
 | # | 用例名称 | 对应 GWT 场景 | 测试方法 | 期望结果 |
 |---|---------|--------------|---------|---------|
 | 1 | 教练成功提交离职申请 | 6.1 | `test_apply_resignation_success` | coach.status=4，生成 processing 工单，清单含 3 份套餐 |
-| 2 | 教练登记套餐处理结果 | 6.2 | `test_register_package_action_success` | coach_resignation_action +1，状态 registered |
+| 2 | 教练确认学员套餐全额退款 | 6.2 | `test_register_refund_confirmation_success` | coach_resignation_action +1，action=refund；refund_record 金额 = 单价 × 剩余课时 |
 | 3 | 非已通过教练无法申请 | 6.3 | `test_not_approved_cannot_apply` | 入口隐藏或接口 403 |
 | 4 | 重复提交离职申请 | 6.4 | `test_apply_resignation_duplicate` | HTTP 409，不生成新工单 |
 | 5 | 登记非自己名下套餐 | 6.5 | `test_register_action_not_own_package` | HTTP 403，错误码 NOT_OWN_PACKAGE |
 | 6 | 教练撤销离职申请 | 8.1 | `test_cancel_resignation_success` | coach.status 恢复 1，工单 cancelled |
 | 7 | 教练名下无 active 套餐 | 8.2 | `test_apply_resignation_no_active_packages` | 允许提交，工单清单为空 |
 | 8 | 并发提交幂等 | 8.3 | `test_apply_resignation_idempotent` | 仅 1 条工单 |
+| 9 | 未登记套餐默认全额退款 | 6.2 / §12 | `test_submit_default_refund_record` | 自动生成 refund_record，金额 = 单价 × 剩余课时 |
 
 ---
 

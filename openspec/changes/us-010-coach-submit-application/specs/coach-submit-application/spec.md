@@ -26,8 +26,10 @@ And   系统返回"提交成功，等待审核"
 Given 教练正在填写入驻资料
 When  教练填写部分资料后点击「保存草稿」
 Then  coach 记录创建成功
-And   coach.status = 0（待审核）或 draft 状态
+And   coach.status = 0（待审核）
+And   coach.submitted_at 为 NULL
 And   已填字段被保存，下次进入可继续编辑
+And   不新增独立草稿状态
 ```
 
 #### Scenario: 必填项缺失
@@ -47,6 +49,19 @@ Given 教练已存在 status = 0 的入驻申请
 When  教练再次点击「提交审核」
 Then  返回 HTTP 400 + 错误码 COACH_APPLICATION_PENDING
 And   前端提示"您已提交入驻申请，请勿重复提交"
+```
+
+#### Scenario: 已驳回教练重新提交入驻资料
+
+```gherkin
+Given 教练已存在 status = 2 的驳回记录
+And   驳回原因已查看
+When  教练修改证书照片与任教年限后点击「提交审核」
+Then  系统更新 coach 记录
+And   coach.status 重置为 0（待审核）
+And   coach.rejection_reason 清空
+And   coach.submitted_at 更新为当前时间
+And   系统返回"提交成功，等待审核"
 ```
 
 #### Scenario: 证书图片过大

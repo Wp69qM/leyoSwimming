@@ -7,13 +7,15 @@ The system MUST allow an admin to approve a pending coach leave request, cancel 
 #### Scenario: Approve leave successfully
 
 - **GIVEN** admin M is logged in with `MANAGE_SCHEDULE` permission
-- **AND** coach C submitted a full-day leave request for 2026-08-01 with status `pending`
+- **AND** coach C submitted a full-day leave request for 2026-08-01 with status `pending` and reason "身体不适"
 - **AND** there are 2 booked sessions within the leave period
-- **WHEN** admin M clicks "通过"
+- **AND** the system suggests reschedule slot 2026-08-03 09:00-10:00
+- **WHEN** admin M clicks "通过" after confirming the reschedule suggestion
 - **THEN** `leave_request.status` is updated to `approved`
-- **AND** the 2 bookings are cancelled with `cancel_reason = "教练请假"`
+- **AND** coach C's schedule slots on 2026-08-01 are marked as `hidden` or deleted
+- **AND** the 2 bookings are cancelled with `cancel_reason = 5`（教练请假）
 - **AND** corresponding `package.reserved_count` decreases and `available_count` increases
-- **AND** the system sends cancellation notifications to students
+- **AND** the system sends cancellation notifications to students including reason "身体不适" and reschedule suggestion "2026-08-03 09:00-10:00"
 - **AND** the API returns HTTP 200 with message "请假已通过"
 
 ### Requirement: REQ-002 Admin shall update coach schedule slot

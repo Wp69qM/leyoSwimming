@@ -26,4 +26,4 @@
 - 后端：扩展 `coach_application` 表（`is_reapply`）、扩展 `coach_rating`/`review` 表（`is_visible_to_new`），新增 `/api/coach/v1/reapply` 与 `/api/admin/v1/coaches/{id}/reapply/*` 接口
 - 教练端小程序：新增「重新入驻」入口、资料确认页、审核状态页
 - 管理端：在入驻审核队列中区分新入驻与重新入驻
-- 依赖：US-039（教练申请离职）/ US-041（管理员处理教练离职）、US-011（管理员审核教练入驻资质）
+- 依赖：US-041（管理员处理教练离职）审批通过后产生 `coach.status = 3` 方可重新入驻；US-011（管理员审核教练入驻资质）提供入驻审核流程；US-039 通过 US-041 间接产生 status=3

@@ -21,7 +21,7 @@
 
 **Spec coverage:** 创建 refund_record + order/package 状态更新 + 通知
 
-- [ ] **RED:** Create refund_record with status=待审批; order → 退款审批中; package → frozen; reject REFUND_IN_PROGRESS; idempotent on duplicate submit
+- [ ] **RED:** Create refund_record with status=待审批; order → 退款审批中; package.status 保持 active; package.booking_frozen=true; reject REFUND_IN_PROGRESS; idempotent on duplicate submit
 - [ ] **GREEN:** Implement submission with transaction
 - [ ] **REFACTOR:** Extract notification helper
 - [ ] **COMMIT:** `feat(refund): add refund submission service`

@@ -27,7 +27,7 @@
 | 7 | PUT /api/admin/tickets/:id/assign 与 POST /reply | P0 | §6.2 |
 | 8 | PUT /api/admin/tickets/:id/status | P0 | §6.2 |
 | 9 | 看板缓存策略 | P1 | §6.1 |
-| 10 | 管理员权限中间件 | P0 | §6.5 |
+| 10 | 管理员权限中间件 | P0 | §6.5, §6.6 |
 
 ---
 
@@ -180,9 +180,9 @@ git commit -m "feat(support-ticket): add ticket/reply migrations and repository"
 - Modify: `backend/src/middlewares/adminAuth.ts`
 - Test: `backend/tests/middlewares/adminAuth.test.ts`
 
-**对应 GWT**：[§6.5 场景 5](./user-story.md#65-场景-5无权限管理员访问看板接口)
+**对应 GWT**：[§6.5 场景 5](./user-story.md#65-场景-5无权限管理员访问看板接口)、[§6.6 场景 6](./user-story.md#66-场景-6无权限管理员访问客服工单接口)
 
-- [ ] **Step 1-6**: 校验 `dashboard:read` / `ticket:write` 权限，无权限返回 403 FORBIDDEN；commit message `feat(auth): enforce dashboard and ticket permissions`
+- [ ] **Step 1-6**: 校验 `dashboard:read` / `ticket:read` / `ticket:write` 权限，无权限返回 403 FORBIDDEN；commit message `feat(auth): enforce dashboard and ticket permissions`
 
 ---
 
@@ -207,3 +207,4 @@ git commit -m "feat(support-ticket): add ticket/reply migrations and repository"
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P1 修复：Task 10 覆盖看板与客服工单无权限场景|

@@ -31,8 +31,9 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 ### GET /api/admin/coach/applications
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
-- Request query: `page`, `page_size`, `keyword`
+- Request query: `page`, `page_size`, `keyword`, `submitted_at_not_null=true`
 - Response 200: `{ total, list: [{ coach_id, name, phone, reference_price, status, created_at, certificates }] }`
+- 说明：待审核列表仅返回 `status=0` 且 `submitted_at IS NOT NULL` 的记录，避免草稿进入审核队列
 - Response 403: `FORBIDDEN`
 
 ### POST /api/admin/coach/applications/{id}/approve
@@ -59,6 +60,7 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 ```
 待审核(0) ──[通过]──→ 已通过(1)
 待审核(0) ──[驳回]──→ 驳回(2)
+驳回(2) ──[重新提交，US-040]──→ 待审核(0)
 ```
 
 本 US 触发的转换：

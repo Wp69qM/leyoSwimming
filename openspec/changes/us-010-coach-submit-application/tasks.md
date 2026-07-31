@@ -75,9 +75,9 @@
 
 **Spec coverage:** REQ-001 Scenario "保存入驻资料草稿"
 
-- [ ] **RED:** Write 1 failing test — 部分字段保存草稿返回 200，下次可查询继续编辑
-- [ ] **GREEN:** Implement `PUT /api/coach/application/draft`
-- [ ] **COMMIT:** `feat(coach): add application draft save`
+- [ ] **RED:** Write 2 failing tests — 部分字段保存草稿返回 200 且 `status=0`；`submitted_at` 为 NULL 表示草稿
+- [ ] **GREEN:** Implement `PUT /api/coach/application/draft`（保存草稿与提交审核均写入 `status=0`，不新增独立草稿态）
+- [ ] **COMMIT:** `feat(coach): add application draft save without separate draft state`
 
 ## Task 7: 教练小程序入驻资料页 [P1]
 

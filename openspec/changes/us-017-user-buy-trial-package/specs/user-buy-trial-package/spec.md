@@ -6,18 +6,31 @@
 
 ### Requirement: REQ-001 游客购买体验课套餐
 
-系统 MUST 允许已登录用户购买体验课套餐。系统 MUST 校验用户名下无 active/exhausted 体验套餐且教练状态为已通过；支付成功后 MUST 创建 active 体验套餐并将用户身份升级为学员。
+系统 MUST 允许已登录用户购买体验课套餐。系统 MUST 校验用户已阅读并同意最新版《用户须知》、用户名下无 active/exhausted 体验套餐且教练状态为已通过；支付成功后 MUST 创建 active 体验套餐、记录协议签署并将用户身份升级为学员。
 
 #### Scenario: 正常购买体验课
 
 ```gherkin
 Given 游客已登录且名下无体验套餐
+And   用户已阅读并同意最新版《用户须知》
 And   教练 A 状态为已通过（status=1）
 When  游客购买教练 A 的体验课并完成支付
 Then  订单状态 = 已支付
 And   package.status = active，package_type = 0，available = 1，total_hours = 1
+And   系统记录 agreement_sign 版本号与签署时间
 And   用户身份变为学员
 And   接口返回 HTTP 200
+```
+
+#### Scenario: 游客未勾选《用户须知》
+
+```gherkin
+Given 游客已登录且名下无体验套餐
+And   教练 A 状态为已通过（status=1）
+And   用户未勾选《用户须知》
+When  游客提交体验课订单
+Then  系统返回 HTTP 400，错误码 AGREEMENT_REQUIRED
+And   不创建订单
 ```
 
 #### Scenario: 游客未登录触发登录

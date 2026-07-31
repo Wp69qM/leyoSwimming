@@ -21,7 +21,7 @@
 
 - [ ] 4.1 Implement `POST /api/admin/v1/leave-requests/{id}/approve` — maps to REQ-001 / Scenario: Approve leave successfully
 - [ ] 4.2 Implement `POST /api/admin/v1/leave-requests/{id}/reject` — maps to REQ-003 / Scenario: Reject leave successfully
-- [ ] 4.3 Cancel upcoming bookings within leave period with `cancel_reason = "教练请假"`
+- [ ] 4.3 Cancel upcoming bookings within leave period with `cancel_reason = 5`（教练请假）
 - [ ] 4.4 Release `package.reserved_count` back to `available_count`
 - [ ] 4.5 Reject approval for non-pending leave requests — maps to REQ-004
 

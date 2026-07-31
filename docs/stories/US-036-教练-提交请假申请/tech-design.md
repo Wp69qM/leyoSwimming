@@ -38,7 +38,7 @@ CREATE INDEX idx_coach_leave_coach_status ON coach_leave(coach_id, status);
 
 - 同一教练在同一时间段内只能存在一条已批准（`status = 1`）的请假记录，应用层校验重叠
 - `start_time < end_time`
-- `start_time >= NOW()`
+- `start_time >= NOW()`（已开始课程不可请假）
 
 ## 2. API 设计
 

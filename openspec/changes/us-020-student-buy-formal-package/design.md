@@ -12,7 +12,8 @@
 |----|------|---------|
 | `order` | 写 | `user_id`, `coach_id`, `course_type=1`, `standard_package_id`, `custom_hours`, `amount`, `status`, `expire_at` |
 | `agreement_sign` | 写 | `user_id`, `agreement_type`, `version`, `signed_at` |
-| `user` | 读 | `identity` |
+| `guardian_contact` | 写 | `user_id`, `phone`, `verified_at` |
+| `user` | 读 | `identity`, `birth_date` |
 | `package` | 读 | `status`, `coach_id` |
 | `coach` | 读 | `status`, `reference_price_per_hour` |
 | `standard_package` | 读 | `hours`, `price` |
@@ -27,8 +28,9 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 
 ## API Design
 
-- `POST /api/orders/formal`：创建正价套餐订单
+- `POST /api/orders/formal`：创建正价套餐订单（含未成年人监护人校验）
 - `GET /api/agreements/status`：查询协议签署状态
+- `POST /api/guardians/verify`：发送并校验监护人手机号短信验证码
 
 ## Caching
 
@@ -46,6 +48,7 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 - 同教练 active 套餐唯一性校验
 - 协议版本后端校验
 - 自定义课时范围校验
+- 未成年人监护人手机号短信校验与通知
 
 ## Cross-US Dependencies
 

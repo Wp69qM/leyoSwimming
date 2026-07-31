@@ -32,9 +32,10 @@
 
 ## 3. 前置条件
 
-- [x] 管理员已登录且具有 `MANAGE_USER_ACCOUNT` 权限
+- [x] 管理员已登录且 RBAC 角色为 `super_admin` 或 `admin`
+- [x] 管理员具备当前操作对应的细粒度权限（`USER:READ` / `USER:WRITE` / `USER:PASSWORD_RESET` / `USER:ROLE_ASSIGN` / `USER:BAN`，详见 §4.1 与 tech-design.md §8）
 - [x] 目标用户账号存在于系统中
-- [x] 操作符合 RBAC 约束（例如不能修改超级管理员账号）
+- [x] `admin` 角色不得对 `super_admin` 账号执行任何写操作，不得修改其他 `admin` 的关键字段
 
 ---
 
@@ -47,10 +48,12 @@
 3. 管理员搜索/筛选目标用户
 4. 管理员点击用户进入详情/编辑页
 5. 管理员执行以下任一操作：
+   - 查看用户列表/详情：按 RBAC 可见范围返回数据
    - 重置密码：系统生成随机密码并强制首次登录修改
-   - 修改手机号：校验新手机号唯一性后更新
+   - 修改手机号：校验新手机号唯一性；同时必须通过原手机号短信验证码验证用户所有权，或在无法验证时选择「强制变更」并记录变更原因至 audit_log.remark，方可更新
    - 修改邮箱：校验新邮箱唯一性后更新
-   - 配置角色权限：勾选角色并保存
+   - 配置角色权限：勾选角色并保存（`admin` 不可授予 `super_admin` 角色）
+   - 封禁/解封账号：管理员填写原因，系统更新 `user.status` 并记录审计日志
 6. 系统记录操作审计日志
 7. 返回操作成功提示
 
@@ -59,6 +62,7 @@
 - **分支 1**：管理员无权限 → 返回错误 `ADMIN_PERMISSION_DENIED`
 - **分支 2**：目标用户不存在 → 返回错误 `USER_NOT_FOUND`
 - **分支 3**：新手机号/邮箱已被占用 → 返回错误 `PHONE_ALREADY_EXISTS` / `EMAIL_ALREADY_EXISTS`
+- **分支 4**：`admin` 尝试修改 `super_admin` 账号或尝试将普通用户授予 `super_admin` 角色 → 返回错误 `ADMIN_PERMISSION_DENIED`
 
 ---
 
@@ -70,12 +74,15 @@
 | 2 | 管理员可重置密码、手机号、邮箱 | [§5.5.1](../../prd/prd.md) |
 | 3 | 管理员可配置角色权限 | [§5.5.1](../../prd/prd.md) |
 | 4 | 敏感操作需记录审计日志 | [§11.1](../../prd/prd.md) |
+| 5 | 管理员修改手机号必须通过原手机号短信验证或强制变更并记录原因；禁止修改超级管理员关键字段 | [§5.5.1](../../prd/prd.md) / [§11.1](../../prd/prd.md) |
+| 6 | 仅 `super_admin` / `admin` 可操作用户账号；`admin` 不可操作 `super_admin` 账号，不可授予 `super_admin` 角色 | [§5.5.1](../../prd/prd.md) / [§11.1](../../prd/prd.md) |
+| 7 | 封禁/解封账号需记录原因并写入审计日志 | [§11.1](../../prd/prd.md) |
 
 ---
 
 ## 6. 验收标准（业务级 Gherkin）
 
-> 本 US 为 L2（1 人天），包含 2 个正常场景 + 3 个异常场景 = 5 个场景。
+> 本 US 为 L2（1 人天），包含 4 个正常场景 + 3 个异常场景 = 7 个场景。
 
 ### 6.1 场景 1：管理员重置用户密码
 
@@ -89,19 +96,44 @@ And   audit_log 新增 1 条 action='ADMIN_RESET_PASSWORD' 记录
 And   返回 HTTP 200 与提示"密码已重置，用户首次登录需修改密码"
 ```
 
-### 6.2 场景 2：管理员修改用户手机号
+### 6.2 场景 2：管理员通过短信验证码修改用户手机号
 
 ```gherkin
 Given 管理员 M 已登录且具有用户管理权限
 And   用户 U 当前手机号为"13800138000"
 And   新手机号"13900139000"未被占用
+And   管理员 M 已通过原手机号"13800138000"短信验证码验证用户所有权
 When  管理员 M 将用户 U 手机号修改为"13900139000"
 Then  user.phone 更新为"13900139000"
-And   audit_log 新增 1 条 action='ADMIN_UPDATE_PHONE' 记录
+And   audit_log 新增 1 条 action='ADMIN_UPDATE_PHONE' 记录，remark 含短信验证流水号
 And   返回 HTTP 200 与提示"手机号已更新"
 ```
 
-### 6.3 场景 3：无权限管理员操作失败
+### 6.3 场景 3：管理员强制变更用户手机号并记录原因
+
+```gherkin
+Given 管理员 M 已登录且具有用户管理权限
+And   用户 U 当前手机号为"13800138000"且无法接收短信
+And   新手机号"13900139000"未被占用
+When  管理员 M 选择"强制变更"并填写原因"原手机号已停机"
+Then  user.phone 更新为"13900139000"
+And   audit_log 新增 1 条 action='ADMIN_UPDATE_PHONE' 记录，remark="原手机号已停机（强制变更）"
+And   返回 HTTP 200 与提示"手机号已强制更新"
+```
+
+### 6.4 场景 4：管理员封禁用户账号
+
+```gherkin
+Given 管理员 M 已登录且具有用户管理权限
+And   用户 U 当前状态为"正常"，user_id=1001
+When  管理员 M 对用户 U 执行"封禁账号"并填写原因"涉嫌违规"
+Then  user.status 更新为 2（封禁）
+And   user.updated_at 更新
+And   audit_log 新增 1 条 action='ADMIN_BAN_USER' 记录，remark="涉嫌违规"
+And   返回 HTTP 200 与提示"账号已封禁"
+```
+
+### 6.5 场景 5：无权限管理员操作失败
 
 ```gherkin
 Given 管理员 M2 已登录但无用户管理权限
@@ -111,7 +143,7 @@ And   HTTP 状态码 403
 And   不修改任何用户数据
 ```
 
-### 6.4 场景 4：目标用户不存在
+### 6.6 场景 6：目标用户不存在
 
 ```gherkin
 Given 管理员 M 已登录且具有用户管理权限
@@ -121,7 +153,7 @@ Then  返回错误码 USER_NOT_FOUND
 And   HTTP 状态码 404
 ```
 
-### 6.5 场景 5：手机号已被占用
+### 6.7 场景 7：手机号已被占用
 
 ```gherkin
 Given 管理员 M 已登录且具有用户管理权限
@@ -141,7 +173,7 @@ And   user.phone 保持"13800138000"不变
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `user` | 修改 | 密码、手机号、邮箱、角色等字段 |
+| 1 | `user` | 修改 | 密码、手机号、邮箱、角色、`status`（含 0=正常/1=注销/2=封禁）等字段 |
 | 2 | `user_role` | 修改 | 用户角色关联表 |
 | 3 | `audit_log` | 新增 | 记录敏感操作 |
 
@@ -155,6 +187,8 @@ And   user.phone 保持"13800138000"不变
 | 4 | `/api/admin/v1/users/{id}/phone` | PUT | 新增 | 修改手机号 |
 | 5 | `/api/admin/v1/users/{id}/email` | PUT | 新增 | 修改邮箱 |
 | 6 | `/api/admin/v1/users/{id}/roles` | PUT | 新增 | 配置角色权限 |
+| 7 | `/api/admin/v1/users/{id}/ban` | POST | 新增 | 封禁账号 |
+| 8 | `/api/admin/v1/users/{id}/unban` | POST | 新增 | 解封账号 |
 
 ### 7.3 状态机影响
 
@@ -205,7 +239,7 @@ And   user.phone 保持"13800138000"不变
 - [x] **V**aluable（有价值）- 支撑管理后台基础用户运营
 - [x] **E**stimable（可估算）- 1 人天，范围明确
 - [x] **S**mall（足够小）- 一个 Sprint 内可完成
-- [x] **T**estable（可测试）- 5 个 GWT 场景可客观验证
+- [x] **T**estable（可测试）- 7 个 GWT 场景可客观验证
 
 ---
 
@@ -225,7 +259,7 @@ And   user.phone 保持"13800138000"不变
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 = 5 个 GWT 场景
+- [x] 4 正常 + 3 异常 = 7 个 GWT 场景
 - [x] 每个 Then 含具体状态码 / DB 字段值
 - [x] 业务规则可被验证
 

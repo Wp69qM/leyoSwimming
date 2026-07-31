@@ -32,7 +32,7 @@ And   前端提示"您没有操作权限"
 
 ### Requirement: REQ-002 审核驳回
 
-系统 MUST 提供 `POST /api/admin/coach/applications/{id}/reject` 接口，供管理员驳回待审核教练资质。系统 MUST 要求填写驳回原因。系统 MUST 更新 `coach.status=2`、`rejection_reason` 为填写原因。系统 MUST 发送驳回通知及原因给教练。系统 MUST 允许教练修改资料后重新提交。
+系统 MUST 提供 `POST /api/admin/coach/applications/{id}/reject` 接口，供管理员驳回待审核教练资质。系统 MUST 要求填写驳回原因。系统 MUST 更新 `coach.status=2`、`rejection_reason` 为填写原因。系统 MUST 发送驳回通知及原因给教练。系统 MUST 允许教练在 US-040 中修改资料后重新提交（2 → 0）。
 
 #### Scenario: 审核驳回
 
@@ -59,7 +59,7 @@ And   前端提示"该申请已审核，无需重复操作"
 
 ### Requirement: REQ-003 待审核列表查询
 
-系统 MUST 提供 `GET /api/admin/coach/applications` 接口，供管理员分页查询待审核教练列表。系统 MUST 支持按提交时间排序、按姓名/手机号搜索。系统 MUST 仅返回 status=0 的记录。
+系统 MUST 提供 `GET /api/admin/coach/applications` 接口，供管理员分页查询待审核教练列表。系统 MUST 支持按提交时间排序、按姓名/手机号搜索。系统 MUST 仅返回 `status=0` 且 `submitted_at IS NOT NULL` 的记录，避免草稿进入审核队列。
 
 #### Scenario: 查询待审核列表
 

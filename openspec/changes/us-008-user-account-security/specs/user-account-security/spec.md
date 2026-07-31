@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 换绑手机号
 
-系统 MUST 提供 `PUT /api/user/security/phone` 接口，供已登录用户更换绑定手机号。系统 MUST 校验新手机号格式、新手机号未被其他账号绑定、验证码正确。系统 MUST 要求二次验证（短信验证码）。系统 MUST 限制 24 小时内只能换绑 1 次手机号。系统 MUST 在换绑成功后更新 `user.phone`、`phone_changed_at`，并发送换绑通知。
+系统 MUST 提供 `PUT /api/user/security/phone` 接口，供已登录用户更换绑定手机号。系统 MUST 校验新手机号格式、新手机号未被其他账号绑定、新手机号验证码正确。系统 MUST 要求二次验证（原手机号短信验证码或当前密码）。系统 MUST 限制 24 小时内只能换绑 1 次手机号。系统 MUST 在换绑成功后更新 `user.phone`、`phone_changed_at`，并发送换绑通知。
 
 #### Scenario: 正常换绑手机号
 
@@ -14,8 +14,8 @@
 Given 用户已登录且当前手机号为 13800138000
 And   新手机号 13900139000 未注册
 And   用户 24 小时内未换绑过手机号
-When  用户输入新手机号及验证码
-And   用户完成二次验证
+When  用户输入新手机号及新手机号验证码
+And   用户通过原手机号短信验证码（或当前密码）完成二次验证
 Then  user.phone 更新为 13900139000
 And   user.phone_changed_at 更新为当前时间
 And   旧手机号 13800138000 可重新注册

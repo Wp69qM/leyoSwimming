@@ -228,7 +228,61 @@ description: "Acts as a business review expert for leyoSwimming user stories. In
 
 ---
 
-## 6. 评审质量自检（交付前必填）
+## 7. 评审结果归档（强制）
+
+> **评审结论必须落到项目文档中，不能以临时对话形式交付。** 未归档的评审视为未完成。
+
+### 7.1 归档位置与命名
+
+所有业务评审报告统一归档到 `docs/guides/`，**不以任何形式覆盖历史版本**，每次评审生成带版本号的新文件。
+
+| 评审范围 | 归档路径 | 命名规范 |
+|---------|---------|---------|
+| 全部 50 个 US 批量评审（含 E2E 时序图、MVP 逻辑总结） | `docs/guides/mvp-us-business-review-report-v{N}.md` | `v1` / `v2` / `v3` 顺序递增，例如 `mvp-us-business-review-report-v3.md` |
+| 临时/专项评审 | `docs/guides/review-<topic>-v{N}.md` | 例如 `review-coach-resignation-v1.md` |
+
+**约定**：
+- `v1` 为首次完整评审；后续每次发生 P0/P1 修复或 PRD 版本升级后重新评审，版本号 +1。
+- 不使用时间戳作为主文件名，避免历史文件无序膨胀；版本号即为清晰的审计顺序。
+
+### 7.2 归档内容要求
+
+每份归档报告 **必须** 包含：
+
+1. **评审版本信息**：评审日期、评审范围、评审人（AI Agent 标识）、依据的 PRD 版本
+2. **预检报告**：§0.4 预检摘要表
+3. **逐 US 评分与问题**：§3 输出格式，含具体位置引用
+4. **MVP 逻辑通顺性总结**：§5.3 要求的内容
+5. **P0/P1/P2 修改清单**：明确优先级、责任人、建议修改位置
+6. **是否推荐进入 [APPROVED]**：每个 US 或每组的明确结论
+
+### 7.3 版本管理
+
+- 每次评审生成 **新的版本号文件**，例如从 `v2` 升级到 `v3`：
+  - 旧文件：`docs/guides/mvp-us-business-review-report-v2.md`（保留，不删除）
+  - 新文件：`docs/guides/mvp-us-business-review-report-v3.md`
+- 新文件顶部必须包含 **版本头**：
+  ```markdown
+  # 业务评审报告
+
+  > **版本**：v3
+  > **日期**：2026-07-31
+  > **范围**：US-001 ~ US-050
+  > **依据 PRD**：docs/prd/prd.md v11
+  > **评审人**：us-business-reviewer
+  > **变更摘要**：修复 US-028/US-030/US-041 P0 问题后重新评审
+  > **上版本**：v2（见 docs/guides/mvp-us-business-review-report-v2.md）
+  ```
+- 历史版本文件保留在 `docs/guides/` 中，作为审计链，不得删除或覆盖。
+
+### 7.4 与 INDEX.md 的联动
+
+- 完成归档后，若评审导致 US 状态变化（如 DRAFT → REVIEW → APPROVED），应同步更新 `docs/spec/user-story/INDEX.md` 中的状态列。
+- 若评审报告路径固定或分组归档，建议在 INDEX.md 底部增加「评审记录」小节，列出历史评审报告链接。
+
+---
+
+## 8. 评审质量自检（交付前必填）
 
 评审报告交付前，Agent **必须**填写以下自检清单：
 
@@ -245,6 +299,9 @@ description: "Acts as a business review expert for leyoSwimming user stories. In
 - [ ] 综合评分标准差 > 0.5（反模板化 §4.2 规则 5）
 - [ ] 三件套不完整的 US 已标注结构分 ≤ 5.0
 - [ ] 目录缺失的 US 未进入评分阶段
+- [ ] **§7 评审结果已归档到项目文档（docs/guides/ 或 docs/stories/US-XXX-.../）**
+- [ ] **归档文件包含版本头（日期/范围/依据 PRD/变更摘要）**
+- [ ] **若评审导致 US 状态变化，INDEX.md 已同步更新**
 ```
 
 **未勾选全部 = 评审报告无效，需重做。**

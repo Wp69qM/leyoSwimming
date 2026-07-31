@@ -49,19 +49,19 @@ describe('UserRepository', () => {
   describe('findByUnionId', () => {
     it('returns active user when union_id matches (老用户复用 — 场景 2)', async () => {
       const repo = new UserRepository();
-      const user = await repo.findByUnionId('union_xxx_001');  // 预置数据：status='active'
+      const user = await repo.findByUnionId('union_xxx_001');  // 预置数据：status=0
 
       expect(user).toMatchObject({
         id: expect.any(Number),
         union_id: 'union_xxx_001',
         identity_status: '注册用户',
-        status: 'active',
+        status: 0,
       });
     });
 
     it('returns null when union_id matches a deleted user (软删除账号不复用)', async () => {
       const repo = new UserRepository();
-      // 预置数据：union_id='union_deleted' 的记录 status='deleted'
+      // 预置数据：union_id='union_deleted' 的记录 status=1
       const user = await repo.findByUnionId('union_deleted');
       expect(user).toBeNull();
     });
@@ -81,7 +81,7 @@ describe('UserRepository', () => {
         union_id: 'union_new',
         identity_status: '注册用户',
         profile_completed: false,
-        status: 'active',
+        status: 0,
       });
 
       expect(newUser).toMatchObject({
@@ -90,7 +90,7 @@ describe('UserRepository', () => {
         union_id: 'union_new',
         identity_status: '注册用户',
         profile_completed: false,
-        status: 'active',
+        status: 0,
       });
     });
   });
@@ -129,7 +129,7 @@ export class UserRepository {
   // 按 union_id 查询 active 用户（软删除账号不返回，符合 PRD §5.2.1 第 4 条）
   async findByUnionId(unionId: string): Promise<User | null> {
     const user = await db('user')
-      .where({ union_id: unionId, status: 'active' })
+      .where({ union_id: unionId, status: 0 })
       .first();
     return user || null;
   }
@@ -322,7 +322,7 @@ export class WechatAuthService {
         union_id: unionId || openid,  // union_id 缺失时用 openid 兜底
         identity_status: '注册用户',  // 核心状态转换
         profile_completed: false,
-        status: 'active',
+        status: 0,
       });
       isNewUser = true;
     }

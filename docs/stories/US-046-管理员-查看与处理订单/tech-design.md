@@ -59,6 +59,19 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 - Body：`{ reason }`
 - Response 200 / 400
 
+### 2.5 POST /api/admin/orders/:id/mark-dispute
+
+- 鉴权：管理员登录 + `order:write`
+- Body：`{ reason }`
+- Response 200 / 400 / 404
+- 业务逻辑：
+  - 校验订单存在且状态允许标记（非已退款/已取消终态）
+  - 设置 `order.dispute_flag = true` 与 `order.dispute_reason = reason`
+  - 自动生成 `support_ticket` 记录：type=3（退款申诉），order_id 关联当前订单，status=0（pending），title="订单争议：{order_no}"，content=reason
+  - 通知学员
+  - 写入 `audit_log`
+- 与 US-049 边界：本 US 负责生成工单，US-049 负责工单的后续分配、回复与关闭
+
 ---
 
 ## 3. 状态机影响

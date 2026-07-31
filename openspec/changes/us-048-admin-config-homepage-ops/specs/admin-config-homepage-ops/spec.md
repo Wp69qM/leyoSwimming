@@ -74,3 +74,21 @@ Then  系统返回 HTTP 403
 And   返回错误码 FORBIDDEN
 And   notice 表不新增记录
 ```
+
+---
+
+### Requirement: REQ-004 首页运营内容安全审核
+
+系统 MUST 在管理员正式保存首页运营内容前进行内容安全审核（标题/正文文本审核、图片审核）。审核通过 MUST 写入业务表并生效；审核不通过 MUST 返回 HTTP 400 与错误码 `CONTENT_SECURITY_REJECTED`，且不写入业务表。预览操作 MUST 不触发内容安全审核。
+
+#### Scenario: 运营卡片内容安全审核不通过
+
+```gherkin
+Given 管理员已登录且具有首页运营权限
+And   内容安全审核服务判定标题"违规词测试"含敏感词
+When  管理员提交运营卡片：标题="违规词测试", 可见范围=all, 排序=1
+Then  系统返回 HTTP 400
+And   返回错误码 CONTENT_SECURITY_REJECTED
+And   提示"内容安全审核不通过：含敏感词"
+And   homepage_card 表不新增记录
+```

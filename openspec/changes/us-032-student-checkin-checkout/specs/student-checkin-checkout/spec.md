@@ -6,14 +6,14 @@
 
 ### Requirement: REQ-032-1 学员在指定时间窗口内签到
 
-系统 MUST 允许学员在课程开始前 15 分钟至课程结束时间之间对已预约/待上课/上课中的 booking 进行签到。系统 MUST 记录签到时间戳并通知教练，对重复签到进行幂等处理，对不在窗口内或不可签到的 booking 返回明确错误。
+系统 MUST 允许学员对待上课或上课中的 booking 进行签到，签到窗口为开课时间前 15 分钟至课程结束时间。系统 MUST 拒绝 已预约 状态的签到请求。系统 MUST 记录签到时间戳并通知教练，对重复签到进行幂等处理，对课程已结束或不可签到的 booking 返回明确错误。
 
 #### Scenario: 正常签到
 
 ```gherkin
 Given 学员已登录
 And   存在 booking.status = 待上课，开课时间为今日 10:00，结束时间为 11:00
-And   当前时间为今日 9:50
+And   当前时间为今日 9:50（开课 10 分钟前，已进入待上课状态）
 When  学员点击「一键签到」
 Then  booking.checked_in_at 写入当前时间戳
 And   booking.status 保持 待上课
@@ -25,10 +25,11 @@ And   返回 HTTP 200
 
 ```gherkin
 Given 学员已登录
-And   存在 booking.status = 已预约，开课时间为明日 10:00
-And   当前时间为今日 12:00
+And   存在 booking.status = 已预约，开课时间为今日 10:00
+And   当前时间为今日 9:30（课前 30 分钟，状态仍为 已预约，未进入待上课）
 When  学员尝试签到
 Then  系统返回 HTTP 400，错误码 CHECKIN_WINDOW_NOT_OPEN
+And   booking.status 保持 已预约
 And   不更新 booking.checked_in_at
 ```
 

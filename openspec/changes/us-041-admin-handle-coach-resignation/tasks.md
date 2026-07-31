@@ -13,16 +13,18 @@
 
 ## 3. Checklist Validation
 
-- [ ] 3.1 Validate all active packages have registered actions — maps to REQ-004 / Scenario: Approve blocked by unregistered package actions
-- [ ] 3.2 Validate future schedule slots are cleared — maps to REQ-004 / Scenario: Approve blocked by uncleared schedule
-- [ ] 3.3 Validate settlement status (optional blocking based on policy)
+- [ ] 3.1 Validate active student count = 0 as an independent checklist item
+- [ ] 3.2 Validate all active packages have registered actions when active student count > 0 — maps to REQ-004 / Scenario: Approve blocked by unregistered package actions when active students exist
+- [ ] 3.3 Validate future schedule slots are cleared — maps to REQ-004 / Scenario: Approve blocked by uncleared schedule
+- [ ] 3.4 Validate settlement status (optional blocking based on policy)
 
 ## 4. Batch Updates
 
+- [ ] 4.0 Generate pending `refund_record` for any active package not registered as transfer/continue, with `refund_amount = unit_price × remaining_hours`
 - [ ] 4.1 Cancel future bookings with `cancel_reason = 2（教练离职）`
 - [ ] 4.2 Reset `package.reserved_count` and move active packages to frozen
 - [ ] 4.3 Hide future schedule slots
-- [ ] 4.4 Wrap coach.status, ticket, booking, package, schedule_slot updates in one transaction
+- [ ] 4.4 Wrap coach.status, ticket, refund_record, booking, package, schedule_slot updates in one transaction
 
 ## 5. Concurrency & Security
 

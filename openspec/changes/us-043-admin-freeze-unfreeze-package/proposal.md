@@ -5,7 +5,7 @@
 ## What Changes
 
 - 管理后台「用户管理 → 套餐管理」新增「冻结」与「解冻」操作
-- 管理员冻结 active package 时需选择原因：投诉处理中 / 异常订单 / 司法冻结（P3）
+- 管理员冻结 active package 时需选择原因：投诉处理中 / 异常订单 / 司法冻结（均归入 admin_frozen 细分场景，明细记入 audit_log.remark）
 - 冻结时 `package.status` 从 active 变为 frozen，写入 `frozen_reason`，并释放 `reserved` 课时
 - 冻结时自动取消该 package 下已预约但未上课的 booking
 - 管理员解冻 frozen package 时，`package.status` 恢复 active，`frozen_reason` 清除

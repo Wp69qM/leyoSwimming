@@ -58,9 +58,9 @@ CREATE INDEX idx_booking_coach_start_time ON booking(coach_id, start_time);
 任意实时状态 ──[手动切换/自动切换]──→ 任意实时状态
 ```
 
-- 手动切换后 `status_override_flag = 1`
-- 请假中（5）由请假审批同步，优先级最高，禁止手动修改
-- 自动切换仅当 `status_override_flag = 0` 或手动覆盖已过期时执行
+- 手动切换后 `status_override_flag = 1`；该标记仅在非请假时段生效
+- 请假中（5）由请假审批同步，优先级最高，覆盖手动/自动状态并禁止手动修改
+- 自动切换仅当 `status_override_flag = 0` 或手动覆盖已过期时执行；请假时段内跳过自动切换
 
 ### 自动切换规则
 

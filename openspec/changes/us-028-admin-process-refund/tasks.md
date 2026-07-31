@@ -11,7 +11,7 @@
 
 **Spec coverage:** REQ-028-1 / REQ-028-2 / REQ-028-3 全部场景
 
-- [ ] **RED:** Write failing tests — approve updates order/package and creates transaction; reject restores order/package; channel failure keeps state; idempotent approval; non-admin forbidden
+- [ ] **RED:** Write failing tests — approve updates order/package and creates transaction; reject sets order.status=退款被拒（7）, keeps package active and sets booking_frozen=false; channel failure keeps state; idempotent approval; non-admin forbidden
 - [ ] **GREEN:** Implement `RefundAdminService.approve()` and `RefundAdminService.reject()`
 - [ ] **REFACTOR:** Extract channel refund adapter and amount validator
 - [ ] **COMMIT:** `feat(refund): add admin refund approval service`

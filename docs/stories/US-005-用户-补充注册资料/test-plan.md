@@ -1,6 +1,6 @@
 # US-005 用户补充注册资料 — 测试计划
 
-> **状态**：初稿　|　**最后更新**：2026-07-30
+> **状态**：初稿　|　**最后更新**：2026-07-31
 
 ---
 
@@ -12,7 +12,7 @@
 | 2 | 手机号唯一性校验 | 写失败测试 | 最小实现 | commit |
 | 3 | 用户名唯一性校验 | 写失败测试 | 最小实现 | commit |
 | 4 | 密码强度校验 | 写失败测试 | 最小实现 | commit |
-| 5 | 身份状态机转换 | 写失败测试 | 最小实现 | commit |
+| 5 | 资料完成状态转换 | 写失败测试 | 最小实现 | commit |
 | 6 | 幂等性处理 | 写失败测试 | 最小实现 | commit |
 
 ---
@@ -25,7 +25,7 @@
 # backend/tests/test_user_profile.py
 
 def test_user_profile_update_success():
-    """正常补充资料，身份变为注册用户"""
+    """正常补充资料，profile_completed 变为 true，identity 保持注册用户"""
     pass
 
 def test_user_profile_phone_already_bound():

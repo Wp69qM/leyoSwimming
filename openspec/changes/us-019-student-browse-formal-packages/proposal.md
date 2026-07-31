@@ -7,7 +7,9 @@
 - 新增 `GET /api/coaches/{id}/packages` 查询教练正价套餐选项
 - 新增标准套餐列表读取（管理员配置）
 - 新增教练参考单价读取与自定义课时入口开关
-- 新增教练状态可见性校验（仅 status IN (1, 4) 可浏览）
+- 新增教练状态可见性校验（仅 `coach.status = 1` 可浏览）
+- 新增标准套餐模板过滤（`package_template.status = active`）
+- 新增当前教练可约性校验（未离职、未冻结）
 - 新增 5 分钟缓存与限流防护
 
 ## Capabilities

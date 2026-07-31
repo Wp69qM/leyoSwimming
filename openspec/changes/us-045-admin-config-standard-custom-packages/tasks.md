@@ -65,9 +65,18 @@
 - [ ] **REFACTOR:** Standardize permission check
 - [ ] **COMMIT:** `feat(auth): enforce package config permission`
 
+## Task 8: 自定义套餐规则配置 [P0]
+
+**Spec coverage:** REQ-004 Scenarios "管理员配置自定义套餐规则成功", "自定义套餐规则参数非法"
+
+- [ ] **RED:** Write failing tests for custom config validation
+- [ ] **GREEN:** Implement PUT /api/admin/package-templates/custom-config
+- [ ] **REFACTOR:** Reuse validation helper
+- [ ] **COMMIT:** `feat(admin): add custom package config endpoint`
+
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder
 - P0 必做，P1 选做

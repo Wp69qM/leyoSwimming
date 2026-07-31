@@ -11,11 +11,12 @@
 #### Scenario: 定时任务将到期套餐标记为 expired
 
 ```gherkin
-Given 系统中存在套餐 A，status='active'，expire_at='2026-07-29 23:59:59'
+Given 系统中存在套餐 A，status='active'，total_hours=10，available=3，reserved=2，consumed=5，expire_at='2026-07-29 23:59:59'
 And   当前系统时间为 2026-07-30 01:00:00
 When  系统每小时套餐过期巡检任务执行
 Then  套餐 A 的 status 更新为 'expired'
-And   不修改 total_hours / available / reserved / consumed 字段
+And   available 保持为 3，reserved 保持为 2，consumed 保持为 5
+And   available + reserved + consumed = total_hours
 And   系统记录状态转换日志：from='active', to='expired', reason='EXPIRE_CRON'
 ```
 

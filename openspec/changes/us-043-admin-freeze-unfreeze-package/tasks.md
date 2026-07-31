@@ -9,7 +9,7 @@
 - [ ] 2.1 Implement `POST /api/admin/v1/packages/{package_id}/freeze` — maps to REQ-001 / Scenario: Freeze active package successfully
 - [ ] 2.2 Validate package is active before freezing — maps to REQ-004
 - [ ] 2.3 Release `reserved_count` to `available_count` on freeze
-- [ ] 2.4 Cancel upcoming bookings with `cancel_reason = "package_frozen"`
+- [ ] 2.4 Cancel upcoming bookings with `cancel_reason = 6`（套餐冻结）
 
 ## 3. Unfreeze Implementation
 

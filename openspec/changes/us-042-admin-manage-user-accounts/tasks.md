@@ -25,24 +25,33 @@
 - [ ] 5.1 Implement `PUT /api/admin/v1/users/{user_id}/roles`
 - [ ] 5.2 Validate role IDs exist
 - [ ] 5.3 Update `user_role` association table atomically
+- [ ] 5.4 Prevent `admin` from granting `super_admin` role
 
-## 6. Security & Audit
+## 6. Ban/Unban Account
 
-- [ ] 6.1 Verify `MANAGE_USER_ACCOUNT` permission on all endpoints — maps to REQ-004
-- [ ] 6.2 Prevent modification of super-admin critical fields
-- [ ] 6.3 Write audit_log for reset-password, phone/email updates, and role changes
-- [ ] 6.4 Invalidate user detail and login caches after updates
+- [ ] 6.1 Implement `POST /api/admin/v1/users/{user_id}/ban` — maps to REQ-006
+- [ ] 6.2 Implement `POST /api/admin/v1/users/{user_id}/unban` — maps to REQ-006
+- [ ] 6.3 Validate current status and record reason to audit_log
+- [ ] 6.4 Prevent `admin` from banning `super_admin`
 
-## 7. Frontend
+## 7. Security & Audit
 
-- [ ] 7.1 Build user account list page with filters
-- [ ] 7.2 Build user detail/edit page
-- [ ] 7.3 Build reset-password confirmation modal
-- [ ] 7.4 Build role assignment multi-select component
+- [ ] 7.1 Verify granular permissions (`USER:READ` / `USER:WRITE` / `USER:PASSWORD_RESET` / `USER:ROLE_ASSIGN` / `USER:BAN`) on endpoints — maps to REQ-004
+- [ ] 7.2 Prevent modification of super-admin critical fields
+- [ ] 7.3 Write audit_log for reset-password, phone/email updates, role changes, and ban/unban
+- [ ] 7.4 Invalidate user detail and login caches after updates
 
-## 8. Verification
+## 8. Frontend
 
-- [ ] 8.1 Run unit tests for password generation and uniqueness validation
-- [ ] 8.2 Run integration tests for all 5 GWT scenarios
-- [ ] 8.3 Run concurrency tests for optimistic lock
-- [ ] 8.4 Run `openspec validate us-042-admin-manage-user-accounts --json` and fix issues
+- [ ] 8.1 Build user account list page with filters
+- [ ] 8.2 Build user detail/edit page
+- [ ] 8.3 Build reset-password confirmation modal
+- [ ] 8.4 Build role assignment multi-select component
+- [ ] 8.5 Build ban/unban confirmation modal with reason input
+
+## 9. Verification
+
+- [ ] 9.1 Run unit tests for password generation and uniqueness validation
+- [ ] 9.2 Run integration tests for all 7 GWT scenarios
+- [ ] 9.3 Run concurrency tests for optimistic lock
+- [ ] 9.4 Run `openspec validate us-042-admin-manage-user-accounts --json` and fix issues

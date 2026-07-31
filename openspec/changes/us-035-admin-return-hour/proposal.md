@@ -6,7 +6,8 @@
 
 - 新增 `POST /api/admin/bookings/{booking_id}/return-hour`：管理员返还已扣课时
 - 新增 `hour_return` 表记录每次返还（含原因分类、备注、操作管理员）
-- 修改 `package` 表：`consumed_count -1`、`available_count +1`，并在返还后若 `consumed < total_hours` 则套餐从 `exhausted` 复活为 `active`
+- 修改 `package` 表：`consumed_count -1`、`available_count +1`；并在返还后若 `consumed < total_hours` 则套餐从 `exhausted` 复活为 `active`；若原状态为 `expired` 且返还后 `available > 0`，则同步将 `status` 恢复为 `active` 并按原有效期时长更新 `expire_at`
+- 系统 MUST 校验该 booking 累计 `returned_hours` < `consumed_hours`，否则返回 `RETURN_QUOTA_EXCEEDED`，防止同一 booking 被多次返还
 - 写 `audit_log` 记录返还操作，写 `notification` 通知学员
 - 管理后台 booking 详情页新增「返还课时」入口与弹窗（原因必填）
 - 从 US-033 spec 中移除「管理员返还课时」职责（US-033 仅保留教练确认）
@@ -23,9 +24,9 @@
 
 ## Impact
 
-- **数据表**：新增 `hour_return`；修改 `package`；写 `audit_log`、`notification`；读 `booking`
+- **数据表**：新增 `hour_return`；修改 `package`（含条件性 `expire_at` 更新）；写 `audit_log`、`notification`；读 `booking`
 - **API**：新增 1 个管理员端点
-- **状态机**：`package` 新增 `consumed → available` 与 `exhausted → active`（复活）转换
+- **状态机**：`package` 新增 `consumed → available`、`exhausted → active`（复活）与 `expired → active`（复活并延长 `expire_at`）转换
 - **前端**：管理后台 booking 详情页新增返还入口与弹窗
 - **安全**：管理员鉴权 + `MANAGE_BOOKING` 权限 + 事务 + 乐观锁防并发
 - **依赖**：依赖 US-033（产生已扣课时 booking）；被 US-034 依赖（管理员查看上课记录可见返还记录）

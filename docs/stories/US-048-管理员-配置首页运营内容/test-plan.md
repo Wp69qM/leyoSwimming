@@ -26,6 +26,7 @@
 | 6 | GET /api/homepage/config | P0 | §6.1, §6.2 |
 | 7 | 首页运营缓存与失效策略 | P1 | §6.1, §6.2 |
 | 8 | 管理员权限中间件校验 | P0 | §6.5 |
+| 9 | 内容安全审核拦截 | P0 | §6.6 |
 
 ---
 
@@ -160,9 +161,22 @@ git commit -m "feat(homepage-ops): add banner/card migrations and repository"
 
 ---
 
+### Task 9: 内容安全审核拦截 [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/admin/homepageOps.ts`
+- Modify: `backend/src/services/contentSecurity.ts`
+- Test: `backend/tests/controllers/admin/homepageOps.test.ts`
+
+**对应 GWT**：[§6.6 场景 6](./user-story.md#66-场景-6运营卡片内容安全审核不通过)
+
+- [ ] **Step 1-6**: 集成文本/图片内容安全审核，审核不通过返回 400 CONTENT_SECURITY_REJECTED；commit message `feat(homepage-ops): add content security audit`
+
+---
+
 ## 3. 任务执行纪律
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder
 - P0 必做，P1 视进度
@@ -181,3 +195,4 @@ git commit -m "feat(homepage-ops): add banner/card migrations and repository"
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版 |
+| v1.1 | 2026-07-31 | Dev | v3 评审 P1 修复：新增 Task 9 内容安全审核拦截|

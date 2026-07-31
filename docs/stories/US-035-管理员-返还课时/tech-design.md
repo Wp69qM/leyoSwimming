@@ -10,7 +10,7 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `package` | 读/写 | 校验 consumed_count，更新 consumed-1 available+1 |
+| `package` | 读/写 | 校验 consumed_count，更新 consumed-1 available+1；若从 expired 复活为 active，同步按原有效期时长更新 expire_at |
 | `booking` | 读 | 校验 booking 状态 ∈ {已完成, 旷课} |
 | `hour_return` | 写 | 新增返还记录 |
 | `audit_log` | 写 | 审计日志 |
@@ -49,7 +49,7 @@ CREATE INDEX idx_hour_return_package ON hour_return(package_id);
     "reason_detail": "教练误操作标记旷课，实际学员已到场"
   }
   ```
-- **Response 200**: `{ package_id, consumed_count, available_count, status }`
+- **Response 200**: `{ package_id, consumed_count, available_count, status, expire_at }`
 - **Response 400**: `{ code: NO_CONSUMED_HOUR | BOOKING_NOT_RETURNABLE }`
 - **Response 403**: 无权限
 
@@ -60,6 +60,7 @@ CREATE INDEX idx_hour_return_package ON hour_return(package_id);
 ```
 package: consumed → available（consumed-1, available+1）
 package: exhausted → active（若返还后 consumed < total_hours）
+package: expired → active（若返还后 available > 0；同步按原有效期时长延长 expire_at）
 ```
 
 ---
@@ -104,4 +105,5 @@ package: exhausted → active（若返还后 consumed < total_hours）
 | 无可扣课时 | `test_return_hour_no_consumed` |
 | 不可返还状态 | `test_return_hour_not_returnable` |
 | 返还后 exhausted→active | `test_return_hour_revive_exhausted` |
+| 返还后 expired→active 并延长 expire_at | `test_return_hour_revive_expired` |
 | 重复返还 | `test_return_hour_duplicate` |

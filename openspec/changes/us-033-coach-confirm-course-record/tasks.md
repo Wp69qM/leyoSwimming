@@ -11,55 +11,68 @@
 
 **Spec coverage:** REQ-033-1
 
-- [ ] **RED:** Write failing tests — confirm updates booking to 已完成 and consumes hour; reject non-confirmable states; reject before start; reject wrong coach
+- [ ] **RED:** Write failing tests — confirm updates booking to 已完成 and consumes hour; reject non-confirmable states; reject before class ends; reject wrong coach
 - [ ] **GREEN:** Implement `ClassConfirmationService.confirm(coachId, bookingId, recordDto)` with transaction
 - [ ] **REFACTOR:** Extract confirmation validator and course record builder
 - [ ] **COMMIT:** `feat(booking): add coach class confirmation service`
 
-## Task 2: Admin Hour Return Service [P0]
+## Task 1b: Coach Mark Absent Service — 旷课标记与扣课时 [P0]
 
 **Files:**
-- Modify: service
-- Test: `backend/tests/services/class-confirmation.test.ts`
+- Create: `backend/src/services/mark-absent.ts`
+- Test: `backend/tests/services/mark-absent.test.ts`
 
 **Spec coverage:** REQ-033-2
 
-- [ ] **RED:** Write failing tests — return hour increases available and decreases consumed; reject when no consumed hour
-- [ ] **GREEN:** Implement `ClassConfirmationService.returnHour(adminId, bookingId, reason, hours)`
-- [ ] **REFACTOR:** Extract return validator
-- [ ] **COMMIT:** `feat(booking): add admin hour return service`
+- [ ] **RED:** Write failing tests — mark absent updates booking to 旷课 and consumes hour; reject before class ends; reject non-confirmable states; reject wrong coach
+- [ ] **GREEN:** Implement `MarkAbsentService.markAbsent(coachId, bookingId, remark?)` with transaction
+- [ ] **REFACTOR:** Extract mark-absent validator
+- [ ] **COMMIT:** `feat(booking): add coach mark absent service`
 
-## Task 3: Confirmation & Return API [P0]
+## Task 2: Confirmation API [P0]
 
 **Files:**
 - Create/Modify: controller/route
 - Test: `backend/tests/controllers/class-confirmation.test.ts`
 
-**Spec coverage:** REQ-033-1 / REQ-033-2
+**Spec coverage:** REQ-033-1
 
-- [ ] **RED:** Write failing tests — 200 confirm; 200 return hour; 400 errors; 403 forbidden
+- [ ] **RED:** Write failing tests — 200 confirm; 400 CLASS_NOT_ENDED / BOOKING_NOT_CONFIRMABLE; 403 forbidden
 - [ ] **GREEN:** Implement endpoints
 - [ ] **REFACTOR:** Share booking/coach validation
-- [ ] **COMMIT:** `feat(api): add class confirmation and hour return endpoints`
+- [ ] **COMMIT:** `feat(api): add class confirmation endpoints`
 
-## Task 4: 教练端课程确认页 [P1]
+## Task 2b: Mark Absent API [P0]
+
+**Files:**
+- Create/Modify: controller/route
+- Test: `backend/tests/controllers/mark-absent.test.ts`
+
+**Spec coverage:** REQ-033-2
+
+- [ ] **RED:** Write failing tests — 200 mark-absent; 400 CLASS_NOT_ENDED / BOOKING_NOT_CONFIRMABLE; 403 forbidden
+- [ ] **GREEN:** Implement endpoint
+- [ ] **REFACTOR:** Share booking/coach validation
+- [ ] **COMMIT:** `feat(api): add coach mark absent endpoint`
+
+## Task 3: 教练端课程确认页 [P1]
 
 **Files:**
 - Create: `miniapp-coach/src/pages/class-confirm/index.tsx`
 - Test: 对应测试文件
 
-**Spec coverage:** REQ-033-1
+**Spec coverage:** REQ-033-1 / REQ-033-2
 
-- [ ] **RED:** Write failing tests — renders record form; submits confirmation; shows success
+- [ ] **RED:** Write failing tests — renders record form; submits confirmation; submits mark-absent; shows success
 - [ ] **GREEN:** Implement UI
-- [ ] **REFACTOR:** Extract `<ClassRecordForm />`
+- [ ] **REFACTOR:** Extract `<ClassRecordForm />` and `<MarkAbsentButton />`
 - [ ] **COMMIT:** `feat(miniapp-coach): add class confirmation page`
 
 ---
 
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4
+- 严格顺序：Task 1 → 1b → 2 → 2b → 3
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder（TBD / TODO / "实现 later"）
-- P0 必做（Task 1-3），P1 选做（Task 4）
+- P0 必做（Task 1-2 / 1b-2b），P1 选做（Task 3）

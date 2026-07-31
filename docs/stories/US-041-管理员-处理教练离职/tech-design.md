@@ -14,7 +14,8 @@
 - 管理员可查看 pending_audit 离职审批队列
 - 管理员可通过或拒绝离职申请
 - 通过时按 checklist 校验并执行批量同步变更
-- 拒绝时恢复 coach.status=1，不回滚已登记处理结果
+- 通过时对所有 active package 自动生成 100% 待退款记录
+- 拒绝时恢复 coach.status=1，不回滚已确认退款记录
 
 **非目标：**
 - 不实现教练费实际结算（仅记录待结算）
@@ -44,6 +45,18 @@
 | `settlement_status` | TINYINT | 0=待结算 1=已结算（教练费） |
 | `schedule_cleared` | BOOLEAN | 未来排班是否已清空 |
 
+#### `refund_record`
+
+| 字段 | 类型 | 备注 |
+|------|------|------|
+| `refund_id` | BIGINT PK | |
+| `package_id` | BIGINT FK | |
+| `ticket_id` | BIGINT FK | 关联离职工单 |
+| `refund_amount` | DECIMAL(10,2) | `单价 × 剩余课时`，已消耗课时不退 |
+| `status` | TINYINT | 0=pending, 1=approved, 2=rejected, 3=completed |
+| `created_at` | DATETIME | |
+| `updated_at` | DATETIME | |
+
 ---
 
 ## 4. API 设计
@@ -63,6 +76,13 @@
 
 - **鉴权**：管理员 JWT
 - **功能**：通过审批，触发批量变更
+- **执行顺序**：
+  1. 对所有 active package（含未确认退款的套餐），生成 `refund_record`：`refund_amount = 单价 × 剩余课时`（已消耗不退）；
+  2. 取消未来 booking；
+  3. 释放 package.reserved；
+  4. active package → frozen；
+  5. 未来 schedule_slot → hidden；
+  6. coach.status 4 → 3。
 - **响应 200**：`{ "message": "审批通过" }`
 - **错误码**：
   - `CHECKLIST_NOT_PASSED`（400）
@@ -95,7 +115,12 @@
 
 - `active` → `frozen`（frozen_reason = coach_resigned）
 
-### 5.4 booking 状态
+### 5.4 refund_record 状态
+
+- `pending` → `approved` / `rejected` / `completed`（US-028 处理退款）
+- 教练主动离职时，所有 active package 未消耗剩余课时强制 100% 退款
+
+### 5.5 booking 状态
 
 - `已预约` / `待上课` → `已取消`（cancel_reason = 2，教练离职）
 
@@ -126,6 +151,7 @@
 - 管理员接口校验 `MANAGE_COACH_RESIGNATION` 权限
 - approve/reject 使用数据库行锁或乐观锁防止并发处理
 - 批量更新使用事务包裹
+- 自动生成 `refund_record` 时金额按「单价 × 剩余课时」计算，已消耗课时不退
 - 操作记录审计日志
 
 ---
