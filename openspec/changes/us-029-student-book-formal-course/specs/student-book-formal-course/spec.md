@@ -72,8 +72,9 @@ And   不创建 booking
 ```gherkin
 Given 学员已登录
 And   已成功预约明日 9:00
-When  学员再次提交同一时段预约
-Then  系统返回 HTTP 200
+When  学员再次提交同一时段预约（同 idempotency_key）
+Then  系统返回 HTTP 409，错误码 DUPLICATE_BOOKING
 And   不重复创建 booking
 And   package 课时不变
+And   响应体返回已存在的 booking_id
 ```

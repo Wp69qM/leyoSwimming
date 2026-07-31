@@ -39,7 +39,7 @@ And   package 课时不变
 
 ### Requirement: REQ-002 体验课学员取消预约
 
-系统 MUST 允许学员取消已预约的体验课。距开课 ≥ 24h 时 MUST 直接释放课时；距开课 < 24h 时 MUST 提交教练审批。
+系统 MUST 允许学员取消已预约的体验课。距开课 ≥ 24h 时 MUST 直接释放课时；距开课 < 24h 时 MUST 提交教练审批（复用 US-030 的 `booking_cancellation` 审批机制）。
 
 #### Scenario: 开课前 24 小时外取消
 
@@ -58,7 +58,7 @@ And   接口返回 HTTP 200
 Given 学员已预约明日 9:00 体验课
 And   当前距开课 12 小时
 When  学员申请取消
-Then  系统创建 cancel_request
+Then  系统创建 booking_cancellation（复用 US-030 审批机制）
 And   booking.status 保持已预约
 And   提示"已提交教练审批"
 ```

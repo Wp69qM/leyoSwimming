@@ -12,7 +12,7 @@ The system MUST allow an admin to approve a pending coach leave request, cancel 
 - **AND** the system suggests reschedule slot 2026-08-03 09:00-10:00
 - **WHEN** admin M clicks "通过" after confirming the reschedule suggestion
 - **THEN** `leave_request.status` is updated to `approved`
-- **AND** coach C's schedule slots on 2026-08-01 are marked as `hidden` or deleted
+- **AND** coach C's schedule slots on 2026-08-01 are marked as `disabled`（不物理删除，保留记录用于审计与数据恢复）
 - **AND** the 2 bookings are cancelled with `cancel_reason = 5`（教练请假）
 - **AND** corresponding `package.reserved_count` decreases and `available_count` increases
 - **AND** the system sends cancellation notifications to students including reason "身体不适" and reschedule suggestion "2026-08-03 09:00-10:00"

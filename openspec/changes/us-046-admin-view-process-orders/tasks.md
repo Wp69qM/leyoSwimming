@@ -46,14 +46,15 @@
 
 ## Task 7: POST /api/admin/v1/orders/:id/mark-dispute API [P0]
 
-**Spec coverage:** REQ-004 Scenario "管理员标记订单为争议退款并生成客服工单"
+**Spec coverage:** REQ-004 Scenario "管理员标记订单为争议退款并生成客服工单（不改变订单状态）"
 
-- [ ] **RED:** Write failing tests for setting `dispute_flag` / `dispute_reason` and creating `support_ticket`
+- [ ] **RED:** Write failing tests for setting `dispute_flag` / `dispute_reason` and creating `support_ticket`；断言 `order.status` 不变（区别于用户侧申诉）
 - [ ] **GREEN:** Implement mark-dispute endpoint
 - [ ] **REFACTOR:** Extract ticket creation helper
 - [ ] **COMMIT:** `feat(admin-order): add mark-dispute endpoint`
 
 > 与 US-049 边界：本 Task 负责生成 `support_ticket`；US-049 负责工单的后续分配、回复与关闭。
+> 区分说明：本 Task 仅处理「管理员侧标记异常」，不触发状态机转换；用户侧「争议退款处理中」状态机转换由 Task 9 处理。
 
 ## Task 8: 权限中间件 [P0]
 
@@ -61,8 +62,22 @@
 
 - [ ] **RED / GREEN / REFACTOR / COMMIT**
 
+## Task 9: 争议退款处理中状态机 + 管理员批准/拒绝申诉 API [P0]
+
+**Spec coverage:** REQ-006 Scenarios "用户提交特殊原因申诉进入争议退款处理中", "管理员批准争议退款申诉", "管理员拒绝争议退款申诉"
+
+- [ ] **RED:** Write failing tests:
+  - 用户提交特殊原因申诉 → order.status 转「争议退款处理中」+ package 冻结约课（PRD §6.10.1）
+  - 管理员批准申诉 → order.status 转「已退款」+ package.status → refunded + 释放课时 + 触发退款（PRD §6.10.3）
+  - 管理员拒绝申诉并填写原因 → order.status 回退「已支付」+ package.status 恢复 active（PRD §6.10.3）
+- [ ] **GREEN:** Implement state transitions + approve-dispute / reject-dispute endpoints
+- [ ] **REFACTOR:** Reuse refund transaction wrapper（与 Task 5 退款流程对齐）
+- [ ] **COMMIT:** `feat(admin-order): add dispute-resolution state machine`
+
+> 与 Task 7 区分：Task 7 仅生成工单不改状态机；Task 9 处理「争议退款处理中」状态机的所有转换（已支付 ↔ 争议退款处理中 → 已退款）。
+
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder

@@ -61,7 +61,7 @@
     "waitlist_ttl_hours": 72,
     "watch_reminder_minutes": 60,
     "holiday_release_enabled": true,
-    "holiday_release_offset_days": -6
+    "holiday_release_offset_days": -1
   }
   ```
 - **Response 200**: 返回更新后的完整配置
@@ -109,3 +109,12 @@
 | 释放时间格式非法 | 同上 | `test_release_rule_invalid_time` |
 | 关注提醒时间超过释放周期 | 同上 | `test_release_rule_reminder_too_long` |
 | 无权限管理员尝试保存 | 同上 | `test_release_rule_forbidden` |
+
+---
+
+## 变更日志
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-07-30 | 初版 |
+| v1.1 | 2026-07-31 | P1-6 修复：§2.2 PUT 请求示例 `holiday_release_offset_days` 由 -6 改为 -1，与 user-story.md §6.2 文案"提前至本周二 10:00"对齐（周三 -1 = 本周二，-6 = 上周二） |

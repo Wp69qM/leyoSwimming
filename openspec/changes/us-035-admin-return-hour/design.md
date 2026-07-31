@@ -73,11 +73,13 @@ CREATE INDEX idx_hour_return_admin ON hour_return(admin_id);
 |------|------|---------|
 | `package` | consumed → available | 管理员返还（consumed-1, available+1） |
 | `package` | exhausted → active | 返还后若 consumed < total_hours，套餐复活 |
-| `package` | expired → active | 返还后 available > 0 且管理员确认恢复（与 PRD §4.6 延期规则一致） |
+| `package` | expired → active | 返还后 available > 0（参照 PRD §4.6 延期规则同步延期） |
 
 复活判定逻辑：事务内更新 package 后：
 - 若 `package.status = exhausted` 且 `consumed_count < total_hours`，则将 `status` 置为 `active`
-- 若 `package.status = expired` 且返还后 `available_count > 0`，则将 `status` 从 `expired` 恢复为 `active`，并按原有效期时长重新计算 `expire_at`：新 `expire_at` = 返还操作时间 +（返还前 `expire_at` - `purchased_at`），保证 `status = active` 时必有 `now() < expire_at`（与 PRD §4.6 管理员手动延期规则一致）
+- 若 `package.status = expired` 且返还后 `available_count > 0`，则参照 PRD §4.6「管理员手动延期」规则将 `status` 从 `expired` 恢复为 `active`，并按原有效期时长重新计算 `expire_at`：新 `expire_at` = 返还操作时间 +（返还前 `expire_at` - `purchased_at`），保证 `status = active` 时必有 `now() < expire_at`
+
+> **与 PRD §4.6 关系澄清**（v7 P0-F 修复）：本 US-035 的「返还课时」+「同步延期」是复合操作——返还使 `consumed-1, available+1`（PRD §4.6 单纯延期不动 `available`），但因 `available` 已变化须同步延期才能让返还的课时可用；与 §4.6 单纯「管理员手动延期」是不同操作。refunded 套餐不可返还（与 §4.6 不允许 refunded 延期同理）。
 
 > **PACKAGE_NOT_RETURNABLE 错误码**（v3 评审 P0 修复）：当 `package.status = refunded` 时返回此错误码，refunded 状态套餐不可返还（PRD §4.6 续期规则同理）。
 

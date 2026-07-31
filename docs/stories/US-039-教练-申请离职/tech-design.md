@@ -13,13 +13,13 @@
 **目标：**
 - 仅 status=1 的教练可提交离职申请
 - 提交后生成离职工单并变更教练状态
-- 教练对每份 active 套餐确认全额退款
+- 教练对每份 active 套餐登记处理结果（PRD §5.4.7 三选一：转新教练 / 全额退款 / 继续上完）
 - 确认完成后提交至管理员审批
 
 **非目标：**
 - 不实现管理员审批逻辑（US-041）
 - 不实现状态 4 期间的样式标签（按 PRD 要求不展示）
-- 不实现真正的退款/转教练执行（仅登记意图）
+- 不实现真正的退款/转教练执行（仅登记意图，由 US-041 审批通过时执行）
 
 ---
 
@@ -51,8 +51,8 @@
 | action_id | BIGINT PK | | |
 | ticket_id | BIGINT FK | IDX | |
 | package_id | BIGINT FK | IDX | |
-| action | TINYINT | | 固定 1=refund（MVP 强制全额退款） |
-| target_coach_id | BIGINT FK | nullable | MVP 不使用，保留字段 |
+| action | TINYINT | | 1=refund（全额退款），2=transfer（转新教练），3=continue（继续上完）；PRD §5.4.7 三选一 |
+| target_coach_id | BIGINT FK | nullable | action=2(transfer) 时必填，指向新教练 |
 | status | TINYINT | | 0=registered, 1=approved, 2=rejected |
 | created_at | DATETIME | | |
 | updated_at | DATETIME | | |
@@ -109,13 +109,6 @@
 - **响应 200**：提交成功
 - **错误码**：`TICKET_NOT_PROCESSING`（409）
 
-### 4.5 `POST /api/coach/v1/resignation/tickets/{ticket_id}/cancel`
-
-- **鉴权**：教练 JWT
-- **功能**：撤销申请，恢复 coach.status=1，工单状态 cancelled
-- **响应 200**
-- **错误码**：`TICKET_NOT_CANCELLABLE`（409）
-
 ---
 
 ## 5. 状态机
@@ -123,12 +116,11 @@
 ### 5.1 教练状态
 
 - `1` 已通过 → `4` 申请中（提交申请）
-- `4` 申请中 → `1` 已通过（撤销申请）
+- `4` 申请中 → `1` 已通过（仅由 US-041 管理员拒绝触发；MVP 不支持教练自行撤销，user-story.md §8.1 / §12）
 
 ### 5.2 离职工单状态
 
 - `processing` → `pending_audit`（教练提交）
-- `processing` → `cancelled`（教练撤销）
 - `pending_audit` → `approved` / `rejected`（管理员审批，US-041）
 
 ### 5.3 退款记录状态
@@ -157,8 +149,8 @@
 
 - 所有接口校验 JWT 中的 coach_id 与资源一致
 - 仅允许修改 status=processing 的工单
-- action 固定为 refund，不允许 transfer/continue 枚举值
-- 每个 active package 必须生成 `refund_record`，金额按「单价 × 剩余课时」计算，已消耗不退
+- `action` 字段支持 `refund` / `transfer` / `continue` 三选一（PRD §5.4.7）；其中 `transfer` 必须填写 `target_coach_id`，`refund` 生成 `refund_record`（金额 = 单价 × 剩余课时，已消耗不退），`continue` 不生成退款记录
+- 每个 active package 在工单提交至管理员时必须登记一种 action；未确认的套餐默认按 `refund` 生成待退款记录
 - 操作记录审计日志
 
 ---
@@ -180,4 +172,3 @@
 | 非已通过教练禁止申请 | `test_not_approved_cannot_apply` | 集成 |
 | 重复提交 | `test_apply_resignation_duplicate` | 集成 |
 | 登记非自己套餐 | `test_register_action_not_own_package` | 集成 |
-| 撤销申请 | `test_cancel_resignation_success` | 集成 |

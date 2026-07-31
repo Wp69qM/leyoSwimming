@@ -103,11 +103,13 @@ And   提示"退款金额不能超过已支付金额"
 
 ---
 
-### Requirement: REQ-004 管理员标记争议退款
+### Requirement: REQ-004 管理员标记争议退款（不改变订单状态）
 
-系统 MUST 允许管理员将订单标记为「争议退款」。系统 MUST 记录 `order.dispute_flag=true` 与 `dispute_reason`；该操作 MUST 自动生成一条关联该订单的客服工单（`support_ticket`，类型=退款申诉），并通知学员；该操作 MUST 不改变订单当前状态。
+系统 MUST 允许管理员将订单标记为「争议退款」（管理员侧标记异常入口）。系统 MUST 记录 `order.dispute_flag=true` 与 `dispute_reason`；该操作 MUST 自动生成一条关联该订单的客服工单（`support_ticket`，类型=退款申诉），并通知学员；该操作 MUST **不改变订单当前状态**。
 
-#### Scenario: 管理员标记订单为争议退款并生成客服工单
+> **区分说明**（v7 评审 P0 修复）：本 REQ 描述的是「管理员侧标记异常」操作，仅生成 support_ticket 工单，**不改变订单状态**；与 PRD §6.10 的「用户提交特殊原因申诉进入争议退款处理中」是不同流程，后者由用户端发起并自动转换 order.status → 争议退款处理中（状态 5）。争议退款处理中状态的状态机转换见 REQ-006。
+
+#### Scenario: 管理员标记订单为争议退款并生成客服工单（不改变订单状态）
 
 ```gherkin
 Given 管理员 M 已登录且具有订单管理权限
@@ -117,9 +119,51 @@ When  管理员 M 将订单 D-001 标记为争议退款并填写原因"学员对
 Then  系统返回 HTTP 200
 And   order.dispute_flag=true
 And   order.dispute_reason="学员对扣课时有异议"
-And   order.status 保持"已支付"不变
+And   order.status 保持"已支付"不变（本操作不改状态机，区别于 PRD §6.10 用户申诉）
 And   support_ticket 表新增 1 条记录，type=3（退款申诉），order_id=10001，status=0（pending）
 And   学员 U 收到争议标记通知
+```
+
+---
+
+### Requirement: REQ-006 争议退款处理中状态机（PRD §6.2.2 状态 5 + §6.10）
+
+系统 MUST 支持订单「争议退款处理中」状态（PRD §6.2.2 状态 5）。当用户提交特殊原因申诉（24h 内取消被教练拒绝 / 2h 阈值内特殊原因，PRD §6.10）时，系统 MUST 自动将 order.status 从「已支付」转换为「争议退款处理中」。管理员 MUST 在 3 工作日内给出处理结果：批准申诉时 MUST 将 order.status 转为「已退款」并释放课时 + 触发退款（PRD §6.10.3）；拒绝申诉时 MUST 将 order.status 回退至「已支付」并保持原状态，UI 提示原因。
+
+#### Scenario: 用户提交特殊原因申诉进入争议退款处理中
+
+```gherkin
+Given 学员已登录，存在一笔状态为"已支付"的订单 O-001
+And   学员在 2h 阈值内提交特殊原因申诉，附原因与证明材料（PRD §6.10.1）
+When  用户提交争议退款申诉
+Then  系统返回 HTTP 200
+And   order.status 更新为"争议退款处理中"（状态 5，PRD §6.2.2）
+And   package 关联冻结约课（不可新增预约，已预约课程自动取消并释放课时，PRD §3.6）
+And   通知管理员 3 工作日内处理（PRD §6.10.2）
+```
+
+#### Scenario: 管理员批准争议退款申诉
+
+```gherkin
+Given 管理员 M 已登录且具有订单管理权限
+And   存在一笔状态为"争议退款处理中"的订单 O-001
+When  管理员 M 批准争议退款申诉（PRD §6.10.3）
+Then  系统返回 HTTP 200
+And   order.status 更新为"已退款"（释放课时 + 触发退款）
+And   package.status 更新为 refunded
+And   学员收到退款到账通知
+```
+
+#### Scenario: 管理员拒绝争议退款申诉
+
+```gherkin
+Given 管理员 M 已登录且具有订单管理权限
+And   存在一笔状态为"争议退款处理中"的订单 O-001
+When  管理员 M 拒绝争议退款申诉并填写原因"申诉材料不足"（PRD §6.10.3）
+Then  系统返回 HTTP 200
+And   order.status 回退为"已支付"（保持原状态）
+And   package.status 恢复 active（约课能力恢复）
+And   学员端显示"申诉未通过，原因为：申诉材料不足"
 ```
 
 ---

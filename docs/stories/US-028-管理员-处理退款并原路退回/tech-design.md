@@ -9,7 +9,7 @@
 | `refund` | 读写 | 退款申请记录与状态 |
 | `order` | 读写 | 更新退款状态与时间 |
 | `refund_transaction` | 写 | 渠道退款流水 |
-| `package` | 读/写 | 审批期间保持 active，渠道成功时更新为 refunded，驳回时 booking_frozen = false |
+| `package` | 读/写 | 审批期间保持 frozen（refund_pending）（由 US-027 触发），渠道成功时更新为 refunded，驳回时更新为 active（解冻，frozen_reason 清空） |
 | `payment` | 读 | 获取原支付渠道与流水号 |
 | `user` | 读/触发 | 身份重算 |
 
@@ -77,9 +77,9 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
 | 1 | `order` | 退款审批中（4）→ 退款处理中（8） | 管理员批准且渠道退款受理 | 中间态，等待渠道回调 |
-| 2 | `order` | 退款处理中（8）→ 已退款（6） | 渠道退款成功回调 | 终态；同步 package active→refunded |
-| 3 | `order` | 退款处理中（8）→ 退款审批中（4） | 渠道退款失败/超时 | 回滚中间态；package 保持 active，booking_frozen 保持 true，管理员可重试 |
-| 4 | `order` | 退款审批中（4）→ 退款被拒（7） | 管理员驳回 | 终态；package 保持 active，booking_frozen = false |
+| 2 | `order` | 退款处理中（8）→ 已退款（6） | 渠道退款成功回调 | 终态；同步 package frozen(refund_pending) → refunded |
+| 3 | `order` | 退款处理中（8）→ 退款审批中（4） | 渠道退款失败/超时 | 回滚中间态；package 保持 frozen（refund_pending），booking_frozen 保持 true，管理员可重试 |
+| 4 | `order` | 退款审批中（4）→ 退款被拒（7） | 管理员驳回 | 终态；package → active（解冻，frozen_reason 清空），booking_frozen = false |
 
 ### 3.2 refund 状态机
 
@@ -94,9 +94,9 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | `package` | active → active（保持） | US-027 学员提交退款申请 | 由 US-027 触发，退款审批期间 status 不变，booking_frozen = true |
-| 2 | `package` | active → refunded | order 进入已退款（渠道成功回调后） | 终态 |
-| 3 | `package` | active → active（保持） | order 进入退款被拒（管理员驳回）或渠道失败回滚 | booking_frozen 保持 true（失败回滚）或置 false（驳回） |
+| 1 | `package` | frozen（refund_pending）→ frozen（refund_pending，保持） | 管理员批准（阶段 1 受理）或 渠道失败回滚 | 由 US-027 触发 frozen(refund_pending)；退款处理期间 status 不变，booking_frozen = true |
+| 2 | `package` | frozen（refund_pending）→ refunded | order 进入已退款（渠道成功回调后） | 终态 |
+| 3 | `package` | frozen（refund_pending）→ active | order 进入退款被拒（管理员驳回） | 解冻，frozen_reason 清空；booking_frozen = false |
 
 ## 4. 缓存
 
@@ -145,3 +145,4 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 | v1.0 | 2026-07-30 | Dev | 初版 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§3 状态机重构为两阶段时序（退款审批中→退款处理中→已退款/退款审批中），对齐 PRD §6.2.1/§6.2.2 与 user-story §7.3；新增 §3.1/§3.2/§3.3 三表分别覆盖 order/refund/package 状态机 |
 | v1.2 | 2026-07-31 | Dev | P0 修复：退款审批期间 package.status 保持 active，通过 booking_frozen 冻结约课能力；§1/§3 同步调整 |
+| v1.3 | 2026-07-31 | Dev | 半落地修复：对齐 PRD v11.2 §3.6（frozen(refund_pending)）。§1.1 package 操作说明改为「保持 frozen(refund_pending)（由 US-027 触发），渠道成功 → refunded，驳回 → active（解冻）」；§3.1 order 状态机备注同步；§3.3 package 状态机改为 frozen(refund_pending) → refunded / active |

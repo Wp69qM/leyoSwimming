@@ -113,3 +113,13 @@ CREATE INDEX idx_slot_follow_slot ON slot_follow(schedule_slot_id);
 | 时段未满 | `test_waitlist_slot_not_full` |
 | 无 active 套餐 | `test_waitlist_no_active_package` |
 | 重复候补 | `test_waitlist_duplicate` |
+| 时段失效后关注记录标记 invalid | `test_slot_follow_invalid_on_slot_removed` |
+
+---
+
+## 变更日志
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-07-30 | 初版 |
+| v1.1 | 2026-07-31 | P1-10 修复：§1.1 slot_follow 表新增 `status`（active/invalid）与 `invalid_at` 字段，统一"标记失效"语义（替代原"自动删除或标记失效"模糊表述）；§8 测试映射补充对应用例 |

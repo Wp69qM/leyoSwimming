@@ -9,8 +9,8 @@
 - 管理员可查看 pending_audit 离职审批队列
 - 管理员可通过或拒绝离职申请
 - 通过时按 checklist 校验并执行批量同步变更
-- 通过时对所有 active package 自动生成 100% 待退款记录
-- 拒绝时恢复 coach.status=1，不回滚已确认退款记录
+- 通过时根据 action 类型分流处理（PRD §5.4.7 三选一）：refund 生成退款记录、transfer 换教练、continue 保持 active
+- 拒绝时恢复 coach.status=1，不回滚已登记的处理结果
 
 **Non-Goals:**
 

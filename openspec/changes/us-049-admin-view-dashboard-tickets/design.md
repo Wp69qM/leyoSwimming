@@ -115,7 +115,9 @@ CREATE INDEX idx_ticket_reply_ticket ON ticket_reply(ticket_id);
 | US | 方向 | 说明 |
 |----|------|------|
 | US-004 / US-025 / US-032 | 被依赖 | 用户、订单、上课记录数据 |
-| US-027 / US-030 | 依赖本 US | 退款/取消纠纷工单处理 |
+| US-027 / US-030 | 本 US 依赖 | 退款/取消纠纷工单由 US-027（学员申请退款）/ US-030（学员取消正价课程）产生，由本 US 处理 |
+
+> **依赖方向澄清**（v7 P0-H 修复，v1.1 半落地修复）：US-027/US-030 是 US-049 的**前置**（US-049 依赖 US-027/US-030 产生工单数据源），并非"US-027/US-030 依赖 US-049"。原 design.md 表格方向列写反，本次将表格方向列同步修正为「本 US 依赖」，与 user-story §9 对齐。
 
 ## Mapping to Source Documents
 

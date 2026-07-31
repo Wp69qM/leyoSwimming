@@ -48,17 +48,18 @@
 4. 系统展示：教练基本信息、工单进度、每份 active 套餐的处理结果
 5. 管理员逐项检查 checklist（后端强制校验，缺一不可）：
    - ① active 学员数 = 0；
-   - ② 若 active 学员数 > 0，所有 active 套餐已确认全额退款；
+   - ② 若 active 学员数 > 0，所有 active 学员处理结果已登记（转新教练 / 全额退款 / 继续上完，PRD §5.4.7 三选一）；
    - ③ 教练费已结算（含未消耗课时）；
    - ④ 未来排班已清空。
 6. 管理员点击「通过审批」
-7. 系统按以下顺序执行（建议在同一事务或 Saga 中按序执行，避免重复释放课时）：
-   1. 对所有 active package（含未确认退款的套餐），系统自动生成 100% 待退款记录 `refund_amount = 单价 × 剩余课时`（已消耗不退），并通知学员选择退款或换教练；
-   2. 取消该教练所有未来 booking（start_time > NOW() 且 status ∈ 已预约/待上课），释放对应 package 的 reserved 课时；
-   3. 将该教练所有 active package 的 reserved_count 归 0，available_count 相应增加（兜底，确保 booking 取消后残留 reserved 被清零）；
-   4. 将上述 active package 状态更新为 frozen，frozen_reason = coach_resigned；
-   5. 将未来 schedule_slot（start_time > NOW()）更新为 hidden；
-   6. 将 `coach.status` 从 4 更新为 3（已离职）。
+7. 系统根据教练在 US-039 工单中登记的 action 类型分流执行（PRD §5.4.7 三选一，建议在同一事务或 Saga 中按序执行，避免重复释放课时）：
+   1. **action = transfer（转新教练）**：调用换教练流程，`package.coach_id` 更新为新教练，`package.status` 保持 active，不生成退款记录，仅取消未来 booking 并释放 reserved；
+   2. **action = refund（全额退款）**：生成 100% 待退款记录 `refund_amount = price_per_hour × (reserved_count + available_count)`（PRD §6.4.5，已消耗课时不退），取消未来 booking 并释放 reserved，`package.status → frozen(coach_resigned)`，通知学员选择退款或换教练；
+   3. **action = continue（继续上完）**：`package.status` 保持 active，不冻结不退款，仅取消未来 booking 并释放 reserved；
+   4. 取消该教练所有未来 booking（start_time > NOW() 且 status ∈ 已预约/待上课），cancel_reason = 2（教练离职），释放对应 package 的 reserved 课时；
+   5. 将该教练所有 active package 的 reserved_count 归 0，available_count 相应增加（兜底，确保 booking 取消后残留 reserved 被清零）；
+   6. 将未来 schedule_slot（start_time > NOW()）更新为 hidden；
+   7. 将 `coach.status` 从 4 更新为 3（已离职）。
 8. 系统返回审批成功提示
 
 ### 4.2 异常分支
@@ -338,6 +339,7 @@ And   coach.status 保持 4
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | P1 修复：§5 统一 `frozen_reason` 为字符串类型（与 PRD §3.7 数据模型定义一致），明确 PRD §5.5.1.1 line 605 整型写法为笔误；补充字段枚举值 |
 | v1.2 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（2=教练离职） |
+| v1.3 | 2026-07-31 | PM | v7 评审 P0 修复：对齐 PRD §5.4.7 三选一（转新教练 / 全额退款 / 继续上完）；退款公式对齐 PRD §6.4.5：`refund_amount = price_per_hour × (reserved_count + available_count)`；§4.1/§6.1/§7.1/§7.3/§12 同步调整 |
 
 ---
 

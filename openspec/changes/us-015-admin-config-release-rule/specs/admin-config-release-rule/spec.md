@@ -36,9 +36,10 @@ And   接口返回 HTTP 200 与更新后完整配置
 
 ```gherkin
 Given 管理员已登录并拥有 SCHEDULE_RELEASE_CONFIG 权限
-When  管理员启用 holiday_release_enabled 并设置 offset_days = -6
+And   当前默认释放日为周三 10:00
+When  管理员启用 holiday_release_enabled 并设置 offset_days = -1（提前至本周二 10:00）
 Then  release_rule 表 holiday_release_enabled = true
-And   holiday_release_offset_days = -6
+And   holiday_release_offset_days = -1
 And   接口返回 HTTP 200
 ```
 

@@ -50,10 +50,10 @@ The system MUST allow an admin to reject a resignation and restore the coach to 
 
 The system MUST prevent approval when checklist items are not satisfied.
 
-#### Scenario: Approve blocked by unconfirmed refund when active students exist
+#### Scenario: Approve blocked by unregistered package actions when active students exist
 
 - **GIVEN** admin M has resignation approval permission
-- **AND** coach C's ticket has active students and 2 packages without confirmed full refund
+- **AND** coach C's ticket has active students and 2 packages without registered actions (neither transfer / refund / continue)
 - **WHEN** admin M clicks "通过审批"
 - **THEN** the API returns HTTP 400 with error code `CHECKLIST_NOT_PASSED`
 - **AND** `coach.status` remains `4`

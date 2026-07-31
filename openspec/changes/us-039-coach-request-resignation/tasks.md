@@ -10,27 +10,25 @@
 - [ ] 2.2 Implement `GET /api/coach/v1/resignation/ticket` to return ticket and active package list — maps to REQ-001 / Scenario: Successful resignation application
 - [ ] 2.3 Implement `PUT /api/coach/v1/resignation/tickets/{id}/packages/{package_id}/action` with ownership check — maps to REQ-002 / Scenario: Successful refund action registration with auto-generated refund record and REQ-005
 - [ ] 2.4 Implement `POST /api/coach/v1/resignation/tickets/{id}/submit` to move ticket to pending_audit and generate default refund records for unregistered active packages
-- [ ] 2.5 Implement `POST /api/coach/v1/resignation/tickets/{id}/cancel` to restore coach.status = 1
 
 ## 3. Validation & State Machine
 
 - [ ] 3.1 Reject apply when `coach.status != 1` — maps to REQ-003
 - [ ] 3.2 Reject duplicate apply when `coach.status = 4` — maps to REQ-004
-- [ ] 3.3 Enforce action enum values: transfer / refund / continue
-- [ ] 3.4 Validate `target_coach_id` required only when action = transfer
-- [ ] 3.5 Generate `refund_record` with `refund_amount = unit_price × remaining_hours` when action = refund or package remains unregistered at submit
+- [ ] 3.3 Enforce action enum value fixed to `refund` (MVP forces 100% refund; transfer/continue not allowed)
+- [ ] 3.4 Generate `refund_record` with `refund_amount = unit_price × remaining_hours` when action = refund or package remains unregistered at submit
 
 ## 4. Security & Audit
 
 - [ ] 4.1 Verify JWT coach_id matches ticket owner on all endpoints
 - [ ] 4.2 Write audit_log on status change and action registration
-- [ ] 4.3 Invalidate coach.status cache on apply and cancel
+- [ ] 4.3 Invalidate coach.status cache on apply
 
 ## 5. Frontend
 
 - [ ] 5.1 Build resignation entry page with status-aware visibility
 - [ ] 5.2 Build resignation ticket page with package list and action form
-- [ ] 5.3 Build submit and cancel confirmation dialogs
+- [ ] 5.3 Build submit confirmation dialog (no cancel dialog in MVP)
 
 ## 6. Verification
 

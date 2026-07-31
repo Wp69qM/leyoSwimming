@@ -57,7 +57,7 @@
 3. 管理员查看请假原因、请假时间、教练、受影响课程及系统推荐的改约时段
 4. 管理员确认或补充改约建议后点击「通过」
 5. 系统将 leave_request.status 更新为 approved
-6. 系统将请假日期内未来已释放的 schedule_slot 标记为 hidden 或删除
+6. 系统将请假日期内未来已释放的 schedule_slot 标记为 disabled（不物理删除，便于复用）
 7. 系统自动取消请假时段内已预约的课程并释放课时
 8. 系统向相关学员发送课程取消通知，通知中包含教练请假原因与改约建议
 9. 返回审批成功提示
@@ -96,7 +96,7 @@ And   该时段内有 2 个已预约的 booking
 And   系统推荐改约时段为 2026-08-03 09:00-10:00
 When  管理员 M 点击「通过」
 Then  leave_request.status 更新为 approved
-And   2026-08-01 教练 C 的 schedule_slot 被标记为 hidden 或删除
+And   2026-08-01 教练 C 的 schedule_slot 被标记为 disabled（不物理删除，便于复用）
 And   2 个 booking 状态更新为「已取消」，cancel_reason = 5（教练请假）
 And   对应 package 的 reserved_count 减少，available_count 增加
 And   系统向学员发送课程取消通知，内容包含请假原因"身体不适"与改约建议"2026-08-03 09:00-10:00"
@@ -328,6 +328,7 @@ And   schedule_slot 不发生变更
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（5=教练请假）；§5 新增 cancel_reason 枚举说明 |
+| v1.3 | 2026-07-31 | PM | 修复 §4.2 步骤 6 与 §6.1 场景 1 不一致：schedule_slot 处理由"标记为 hidden 或删除"统一为"标记为 disabled（不物理删除，便于复用）" |
 
 ---
 

@@ -36,6 +36,22 @@ And   系统通知教练审批
 And   返回 HTTP 201
 ```
 
+#### Scenario: <2h 特殊原因取消申诉
+
+```gherkin
+Given 学员已登录
+And   存在 booking.status = 已预约，开课时间为今日 12:00
+And   当前时间为今日 10:30（距开课 1.5 小时，< 2h 阈值）
+And   学员此前已提交 24h 内取消申请，但被教练拒绝
+And   package.reserved_count = 1，available_count = 4
+When  学员在预约详情页点击「特殊原因申诉」并提交原因"突发疾病" + 上传医院证明
+Then  系统创建 dispute_refund.status = 争议退款处理中
+And   booking.status 保持已预约（不立即释放课时）
+And   package 课时暂不变
+And   系统通知管理员在 3 工作日内审核
+And   返回 HTTP 201
+```
+
 #### Scenario: 重复取消
 
 ```gherkin

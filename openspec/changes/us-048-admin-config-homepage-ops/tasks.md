@@ -74,18 +74,10 @@
 - [ ] **REFACTOR:** Standardize permission check
 - [ ] **COMMIT:** `feat(auth): enforce homepage ops permission`
 
-## Task 9: 内容安全审核拦截 [P0]
-
-**Spec coverage:** REQ-004 Scenario "运营卡片内容安全审核不通过"
-
-- [ ] **RED:** Write failing tests for `CONTENT_SECURITY_REJECTED`
-- [ ] **GREEN:** Integrate text/image security audit before write
-- [ ] **REFACTOR:** Extract audit helper
-- [ ] **COMMIT:** `feat(homepage-ops): add content security audit`
-
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder
 - P0 必做，P1 选做
+- 字段校验通过后直接写入业务表并即时生效（PRD §5.5.5 #6 / D47：预览机制无需审核直接生效，无内容安全审核环节）

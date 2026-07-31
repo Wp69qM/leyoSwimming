@@ -77,6 +77,8 @@
 | 1 | 管理员可在特殊情况下手动返还课时 | [§5.3.2](../../prd/prd.md) |
 | 2 | 返还后 package.consumed_count -1, available_count +1 | [§6.3.1](../../prd/prd.md) |
 | 3 | 返还操作必须记录审计日志 | [§5.5.3](../../prd/prd.md) |
+| 4 | expired 套餐管理员手动延期规则：仅延长 expire_at，available 保持原样，不增加课时；exhausted/refunded 不允许延期 | [§4.6](../../prd/prd.md) |
+| 5 | refunded 状态套餐不可返还（与 §4.6 不允许延期同理） | [§4.6](../../prd/prd.md) |
 
 ---
 
@@ -295,6 +297,7 @@ And   HTTP 状态码 = 200
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：明确 expired 套餐返还规则（允许返还，返还后恢复 active）；补充 refunded 不可返还错误码 PACKAGE_NOT_RETURNABLE；§7.3 新增 expired→active 转换；§8.4 新增边界场景 |
 | v1.2 | 2026-07-31 | PM | v5 评审修复：§4.1 增加 booking 累计返还课时校验；§4.2/§8.2 修改重复返还行为，新增 `RETURN_QUOTA_EXCEEDED` |
 | v1.3 | 2026-07-31 | PM | v6 评审 P0 修复：返还 expired 套餐复活为 active 时，同步按原有效期时长更新 `expire_at`，消除 status=active 但 expire_at 已过的状态机矛盾 |
+| v1.4 | 2026-07-31 | PM | v7 P0-F 修复：澄清与 PRD §4.6 口径差异——§4.1 步骤 6、§5 业务规则引用、§7.3 状态机、§8.4 边界场景明确说明"返还 + 同步延期"是复合操作（返还使 available+1，与 §4.6 单纯延期不动 available 是不同操作）；§5 新增第 4/5 条引用 PRD §4.6；同步 OpenSpec spec/design |
 
 ---
 

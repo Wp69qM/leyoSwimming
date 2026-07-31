@@ -24,7 +24,7 @@ And   release_log 记录 generated_slots = 7
 
 ```gherkin
 Given release_rule.holiday_release_enabled = true
-And   holiday_release_offset_days = -6
+And   holiday_release_offset_days = -1
 And   下周一为法定节假日
 When  系统计算释放时间
 Then  释放任务于本周二 10:00 触发

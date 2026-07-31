@@ -21,7 +21,6 @@
 | `homepage_banner` | 新增 | 首页 Banner |
 | `homepage_card` | 新增 | 首页运营卡片 |
 | `audit_log` | 新增 | 配置变更审计 |
-| `notice` / `homepage_banner` / `homepage_card` | 修改 | 新增 `audit_status` 字段（pending / passed / rejected） |
 
 ### 1.2 `homepage_banner` 字段
 
@@ -36,7 +35,6 @@
 | `start_at` | DATETIME | NOT NULL | 生效时间 |
 | `end_at` | DATETIME | NOT NULL | 失效时间 |
 | `status` | TINYINT | 0=offline 1=active | 状态 |
-| `audit_status` | TINYINT | 0=pending 1=passed 2=rejected | 内容安全审核状态 |
 
 ### 1.3 `homepage_card` 字段
 
@@ -51,7 +49,6 @@
 | `start_at` | DATETIME | NOT NULL | 生效时间 |
 | `end_at` | DATETIME | NOT NULL | 失效时间 |
 | `status` | TINYINT | 0=offline 1=active | 状态 |
-| `audit_status` | TINYINT | 0=pending 1=passed 2=rejected | 内容安全审核状态 |
 
 ### 1.4 索引
 
@@ -70,7 +67,7 @@ CREATE INDEX idx_card_visible_time ON homepage_card(status, visible_scope, start
 - **鉴权**：管理员登录 + `homepage:write`
 - **GET Response 200**：`{ items: Notice[], total, page, size }`
 - **POST Body**：`{ title, content, visible_scope, priority, start_at, end_at }`
-- **Response 400**：`{ error: 'INVALID_TIME_RANGE' / 'INVALID_VISIBLE_SCOPE' / 'CONTENT_SECURITY_REJECTED' }`
+- **Response 400**：`{ error: 'INVALID_TIME_RANGE' / 'INVALID_VISIBLE_SCOPE' }`
 - **Response 403**：`{ error: 'FORBIDDEN' }`
 
 ### 2.2 GET/POST/PUT/DELETE /api/admin/homepage/banners
@@ -142,8 +139,7 @@ notice.status / homepage_banner.status / homepage_card.status:
 - 所有管理接口登录 + RBAC
 - 内容 XSS 过滤（通知栏内容、卡片标题）
 - 图片 URL 域名白名单
-- 正式保存前调用内容安全审核服务（文本 + 图片），审核不通过拒绝写入并返回 `CONTENT_SECURITY_REJECTED`
-- 预览接口不触发内容安全审核
+- 字段校验通过后直接写入业务表并即时生效（PRD §5.5.5 #6 / D47：预览机制无需审核直接生效）
 - 操作日志记录管理员 ID、IP、变更前后快照
 
 ---
@@ -164,7 +160,6 @@ notice.status / homepage_banner.status / homepage_card.status:
 |------|------|
 | 有效期不合法 | 400 INVALID_TIME_RANGE |
 | 可见范围非法 | 400 INVALID_VISIBLE_SCOPE |
-| 内容安全审核不通过 | 400 CONTENT_SECURITY_REJECTED |
 | 无权限 | 403 FORBIDDEN |
 | 配置为空 | 首页隐藏对应模块 |
 | 图片格式/大小不符 | 上传服务返回 400 |
@@ -196,3 +191,4 @@ notice.status / homepage_banner.status / homepage_card.status:
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P1 修复：增加内容安全审核字段与错误码（§1.1/§1.2/§1.3/§2.1/§6/§8）|
+| v1.2 | 2026-07-31 | Dev | P1-15 修复：移除内容安全审核流程（§1.1 audit_status 字段 / §1.2 audit_status / §1.3 audit_status / §2.1 CONTENT_SECURITY_REJECTED / §6 审核服务 / §8 审核异常分支），对齐 PRD §5.5.5 #6 / D47「预览机制无需审核直接生效」 |

@@ -116,3 +116,13 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 | 教练冲突 | `test_formal_order_coach_conflict` |
 | 教练不可用 | `test_formal_order_coach_unavailable` |
 | 幂等 | `test_formal_order_idempotent` |
+| 未成年人监护人手机号未校验 | `test_formal_order_guardian_phone_required` |
+
+---
+
+## 变更日志
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-07-30 | 初版 |
+| v1.1 | 2026-07-31 | P1-9 修复：§2.1 POST /api/orders/formal 的 Response 400 错误码列表补充 `GUARDIAN_PHONE_REQUIRED`（原仅在 user-story.md §4.2 分支 4 与 §6.4 场景 4 出现，tech-design 漏列）；§8 测试映射同步补充对应测试方法 |

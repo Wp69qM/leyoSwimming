@@ -75,9 +75,9 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 | 转换 | 触发条件 | 说明 |
 |------|---------|------|
 | 退款审批中（4）→ 退款处理中（8） | 管理员批准且渠道退款受理 | 中间态，等待渠道回调 |
-| 退款处理中（8）→ 已退款（6） | 渠道退款成功回调 | 终态；同步 package active→refunded |
-| 退款处理中（8）→ 退款审批中（4） | 渠道退款失败/超时 | 回滚中间态；package 保持 active，booking_frozen 保持 true，可重试 |
-| 退款审批中（4）→ 退款被拒（7） | 管理员驳回 | 终态；package 保持 active，booking_frozen = false |
+| 退款处理中（8）→ 已退款（6） | 渠道退款成功回调 | 终态；同步 package frozen(refund_pending) → refunded |
+| 退款处理中（8）→ 退款审批中（4） | 渠道退款失败/超时 | 回滚中间态；package 保持 frozen（refund_pending），booking_frozen 保持 true，可重试 |
+| 退款审批中（4）→ 退款被拒（7） | 管理员驳回 | 终态；package → active（解冻，frozen_reason 清空），booking_frozen = false |
 
 ### refund 状态机（v3 评审 P0 修复）
 
@@ -88,15 +88,15 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 | 管理员批准 → 退款成功 | 渠道退款成功回调 |
 | 管理员批准 → 退款失败 | 渠道退款失败/超时（可重试） |
 
-### package 状态机（v3 评审 P0 修复）
+### package 状态机（v3 评审 P0 修复，v5 半落地修复）
 
 | 转换 | 触发条件 | 说明 |
 |------|---------|------|
-| active → active（保持） | 学员提交退款（US-027） | 退款审批期间 status 不变，booking_frozen = true |
-| active → refunded | 渠道退款成功（阶段 2 成功） | 终态；关联赠送 package 同步作废 |
-| active → active（保持） | 管理员驳回 或 渠道失败回滚 | booking_frozen 保持 true（失败回滚）或置 false（驳回） |
+| frozen（refund_pending）→ frozen（refund_pending，保持） | 管理员批准（阶段 1 受理）或 渠道失败回滚 | 由 US-027 触发 frozen(refund_pending)；退款处理期间 status 不变，booking_frozen = true |
+| frozen（refund_pending）→ refunded | 渠道退款成功（阶段 2 成功） | 终态；关联赠送 package 同步作废 |
+| frozen（refund_pending）→ active | 管理员驳回 | 解冻，frozen_reason 清空；booking_frozen = false |
 
-> **package 退款状态说明**（v3 评审 P0 修复，v4 P0 再修复）：PRD §3.6 明确退款审批期间 package.status 保持 active。约课冻结通过 `package.booking_frozen = true` 实现；渠道成功时 package.status → refunded；驳回或失败回滚时 package.status 保持 active，仅调整 booking_frozen。
+> **package 退款状态说明**（v3 评审 P0 修复，v4 P0 再修复，v5 半落地修复）：PRD §3.6 / §5.5.1.2 明确退款审批期间 package.status = frozen（refund_pending）（由 US-027 学员提交退款时触发）。约课冻结通过 `package.booking_frozen = true` 实现；渠道成功时 package.status → refunded；驳回时 package.status → active（解冻，frozen_reason 清空），booking_frozen = false；失败回滚时 package.status 保持 frozen（refund_pending）。
 
 ## Performance Targets
 

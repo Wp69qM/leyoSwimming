@@ -245,8 +245,8 @@ And   coach_resignation_action 表不写入记录
 
 - **幂等键**：`Idempotency-Key: coach:{coach_id}:resignation:apply`
 - **事务边界**：coach.status 更新 + 工单创建在同一事务
-- **退款硬约束**：教练主动离职时，未消耗剩余课时须 100% 退还；`refund_amount = 套餐单价 × 剩余课时`，已消耗课时不退
-- **强制退款**：MVP 阶段 active 套餐仅允许「全额退款」，不允许转新教练或继续上完，以符合项目硬约束
+- **退款硬约束**：教练主动离职时，按 PRD §5.4.7 三选一处理；action=refund 时 `refund_amount = price_per_hour × (reserved_count + available_count)`（PRD §6.4.5，已消耗课时不退）
+- **三选一处理**：MVP 阶段 active 套餐允许「转新教练 / 全额退款 / 继续上完」三选一（PRD §5.4.7），由教练与学员私下沟通后登记
 - **默认退款**：工单提交时未确认处理结果的 active 套餐，系统自动按「全额退款」生成待退款记录
 - **性能要求**：提交接口 P99 < 300ms，工单详情 P99 < 200ms
 - **隐私**：status=4 期间不 push 通知学员，教练列表/搜索不展示「申请中」标签
@@ -286,8 +286,8 @@ And   coach_resignation_action 表不写入记录
 
 - **背景**：需要让教练登记每份 active 套餐的后续安排，同时符合项目硬约束
 - **选项**：A. 允许「转新教练 / 全额退款 / 继续上完」；B. 仅允许「全额退款」
-- **结论**：选择 B，MVP 阶段强制 100% 退款，简化流程并避免合规风险
-- **影响范围**：离职工单处理页仅展示退款确认，coach_resignation_action.action 固定为 'refund'
+- **结论**：选择 A，按 PRD §5.4.7 三选一执行（转新教练 / 全额退款 / 继续上完，每份 active 套餐独立处理）
+- **影响范围**：离职工单处理页展示三选一操作，coach_resignation_action.action 支持 refund/transfer/continue
 
 ### 14.3 页面级交互说明
 
@@ -314,6 +314,9 @@ And   coach_resignation_action 表不写入记录
 |------|------|------|------|
 | v1.1 | 2026-07-31 | PM | P1 修复：§8.1 明确撤销离职申请未在 PRD §5.4.7 定义，MVP 不支持 |
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.2 | 2026-07-31 | PM | v7 评审 P0 修复（联动 US-041）：§14.2 工单处理选项由「仅全额退款」改为「PRD §5.4.7 三选一」（转新教练 / 全额退款 / 继续上完） |
+| v1.3 | 2026-07-31 | Dev | 半落地修复 tech-design：删除残留的 §4.5 cancel API（与 §8.1「MVP 不支持自行撤销」一致）；§8 安全改为「action 支持 refund/transfer/continue 三选一（PRD §5.4.7）」；§10 测试映射移除「撤销申请」用例；OpenSpec design.md 同步清理 Non-Goals / Risks 中与三选一矛盾的旧文本 |
+| v1.4 | 2026-07-31 | Dev | v8 评审半落地修复：§14.2 结论从「选择 B 强制 100% 退款」改为「选择 A 三选一」，与 v1.2 变更日志声明一致 |
 
 ---
 

@@ -11,7 +11,7 @@
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
 | `waitlist` | 写 | `user_id`, `schedule_slot_id`, `status`, `created_at`, `converted_at` |
-| `slot_follow` | 写 | `user_id`, `schedule_slot_id`, `created_at` |
+| `slot_follow` | 写 | `user_id`, `schedule_slot_id`, `status`(active/invalid), `created_at`, `invalid_at` |
 | `schedule_slot` | 读 | `capacity`, `booked_count`, `status` |
 | `package` | 读 | `status` |
 | `user` | 读 | `identity` |

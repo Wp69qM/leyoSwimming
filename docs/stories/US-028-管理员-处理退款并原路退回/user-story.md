@@ -35,7 +35,7 @@
 - [x] 管理员已登录且具有订单/退款管理权限
 - [x] 存在 refund.status ∈ {待审批, 教练同意, 争议退款处理中} 的退款申请
 - [x] 对应 order.status 与 refund 状态匹配（退款审批中 / 争议退款处理中）
-- [x] 对应 package.status = active（PRD §3.6，退款审批期间保持 active）
+- [x] 对应 package.status = frozen（refund_pending）（由 US-027 触发，PRD §3.6 / §5.5.1.2）
 - [x] 原订单存在支付成功的 payment 记录，且包含渠道信息（微信/支付宝）
 - [x] 退款金额已按 §6.4.2 公式计算并记录
 
@@ -50,15 +50,15 @@
 3. 管理员点击某条记录查看详情：订单信息、package 消耗情况、可退金额计算过程
 4. 管理员选择处理方式：
    - **批准退款**（两阶段）：
-     - **阶段 1 受理**：order.status → 退款处理中；package.status 保持 active；package.booking_frozen 保持 true；refund_transaction.status = 处理中；记录受理时间与受理管理员
+     - **阶段 1 受理**：order.status → 退款处理中；package.status 保持 frozen（refund_pending）；package.booking_frozen 保持 true；refund_transaction.status = 处理中；记录受理时间与受理管理员
      - **阶段 2 渠道回调**：渠道退款成功回调 → order.status → 已退款；package.status → refunded；关联赠送 package 同步作废；refund_transaction.status = 成功；异步触发身份重算
-     - **阶段 2 失败**：渠道退款失败 → order.status 回滚为 退款审批中；package.status 保持 active；package.booking_frozen 保持 true；refund_transaction.status = 失败；进入重试队列并通知管理员
-   - **驳回退款**：order.status → 退款被拒（7）；package.status 保持 active；package.booking_frozen = false（解除约课冻结）；reserved_count 保持当前值（申请阶段未释放）；填写驳回原因并通知学员
+     - **阶段 2 失败**：渠道退款失败 → order.status 回滚为 退款审批中；package.status 保持 frozen（refund_pending）；package.booking_frozen 保持 true；refund_transaction.status = 失败；进入重试队列并通知管理员
+   - **驳回退款**：order.status → 退款被拒（7）；package.status → active（解冻，frozen_reason 清空）；package.booking_frozen = false（解除约课冻结）；填写驳回原因并通知学员
 5. 系统发送处理结果通知（微信订阅消息 / 短信）：受理时发送"退款处理中"，渠道成功后发送"已退款"，失败时发送"退款失败，正在重试"
 
 ### 4.2 异常分支
 
-- **分支 1**：渠道退款接口调用失败（阶段 2 失败）→ refund_transaction.status = 失败，order.status 从「退款处理中」回滚为「退款审批中」，package.status 保持 active，package.booking_frozen 保持 true，进入重试队列并通知管理员
+- **分支 1**：渠道退款接口调用失败（阶段 2 失败）→ refund_transaction.status = 失败，order.status 从「退款处理中」回滚为「退款审批中」，package.status 保持 frozen（refund_pending），package.booking_frozen 保持 true，进入重试队列并通知管理员
 - **分支 2**：退款金额与原支付金额不一致 → 系统拒绝审批，返回错误码 `REFUND_AMOUNT_MISMATCH`，提示管理员核对
 - **分支 3**：重复点击批准/驳回 → 幂等处理，返回当前最终状态
 - **分支 4**：无权限人员访问 → 返回 403 FORBIDDEN
@@ -86,12 +86,13 @@
 ```gherkin
 Given 管理员已登录
 And   存在 refund.status = 待审批，amount = 1440 分的退款申请
-And   对应 order.status = 退款审批中，package.total_hours = 10，consumed_count = 2
+And   对应 order.status = 退款审批中，package.status = frozen（refund_pending）
+And   package.total_hours = 10，consumed_count = 2
 And   原支付渠道为微信支付
 When  管理员点击「批准退款」
 Then  阶段 1：系统调用微信退款接口受理成功，创建 refund_transaction.status = 处理中
 And   order.status = 退款处理中
-And   package.status = active
+And   package.status = frozen（refund_pending，保持）
 And   package.booking_frozen = true
 And   学员收到"退款处理中"受理通知
 And   返回 HTTP 202 Accepted
@@ -108,11 +109,11 @@ And   学员收到"已退款"成功通知
 Given 管理员已登录
 And   存在 refund.status = 待审批
 And   order.status = 退款审批中
+And   package.status = frozen（refund_pending）
 When  管理员点击「驳回退款」并填写原因"资料不足"
 Then  order.status = 退款被拒（7）
-And   package.status = active
+And   package.status = active（解冻，frozen_reason 清空）
 And   package.booking_frozen = false
-And   package.reserved_count 保持提交前数值
 And   refund.status = 管理员驳回
 And   学员收到驳回通知，展示原因
 And   返回 HTTP 200
@@ -123,12 +124,13 @@ And   返回 HTTP 200
 ```gherkin
 Given 管理员已登录
 And   退款申请状态为待审批，order.status = 退款审批中
+And   package.status = frozen（refund_pending）
 And   微信退款接口返回失败
 When  管理员点击「批准退款」
 Then  阶段 1：系统尝试调用微信退款接口失败
 And   refund_transaction.status = 失败
 And   order.status 从「退款处理中」回滚为「退款审批中」
-And   package.status = active
+And   package.status = frozen（refund_pending，保持）
 And   package.booking_frozen = true
 And   系统提示管理员"渠道退款失败，已加入重试队列"
 And   refund 进入重试队列，5 分钟后自动重试
@@ -164,7 +166,7 @@ And   不修改任何退款/订单状态
 | 1 | `order` | 修改 | status → 已退款 / 退款被拒（7），refunded_at 在已退款时回填 |
 | 2 | `refund` | 修改 | status → 管理员批准 / 管理员驳回 |
 | 3 | `refund_transaction` | 新增 | 记录渠道退款流水、状态、失败原因 |
-| 4 | `package` | 修改 | status → refunded（渠道成功）；status 保持 active（审批中/驳回/失败回滚）；booking_frozen 按阶段调整 |
+| 4 | `package` | 修改 | status → refunded（渠道成功）；status 保持 frozen（refund_pending）（审批中/失败回滚）；status → active（驳回，解冻）；booking_frozen 按阶段调整 |
 | 5 | `package`（赠送）| 修改 | 标准 package 退款时同步作废 |
 | 6 | `user` | 读取/触发 | 退款完成后异步重算身份 |
 
@@ -185,12 +187,12 @@ And   不修改任何退款/订单状态
 | 2 | `order` | 退款处理中 → 已退款 | 渠道退款成功回调（阶段 2 成功）| 终态 |
 | 3 | `order` | 退款处理中 → 退款审批中 | 渠道退款失败（阶段 2 失败）| 回滚，进入重试队列 |
 | 4 | `order` | 退款审批中 → 退款被拒（7） | 管理员驳回 | 终态；只有用户撤销退款申请时才回到已支付 |
-| 5 | `package` | active → active（保持） | 学员提交退款（US-027）| 退款审批期间 status 不变，booking_frozen = true |
-| 6 | `package` | active → refunded | 渠道退款成功（阶段 2 成功）| 终态；关联赠送 package 同步作废 |
-| 7 | `package` | active → active（保持） | 管理员驳回 或 渠道失败回滚 | booking_frozen 保持 true（失败回滚）或置 false（驳回） |
+| 5 | `package` | frozen（refund_pending）→ frozen（refund_pending，保持） | 管理员批准（阶段 1 受理）或 渠道失败回滚 | 退款处理期间 status 不变，booking_frozen = true |
+| 6 | `package` | frozen（refund_pending）→ refunded | 渠道退款成功（阶段 2 成功）| 终态；关联赠送 package 同步作废 |
+| 7 | `package` | frozen（refund_pending）→ active | 管理员驳回 | 解冻，frozen_reason 清空；booking_frozen = false |
 | 8 | `user` | 学员 → 注册用户 | 退款完成后无其他 active package | 异步重算 |
 
-> **package 退款状态说明**（v3 评审 P0 修复，v4 P0 再修复）：PRD §3.6 明确退款审批期间 package.status 保持 active。约课冻结通过 `package.booking_frozen = true` 实现；渠道成功时 package.status → refunded；驳回或失败回滚时 package.status 保持 active，仅调整 booking_frozen。
+> **package 退款状态说明**（v3 评审 P0 修复，v4 P0 再修复，v5 半落地修复）：PRD §3.6 / §5.5.1.2 明确退款审批期间 package.status = frozen（refund_pending）（由 US-027 学员提交退款时触发）。约课冻结通过 `package.booking_frozen = true` 实现；渠道成功时 package.status → refunded；驳回时 package.status → active（解冻，frozen_reason 清空），booking_frozen = false；失败回滚时 package.status 保持 frozen（refund_pending）。
 
 ---
 
@@ -272,8 +274,8 @@ And   不修改任何退款/订单状态
 ## 12. 备注
 
 - **幂等键**：`idempotency_key = refund_id:approve:{admin_id}:{date}`
-- **事务边界**：refund 状态更新 + order 状态更新 + package.booking_frozen 更新在同一事务；package.status 在审批期间保持 active，仅在渠道成功时转为 refunded；渠道退款调用放在事务外，失败走补偿
-- **驳回状态**：管理员驳回退款后 order.status = 退款被拒（7），并非回到已支付；只有用户主动撤销退款申请时才回到已支付
+- **事务边界**：refund 状态更新 + order 状态更新 + package.booking_frozen 更新在同一事务；package.status 在审批期间保持 frozen（refund_pending）（由 US-027 触发），仅在渠道成功时转为 refunded，驳回时转为 active（解冻）；渠道退款调用放在事务外，失败走补偿
+- **驳回状态**：管理员驳回退款后 order.status = 退款被拒（7），package.status → active（解冻），并非回到已支付；只有用户主动撤销退款申请时才回到已支付
 - **性能要求**：退款列表查询 P99 < 200ms，审批接口 P99 < 800ms（含渠道调用）
 - **对账机制**：每日凌晨与渠道对账，差异进入异常队列
 
@@ -327,6 +329,7 @@ And   不修改任何退款/订单状态
 | v1.1 | 2026-07-31 | PM | P1 修复：明确两阶段退款状态机时序（受理→退款处理中→渠道回调→已退款/失败回滚），消除原 §4.1/§6.1 与 §6.3 矛盾 |
 | v1.2 | 2026-07-31 | PM | v3 评审 P0 修复：§7.3 明确 package frozen 转换路径（active→frozen→refunded/active），补充 frozen 中间态由 US-027 触发的说明 |
 | v1.3 | 2026-07-31 | PM | P0 修复：退款审批期间 package.status 保持 active，通过 booking_frozen 冻结约课能力；§3/§4/§6/§7/§12 同步调整 |
+| v1.4 | 2026-07-31 | PM | 半落地修复：对齐 PRD v11.2 §3.6（frozen(refund_pending)）。§3 前置条件改为 frozen(refund_pending)（由 US-027 触发）；§4.1 主路径改为「保持 frozen，审批通过 → refunded；审批拒绝 → active（解冻）」；§4.2/§6.1/§6.2/§6.3/§7.1/§7.3/§12 同步清理"保持 active"旧文本 |
 
 ---
 

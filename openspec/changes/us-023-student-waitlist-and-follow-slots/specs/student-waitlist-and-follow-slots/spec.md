@@ -50,7 +50,7 @@ And   不重复创建记录
 
 ### Requirement: REQ-002 关注时段
 
-系统 MUST 允许已登录用户关注任意已释放的 schedule_slot。关注不自动预约，仅用于提醒。
+系统 MUST 允许已登录用户关注任意已释放的 schedule_slot。关注不自动预约，仅用于提醒。当目标时段被删除或隐藏时，系统 MUST 将相关 slot_follow 标记为 invalid（不物理删除，保留记录用于审计与用户告知）。
 
 #### Scenario: 成功关注时段
 
@@ -58,7 +58,17 @@ And   不重复创建记录
 Given 用户已登录
 And   教练 A 明日 10:00 时段已释放
 When  用户点击「关注」
-Then  系统创建 slot_follow 记录
+Then  系统创建 slot_follow 记录，status = active
 And   用户在「我的关注」看到该记录
 And   接口返回 HTTP 201
+```
+
+#### Scenario: 时段被删除后关注记录标记失效
+
+```gherkin
+Given 用户已关注教练 A 明日 10:00 时段，slot_follow.status = active
+When  管理员删除或隐藏该 schedule_slot
+Then  系统 UPDATE slot_follow.status = invalid，invalid_at = 当前时间
+And   不物理删除该 slot_follow 记录
+And   用户在「我的关注」看到该记录标记为"已失效"
 ```

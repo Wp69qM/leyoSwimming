@@ -55,9 +55,9 @@
 5. 系统事务内执行：
    - 创建 refund_record（status = 待审批）
    - order.status → 退款审批中
-   - package.status 保持 active（PRD §3.6）
-   - package.booking_frozen = true（冻结约课能力，禁止新增预约）
-   - reserved_count 保持不变；已预约课程在审批结果出来前不自动取消（reserved 将在 US-028 审批通过且 package.status → refunded 时释放，并触发 US-024 候补转正）
+   - package.status → frozen（frozen_reason='refund_pending'，PRD §3.6 / §5.5.1.2）
+   - 释放全部 reserved_count → 0，自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消，PRD §6.3.1）
+   - 触发 US-024 候补转正
 6. 系统通知管理员有新退款申请待处理（US-028）
 7. 系统通知学员「退款申请已提交，等待管理员审批」
 
@@ -76,7 +76,7 @@
 |---|------|------|
 | 1 | 退款触发场景：已支付且 package.status ∈ {active, exhausted, expired}；教练离职 frozen 可 100% 退 | [§6.4.1](../../prd/prd.md)、[§3.7](../../prd/prd.md) |
 | 2 | 退款金额 = 实付金额 × (total_hours - consumed_count) / total_hours | [§6.4.2](../../prd/prd.md) |
-| 3 | 退款审批期间 package.status 保持 active，约课能力通过 booking_frozen 冻结 | [§3.6](../../prd/prd.md) |
+| 3 | 退款审批期间 package.status → frozen（refund_pending），释放 reserved 并自动取消已预约课程 | [§3.6](../../prd/prd.md)、[§5.5.1.2](../../prd/prd.md)、[§6.3.1](../../prd/prd.md) |
 | 4 | 退款审批期间身份保持学员 | [§3.6](../../prd/prd.md) |
 | 5 | 订单状态机：已支付 → 退款审批中 | [§6.2](../../prd/prd.md) |
 
@@ -95,9 +95,10 @@ When  学员选择退款原因"个人原因-时间冲突"并提交
 Then  refund_record 创建，status = 待审批
 And   refund_amount = 1800 × (10-2)/10 = 1440 元
 And   order.status = 退款审批中
-And   package.status = active
-And   package.booking_frozen = true
-And   package.reserved_count 保持不变
+And   package.status = frozen（frozen_reason='refund_pending'，PRD §3.6 / §5.5.1.2）
+And   package.reserved_count = 0（已释放，PRD §6.3.1）
+And   已预约课程 booking.status → 已取消（cancel_reason=1 学员取消）
+And   触发 US-024 候补转正
 And   系统通知管理员与学员
 And   返回 HTTP 201
 ```
@@ -134,10 +135,11 @@ When  学员提交退款申请
 Then  refund_record 创建，status = 待审批
 And   refund_amount = 1800 元（100% 全额退款）
 And   order.status = 退款审批中
-And   package.status = active（由 frozen 转入退款审批态，符合 PRD §3.6）
-And   package.booking_frozen = true
-And   package.frozen_reason 保持 coach_resigned（用于 100% 退款计算）
-And   package.reserved_count 保持不变
+And   package.status = frozen（frozen_reason='refund_pending'，PRD §5.5.1.2）
+And   package.frozen_reason 历史值保留为 coach_resigned（用于 100% 退款计算，PRD §6.4.5）
+And   package.reserved_count = 0（已释放，PRD §6.3.1）
+And   已预约课程 booking.status → 已取消（cancel_reason=1 学员取消）
+And   触发 US-024 候补转正
 And   系统通知管理员与学员
 And   返回 HTTP 201
 ```
@@ -152,8 +154,9 @@ And   返回 HTTP 201
 |---|------|------|------|
 | 1 | `refund_record` | 新增 | 记录退款申请（金额、原因、status=待审批） |
 | 2 | `order` | 修改 | status → 退款审批中 |
-| 3 | `package` | 修改 | status 保持 active（教练离职时由 frozen 转回 active），booking_frozen = true，reserved_count 保持不变；退款金额按 `frozen_reason` 判断是否为 100% |
-| 4 | `notification` | 新增 | 通知管理员与学员 |
+| 3 | `package` | 修改 | status → frozen（frozen_reason='refund_pending'），reserved_count → 0（已释放，PRD §6.3.1），available_count 恢复对应课时数；教练离职场景保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算 |
+| 4 | `booking` | 修改 | 已预约 booking → 已取消（cancel_reason=1 学员取消） |
+| 5 | `notification` | 新增 | 通知管理员与学员 |
 
 ### 7.2 API 影响
 
@@ -167,8 +170,8 @@ And   返回 HTTP 201
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
 | 1 | `order` | 已支付 → 退款审批中 | 学员提交退款 | 启动退款流程 |
-| 2 | `package` | active/exhausted/expired → active（保持） | 学员提交退款 | status 不变，设置 booking_frozen = true |
-| 3 | `package` | frozen(coach_resigned) → active | 学员提交退款 | 保留 frozen_reason 用于 100% 退款；设置 booking_frozen = true |
+| 2 | `package` | active/exhausted/expired → frozen（refund_pending） | 学员提交退款 | status → frozen（PRD §3.6 / §5.5.1.2）；释放 reserved_count → 0；自动取消已预约课程 |
+| 3 | `package` | frozen(coach_resigned) → frozen（refund_pending） | 学员提交退款 | 保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算；释放 reserved_count → 0；自动取消已预约课程 |
 
 ---
 
@@ -192,11 +195,11 @@ And   返回 HTTP 201
 - **预期行为**：幂等处理，第二次返回已存在退款申请
 - **用户可见反馈**：提示「退款申请已提交，请勿重复操作」
 
-### 8.4 边界场景 4：退款申请不立即释放 reserved 课时
+### 8.4 边界场景 4：退款申请立即释放 reserved 课时
 
 - **触发条件**：学员提交退款申请时，package 仍有 reserved_count > 0
-- **预期行为**：退款申请创建后 package.reserved_count 保持不变；已预约课程在审批结果出来前不自动取消；仅当 US-028 审批通过且 package.status 变为 refunded 时，才释放 reserved 并触发 US-024 候补转正
-- **用户可见反馈**：学员端显示「退款申请已提交，等待管理员审批」；已预约课程保留，约课按钮冻结
+- **预期行为**：退款申请创建后立即释放 reserved_count → 0，自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消），触发 US-024 候补转正（PRD §3.6 / §6.3.1）
+- **用户可见反馈**：学员端显示「退款申请已提交，等待管理员审批」；已预约课程被取消，约课按钮冻结
 
 ---
 
@@ -257,11 +260,11 @@ And   返回 HTTP 201
 ## 12. 备注
 
 - **幂等键**：`{user_id}:{order_id}:refund`
-- **事务边界**：refund_record 创建 + order 状态更新 + package.booking_frozen 设置在同一事务；reserved 不在本 US 释放
+- **事务边界**：refund_record 创建 + order 状态更新 + package.status → frozen(refund_pending) + reserved 释放 + booking 取消在同一事务（PRD §3.6 / §6.3.1）
 - **性能要求**：退款申请接口 P99 < 300ms
 - **通知**：提交后立即通知管理员（微信订阅消息）与学员（短信）
-- **教练离职 100% 退款**：`package.frozen_reason = coach_resigned` 时，退款金额 = paid_amount（全额），不按剩余课时比例计算；提交退款后 package.status 由 frozen 转回 active（PRD §3.6）
-- **reserved 释放时机**：仅在 US-028 审批通过且 package.status → refunded 时释放 reserved，并触发 US-024 候补转正
+- **教练离职 100% 退款**：`package.frozen_reason = coach_resigned` 时，退款金额 = paid_amount（全额），不按剩余课时比例计算；提交退款后 package.status → frozen（refund_pending），并保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算（PRD §6.4.5）
+- **reserved 释放时机**：reserved 在本 US 释放（PRD §3.6 / §6.3.1），提交退款申请时立即释放 reserved_count → 0，自动取消已预约课程并触发 US-024 候补转正
 
 ---
 
@@ -316,6 +319,8 @@ And   返回 HTTP 201
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§3 前置条件对齐新状态集（含退款处理中、frozen 教练离职场景）；§6.3 场景 3 对齐 order.status 新状态；§4.2 分支 3 明确教练离职 frozen 可退 |
 | v1.2 | 2026-07-31 | PM | P1 修复：§6 增加教练离职 frozen 场景 100% 退款 GWT 场景；§7/§12 补充 frozen_reason 说明 |
 | v1.3 | 2026-07-31 | PM | P0 修复：package.status 在退款审批期间保持 active，通过 booking_frozen 冻结约课能力；§2/§3/§4/§6/§7/§12 同步调整 |
+| v1.4 | 2026-07-31 | PM | v7 评审 P0 修复：reserved 释放策略对齐 PRD §3.6 / §6.3.1，退款申请提交时立即释放 reserved 并取消已预约课程；package.status → frozen(refund_pending)（PRD §5.5.1.2） |
+| v1.5 | 2026-07-31 | PM | 半落地修复：清理 §4.1 step5 / §5 表 / §6.1 场景 1 / §7.3 状态机 / §8.4 边界场景 / §12 备注中残留的"保持 active / reserved 不释放"旧文本，全部对齐 PRD §3.6 v11.2（frozen(refund_pending) + 立即释放 reserved） |
 
 ---
 

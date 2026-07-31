@@ -59,7 +59,7 @@ And   HTTP 状态码 = 200
 
 ### Requirement: REQ-027-2 学员提交退款申请
 
-系统 MUST 提供 `POST /api/orders/{order_id}/refund` 接口接收学员退款申请。系统 MUST 在同一事务内创建 refund_record(status=待审批)、更新 order.status → 退款审批中、保持 package.status = active、设置 package.booking_frozen = true、保持 package.reserved_count 不变（reserved 课时将在 US-028 审批通过且 package.status 变为 refunded 时释放，并触发 US-024 候补转正）。系统 MUST 通过幂等键 `{user_id}:{order_id}:refund` 防止并发重复提交。系统 MUST 在提交成功后通知管理员与学员。当 `package.frozen_reason = coach_resigned` 时，退款金额 MUST 为 paid_amount 的 100% 全额退款；提交后 package.status MUST 由 frozen 转回 active（PRD §3.6），并保留 frozen_reason 用于金额判定。系统 SHALL 在 package 已退款、已冻结（非教练离职原因）、订单未支付或存在待处理退款时返回对应错误码并拒绝创建 refund_record。
+系统 MUST 提供 `POST /api/orders/{order_id}/refund` 接口接收学员退款申请。系统 MUST 在同一事务内创建 refund_record(status=待审批)、更新 order.status → 退款审批中、设置 package.status → frozen（frozen_reason='refund_pending'，PRD §3.6 / §5.5.1.2）、释放 package.reserved_count → 0、自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消，PRD §6.3.1）、触发 US-024 候补转正。系统 MUST 通过幂等键 `{user_id}:{order_id}:refund` 防止并发重复提交。系统 MUST 在提交成功后通知管理员与学员。当 `package.frozen_reason = coach_resigned` 时，退款金额 MUST 为 paid_amount 的 100% 全额退款；提交后 package.status MUST 转为 frozen(refund_pending)，并保留 frozen_reason 历史值为 coach_resigned 用于金额判定。系统 SHALL 在 package 已退款、已冻结（非教练离职原因）、订单未支付或存在待处理退款时返回对应错误码并拒绝创建 refund_record。
 
 #### Scenario: 正常提交退款申请
 
@@ -67,14 +67,16 @@ And   HTTP 状态码 = 200
 Given 学员已登录
 And   存在 order.status = 已支付，package.status = active
 And   package.total_hours = 10，consumed_count = 2，paid_amount = 180000 分
+And   package.reserved_count = 2（含 2 节已预约未上课程）
 And   无待处理退款申请
 When  学员提交 reason_type=2、reason_detail="时间冲突，无法继续学习"
 Then  系统创建 refund_record，status = 待审批
 And   refund_amount = 144000 分
 And   order.status = 退款审批中
-And   package.status = active
-And   package.booking_frozen = true
-And   package.reserved_count 保持不变
+And   package.status = frozen（frozen_reason='refund_pending'，PRD §5.5.1.2）
+And   package.reserved_count = 0（已释放，PRD §6.3.1）
+And   已预约课程 booking.status → 已取消（cancel_reason=1 学员取消）
+And   触发 US-024 候补转正
 And   通知管理员与学员
 And   HTTP 状态码 = 201
 And   响应体返回 refund_id 与 status="待审批"
@@ -114,8 +116,8 @@ When  学员再次提交退款申请
 Then  系统返回 HTTP 400，错误码 REFUND_IN_PROGRESS
 And   不创建新的 refund_record
 And   order.status 保持退款审批中
-And   package.status 保持 active
-And   package.booking_frozen 保持 true
+And   package.status 保持 frozen（refund_pending）
+And   package.reserved_count 保持 0
 ```
 
 #### Scenario: 教练离职 frozen 套餐 100% 退款
@@ -125,15 +127,15 @@ Given 学员已登录
 And   存在 order.status = 已支付，package.status = frozen
 And   package.frozen_reason = coach_resigned
 And   package.total_hours = 10，consumed_count = 2，paid_amount = 180000 分
+And   package.reserved_count = 0（教练离职时已释放，PRD §4.2.1）
 And   无待处理退款申请
 When  学员提交退款申请
 Then  系统创建 refund_record，status = 待审批
-And   refund_amount = 180000 分（100% 全额退款）
+And   refund_amount = 180000 分（100% 全额退款，PRD §6.4.5）
 And   order.status = 退款审批中
-And   package.status = active（由 frozen 转回，符合 PRD §3.6）
-And   package.booking_frozen = true
-And   package.frozen_reason 保持 coach_resigned
-And   package.reserved_count 保持不变
+And   package.status = frozen（frozen_reason='refund_pending'，PRD §5.5.1.2）
+And   package.frozen_reason 历史值保留为 coach_resigned（用于 100% 退款计算）
+And   package.reserved_count 保持 0
 And   通知管理员与学员
 And   HTTP 状态码 = 201
 ```

@@ -1,4 +1,4 @@
-# 【乐游】游泳约课系统 - 产品需求文档（v11 最终落档版）
+# 【乐游】游泳约课系统 - 产品需求文档（v11.2 最终落档版）
 
 ## 1. 项目概述
 
@@ -209,13 +209,13 @@
 | 订单状态 | package.status | 用户身份 | UI 文案 |
 |---------|---------------|---------|---------|
 | 已支付-正常 | active | 学员 | "当前有效套餐 N 节" |
-| 退款审批中 | active | 学员 | "退款处理中，预计 3-7 工作日到账" |
-| 争议退款处理中 | active | 学员 | "争议处理中，3 工作日内反馈结果" |
+| 退款审批中 | frozen（refund_pending） | 学员 | "退款处理中，预计 3-7 工作日到账" |
+| 争议退款处理中 | frozen（refund_pending） | 学员 | "争议处理中，3 工作日内反馈结果" |
 | 已退款 | refunded | 注册用户（如无其他 active 套餐）| "退款已到账，您的套餐已失效" |
-| 退款被拒 | active | 学员 | "退款未通过，原因为：{reason}" |
+| 退款被拒 | active（解冻恢复） | 学员 | "退款未通过，原因为：{reason}" |
 
 **关键约束**：
-- 退款申请提交后，package.status 仍为 active，**直到"已退款"才变**
+- 退款申请提交后，package.status 转为 `frozen`（`frozen_reason='refund_pending'`，冻结约课），**直到"已退款"才转为 `refunded` 终态**；若"退款被拒"则回 `active`
 - 中间状态身份保持"学员"（包未真退），但 UI **必须**显式提示"退款处理中"
 - **退款审批中 / 争议退款处理中 的订单，关联 package 冻结约课**：不可新增预约，已预约课程自动取消并释放课时
 - "已退款"触发时，身份重算（异步事件）
@@ -230,7 +230,7 @@
 | 教练离职 | coach.status 4→3 时：所有 active 套餐 → frozen（frozen_reason='coach_resigned'）；reserved→available；身份保持（学员）；学员端 [我的套餐] 可见 frozen 状态，列表/搜索中已离职教练完全不可见 | 学员可主动换新教练（v10 必经中转）或申请退款（100% 退）；不主动 push 通知学员 |
 | 单个套餐耗尽 | status: active → exhausted | 身份按"是否还有其他 active"判定 |
 | 套餐过期 | status: active/exhausted → expired | 定时任务触发 |
-| 退款完成 | status: active → refunded | 身份重算 |
+| 退款完成 | status: frozen（refund_pending）→ refunded | 身份重算 |
 
 ### 3.8 用户身份相关 Phase 标签汇总
 
@@ -2152,6 +2152,8 @@ GROUP BY package_type;
 | v10.1 | 2026-07-28 | 修复 P0/P1（exhausted、退款身份矩阵、教练切换中转等）|
 | v10.2 | 2026-07-28 | 规范化（v7 格式、Phase 标签、自包含）|
 | **v11** | **2026-07-28** | **完整 PRD 合并版（v7+v8+v9+v10 整合，70 条决策 + Phase 标签）** |
+| v11.1 | 2026-07-31 | §6.2.1/§6.2.2 订单状态机新增「8-退款处理中」中间态与两阶段退款时序 |
+| v11.2 | 2026-07-31 | §3.6 退款身份矩阵修正：退款审批中/争议退款处理中 package.status 从 `active` 改为 `frozen(refund_pending)`；关键约束 line 218 从「保持 active」改为「转为 frozen」；§3.7 退款完成从 `active→refunded` 改为 `frozen(refund_pending)→refunded`；消除内部矛盾，与 §3.7 教练离职 frozen 策略、US-027 修复后实现一致 |
 
 ---
 

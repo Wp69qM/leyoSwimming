@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-027 是退款闭环的入口。核心流程：学员在订单详情发起退款 → 资格检查（金额计算） → 提交申请 → 事务内创建 refund_record + order.status → 退款审批中 + package.status 保持 active + package.booking_frozen = true → 通知管理员（US-028 入口）与学员。
+US-027 是退款闭环的入口。核心流程：学员在订单详情发起退款 → 资格检查（金额计算） → 提交申请 → 事务内创建 refund_record + order.status → 退款审批中 + package.status → frozen(refund_pending) + 释放 reserved_count → 0 + 自动取消已预约课程 + 触发 US-024 候补转正 → 通知管理员（US-028 入口）与学员。
 
 ## Data Model
 
@@ -86,22 +86,23 @@ CREATE UNIQUE INDEX uk_refund_idempotent ON refund_record(order_id, status) WHER
 ### 业务规则
 
 - 退款金额 = `paid_amount × (total_hours - consumed_count) / total_hours`（PRD §6.4.2），向下取整到分
-- 教练离职场景：`package.status = frozen AND package.frozen_reason = coach_resigned` 时，退款金额 = `paid_amount`（100% 全额退款）；提交后 package.status 由 frozen 转回 active（PRD §3.6）
+- 教练离职场景：`package.status = frozen AND package.frozen_reason = coach_resigned` 时，退款金额 = `paid_amount`（100% 全额退款，PRD §6.4.5）；提交后 package.frozen_reason 转为 refund_pending，但历史值保留为 coach_resigned 用于金额计算
 - `package.status` 必须 ∈ {active, exhausted, expired}，或 = frozen 且 frozen_reason = coach_resigned；frozen 非教练离职原因时返回 `PACKAGE_FROZEN`
 - 已存在 `status=0`（待审批）的 refund_record → 返回 `REFUND_IN_PROGRESS`
-- 正常提交后 `package.status` 保持 active，`package.booking_frozen = true`
+- 提交后 `package.status` → frozen（frozen_reason='refund_pending'，PRD §5.5.1.2），释放全部 reserved_count → 0，自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消，PRD §6.3.1），触发 US-024 候补转正
 - `reason_type` 必须 ∈ {1, 2, 3}，否则返回 `INVALID_REASON_TYPE`
 
 ## State Machine
 
 ```
 order: 已支付 ──[学员提交退款]──→ 退款审批中
-package: active/exhausted/expired ──[学员提交退款]──→ active（保持），booking_frozen = true
-package: frozen(coach_resigned) ──[学员提交退款]──→ active，保留 frozen_reason，booking_frozen = true
+package: active/exhausted/expired ──[学员提交退款]──→ frozen(refund_pending)，reserved_count → 0，自动取消已预约课程
+package: frozen(coach_resigned) ──[学员提交退款]──→ frozen(refund_pending)，保留 frozen_reason 历史值为 coach_resigned，reserved_count → 0
+booking: 已预约 ──[学员提交退款触发]──→ 已取消（cancel_reason=1 学员取消）
 refund_record: (无) ──[学员提交]──→ 待审批
 ```
 
-转换在单一数据库事务内完成，保证四者原子性。
+转换在单一数据库事务内完成，保证五者原子性。
 
 ## Caching
 
@@ -123,7 +124,7 @@ refund_record: (无) ──[学员提交]──→ 待审批
 
 - **鉴权**：所有接口必须校验登录态 + 订单归属（`order.user_id == current_user.id`）
 - **幂等**：幂等键 `{user_id}:{order_id}:refund`，通过 Redis 分布式锁 + DB 部分唯一索引双重保障
-- **事务**：refund_record 创建 + order 状态更新 + package.booking_frozen 设置必须在同一事务，任一失败回滚；reserved 不在本 US 释放，由 US-028 在 package.status → refunded 时处理；package.status 保持 active
+- **事务**：reserved 释放 + booking 取消 + package.status → frozen(refund_pending) + refund_record 创建 + order 状态更新必须在同一事务（PRD §3.6 / §6.3.1），任一失败回滚
 - **金额校验**：服务端重新计算 refund_amount，不信任前端传入的金额
 - **输入校验**：`reason_type` 枚举校验，`reason_detail` 长度 ≤ 500
 - **限流**：单用户对同一订单的 refund/check 接口限流 10 次/分钟

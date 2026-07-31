@@ -2,7 +2,7 @@
 
 ### Requirement: REQ-001 Admin shall freeze an active package
 
-The system MUST allow an admin to freeze an active package, select a reason, release reserved hours, and cancel upcoming bookings.
+The system MUST allow an admin to freeze an active package, select a reason, release reserved hours, and cancel upcoming bookings. The system MUST only cancel bookings whose status is `已预约` or `待上课`（未上课）；bookings already completed / cancelled / marked absent are not affected.
 
 #### Scenario: Freeze active package successfully
 
@@ -12,7 +12,7 @@ The system MUST allow an admin to freeze an active package, select a reason, rel
 - **THEN** `package.status` is updated to `frozen`
 - **AND** `frozen_reason` is set to `admin_frozen`（v3 评审 P0-1 修复：对齐 PRD §5.5.1.2 VARCHAR(32) 统一枚举）
 - **AND** `reserved_count` becomes `0` and `available_count` becomes `5`
-- **AND** upcoming bookings are cancelled with `cancel_reason = 6`（套餐冻结）
+- **AND** upcoming bookings with status ∈ {已预约, 待上课} are cancelled with `cancel_reason = 6`（套餐冻结）；已完成 / 已取消 / 旷课的 booking 不受影响
 - **AND** one `audit_log` entry with `action = 'ADMIN_FREEZE_PACKAGE'` and `remark = "投诉处理中"` is created
 - **AND** the API returns HTTP 200 with message "套餐已冻结"
 

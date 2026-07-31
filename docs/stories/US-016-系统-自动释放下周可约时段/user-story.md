@@ -87,7 +87,7 @@ And   系统记录 release_log 1 条，generated_slots = 7
 
 ```gherkin
 Given release_rule.holiday_release_enabled = true
-And   holiday_release_offset_days = -6
+And   holiday_release_offset_days = -1
 And   下周一为法定节假日
 When  系统计算释放时间
 Then  释放任务于本周二 10:00 触发
@@ -282,6 +282,7 @@ And   release_log 记录 generated_slots 包含教练 D 的 7 条 slot
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | 对齐 US-015 v1.1：§6.2 场景 2 `holiday_release_offset_days` 由 -6 改为 -1（周三 -1 天 = 本周二，-6 实为上周二，与文案"提前至本周二 10:00"矛盾）；同步 openspec spec.md 对应 Scenario |
 
 ---
 

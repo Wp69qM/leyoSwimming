@@ -149,7 +149,9 @@ And   返回错误码 REFUND_AMOUNT_MISMATCH（与 US-028 §6.2 异常分支 2 �
 And   提示"退款金额异常，请核对"
 ```
 
-### 6.8 场景 8：管理员标记订单为争议退款并生成客服工单
+### 6.8 场景 8：管理员标记订单为争议退款并生成客服工单（不改变订单状态）
+
+> **区分说明**：本场景是「管理员侧标记异常」操作，仅生成 support_ticket 工单，**不改变订单状态**；与 PRD §6.10 的「用户提交特殊原因申诉进入争议退款处理中」是不同流程，后者由用户端发起并自动转换 order.status → 争议退款处理中（状态 5）。
 
 ```gherkin
 Given 管理员 M 已登录且具有订单管理权限
@@ -159,7 +161,7 @@ When  管理员 M 将订单 D-001 标记为争议退款并填写原因"学员对
 Then  系统返回 HTTP 200
 And   order.dispute_flag=true
 And   order.dispute_reason="学员对扣课时有异议"
-And   order.status 保持"已支付"不变
+And   order.status 保持"已支付"不变（本操作不改状态机，区别于 PRD §6.10 用户申诉）
 And   support_ticket 表新增 1 条记录，type=3（退款申诉），order_id=10001，status=0（pending）
 And   学员 U 收到争议标记通知
 ```

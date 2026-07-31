@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 管理员配置首页通知栏与 Banner
 
-系统 MUST 提供管理员配置首页通知栏与 Banner 的接口。系统 MUST 校验标题/名称非空、图片 URL 非空、有效期合法、可见范围合法；校验通过后写入 `notice` / `homepage_banner` 表并即时生效。
+系统 MUST 提供管理员配置首页通知栏与 Banner 的接口。系统 MUST 校验标题/名称非空、图片 URL 非空、有效期合法、可见范围合法；校验通过后写入 `notice` / `homepage_banner` 表并即时生效（PRD §5.5.5 #6 / D47：预览机制无需审核直接生效）。
 
 #### Scenario: 管理员配置通知栏与 Banner 并即时生效
 
@@ -73,22 +73,4 @@ When  管理员调用 POST /api/admin/homepage/notices
 Then  系统返回 HTTP 403
 And   返回错误码 FORBIDDEN
 And   notice 表不新增记录
-```
-
----
-
-### Requirement: REQ-004 首页运营内容安全审核
-
-系统 MUST 在管理员正式保存首页运营内容前进行内容安全审核（标题/正文文本审核、图片审核）。审核通过 MUST 写入业务表并生效；审核不通过 MUST 返回 HTTP 400 与错误码 `CONTENT_SECURITY_REJECTED`，且不写入业务表。预览操作 MUST 不触发内容安全审核。
-
-#### Scenario: 运营卡片内容安全审核不通过
-
-```gherkin
-Given 管理员已登录且具有首页运营权限
-And   内容安全审核服务判定标题"违规词测试"含敏感词
-When  管理员提交运营卡片：标题="违规词测试", 可见范围=all, 排序=1
-Then  系统返回 HTTP 400
-And   返回错误码 CONTENT_SECURITY_REJECTED
-And   提示"内容安全审核不通过：含敏感词"
-And   homepage_card 表不新增记录
 ```

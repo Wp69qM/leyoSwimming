@@ -48,7 +48,7 @@
 4. 系统弹出原因选择：投诉处理中 / 异常订单 / 司法冻结（均归入 admin_frozen 细分场景，明细记入 audit_log.remark）
 5. 管理员选择原因并确认
 6. 系统将 package.status 从 active 更新为 frozen，并写入 frozen_reason = `admin_frozen`（统一枚举，细分原因记录在 audit_log.remark）
-7. 系统释放该 package 的 reserved 课时（reserved→available）
+7. 系统取消该 package 下所有**未上课**的 booking（status ∈ {已预约, 待上课}），cancel_reason = 6（套餐冻结）；并释放该 package 的 reserved 课时（reserved→available）。已完成 / 已取消 / 旷课的 booking 不受影响
 8. 系统记录审计日志
 9. 返回冻结成功提示
 
@@ -316,6 +316,7 @@ And   package 状态保持 active 不变
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（6=套餐冻结）；§5 新增 cancel_reason 枚举说明 |
 | v1.2 | 2026-07-31 | PM | v3 评审 P0-1 修复：frozen_reason 对齐 PRD §5.5.1.2 统一枚举（coach_resigned/refund_pending/admin_frozen）；§6.1/§6.2 改为 `admin_frozen`；§5 新增 frozen_reason 枚举说明；§4.1 步骤 6 明确 frozen_reason 取值 |
+| v1.3 | 2026-07-31 | 开发 | P1-11 修复：§4.1 步骤 7 明确仅取消**未上课**的 booking（status ∈ {已预约, 待上课}），cancel_reason = 6（套餐冻结）；已完成 / 已取消 / 旷课的 booking 不受影响；同步 openspec spec.md REQ-001 |
 
 ---
 

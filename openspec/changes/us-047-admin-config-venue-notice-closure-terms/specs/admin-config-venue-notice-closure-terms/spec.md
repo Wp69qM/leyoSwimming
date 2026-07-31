@@ -39,7 +39,7 @@ And   游客端/学员端首页通知栏展示"暑期课程安排"
 
 ### Requirement: REQ-003 管理员设置闭馆并自动取消受影响预约
 
-系统 MUST 提供闭馆/换水设置接口。设置闭馆后 MUST 自动取消该日期内未上课的预约并释放课时，且 MUST 向学员与教练发送通知。
+系统 MUST 提供闭馆/换水设置接口。设置闭馆后 MUST 自动取消该日期内未上课的预约并释放课时，且 MUST 向学员与教练发送通知。异步取消任务 MUST 实现失败补偿：单条 booking 取消失败时自动重试最多 3 次（指数退避），仍失败则标记 `partial_failed` 并写入 `closure_task_failed` 表，供管理员人工介入。
 
 #### Scenario: 管理员设置闭馆并自动取消受影响预约
 
@@ -62,6 +62,18 @@ When  管理员再次设置 2026-08-01 闭馆
 Then  系统返回 HTTP 409
 And   返回错误码 CLOSURE_DATE_CONFLICT
 And   不新增重复闭馆记录
+```
+
+#### Scenario: 异步取消任务部分失败后补偿
+
+```gherkin
+Given 管理员已设置 2026-08-01 闭馆，异步任务包含 5 节 booking 取消
+And   其中 1 节 booking 因 DB 异常取消失败
+When  系统自动重试 3 次（间隔 1s/2s/4s）仍失败
+Then  系统将该 booking 写入 closure_task_failed 表，含 booking_id、fail_reason、retry_count=3
+And   任务整体状态置为 partial_failed
+And   其余 4 节 booking 取消成功并正常发送通知
+And   管理员后台「场馆运营 → 闭馆任务」可见该 partial_failed 记录，支持手动重试
 ```
 
 ---

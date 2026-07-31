@@ -57,7 +57,7 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 
 - **鉴权**：必须登录且为 booking 所有者
 - **可用状态**：仅允许 booking.status ∈ {待上课, 上课中}；status = 已预约 时返回 CHECKIN_WINDOW_NOT_OPEN
-- **签到窗口**：当前时间 ∈ [start_time - 15min, end_time]（即 status = 待上课 或 上课中）
+- **签到窗口**：当前时间 ∈ [start_time - 10min, end_time]（即 status = 待上课 或 上课中）
 - **Response 200**: `{ booking_id, checked_in_at }`
 - **Response 400**: `CHECKIN_WINDOW_NOT_OPEN | BOOKING_NOT_CHECKINABLE`
 - **Response 403**: `BOOKING_ACCESS_DENIED`
@@ -78,7 +78,7 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 ## 3. 业务规则
 
 - 签到仅允许 status ∈ {待上课, 上课中}，status = 已预约 时不可签到
-- 待上课状态定义为开课时间前 15 分钟至课程结束时间；该状态切换由系统状态机或定时任务负责（不在本 US 实现）
+- 待上课状态定义为开课时间前 10 分钟至课程结束时间；该状态切换由系统状态机或定时任务负责（不在本 US 实现）
 - 重复签到幂等返回，不重复发送通知
 
 ## 4. 状态机
@@ -126,3 +126,10 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 | 签到窗口未开放 | `test_checkin_window_not_open` |
 | 重复签到 | `test_checkin_idempotent` |
 | 查看空上课记录 | `test_record_empty_state` |
+
+## 附录：变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | 开发 | 初版 |
+| v1.1 | 2026-07-31 | 开发 | 同步 user-story v1.5：§2.1 签到窗口 `start_time - 15min` 改为 `start_time - 10min`；§3 业务规则"开课时间前 15 分钟"改为"开课时间前 10 分钟"（对齐 PRD §6.1.2） |

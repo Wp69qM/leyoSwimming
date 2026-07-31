@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-046 是管理员后台订单管理 US，核心提供订单查询与退款处理能力，涉及 order/package/refund_record 三张表的状态变更。
+US-046 是管理员后台订单管理 US，核心提供订单查询与退款处理能力，涉及 order/package/refund_record 三张表的状态变更。本 US 同时区分两个争议入口：用户侧申诉（PRD §6.10，进入「争议退款处理中」状态）与管理员侧标记异常（仅生成 support_ticket，不改变订单状态）。
 
 ## Data Model
 
@@ -69,6 +69,25 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 |----|-----|-----|---------|
 | Redis | `admin:orders:list:{hash}` | 60s | 订单状态变更时失效 |
 | Redis | `admin:order:{id}` | 120s | 订单变更时失效 |
+
+## State Machine
+
+```
+order.status:
+  已支付 ──[用户提交特殊原因申诉，PRD §6.10]──→ 争议退款处理中
+  争议退款处理中 ──[管理员批准退款]──→ 已退款（终态）
+  争议退款处理中 ──[管理员拒绝申诉]──→ 已支付
+  退款审批中 ──[管理员批准（阶段1受理）]──→ 退款处理中
+  退款处理中 ──[渠道退款成功回调（阶段2成功）]──→ 已退款（终态）
+  退款处理中 ──[渠道退款失败（阶段2失败）]──→ 退款审批中（回滚，重试队列）
+  退款审批中 ──[拒绝退款]──→ 退款被拒
+
+package.status:
+  frozen ──[渠道退款成功（阶段2成功）]──→ refunded
+  frozen ──[拒绝退款 或 渠道失败回滚]──→ active
+```
+
+> **争议退款处理中状态说明**：状态机图覆盖 PRD §6.2.2 状态 5「争议退款处理中」与 PRD §6.10 转换路径——用户提交特殊原因申诉时由「已支付」进入「争议退款处理中」，管理员批准则 → 已退款，管理员拒绝则 → 已支付。注意：管理员通过 `mark-dispute` 接口对退款审批中订单打 dispute_flag 不触发状态机转换，仅在 support_ticket 中记录申诉，订单仍保持退款审批中。
 
 ## Performance Targets
 

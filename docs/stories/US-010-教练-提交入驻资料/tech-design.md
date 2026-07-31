@@ -29,6 +29,7 @@
 | `bio` | TEXT | 可空 | 个人简介 |
 | `reference_price` | DECIMAL(10,2) | 非空 | 参考单价（元/节）|
 | `status` | TINYINT | 默认 0 | 0=待审核, 1=已通过, 2=驳回, 3=已离职, 4=申请离职中 |
+| `submitted_at` | DATETIME | 可空 | 教练正式提交审核时间；NULL 表示草稿未提交 |
 | `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
 
 **coach_certificate 表**
@@ -119,3 +120,12 @@
 
 - 为 US-011 提供待审核数据
 - 支撑 US-012/US-013/US-014 教练端功能
+
+---
+
+## 变更日志
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-07-30 | 初版 |
+| v1.1 | 2026-07-31 | P1-5 修复：§1.2 coach 表新增 `submitted_at`（DATETIME，可空）字段，区分正式提交审核时间与草稿保存；与 openspec/changes/us-010 的 design.md 保持一致（该字段已在 OpenSpec 映射层存在） |

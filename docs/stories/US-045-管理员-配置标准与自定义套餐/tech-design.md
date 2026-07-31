@@ -27,7 +27,7 @@
 |------|------|------|------|
 | `id` | BIGINT PK | AUTO_INCREMENT | 模板 ID |
 | `name` | VARCHAR(64) | UK, NOT NULL | 套餐名称 |
-| `coach_id` | BIGINT FK | IDX | 适用教练 |
+| `coach_id` | BIGINT FK | IDX | 适用教练（单一教练绑定，一个模板对应一个教练；非多选） |
 | `total_hours` | INT | CHECK > 0 | 课时数 |
 | `valid_days` | INT | CHECK > 0 | 有效期天数 |
 | `price` | DECIMAL(10,2) | CHECK >= 0 | 售价 |

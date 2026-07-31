@@ -79,7 +79,7 @@ CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 - 必须二次验证（密码或验证码）
 - 注销前校验无 active 套餐、无未完成订单
 - 记录审计日志（操作人、时间、IP、设备）
-- 注销后执行数据保留策略：课程记录保留 2 年、套餐/订单记录保留 5 年、个人身份信息脱敏
+- 注销后执行数据保留策略：订单/套餐历史保留 90 天后匿名化（PRD §3.7、§5.2.1、附录 D45）
 - 注销后所有 token 立即失效
 
 ## Cross-US Dependencies

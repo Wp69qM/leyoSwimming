@@ -14,19 +14,37 @@ The system MUST allow a coach with `coach.status = 1` to apply for resignation, 
 - **AND** the ticket lists all 3 active packages with remaining hours
 - **AND** the API returns HTTP 200 with message "离职申请已提交，请处理学员套餐"
 
-### Requirement: REQ-002 Coach shall confirm full refund for package on resignation ticket
+### Requirement: REQ-002 Coach shall register action for package on resignation ticket
 
-The system MUST require a coach to confirm a full refund decision for each active package on the resignation ticket. The system MUST persist the confirmation in `coach_resignation_action` with `action = 'refund'`. The system MUST create a `refund_record` with `refund_amount = unit_price × remaining_hours` (consumed hours are not refundable). When the coach submits the ticket to the admin queue, any active package without a confirmed refund MUST default to "refund" and generate a pending `refund_record`.
+The system MUST require a coach to register a processing action for each active package on the resignation ticket (PRD §5.4.7 three-way choice: transfer to new coach / full refund / continue remaining lessons). The system MUST persist the decision in `coach_resignation_action` with `action` ∈ {refund, transfer, continue}. When `action = refund`, the system MUST create a `refund_record` with `refund_amount = price_per_hour × (reserved_count + available_count)` (PRD §6.4.5, consumed hours are not refundable). When `action = transfer`, the system MUST require `target_coach_id` and not generate a refund_record. When `action = continue`, no refund_record is generated and no freeze is applied. When the coach submits the ticket to the admin queue, any active package without a registered action MUST default to "refund" and generate a pending `refund_record`.
 
-#### Scenario: Successful refund confirmation with auto-generated refund record
+#### Scenario: Successful refund action registration with auto-generated refund record
 
 - **GIVEN** coach C has a resignation ticket in "processing" status
-- **AND** student S's package P1 (active, 5 hours remaining, unit price 300 CNY) is in the ticket
-- **WHEN** coach C confirms "refund" for P1
+- **AND** student S's package P1 (active, reserved_count=2, available_count=3, price_per_hour=300 CNY) is in the ticket
+- **WHEN** coach C registers action="refund" for P1
 - **THEN** a `coach_resignation_action` record is created
 - **AND** `action = 'refund'`, `status = 'registered'`
-- **AND** a `refund_record` is created with `refund_amount = 1500` CNY
+- **AND** a `refund_record` is created with `refund_amount = 300 × (2 + 3) = 1500` CNY (PRD §6.4.5)
 - **AND** ticket progress is updated to "1 / 3 已确认"
+
+#### Scenario: Successful transfer action registration
+
+- **GIVEN** coach C has a resignation ticket in "processing" status
+- **AND** student S's package P1 (active) is in the ticket
+- **WHEN** coach C registers action="transfer" with target_coach_id=200 for P1
+- **THEN** a `coach_resignation_action` record is created with `action = 'transfer'`, `target_coach_id = 200`
+- **AND** no `refund_record` is created for P1
+- **AND** the actual coach change is deferred to US-041 approval
+
+#### Scenario: Successful continue action registration
+
+- **GIVEN** coach C has a resignation ticket in "processing" status
+- **AND** student S's package P1 (active) is in the ticket
+- **WHEN** coach C registers action="continue" for P1
+- **THEN** a `coach_resignation_action` record is created with `action = 'continue'`
+- **AND** no `refund_record` is created for P1
+- **AND** P1 will remain active after US-041 approval (no freeze, no refund)
 
 ### Requirement: REQ-003 System shall reject resignation application from non-approved coaches
 

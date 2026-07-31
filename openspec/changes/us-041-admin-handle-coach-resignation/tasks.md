@@ -14,15 +14,18 @@
 ## 3. Checklist Validation
 
 - [ ] 3.1 Validate active student count = 0 as an independent checklist item
-- [ ] 3.2 Validate all active packages have registered actions when active student count > 0 — maps to REQ-004 / Scenario: Approve blocked by unregistered package actions when active students exist
+- [ ] 3.2 Validate all active packages have registered actions (transfer / refund / continue, PRD §5.4.7 three-way choice) when active student count > 0 — maps to REQ-004 / Scenario: Approve blocked by unregistered package actions when active students exist
 - [ ] 3.3 Validate future schedule slots are cleared — maps to REQ-004 / Scenario: Approve blocked by uncleared schedule
 - [ ] 3.4 Validate settlement status (optional blocking based on policy)
 
 ## 4. Batch Updates
 
-- [ ] 4.0 Generate pending `refund_record` for any active package not registered as transfer/continue, with `refund_amount = unit_price × remaining_hours`
+- [ ] 4.0 Dispatch by action type (PRD §5.4.7 three-way choice):
+  - `action = refund`: generate pending `refund_record` with `refund_amount = price_per_hour × (reserved_count + available_count)` (PRD §6.4.5), move package to frozen(coach_resigned)
+  - `action = transfer`: update `package.coach_id` to new coach, package.status stays active
+  - `action = continue`: package.status stays active, no freeze, no refund
 - [ ] 4.1 Cancel future bookings with `cancel_reason = 2（教练离职）`
-- [ ] 4.2 Reset `package.reserved_count` and move active packages to frozen
+- [ ] 4.2 Reset `package.reserved_count` to 0 and increase `available_count` accordingly
 - [ ] 4.3 Hide future schedule slots
 - [ ] 4.4 Wrap coach.status, ticket, refund_record, booking, package, schedule_slot updates in one transaction
 

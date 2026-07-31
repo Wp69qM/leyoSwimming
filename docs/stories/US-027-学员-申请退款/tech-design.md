@@ -1,6 +1,6 @@
 # Tech Design: US-027 学员申请退款
 
-> **状态**：初稿　|　**最后更新**：2026-07-30
+> **状态**：初稿　|　**最后更新**：2026-07-31
 
 ---
 
@@ -11,8 +11,9 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `order` | 读/写 | 校验订单状态，更新为退款审批中 |
-| `package` | 读/写 | 校验套餐状态，保持 active，设置 booking_frozen = true |
+| `package` | 读/写 | 校验套餐状态，更新为 frozen(refund_pending)，释放 reserved_count → 0 |
 | `refund_record` | 写 | 新增退款申请记录 |
+| `booking` | 写 | 已预约 booking → 已取消（cancel_reason=1 学员取消） |
 | `notification` | 写 | 通知管理员与学员 |
 
 ### 1.2 refund_record 字段
@@ -79,7 +80,8 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 
 - 退款金额 = `paid_amount × (total_hours - consumed_count) / total_hours`（§6.4.2）
 - package.status 必须 ∈ {active, exhausted, expired}，或 = frozen 且 frozen_reason = coach_resigned；否则拒绝
-- 提交后 package.status 保持 active，package.booking_frozen = true
+- 提交后 package.status → frozen（frozen_reason='refund_pending'，PRD §5.5.1.2），立即释放 reserved_count → 0，自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消，PRD §6.3.1），触发 US-024 候补转正
+- 教练离职场景：保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算
 - 已存在 status=待审批 的 refund_record → 拒绝（REFUND_IN_PROGRESS）
 
 ---
@@ -88,8 +90,9 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 
 ```
 order: 已支付 ──[学员提交退款]──→ 退款审批中
-package: active/exhausted/expired ──[学员提交退款]──→ active（保持），booking_frozen = true
-package: frozen(coach_resigned) ──[学员提交退款]──→ active，保留 frozen_reason，booking_frozen = true
+package: active/exhausted/expired ──[学员提交退款]──→ frozen(refund_pending)，reserved_count → 0
+package: frozen(coach_resigned) ──[学员提交退款]──→ frozen(refund_pending)，保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算，reserved_count → 0
+booking: 已预约 ──[学员提交退款触发]──→ 已取消（cancel_reason=1 学员取消）
 refund_record: 无 ──[学员提交]──→ 待审批
 ```
 
@@ -116,7 +119,7 @@ refund_record: 无 ──[学员提交]──→ 待审批
 
 - 登录鉴权 + 订单归属校验（仅订单所属用户可申请）
 - 幂等键：`{user_id}:{order_id}:refund`
-- 事务包裹：refund_record + order + package.booking_frozen 设置在同一事务；reserved 不在本 US 释放，由 US-028 在 package.status → refunded 时处理；package.status 保持 active
+- 事务包裹：reserved 释放 + booking 取消 + package.status → frozen(refund_pending) + refund_record 创建 + order 状态更新在同一事务（PRD §3.6 / §6.3.1），任一失败回滚
 
 ---
 

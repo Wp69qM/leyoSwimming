@@ -52,7 +52,7 @@
 | `refund_id` | BIGINT PK | |
 | `package_id` | BIGINT FK | |
 | `ticket_id` | BIGINT FK | 关联离职工单 |
-| `refund_amount` | DECIMAL(10,2) | `单价 × 剩余课时`，已消耗课时不退 |
+| `refund_amount` | DECIMAL(10,2) | `price_per_hour × (reserved_count + available_count)`，已消耗课时不退（PRD §6.4.5） |
 | `status` | TINYINT | 0=pending, 1=approved, 2=rejected, 3=completed |
 | `created_at` | DATETIME | |
 | `updated_at` | DATETIME | |
@@ -183,3 +183,4 @@
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§5.4 booking 状态转换 cancel_reason 从字符串「教练离职」改为整型 `2`；删除「待支付」状态（待支付是 order 实体状态，非 booking 状态） |
+| v1.2 | 2026-07-31 | Dev | v7 评审 P0 修复：对齐 PRD §5.4.7 三选一（refund / transfer / continue）；退款公式对齐 PRD §6.4.5：`refund_amount = price_per_hour × (reserved_count + available_count)`；§2/§3.1/§4.3/§5.3/§5.4/§8 同步调整 |

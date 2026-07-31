@@ -29,7 +29,7 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 
 - 鉴权：必须登录且为 booking 所有者
 - 可用状态：仅允许 booking.status ∈ {待上课, 上课中}；status = 已预约 时返回 CHECKIN_WINDOW_NOT_OPEN
-- 签到窗口：当前时间 ∈ [start_time - 15min, end_time]
+- 签到窗口：当前时间 ∈ [start_time - 10min, end_time]（PRD §6.1.2）
 - Response 200: `{ booking_id, checked_in_at }`
 - Response 400: `CHECKIN_WINDOW_NOT_OPEN | BOOKING_NOT_CHECKINABLE`
 - Response 403: `BOOKING_ACCESS_DENIED`
@@ -50,7 +50,7 @@ CREATE INDEX idx_booking_checkin ON booking(user_id, checked_in_at);
 ## Business Rules
 
 - 签到仅允许 booking.status ∈ {待上课, 上课中}，status = 已预约 时不可签到
-- 待上课状态对应开课时间前 15 分钟至课程结束时间
+- 待上课状态对应开课时间前 10 分钟至课程结束时间
 - 重复签到幂等返回，不重复发送通知
 
 ## State Machine

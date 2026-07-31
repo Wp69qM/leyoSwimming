@@ -125,10 +125,11 @@ And   提示"请先购买并绑定教练"
 ```gherkin
 Given 学员已登录
 And   已成功预约明日 9:00
-When  学员再次提交同一时段预约
-Then  系统返回 HTTP 200
+When  学员再次提交同一时段预约（同 idempotency_key）
+Then  系统返回 HTTP 409，错误码 DUPLICATE_BOOKING
 And   不重复创建 booking
 And   package 课时不变
+And   响应体返回已存在的 booking_id
 ```
 
 ---
@@ -291,6 +292,7 @@ And   package 课时不变
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | v7 P0-B 修复：§6.5 重复提交场景 HTTP 状态码与 tech-design.md §2.3 统一为 `409 DUPLICATE_BOOKING`（原误写 HTTP 200），并补充响应体返回已存在 booking_id；同步 OpenSpec spec.md |
 
 ---
 

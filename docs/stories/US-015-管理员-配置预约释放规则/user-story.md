@@ -86,9 +86,10 @@ And   前端提示"保存成功，新规则将于下次释放时生效"
 ```gherkin
 Given 管理员已登录并拥有排班配置权限
 And   下周一为法定节假日且场馆闭馆
+And   当前默认释放日为周三 10:00
 When  管理员勾选"节假日提前释放"并将释放日期提前至本周二 10:00
 Then  release_rule.holiday_release_enabled = true
-And   release_rule.holiday_release_offset_days = -6
+And   release_rule.holiday_release_offset_days = -1
 And   系统生成首页公告草稿"下周预约将提前至本周二 10:00 开放"
 ```
 
@@ -279,6 +280,7 @@ And   release_rule 表数据不被修改
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | 开发 | P1-6 修复：§6.2 场景 2 修正 `holiday_release_offset_days = -6` → `-1`（周三 -1 天 = 本周二，原值 -6 实为上周二，与文案"提前至本周二 10:00"矛盾）；同步更新 tech-design.md §2.2 与 openspec spec.md 对应 Scenario |
 
 ---
 

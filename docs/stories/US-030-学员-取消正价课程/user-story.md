@@ -2,7 +2,7 @@
 
 > **状态**：[REVIEW]（评审中）
 > **优先级**：[MVP]
-> **估时**：1 人天
+> **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
 > **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
@@ -132,7 +132,23 @@ And   package 课时不变
 And   学员收到"取消申请已超时"通知
 ```
 
-### 6.5 场景 5：重复取消
+### 6.5 场景 5：<2h 特殊原因取消申诉（PRD §5.3.2 第9条 / §6.5.1 / §6.5.2）
+
+```gherkin
+Given 学员已登录
+And   存在 booking.status = 已预约，开课时间为今日 12:00
+And   当前时间为今日 10:30（距开课 1.5 小时，< 2h 阈值）
+And   学员此前已提交 24h 内取消申请，但被教练拒绝
+And   package.reserved_count = 1，available_count = 4
+When  学员在预约详情页点击「特殊原因申诉」并提交原因"突发疾病" + 上传医院证明
+Then  系统创建 dispute_refund.status = 争议退款处理中
+And   booking.status 保持已预约（不立即释放课时）
+And   package 课时暂不变
+And   系统通知管理员在 3 工作日内审核
+And   返回 HTTP 201
+```
+
+### 6.6 场景 6：重复取消
 
 ```gherkin
 Given booking.status = 已取消
@@ -219,9 +235,9 @@ And   不创建新的取消申请
 - [x] **I**ndependent（独立）- 依赖 US-029，但取消逻辑可独立交付
 - [x] **N**egotiable（可协商）- 原因选项、审批时长可协商
 - [x] **V**aluable（有价值）- 保障学员取消权益，减少客诉
-- [x] **E**stimable（可估算）- 1 人天明确
+- [x] **E**stimable（可估算）- 1.5 人天明确
 - [x] **S**mall（足够小）- 仅覆盖正常取消与教练审批
-- [x] **T**estable（可测试）- 5 个 GWT 场景可客观验证
+- [x] **T**estable（可测试）- 6 个 GWT 场景可客观验证
 
 ---
 
@@ -240,7 +256,7 @@ And   不创建新的取消申请
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 GWT
+- [x] 2 正常 + 4 异常 GWT（含 <2h 特殊原因申诉）
 - [x] 每个 Then 含具体数值/状态码/DB 字段值
 - [x] 业务规则可被验证
 

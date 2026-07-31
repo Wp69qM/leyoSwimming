@@ -50,7 +50,7 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 
 - **鉴权**：需登录
 - **Request**: `{ coach_id }`
-- **Response 201**: 订单 + 套餐信息
+- **Response 201**: 订单信息（不含 package，套餐在支付回调成功时创建）
 - **Response 400**: `TRIAL_PACKAGE_EXISTS` / `COACH_UNAVAILABLE`
 
 ### 2.2 POST /api/orders/{id}/pay
@@ -65,11 +65,11 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 
 ## 3. 状态机
 
-| 实体 | 转换 |
-|------|------|
-| `order` | 无 → 待支付 → 已支付 / 已取消 |
-| `package` | 无 → active |
-| `user` | 注册用户 → 学员 |
+| 实体 | 转换 | 触发条件 |
+|------|------|---------|
+| `order` | 无 → 待支付 → 已支付 / 已取消 | 提交订单 / 支付回调成功、超时取消 |
+| `package` | 无 → active | 支付回调成功（US-025），非订单创建时预创建 |
+| `user` | 注册用户 → 学员 | 支付回调成功（与套餐创建同一事务） |
 
 ## 4. 缓存
 
@@ -105,3 +105,10 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 | 已有体验套餐 | `test_trial_purchase_duplicate_rejected` |
 | 教练不可约 | `test_trial_purchase_coach_unavailable` |
 | 支付超时 | `test_trial_order_auto_cancel` |
+
+## 附录：变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | 开发 | 初版 |
+| v1.1 | 2026-07-31 | 开发 | 同步 user-story v1.1 P0 修复：§2.1 Response 201 由"订单+套餐信息"改为"订单信息（不含 package，套餐在支付回调成功时创建）"；§3 状态机 package 转换补充触发条件"支付回调成功（US-025），非订单创建时预创建"，user 转换补充"与套餐创建同一事务" |

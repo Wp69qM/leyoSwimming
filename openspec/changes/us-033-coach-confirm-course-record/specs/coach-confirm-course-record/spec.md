@@ -58,7 +58,7 @@ And   booking 与 package 均无变化
 
 ### Requirement: REQ-033-2 教练标记学员旷课并自动扣课时
 
-系统 MUST 允许对应 booking 的教练在课程结束后标记学员未到课。系统 MUST 将 booking.status 更新为旷课（cancel_reason = 3），将 package.reserved_count 转换为 consumed_count，并记录 audit_log。系统 MUST 拒绝课程未结束、booking 已终态或非本课程教练的操作。
+系统 MUST 允许对应 booking 的教练在课程结束后、24h 确认窗口内标记学员未到课。系统 MUST 将 booking.status 更新为旷课（cancel_reason = 3），将 package.reserved_count 转换为 consumed_count，并记录 audit_log。系统 MUST 拒绝课程未结束、booking 已终态（含 24h 超时系统自动确认后）、或非本课程教练的操作。
 
 #### Scenario: 教练标记学员旷课并自动扣课时
 
