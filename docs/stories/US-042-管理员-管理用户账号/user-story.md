@@ -282,15 +282,17 @@ And   user.phone 保持"13800138000"不变
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 用户账号列表页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-user-list` | 🔲 待设计填写 |
-| 2 | 用户详情/编辑页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-user-detail` | 🔲 待设计填写 |
-| 3 | 重置密码确认弹窗 frame node-id | `admin-user-detail:reset-password` | 🔲 待设计填写 |
+| 1 | 用户账号列表页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 用户详情/编辑页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 3 | 重置密码确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -339,6 +341,7 @@ And   user.phone 保持"13800138000"不变
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 

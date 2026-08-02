@@ -255,15 +255,17 @@ And   前端提示"无权查看该学员"
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 我的学员列表页 Figma file URL | `https://www.figma.com/file/leyoSwimming/coach-students` | 🔲 待设计填写 |
-| 2 | 学员详情/编辑页 Figma file URL | `https://www.figma.com/file/leyoSwimming/coach-student-detail` | 🔲 待设计填写 |
-| 3 | 未成年人监护人表单 frame node-id | `coach-student-detail:guardian-form` | 🔲 待设计填写 |
+| 1 | 我的学员列表页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 学员详情/编辑页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 3 | 未成年人监护人表单 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -313,6 +315,7 @@ And   前端提示"无权查看该学员"
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | P1 修复：§5 补充短信职责归属说明，明确监护人短信由 US-033 触发，本 US 仅维护字段 |
+| v1.2 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 

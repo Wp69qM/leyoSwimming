@@ -152,7 +152,7 @@ PRD 中仅按端做了分组，未在 §13.3 逐页命名：
 
 ### Step 2：设计负责人先填 L1 全局规范
 
-在把具体 US 交给设计师之前，先完善 [docs/spec/figma/README.md](../../../docs/spec/figma/README.md)：
+在把具体 US 交给设计师之前，先完善 [docs/figma/README.md](../../../docs/figma/README.md)：
 
 - 颜色 / 字体 / 间距 Token
 - 组件库来源与引用方式
@@ -189,7 +189,7 @@ PRD 中仅按端做了分组，未在 §13.3 逐页命名：
 | 文件 | 用途 | 是否必须 |
 |------|------|---------|
 | `docs/prd/prd.md` | 理解全局业务与页面清单 | ✅ |
-| `docs/spec/figma/README.md` | 全局设计系统、Token、组件、徽标 | ✅ |
+| `docs/figma/README.md` | 全局设计系统、Token、组件、徽标 | ✅ |
 | `docs/spec/user-story/INDEX.md` | 了解 US 分组、依赖、状态机 | ✅ |
 | `docs/stories/US-XXX-.../user-story.md` | **核心输入**：业务目标、触发条件、流程、GWT、页面级设计决策 | ✅ |
 | `docs/stories/US-XXX-.../tech-design.md` | 辅助参考数据字段、状态值 | 可选 |
@@ -218,7 +218,7 @@ PRD 中仅按端做了分组，未在 §13.3 逐页命名：
 
 ```
 docs/prd/prd.md
-docs/spec/figma/README.md
+docs/figma/README.md
 docs/spec/user-story/INDEX.md
 docs/spec/user-story/SPECIFICATION.md
 docs/spec/user-story/TEMPLATE.md

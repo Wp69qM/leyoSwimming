@@ -279,15 +279,17 @@ And   coach.status 保持 4
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 离职审批队列页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-resignation-queue` | 🔲 待设计填写 |
-| 2 | 离职工单详情页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-resignation-detail` | 🔲 待设计填写 |
-| 3 | 审批通过/拒绝确认弹窗 frame node-id | `admin-resignation-detail:approve-modal` | 🔲 待设计填写 |
+| 1 | 离职审批队列页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 离职工单详情页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 3 | 审批通过/拒绝确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -340,6 +342,7 @@ And   coach.status 保持 4
 | v1.1 | 2026-07-31 | PM | P1 修复：§5 统一 `frozen_reason` 为字符串类型（与 PRD §3.7 数据模型定义一致），明确 PRD §5.5.1.1 line 605 整型写法为笔误；补充字段枚举值 |
 | v1.2 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（2=教练离职） |
 | v1.3 | 2026-07-31 | PM | v7 评审 P0 修复：对齐 PRD §5.4.7 三选一（转新教练 / 全额退款 / 继续上完）；退款公式对齐 PRD §6.4.5：`refund_amount = price_per_hour × (reserved_count + available_count)`；§4.1/§6.1/§7.1/§7.3/§12 同步调整 |
+| v1.4 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 

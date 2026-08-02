@@ -368,7 +368,7 @@ async function loginWithWechat(code: string) {
 
 - **用户故事**：[./user-story.md](./user-story.md)（业务需求 + GWT + Figma 章节）
 - **测试计划**：[./test-plan.md](./test-plan.md)（TDD 任务清单）
-- **全局设计规范**：[../../spec/figma/README.md](../../spec/figma/README.md)
+- **全局设计规范**：[../../figma/README.md](../../figma/README.md)
 - **测试计划规范**：[../../spec/test-plan/README.md](../../spec/test-plan/README.md)
 - **PRD §4 用户身份状态机**：[../../prd/prd.md](../../prd/prd.md)
 - **PRD §5.2.1 注册登录**：[../../prd/prd.md](../../prd/prd.md)

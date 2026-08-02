@@ -230,7 +230,7 @@ Then  {{用户可见的异常处理 + 文案}}
 
 ## 13. Figma 链接
 
-> 提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/spec/figma/README.md](../figma/README.md)。
+> 提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|

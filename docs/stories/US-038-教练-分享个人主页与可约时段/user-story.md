@@ -239,15 +239,17 @@ And   提供返回首页按钮
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 教练主页分享入口 Figma file URL | `https://www.figma.com/file/leyoSwimming/coach-profile-share` | 🔲 待设计填写 |
-| 2 | 分享卡片/海报 frame node-id | `coach-profile-share:card` | 🔲 待设计填写 |
-| 3 | 游客落地页 Figma file URL | `https://www.figma.com/file/leyoSwimming/coach-share-landing` | 🔲 待设计填写 |
+| 1 | 教练主页分享入口 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 分享卡片/海报 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
+| 3 | 游客落地页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -296,6 +298,7 @@ And   提供返回首页按钮
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 

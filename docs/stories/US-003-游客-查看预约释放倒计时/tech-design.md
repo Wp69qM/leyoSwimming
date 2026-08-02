@@ -271,7 +271,7 @@ manual_override_at（由 US-015 维护）
 
 - **用户故事**：[./user-story.md](./user-story.md)（业务需求 + GWT + Figma 章节）
 - **测试计划**：[./test-plan.md](./test-plan.md)（TDD 任务清单）
-- **全局设计规范**：[../../spec/figma/README.md](../../spec/figma/README.md)
+- **全局设计规范**：[../../figma/README.md](../../figma/README.md)
 - **测试计划规范**：[../../spec/test-plan/README.md](../../spec/test-plan/README.md)
 - **依赖 PRD 章节**：[§5.1 第 5 条](../../../prd/prd.md)、[§5.3.2 第 3-4 条](../../../prd/prd.md)、[§5.5.2 第 5 条](../../../prd/prd.md)
 

@@ -2,8 +2,8 @@
 
 > **本文档性质**：Figma 设计任务分包清单，按「端 → 流程 → 页面」把 50 个 US 拆成 19 个设计批次，每批明确 US、页面、依赖、Figma Frame 路径与交付要求。
 > **配套文档**：
-> - Figma 文件组织规范：[docs/spec/figma/figma-frame-organization.md](./figma-frame-organization.md)
-> - L1 全局设计系统：[docs/spec/figma/README.md](./README.md)
+> - Figma 文件组织规范：[docs/figma/figma-frame-organization.md](./figma-frame-organization.md)
+> - L1 全局设计系统：[docs/figma/README.md](./README.md)
 > - US 清单与依赖：[docs/spec/user-story/INDEX.md](../user-story/INDEX.md)
 > **最后更新**：2026-07-31
 > **状态**：🟡 初版待审阅
@@ -549,8 +549,8 @@
 | 文件 | 用途 | 是否必须 |
 |------|------|---------|
 | `docs/prd/prd.md` | 理解全局业务与页面清单 | ✅ |
-| `docs/spec/figma/README.md` | 全局设计系统、Token、组件、徽标、文案 | ✅ |
-| `docs/spec/figma/figma-frame-organization.md` | Figma 文件组织与 Frame 命名规范 | ✅ |
+| `docs/figma/README.md` | 全局设计系统、Token、组件、徽标、文案 | ✅ |
+| `docs/figma/figma-frame-organization.md` | Figma 文件组织与 Frame 命名规范 | ✅ |
 | `docs/spec/user-story/INDEX.md` | 了解 US 分组、依赖、状态机 | ✅ |
 | 本批次对应的 `docs/stories/US-XXX-.../user-story.md` | 业务目标、触发条件、流程、GWT、页面级设计决策 | ✅ |
 | 本批次对应的 `docs/stories/US-XXX-.../tech-design.md` | 辅助参考数据字段、状态值 | 可选 |

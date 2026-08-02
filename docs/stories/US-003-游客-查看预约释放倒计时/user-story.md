@@ -18,7 +18,7 @@
 | **业务价值（Why）** | 让游客在首页直观感知下周可约时段的释放时间，引导其在释放时刻抢约心仪教练，提升预约转化率与用户黏性 |
 | **优先级** | [MVP] |
 | **估时** | 0.5 人天 |
-| **配套文档** | [技术设计文档](./tech-design.md)　·　[测试计划](./test-plan.md)　·　[全局设计规范](../../spec/figma/README.md) |
+| **配套文档** | [技术设计文档](./tech-design.md)　·　[测试计划](./test-plan.md)　·　[全局设计规范](../../figma/README.md) |
 
 ---
 
@@ -229,7 +229,7 @@ And   后端记录一条 WARN 日志"release_rule not configured or disabled"
 
 ## 13. Figma 链接
 
-> 本节提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> 本节提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
@@ -240,9 +240,11 @@ And   后端记录一条 WARN 日志"release_rule not configured or disabled"
 
 ### 13.1 状态截图清单
 
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
+
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
-| **首页倒计时组件** | 🔲（隐藏，等同空状态） | 🔲（骨架屏） | 🔲（隐藏 + 后台告警） | 🔲（倒计时数字滚动） | 4 态模板引用 [全局规范 §4](../../spec/figma/README.md) |
+| **首页倒计时组件** | 🔲（隐藏，等同空状态） | 🔲（骨架屏） | 🔲（隐藏 + 后台告警） | 🔲（倒计时数字滚动） | 4 态模板引用 [全局规范 §4](../../figma/README.md) |
 
 ---
 

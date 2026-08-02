@@ -260,14 +260,16 @@ And   package 状态保持 active 不变
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 套餐管理列表页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-package-list` | 🔲 待设计填写 |
-| 2 | 冻结/解冻确认弹窗 frame node-id | `admin-package-list:freeze-modal` | 🔲 待设计填写 |
+| 1 | 套餐管理列表页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 冻结/解冻确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -317,6 +319,7 @@ And   package 状态保持 active 不变
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（6=套餐冻结）；§5 新增 cancel_reason 枚举说明 |
 | v1.2 | 2026-07-31 | PM | v3 评审 P0-1 修复：frozen_reason 对齐 PRD §5.5.1.2 统一枚举（coach_resigned/refund_pending/admin_frozen）；§6.1/§6.2 改为 `admin_frozen`；§5 新增 frozen_reason 枚举说明；§4.1 步骤 6 明确 frozen_reason 取值 |
 | v1.3 | 2026-07-31 | 开发 | P1-11 修复：§4.1 步骤 7 明确仅取消**未上课**的 booking（status ∈ {已预约, 待上课}），cancel_reason = 6（套餐冻结）；已完成 / 已取消 / 旷课的 booking 不受影响；同步 openspec spec.md REQ-001 |
+| v1.4 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 

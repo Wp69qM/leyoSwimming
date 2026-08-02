@@ -2,9 +2,9 @@
 
 > **本文档性质**：L1.5 层 Figma 交付规范，定义 Figma 文件如何按「端 → 流程 → 页面 → 状态」组织，以及 Frame 命名、四态模板、交付物要求。所有 US 共享。
 > **配套文档**：
-> - L1 全局设计系统：[docs/spec/figma/README.md](./README.md)（Token / 组件库 / 徽标 / 文案）
+> - L1 全局设计系统：[docs/figma/README.md](./README.md)（Token / 组件库 / 徽标 / 文案）
 > - L2 故事级设计决策：`docs/stories/US-XXX-.../user-story.md` §13-15
-> - US 分批交割清单：[docs/spec/figma/us-batch-handoff.md](./us-batch-handoff.md)
+> - US 分批交割清单：[docs/figma/us-batch-handoff.md](./us-batch-handoff.md)
 > **最后更新**：2026-07-31
 > **状态**：🟡 初版待审阅
 
@@ -165,11 +165,44 @@ Section 对应「流程」，命名规则：
 
 > 管理端部分页面可合并（如套餐配置与套餐冻结/解冻、场馆/公告/闭馆换水配置），但 PRD 按 20 页规划，设计阶段可与 PM 确认是否精简。
 
+### 3.4 TabBar 页面清单（含底部标签栏的页面）
+
+> **规则**：TabBar 仅在 Tab 首页显示，二级页面（详情、表单、列表）不显示。详见 [README.md §2.5.7](./README.md)。
+> **TabBar 高度**：83px（内容 49px + 安全区 34px），含 TabBar 的页面内容区底部必须留 83px 空白。
+
+#### 用户端小程序（4 个 Tab）
+
+| Tab 序号 | Tab 名称 | 图标 | 对应 PRD 页面 | Frame 名 |
+|---------|---------|------|--------------|----------|
+| 1 | 首页 | home | PRD 2 首页 | `U-首页` |
+| 2 | 教练 | search/users | PRD 6 教练列表页 | `U-教练列表页` |
+| 3 | 预约 | calendar | PRD 18 我的预约页 | `U-我的预约页` |
+| 4 | 我的 | user | 🔲 个人中心页（PRD 未独立列出，建议从账号安全/我的套餐聚合） | `U-我的页` |
+
+> **说明**：用户端"我的"Tab 在 PRD 55 页中未独立列出，建议新增"个人中心页"聚合我的套餐（US-021）、订单（US-026）、账号安全（US-008）等入口。需 PM 确认是否补充 PRD 页面编号。
+
+#### 教练端小程序（4 个 Tab）
+
+| Tab 序号 | Tab 名称 | 图标 | 对应 PRD 页面 | Frame 名 |
+|---------|---------|------|--------------|----------|
+| 1 | 工作台 | grid | PRD 22 教练端首页/工作台 | `C-教练端首页` |
+| 2 | 排班 | calendar | PRD 35 预约/排班查看页 | `C-预约排班查看页` |
+| 3 | 学员 | users | PRD 28 我的学员列表页 | `C-我的学员列表页` |
+| 4 | 我的 | user | PRD 25 个人主页编辑页（或聚合工作台入口） | `C-我的页` |
+
+#### 不含 TabBar 的页面
+
+所有二级页面（详情页、表单页、填写页、支付页、登录页、授权页、弹窗页）均**不含** TabBar，由 NavBar 返回按钮回退。完整清单见 [us-batch-handoff.md](./us-batch-handoff.md)。
+
+#### 启动页特殊规则
+
+启动页（PRD 1）是全屏页，**不含 NavBar 和 TabBar**，使用 `gradient-water` 渐变背景 + 居中 logo，2 秒后自动跳转首页。
+
 ---
 
 ## 4. 四态模板规范
 
-所有页面 Frame 必须包含 4 个状态子 Frame。四态定义继承自 [docs/spec/figma/README.md](./README.md) §4，本节补充 Frame 布局与截图规范。
+所有页面 Frame 必须包含 4 个状态子 Frame。四态定义继承自 [docs/figma/README.md](./README.md) §4，本节补充 Frame 布局与截图规范。
 
 | 状态 | 触发条件 | 截图要点 | 命名后缀 |
 |------|---------|---------|---------|

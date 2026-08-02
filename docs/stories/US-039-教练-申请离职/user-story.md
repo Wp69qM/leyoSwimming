@@ -256,15 +256,17 @@ And   coach_resignation_action 表不写入记录
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 申请离职入口页 Figma file URL | `https://www.figma.com/file/leyoSwimming/coach-resignation` | 🔲 待设计填写 |
-| 2 | 离职工单处理页 Figma file URL | `https://www.figma.com/file/leyoSwimming/coach-resignation-ticket` | 🔲 待设计填写 |
-| 3 | 学员套餐处理表单 frame node-id | `coach-resignation-ticket:action-form` | 🔲 待设计填写 |
+| 1 | 申请离职入口页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 离职工单处理页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 3 | 学员套餐处理表单 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -317,6 +319,7 @@ And   coach_resignation_action 表不写入记录
 | v1.2 | 2026-07-31 | PM | v7 评审 P0 修复（联动 US-041）：§14.2 工单处理选项由「仅全额退款」改为「PRD §5.4.7 三选一」（转新教练 / 全额退款 / 继续上完） |
 | v1.3 | 2026-07-31 | Dev | 半落地修复 tech-design：删除残留的 §4.5 cancel API（与 §8.1「MVP 不支持自行撤销」一致）；§8 安全改为「action 支持 refund/transfer/continue 三选一（PRD §5.4.7）」；§10 测试映射移除「撤销申请」用例；OpenSpec design.md 同步清理 Non-Goals / Risks 中与三选一矛盾的旧文本 |
 | v1.4 | 2026-07-31 | Dev | v8 评审半落地修复：§14.2 结论从「选择 B 强制 100% 退款」改为「选择 A 三选一」，与 v1.2 变更日志声明一致 |
+| v1.5 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 

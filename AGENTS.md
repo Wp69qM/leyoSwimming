@@ -20,7 +20,7 @@ AI Agent 首次进入本项目时，**必须**读取以下文件：
 | 3 | `docs/spec/user-story/SPECIFICATION.md` | US 拆分规范（15 章硬约束） |
 | 4 | `docs/spec/user-story/TEMPLATE.md` | US 模板（复制后填写） |
 | 5 | `docs/spec/user-story/INDEX.md` | US 注册表（50 个 US 清单） |
-| 6 | `docs/spec/figma/README.md` | 全局设计系统规范 |
+| 6 | `docs/figma/README.md` | 全局设计系统规范 |
 
 ### 0.2 Skills 触发规则（强制）
 
@@ -270,8 +270,8 @@ leyoSwimming/
 │   ├── spec/                     # 规范类文档
 │   │   ├── user-story/           #   US 规范（INDEX / SPECIFICATION / TEMPLATE / EXAMPLE）
 │   │   ├── tech-design/          #   技术设计规范
-│   │   ├── test-plan/            #   测试计划规范
-│   │   └── figma/                #   全局设计系统规范
+│   │   └── test-plan/            #   测试计划规范
+│   ├── figma/                    # 全局设计系统规范（L1 + L1.5 + L2 交割清单）
 │   ├── stories/                  # US 库（每个 US = 1 个子目录，3 件套）
 │   │   └── US-XXX-.../
 │   │       ├── user-story.md     #   业务 GWT + Figma 链接 + 设计决策

@@ -270,15 +270,17 @@ And   schedule_slot 不发生变更
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/spec/figma/README.md](../../spec/figma/README.md)。
+> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 教练排班管理页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-schedule-management` | 🔲 待设计填写 |
-| 2 | 请假审批队列页 Figma file URL | `https://www.figma.com/file/leyoSwimming/admin-leave-approval` | 🔲 待设计填写 |
-| 3 | 排班编辑弹窗 frame node-id | `admin-schedule-management:slot-editor` | 🔲 待设计填写 |
+| 1 | 教练排班管理页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 2 | 请假审批队列页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 3 | 排班编辑弹窗 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
 
 ### 13.1 状态截图清单
+
+> **四态要求**：每个页面必须设计空/加载/错误/成功四种状态。具体样式由设计师根据 [Figma 设计规范](../../figma/README.md) §0.5 主题与 §4 四态模板决定，不在本节指定。
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
@@ -329,6 +331,7 @@ And   schedule_slot 不发生变更
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：booking.cancel_reason 统一为整型（5=教练请假）；§5 新增 cancel_reason 枚举说明 |
 | v1.3 | 2026-07-31 | PM | 修复 §4.2 步骤 6 与 §6.1 场景 1 不一致：schedule_slot 处理由"标记为 hidden 或删除"统一为"标记为 disabled（不物理删除，便于复用）" |
+| v1.4 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 
 ---
 
