@@ -130,6 +130,7 @@ def main():
             ("页面规格-C-入驻资料填写页", "docs/figma/page-spec/C-application-page.md"),
             ("页面规格-C-入驻提交成功页", "docs/figma/page-spec/C-application-success-page.md"),
             ("页面规格-C-重新入驻页", "docs/figma/page-spec/C-reapply-page.md"),
+            ("页面规格-C-微信授权页", "docs/figma/page-spec/C-wechat-auth-page.md"),
             ("页面规格-C-教练端首页", "docs/figma/page-spec/C-coach-home-page.md"),
             ("页面规格-C-预约管理页", "docs/figma/page-spec/C-booking-management-page.md"),
             ("页面规格-C-上课记录确认页", "docs/figma/page-spec/C-class-confirm-page.md"),
