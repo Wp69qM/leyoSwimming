@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 隐私协议同意
 
-系统 MUST 提供 `POST /api/user/privacy/consent` 接口，供已登录用户提交隐私协议同意；游客调用 MUST 返回 `401 UNAUTHORIZED`。系统 MUST 记录 `user_privacy_consent.version`、`agreed_at`、`status='agreed'`。系统 MUST 比对用户最近一次同意的协议版本号与当前生效版本号；若版本号发生变化，触发重新授权流程。系统 MUST 在首次注册/协议版本更新后强制用户同意，否则阻止进入首页。系统 MUST 对同一版本的重复同意做幂等处理。
+系统 MUST 提供 `POST /api/user/privacy/consent` 接口，供已登录用户/教练提交隐私协议同意；游客调用 MUST 返回 `401 UNAUTHORIZED`。系统 MUST 记录 `user_privacy_consent.version`、`agreed_at`、`status='agreed'`。系统 MUST 比对用户/教练最近一次同意的协议版本号与当前生效版本号；若版本号发生变化，触发重新授权流程。系统 MUST 在首次注册/首次登录教练端/协议版本更新后强制用户/教练同意，否则阻止进入首页或教练端目标页面。系统 MUST 对同一版本的重复同意做幂等处理。本 Requirement 适用于用户端与教练端；教练端首次登录后需先完成本 US 授权，再进入 US-051 的 `redirect_page` 目标页面。
 
 #### Scenario: 正常同意隐私协议
 
@@ -19,6 +19,19 @@ Then  系统记录 user_privacy_consent.version = 'v2.0'
 And   user_privacy_consent.agreed_at 为当前时间
 And   user_privacy_consent.status = 'agreed'
 And   用户可继续进入首页
+```
+
+#### Scenario: 教练端首次登录同意隐私协议
+
+```gherkin
+Given 教练已完成 US-051 微信授权登录且未同意过隐私协议
+And   当前隐私协议版本为 v2.0
+When  教练阅读并勾选「我已阅读并同意《隐私协议》」
+And   教练点击「同意」
+Then  系统记录 user_privacy_consent.version = 'v2.0'
+And   user_privacy_consent.agreed_at 为当前时间
+And   user_privacy_consent.status = 'agreed'
+And   教练按 US-051 的 redirect_page 进入目标页面
 ```
 
 #### Scenario: 不同意隐私协议

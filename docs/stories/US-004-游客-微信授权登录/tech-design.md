@@ -100,6 +100,7 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 | `code` | string | 是 | `wx.login()` 返回的临时登录凭证，5 分钟内有效，仅可使用一次 |
 | `encryptedData` | string | 否 | 完整用户信息的加密数据（可选，本 US 不强制要求） |
 | `iv` | string | 否 | 加密算法的初始向量（与 encryptedData 配套） |
+| `app_type` | string | 否 | 应用类型，枚举：`user`（默认）/ `coach`；`coach` 由 US-051 扩展使用，本 US 响应不变 |
 
 **Response 200**
 
@@ -151,7 +152,10 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 ```
 
 **业务规则**
+> **US-051 扩展说明**：US-051 扩展了本接口以支持 `app_type=coach`，但 `app_type=user` 或缺失时响应格式与本 US 完全一致。`coach_status` 与 `redirect_page` 字段仅在 `app_type=coach` 时返回，详见 US-051 技术设计文档。
+
 - `code` 调用 `code2session` 失败时按 errcode 区分：`40029` → 401，`45011` → 502（频率限制），其他 → 502
+- `app_type` 非法值 → 400 `VALIDATION_ERROR`（US-051 扩展的校验）
 - `union_id` 命中已有 `status=0` 用户 → 复用，`isNewUser=false`
 - `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，`profile_completed=false`，`isNewUser=true`
 - `union_id` 命中已有 `status=1` 用户 → 按 PRD §5.2.1 第 4 条，新建账号，不绑定原数据
@@ -322,6 +326,8 @@ async function loginWithWechat(code: string) {
 
 ## 9. 跨 US 依赖
 
+> **扩展依赖**：US-051 扩展了本接口以支持教练端登录，但 US-004 本身不依赖 US-051。
+
 | US | 依赖方向 | 说明 |
 |----|---------|------|
 | US-005 | 依赖本 US | 用户补充资料：本 US 创建用户记录并置 `profile_completed=false`，US-005 完成后置 `true` |
@@ -331,6 +337,7 @@ async function loginWithWechat(code: string) {
 | US-009 | 依赖本 US | 隐私协议授权：依赖已登录态 |
 | US-017 | 依赖本 US | 购买体验课：需先完成登录 |
 | US-020 | 依赖本 US | 购买正价套餐：触发 注册用户→学员 状态转换 |
+| US-051 | 扩展本 US | 教练端微信授权登录：扩展 `POST /auth/wechat-login` 接口，新增 `app_type=coach` 分支 |
 
 ---
 
@@ -381,3 +388,4 @@ async function loginWithWechat(code: string) {
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：数据模型 / API / 状态机 / 微信 OAuth 流程 / JWT / 缓存 / 性能 / 安全 / 跨 US 依赖 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：user.status 字段类型统一为整型 TINYINT（0=正常/1=软删除/2=封禁），对齐 PRD §9.2.1 |
+| v1.2 | 2026-08-03 | Dev | 增加 US-051 扩展说明：`POST /auth/wechat-login` 支持 `app_type=coach`，`app_type=user`（默认）时响应格式不变 |

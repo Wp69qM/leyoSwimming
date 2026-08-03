@@ -12,6 +12,8 @@
 
 **Spec coverage:** REQ-001 Scenario "正常提交入驻资料"
 
+> **前置依赖**：本 US 依赖 US-051（教练端微信授权登录）与 US-009（隐私协议授权）；测试用例需假设教练已完成登录并同意隐私协议。
+
 - [ ] **RED:** Write 2 failing tests — 已登录教练提交完整资料返回 200，`coach.status=0`；未登录返回 401
 - [ ] **GREEN:** Implement `POST /api/coach/application` controller skeleton with route and auth
 - [ ] **COMMIT:** `feat(coach): add application submission endpoint skeleton`
