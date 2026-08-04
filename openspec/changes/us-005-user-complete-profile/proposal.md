@@ -1,35 +1,29 @@
-## Why
+> **OpenSpec Proposal | 映射自 `docs/stories/US-005-用户-完善个人资料/user-story.md` §1-§5**
 
-用户补充注册资料是微信授权登录（US-004）后完善用户档案的关键步骤。当前用户首次微信登录后已由 US-004 创建用户记录并置 `identity_status='注册用户'`、`profile_completed=false`，但缺少手机号、用户名、密码等核心资料。本 US 在身份已为「注册用户」的基础上，完成 `profile_completed: false → true` 的资料完整化转换，使用户可使用需要完整资料的业务功能（账号安全、购课约课）。
+## 背景与目标
 
-PRD [§5.2.1](../../../docs/prd/prd.md) 要求微信授权登录后首次登录需补充手机号、用户名、密码、邮箱；[§11.2](../../../docs/prd/prd.md) 要求首次注册需用户同意隐私协议，明确告知数据用途。
+用户首次使用微信授权登录或手机号验证码登录后，系统已获取手机号并创建 `user` 记录，但资料状态为 `profile_completed=false`。用户需要在此页完善头像、姓名、年龄、性别等学员档案，才能进入首页使用核心功能。此外，用户也可在「我的 → 个人资料」中随时编辑这些资料。
 
-## What Changes
+## 范围
 
-- 新增 `PUT /api/user/profile` 接口（补充/更新用户资料，设置 `profile_completed = true`）
-- 新增 `GET /api/user/phone/exists` 接口（校验手机号是否已注册）
-- 修改 `user` 表：补充 `phone`、`username`、`password_hash`、`email`、`profile_completed = true`、`status`
-- 新增 Redis 缓存：`phone:exists:{phone_hash}`、`username:exists:{username}`、`user:{user_id}`
-- 新增小程序"资料补充页"（默认带入微信头像与昵称，手机号必填，含隐私协议同意 checkbox）
-- 触发用户资料完成状态转换：**`profile_completed`: false → true**（`identity_status` 已在 US-004 置为「注册用户」，本 US 不再修改）
-- 边界处理：手机号已注册、用户名已占用、密码强度不足、隐私协议未同意、重复提交幂等
+- 首次登录后强制资料完善流程
+- 「我的 → 编辑资料」复用同一页面与 API
+- 头像上传、手机号可修改、姓名敏感词过滤、字段联动（游泳基础）
 
-## Capabilities
+## 关键决策
 
-### New Capabilities
+- 不再设置用户名/密码/邮箱，账号体系以手机号 + 微信授权为主
+- 微信登录时同步获取手机号与微信头像
+- 手机号登录走短信验证码，登录后已有手机号
+- 教练侧可查看用户资料并添加备注，由 US-037 覆盖
 
-- `user-complete-profile`: 用户在微信授权登录后补充手机号、用户名、密码、邮箱等注册资料，完成 `profile_completed: false → true` 的资料完整化转换，包含唯一性校验、密码强度校验、幂等处理与错误码映射
+## 影响能力
 
-### Modified Capabilities
+- 3.1 注册登录
+- 3.2 学员档案管理
+- 5.1 个性化课程/教练推荐（依赖学员档案）
 
-- `wechat-auth`: 登录成功后新增 `profile_completed` 判断，未补充资料时跳转资料补充页
+## 相关 US
 
-## Impact
-
-- **数据表**：修改 `user`（补充资料字段、更新 `profile_completed = true`）
-- **API**：新增 2 个端点 `PUT /api/user/profile`（需登录鉴权）、`GET /api/user/phone/exists`（需登录鉴权）
-- **缓存**：新增 Redis key `phone:exists:{phone_hash}`（TTL 300s）、`username:exists:{username}`（TTL 300s）、`user:{user_id}`（TTL 1800s）
-- **状态机**：触发用户资料完成状态转换 `profile_completed: false → true`（`identity_status` 保持「注册用户」）
-- **前端**：新增小程序 1 个页面（`complete-profile/index`）
-- **依赖**：依赖 US-004 微信授权登录、US-009 隐私协议授权；被 US-008 依赖
-- **安全**：手机号 AES-256 加密存储；密码 bcrypt 哈希（cost=12）；接口限流防撞库
+- 前置：US-004（微信授权登录）、US-006（手机号验证码登录）、US-009（隐私协议授权）
+- 后续：US-008（账号安全）、US-037（教练管理学员信息）

@@ -26,23 +26,24 @@
 
 ### Task 2：列表与详情接口
 
-- [ ] **2.1 RED**：编写 `GET /api/coach/v1/students` 返回关联学员列表的失败测试
-- [ ] **2.2 RED**：编写 `GET /api/coach/v1/students/{id}/profile` 返回切片详情的失败测试
+- [ ] **2.1 RED**：编写 `GET /api/coach/v1/students` 返回关联学员列表的失败测试（含 US-005 头像、姓名、手机号脱敏）
+- [ ] **2.2 RED**：编写 `GET /api/coach/v1/students/{id}/profile` 返回完整资料（US-005 自主档案 + 教练切片）的失败测试
 - [ ] **2.3 GREEN**：实现两个 GET 接口及关联校验
-- [ ] **2.4 REFACTOR**：统一列表/详情的脱敏输出
-- [ ] **2.5 COMMIT**：`feat(us-037): coach student list and profile detail`
+- [ ] **2.4 REFACTOR**：统一列表/详情的脱敏输出；拆分 `user_profile` 与 `coach_slice`
+- [ ] **2.5 COMMIT**：`feat(us-037): coach student list and profile detail with us005 readonly fields`
 
-**对应**：user-story.md 场景 1、场景 5、tech-design §4.1 / §4.2
+**对应**：user-story.md 场景 1、场景 6、tech-design §4.1 / §4.2
 
 ### Task 3：更新接口与字段校验
 
-- [ ] **3.1 RED**：编写正常更新成人学员的失败测试
+- [ ] **3.1 RED**：编写正常更新成人学员并添加沟通备注的失败测试
 - [ ] **3.2 RED**：编写未成年人缺监护人 / 手机号非法的失败测试
-- [ ] **3.3 GREEN**：实现 PUT 接口、未成年人 guardian_phone 必填校验、手机号正则
-- [ ] **3.4 REFACTOR**：将校验逻辑抽到 validator 中间件
-- [ ] **3.5 COMMIT**：`feat(us-037): update student profile with validation`
+- [ ] **3.3 RED**：编写 US-005 只读字段不可修改的失败测试
+- [ ] **3.4 GREEN**：实现 PUT 接口、未成年人 guardian_phone 必填校验、手机号正则、忽略 US-005 字段
+- [ ] **3.5 REFACTOR**：将校验逻辑抽到 validator 中间件
+- [ ] **3.6 COMMIT**：`feat(us-037): update student profile with validation and readonly guard`
 
-**对应**：user-story.md 场景 1-4、tech-design §4.3
+**对应**：user-story.md 场景 2-5、tech-design §4.3
 
 ### Task 4：越权与幂等
 
@@ -81,14 +82,16 @@
 
 | # | 用例名称 | 对应 GWT 场景 | 测试方法 | 期望结果 |
 |---|---------|--------------|---------|---------|
-| 1 | 正常更新成人学员信息 | 6.1 | `test_update_adult_student_profile_success` | HTTP 200，DB 字段更新，audit_log +1 |
-| 2 | 正常更新未成年人并填写监护人 | 6.2 | `test_update_minor_student_profile_success` | HTTP 200，guardian_phone 加密存储 |
-| 3 | 未成年人未填监护人手机号 | 6.3 | `test_update_minor_missing_guardian` | HTTP 400，错误码 GUARDIAN_PHONE_REQUIRED，DB 不变 |
-| 4 | 监护人手机号格式非法 | 6.4 | `test_update_invalid_guardian_phone` | HTTP 400，错误码 INVALID_PHONE，DB 不变 |
-| 5 | 教练维护非关联学员 | 6.5 | `test_update_non_associated_student_forbidden` | HTTP 403，错误码 NOT_ASSOCIATED_STUDENT |
-| 6 | 并发编辑幂等 | 8.1 | `test_update_profile_idempotent` | 两次请求均 200，仅 1 条 DB 记录 / 1 条审计 |
-| 7 | XSS 脚本转义 | 8.2 | `test_notes_xss_escaped` | 数据库存储转义后文本，前端无脚本执行 |
-| 8 | 注销学员脱敏展示 | 8.3 | `test_list_deleted_student_masked` | 列表显示脱敏姓名与"已注销"标签 |
+| 1 | 教练查看学员完整资料含 US-005 字段 | 6.1 | `test_get_student_profile_with_us005_fields` | HTTP 200，返回 user_profile（头像、姓名、手机号脱敏、年龄、性别、游泳基础等）与 coach_slice |
+| 2 | 正常更新成人学员并添加备注 | 6.2 | `test_update_adult_student_profile_with_notes` | HTTP 200，DB 字段更新，user 表不变，audit_log +1 |
+| 3 | 正常更新未成年人并填写监护人 | 6.3 | `test_update_minor_student_profile_success` | HTTP 200，guardian_phone 加密存储，notes 保存 |
+| 4 | 未成年人未填监护人手机号 | 6.4 | `test_update_minor_missing_guardian` | HTTP 400，错误码 GUARDIAN_PHONE_REQUIRED，DB 不变 |
+| 5 | 监护人手机号格式非法 | 6.5 | `test_update_invalid_guardian_phone` | HTTP 400，错误码 INVALID_PHONE，DB 不变 |
+| 6 | 教练维护非关联学员 | 6.6 | `test_update_non_associated_student_forbidden` | HTTP 403，错误码 NOT_ASSOCIATED_STUDENT |
+| 7 | US-005 只读字段不可修改 | 8.4 | `test_us005_fields_readonly_for_coach` | HTTP 200/400，user 表不被修改，coach_slice 正常保存 |
+| 8 | 并发编辑幂等 | 8.1 | `test_update_profile_idempotent` | 两次请求均 200，仅 1 条 DB 记录 / 1 条审计 |
+| 9 | XSS 脚本转义 | 8.2 | `test_notes_xss_escaped` | 数据库存储转义后文本，前端无脚本执行 |
+| 10 | 注销学员脱敏展示 | 8.3 | `test_list_deleted_student_masked` | 列表显示脱敏姓名与"已注销"标签 |
 
 ---
 

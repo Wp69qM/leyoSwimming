@@ -1,100 +1,96 @@
-# Spec Delta: user-complete-profile
+> **OpenSpec Spec | 映射自 `docs/stories/US-005-用户-完善个人资料/user-story.md` §6**
 
-> 本 spec 为 US-005 新增能力，使用 ADDED delta 标记。
+## Capability
+
+用户完善个人资料
 
 ## ADDED Requirements
 
-### Requirement: REQ-001 用户补充注册资料
+### Requirement: REQ-001 首次登录后强制完善资料
 
-系统 MUST 提供 `PUT /api/user/profile` 接口，供已登录用户补充手机号、用户名、密码、邮箱等注册资料。系统 MUST 校验手机号格式（11 位中国大陆手机号）、手机号唯一性、用户名唯一性、密码强度（8-20 位同时包含字母与数字）。系统 MUST 在资料保存成功后将用户 `profile_completed` 从 `false` 置为 `true`；`identity_status` 已在 US-004 置为 `注册用户`，本 US MUST NOT 修改 `identity_status`。系统 MUST 要求用户勾选并同意隐私协议后方可提交。系统 MUST 以 `Idempotency-Key` 为幂等键，重复提交返回与首次一致的结果，不创建重复用户。系统 MUST NOT 在未填写手机号或未同意隐私协议时允许提交。
+当用户使用微信授权登录或手机号验证码登录成功后，若 `profile_completed=false`，系统 MUST 强制跳转至完善个人资料页，未保存必填项前不可进入首页。
 
-#### Scenario: 正常补充注册资料
+#### Scenario: 微信授权登录后首次完善个人资料
+- **GIVEN** 用户已完成微信授权登录，`identity_status = '注册用户'` 且 `profile_completed = false`
+- **AND** 系统未存在手机号 13800138000 的其他注册用户
+- **AND** 用户已同意隐私协议 v2.0
+- **WHEN** 用户上传头像、填写姓名 "张 swimmer"、确认手机号 13800138000、选择年龄 25、性别 男
+- **AND** 用户填写有游泳基础，选择泳姿 "蛙泳/自由泳"，游泳年限 "3年"，个人描述 "想提高自由泳"
+- **AND** 用户点击「保存」
+- **THEN** 系统保存成功
+- **AND** `user.profile_completed = true`
+- **AND** `user.identity_status` 保持 '注册用户' 不变
+- **AND** `user.status = 0`（正常）
+- **AND** `user.phone = 13800138000`
+- **AND** `user.name = 张 swimmer`
+- **AND** `user.age = 25`
+- **AND** `user.gender = 'male'`
+- **AND** 页面跳转至首页
 
-```gherkin
-Given 用户已完成微信授权登录，identity_status = '注册用户' 且 profile_completed = false
-And   系统未存在手机号 13800138000 的注册用户
-And   用户已同意隐私协议 v2.0
-When  用户填写手机号 13800138000、用户名 swimmer01、密码 Abcd1234、邮箱 a@b.com
-And   用户勾选「已阅读并同意《隐私协议》」并点击「完成注册」
-Then  系统保存成功
-And   user.profile_completed = true
-And   user.identity_status 保持 '注册用户' 不变
-And   user.status = 0（正常）
-And   user.phone = 13800138000
-And   user.username = swimmer01
-And   页面跳转至首页，顶部显示用户名 swimmer01
-```
+### Requirement: REQ-002 从「我的」编辑个人资料
 
-#### Scenario: 手机号已被注册
+系统 MUST 允许已完善资料的用户从「我的 → 个人资料」进入编辑资料页，修改任意字段后保存。
 
-```gherkin
-Given 系统中已存在手机号 13800138000 的注册用户
-When  用户填写手机号 13800138000 并提交
-Then  返回 HTTP 400 + 错误码 PHONE_ALREADY_BOUND
-And   前端提示"该手机号已绑定其他账号，请更换或登录"
-And   用户资料未被保存
-And   user.profile_completed 保持 false
-And   user.identity_status 保持 '注册用户' 不变
-```
+#### Scenario: 从「我的」编辑个人资料
+- **GIVEN** 用户已完善个人资料，`profile_completed = true`
+- **WHEN** 用户在「我的」页面点击「编辑资料」
+- **AND** 用户将姓名从 "张 swimmer" 修改为 "张教练"
+- **AND** 用户点击「保存」
+- **THEN** 系统保存成功
+- **AND** `user.name = "张教练"`
+- **AND** `user.profile_completed` 保持 true
+- **AND** 页面返回「我的」页面
+
+### Requirement: REQ-003 手机号唯一性校验
+
+用户修改手机号时，系统 MUST 校验该手机号未被其他账号绑定。
+
+#### Scenario: 手机号已被其他账号绑定
+- **GIVEN** 系统中已存在手机号 13800138000 的其他注册用户
+- **WHEN** 用户在个人资料页将手机号修改为 13800138000 并提交
+- **THEN** 返回错误码 `PHONE_ALREADY_BOUND`
+- **AND** 前端提示"该手机号已绑定其他账号，请更换"
+- **AND** 用户资料未被保存
+
+### Requirement: REQ-004 必填项缺失校验
+
+头像、姓名、手机号、年龄、性别为必填项，缺失时系统 MUST 阻止提交。
 
 #### Scenario: 必填项缺失
+- **GIVEN** 用户已完成登录
+- **WHEN** 用户未填写姓名直接点击「保存」
+- **THEN** 前端阻止提交
+- **AND** 姓名输入框下方提示"姓名不能为空"
+- **AND** 后端未收到请求
 
-```gherkin
-Given 用户已完成微信授权登录
-When  用户未填写手机号或未勾选「已阅读并同意《隐私协议》」直接点击「完成注册」
-Then  前端阻止提交
-And   手机号/隐私协议 checkbox 下方提示"不能为空"
-And   后端未收到请求
-```
+### Requirement: REQ-005 姓名敏感词校验
 
-#### Scenario: 用户名已被占用
+系统 MUST 对用户输入的姓名进行敏感词过滤。
 
-```gherkin
-Given 系统中已存在用户名 swimmer01
-When  用户填写用户名 swimmer01 并提交
-Then  返回 HTTP 400 + 错误码 USERNAME_TAKEN
-And   前端提示"用户名已被占用"
-And   user.username 未被保存
-```
+#### Scenario: 姓名含敏感词
+- **GIVEN** 用户已完成登录
+- **WHEN** 用户填写姓名 "习近平" 并提交
+- **THEN** 返回错误码 `SENSITIVE_NAME`
+- **AND** 前端提示"姓名包含敏感内容，请重新输入"
+- **AND** `user.name` 未被保存
 
-#### Scenario: 密码强度不足
+### Requirement: REQ-006 游泳基础字段联动
 
-```gherkin
-Given 用户已完成微信授权登录
-When  用户填写密码 123456 并提交
-Then  返回 HTTP 400 + 错误码 WEAK_PASSWORD
-And   前端提示"密码需包含 8-20 位字母与数字"
-And   user.password_hash 未被保存
-```
+当用户选择「无游泳基础」时，系统 MUST 隐藏「会什么泳姿」和「游泳年限」字段且不收集；选择「有游泳基础」时系统 MUST 展示并收集这两个字段。
 
-#### Scenario: 重复提交幂等
+#### Scenario: 无游泳基础时隐藏泳姿和年限
+- **GIVEN** 用户进入完善个人资料页
+- **WHEN** 用户选择「无游泳基础」
+- **THEN** 系统隐藏「会什么泳姿」和「游泳年限」字段
+- **AND** 提交时忽略这两个字段
 
-```gherkin
-Given 用户已提交补充资料请求并收到成功响应
-When  用户在 5 分钟内使用相同 Idempotency-Key 再次提交
-Then  系统返回与首次相同的结果
-And   不创建新的 user 记录
-And   不重复修改 user.profile_completed
-```
+## Delta Header
 
-### Requirement: REQ-002 手机号存在性查询
-
-系统 MUST 提供 `GET /api/user/phone/exists` 接口，供已登录用户查询指定手机号是否已注册。系统 MUST 返回明确的布尔结果与 HTTP 200。系统 MUST 对查询接口做限流，防止被用于撞库。
-
-#### Scenario: 查询未注册手机号
-
-```gherkin
-Given 系统未存在手机号 13900139000 的注册用户
-When  用户调用 GET /api/user/phone/exists?phone=13900139000
-Then  返回 HTTP 200
-And   响应体 data.exists = false
-```
-
-#### Scenario: 查询已注册手机号
-
-```gherkin
-Given 系统已存在手机号 13800138000 的注册用户
-When  用户调用 GET /api/user/phone/exists?phone=13800138000
-Then  返回 HTTP 200
-And   响应体 data.exists = true
+```yaml
+delta:
+  change: us-005-user-complete-profile
+  capability: user-complete-profile
+  type: revise
+  rationale: 产品设计修正：补充手机号页改为完善个人资料页，字段从账号凭证类改为学员档案类
+  scope: docs/stories/US-005, docs/figma/page-spec/U-phone-complete-page.md, openspec/changes/us-005-user-complete-profile
 ```

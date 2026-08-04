@@ -4,20 +4,21 @@
 
 ## 1. 上下文
 
-本 US 为教练端提供「我的学员」功能：教练可查看并维护与自己存在 booking/package 关联的学员信息切片，包括未成年人标识与监护人联系方式。数据模型需要与学员本人资料（`user` 表）解耦，避免教练视角覆盖学员自主信息。
+本 US 为教练端提供「我的学员」功能：教练可查看与自己存在 booking/package 关联的学员完整资料（含 US-005 学员自主档案），并维护教练视角的信息切片（学习特征、沟通备注、未成年人及监护人信息）。数据模型需要与学员本人资料（`user` 表）解耦：US-005 字段在教练端只读，教练修改仅写入 `coach_student_profile` 表，避免覆盖学员自主信息。
 
 ---
 
 ## 2. 目标 / 非目标
 
 **目标：**
-- 教练能查看关联学员列表与详情
-- 教练能更新学员信息切片，支持未成年人及监护人字段
+- 教练能查看关联学员列表（展示 US-005 头像、姓名、手机号脱敏、是否未成年人）
+- 教练能查看学员完整资料：US-005 自主档案（只读）+ 教练视角切片
+- 教练能更新学员信息切片（含沟通备注），支持未成年人及监护人字段
 - 系统强制校验未成年人必须填写监护人手机号
 - 仅允许维护与当前教练存在关联的学员
 
 **非目标：**
-- 不修改 `user` 表中学员自行维护的基础资料
+- 不修改 `user` 表中学员自行维护的 US-005 基础资料
 - 不实现监护人短信发送逻辑（在本 US 仅保存字段，短信在 US-033 教练确认上课记录时触发）
 - 不实现家长独立账号体系
 
@@ -66,7 +67,8 @@
     "students": [
       {
         "student_user_id": 10001,
-        "nickname": "张小明",
+        "avatar_url": "https://cdn.example.com/avatar.jpg",
+        "name": "张小明",
         "phone_masked": "138****8000",
         "is_minor": true,
         "updated_at": "2026-07-30T10:00:00Z"
@@ -79,19 +81,31 @@
 ### 4.2 `GET /api/coach/v1/students/{student_user_id}/profile`
 
 - **鉴权**：教练 JWT
-- **功能**：获取某学员的信息切片
+- **功能**：获取某学员完整资料（US-005 自主档案 + 教练视角切片）
 - **响应 200**：
   ```json
   {
     "student_user_id": 10001,
-    "nickname": "张小明",
-    "learning_strokes": "自由泳",
-    "swim_level": 2,
-    "basics": "怕水，需循序渐进",
-    "notes": "",
-    "is_minor": true,
-    "guardian_name": "王芳",
-    "guardian_phone_masked": "138****8000"
+    "user_profile": {
+      "avatar_url": "https://cdn.example.com/avatar.jpg",
+      "name": "张 swimmer",
+      "phone_masked": "138****8000",
+      "age": 25,
+      "gender": "male",
+      "has_swim_basis": true,
+      "swim_strokes": "蛙泳/自由泳",
+      "swim_years": "3年",
+      "personal_desc": "想提高自由泳"
+    },
+    "coach_slice": {
+      "learning_strokes": "自由泳",
+      "swim_level": 2,
+      "basics": "怕水，需循序渐进",
+      "notes": "学员水性较好，可加快进度",
+      "is_minor": true,
+      "guardian_name": "王芳",
+      "guardian_phone_masked": "138****8000"
+    }
   }
   ```
 - **错误码**：`NOT_ASSOCIATED_STUDENT`（403）
@@ -99,13 +113,14 @@
 ### 4.3 `PUT /api/coach/v1/students/{student_user_id}/profile`
 
 - **鉴权**：教练 JWT
+- **功能**：更新教练视角切片；US-005 自主档案字段（name/phone/age/gender/avatar_url 等）即使传入也忽略，不修改 `user` 表
 - **请求体**：
   ```json
   {
     "learning_strokes": "自由泳",
     "swim_level": 2,
     "basics": "怕水，需循序渐进",
-    "notes": "",
+    "notes": "学员水性较好，可加快进度",
     "is_minor": true,
     "guardian_name": "王芳",
     "guardian_phone": "13800138000",
@@ -117,6 +132,7 @@
   - `GUARDIAN_PHONE_REQUIRED`（400）
   - `INVALID_PHONE`（400）
   - `NOT_ASSOCIATED_STUDENT`（403）
+  - `READONLY_USER_PROFILE`（400）：若请求体包含 US-005 只读字段且被后端严格拒绝时使用
   - `IDEMPOTENCY_DUPLICATE`（409）
 
 ---
@@ -151,13 +167,14 @@
 - guardian_phone 采用 AES-256 加密存储，返回前端时脱敏
 - `notes` / `basics` 字段入库前进行 HTML 转义，防止 XSS
 - 操作写入 `audit_log`，记录 before/after JSON 与 IP
+- PUT 接口必须忽略 US-005 自主档案字段，防止教练通过接口绕过前端修改学员资料
 
 ---
 
 ## 9. 跨 US 依赖
 
 - 依赖 US-012 完成后教练才能登录教练端并具备 status=1
-- 依赖 US-005 用户基础资料存在
+- 依赖 US-005 用户完善个人资料；本 US 读取 US-005 字段并在教练端只读展示
 - 本 US 产生 `coach_student_profile` 数据，供 US-041 管理员处理教练离职时参考学员清单与处理结果
 
 ---
@@ -166,10 +183,12 @@
 
 | 场景 | 测试方法 | 层级 |
 |------|---------|------|
-| 正常更新成人学员 | `test_update_adult_student_profile_success` | 集成 |
+| 查看学员完整资料含 US-005 字段 | `test_get_student_profile_with_us005_fields` | 集成 |
+| 正常更新成人学员并添加备注 | `test_update_adult_student_profile_with_notes` | 集成 |
 | 正常更新未成年人 | `test_update_minor_student_profile_success` | 集成 |
 | 未成年人缺监护人 | `test_update_minor_missing_guardian` | 单元/集成 |
 | 手机号格式非法 | `test_update_invalid_guardian_phone` | 单元 |
 | 非关联学员 | `test_update_non_associated_student_forbidden` | 集成 |
+| 只读字段不可修改 | `test_us005_fields_readonly_for_coach` | 集成 |
 | 并发保存幂等 | `test_update_profile_idempotent` | 集成 |
 | XSS 转义 | `test_notes_xss_escaped` | 单元 |

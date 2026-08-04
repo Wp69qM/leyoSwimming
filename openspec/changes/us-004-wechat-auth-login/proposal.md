@@ -7,11 +7,12 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录，首次�
 ## What Changes
 
 - 新增 `POST /api/v1/auth/wechat-login` 接口（接收微信 `code`，调用 `code2session`，查询/创建用户，签发 JWT）
+- 接口接收并校验 `terms_accepted` 和 `privacy_accepted` 标志，均为 `true` 才允许继续登录流程
 - 新增 `user` 表写入：首次登录时创建用户记录（`openid`、`union_id`、`identity_status='注册用户'`、`profile_completed=false`、`status=0`）
 - 新增 `user_session` 表写入：会话管理（`session_key` 加密存储、`refresh_token_hash`、`expires_at`）
 - 新增 JWT 签发逻辑：`access_token`（2h）+ `refresh_token`（7d）
 - 新增 Redis 缓存：`session_key`（TTL 7200s）、登录幂等键（`code` 5 分钟内有效）
-- 新增微信小程序登录页（含拒绝授权处理、错误文案、按 `is_new_user`/`profile_completed` 跳转）
+- 新增微信小程序登录页（含协议勾选区、拒绝授权处理、错误文案、按 `is_new_user`/`profile_completed` 跳转）
 - 触发用户身份状态机转换：**游客 → 注册用户**（首次登录新建用户记录时）
 - 边界处理：`union_id` 命中已注销账号（`status=1`）时新建账号，不绑定原数据（PRD §5.2.1 第 4 条）
 

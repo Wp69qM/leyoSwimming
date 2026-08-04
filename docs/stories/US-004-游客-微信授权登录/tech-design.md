@@ -26,7 +26,7 @@
 
 | 表名 | 操作 | 字段 | 说明 |
 |------|------|------|------|
-| `user` | 新增（首次登录时 INSERT） | `id`, `openid`, `union_id`, `identity_status`, `profile_completed`, `status`, `created_at`, `updated_at` | 首次登录时插入新用户记录 |
+| `user` | 新增（首次登录时 INSERT） | `id`, `openid`, `union_id`, `phone`, `avatar_url`, `name`, `identity_status`, `profile_completed`, `status`, `created_at`, `updated_at` | 首次登录时插入新用户记录 |
 | `user_session` | 新增 | `id`, `user_id`, `session_key_encrypted`, `refresh_token_hash`, `expires_at`, `device_name`, `device_id`, `last_active_at`, `created_at`, `updated_at` | 会话管理；session_key 加密存储；device_* 字段供 US-008 设备管理使用 |
 
 > **user_session 表统一说明**（P1 修复 C3）：本表为 US-004 与 US-008 共享的会话表。US-004 写入 `session_key_encrypted` / `refresh_token_hash` / `expires_at`；US-008 读写 `device_name` / `device_id` / `last_active_at`（设备管理）。完整字段如下：
@@ -90,16 +90,20 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 ```json
 {
   "code": "0a3xPP000xxx",
-  "encryptedData": "...",
-  "iv": "..."
+  "phoneEncryptedData": "...",
+  "phoneIv": "...",
+  "avatarUrl": "https://thirdwx.qlogo.cn/...",
+  "nickName": "微信用户"
 }
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `code` | string | 是 | `wx.login()` 返回的临时登录凭证，5 分钟内有效，仅可使用一次 |
-| `encryptedData` | string | 否 | 完整用户信息的加密数据（可选，本 US 不强制要求） |
-| `iv` | string | 否 | 加密算法的初始向量（与 encryptedData 配套） |
+| `phoneEncryptedData` | string | 是 | `getPhoneNumber` 返回的加密手机号数据 |
+| `phoneIv` | string | 是 | `getPhoneNumber` 返回的加密初始向量 |
+| `avatarUrl` | string | 是 | 用户微信头像 URL |
+| `nickName` | string | 否 | 用户微信昵称，作为默认姓名占位 |
 | `app_type` | string | 否 | 应用类型，枚举：`user`（默认）/ `coach`；`coach` 由 US-051 扩展使用，本 US 响应不变 |
 
 **Response 200**
@@ -157,9 +161,10 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 - `code` 调用 `code2session` 失败时按 errcode 区分：`40029` → 401，`45011` → 502（频率限制），其他 → 502
 - `app_type` 非法值 → 400 `VALIDATION_ERROR`（US-051 扩展的校验）
 - `union_id` 命中已有 `status=0` 用户 → 复用，`isNewUser=false`
-- `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，`profile_completed=false`，`isNewUser=true`
+- `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，`profile_completed=false`，写入 `phone`（解密后的微信手机号）、`avatar_url`（微信头像）、`name`（微信昵称，可选），`isNewUser=true`
 - `union_id` 命中已有 `status=1` 用户 → 按 PRD §5.2.1 第 4 条，新建账号，不绑定原数据
 - 事务边界：`查询用户 + 创建用户 + 签发 token + 写 session` 必须在同一事务内
+- 手机号解密：使用 `session_key` 解密 `phoneEncryptedData`，失败返回 `PHONE_DECRYPT_FAILED`
 
 ---
 
@@ -221,23 +226,29 @@ async function loginWithWechat(code: string) {
   │ 2. code             │                       │
   ←─────────────────────────────────────────────┤
   │                     │                       │
-  │ 3. POST /auth/wechat-login (code)           │
+  │ 3. getPhoneNumber   │                       │
+  ├─────────────────────────────────────────────→│
+  │ 4. encryptedData+iv │                       │
+  ←─────────────────────────────────────────────┤
+  │                     │                       │
+  │ 5. POST /auth/wechat-login (code+手机号加密数据) │
   ├────────────────────→│                       │
-  │                     │ 4. code2session(code) │
+  │                     │ 6. code2session(code) │
   │                     ├──────────────────────→│
-  │                     │ 5. openid+union_id+   │
+  │                     │ 7. openid+union_id+   │
   │                     │    session_key        │
   │                     ←──────────────────────┤
   │                     │                       │
-  │                     │ 6. findByUnionId      │
+  │                     │ 8. 解密手机号          │
+  │                     │ 9. findByUnionId      │
   │                     │   / create user       │
-  │                     │ 7. 签发 JWT +         │
+  │                     │ 10. 签发 JWT +        │
   │                     │   写 session          │
-  │ 8. accessToken +    │                       │
+  │ 11. accessToken +   │                       │
   │    refreshToken     │                       │
   ←────────────────────┤                       │
   │                     │                       │
-  │ 9. 按 profile_completed 跳转                │
+  │ 12. 按 profile_completed 跳转               │
   │                     │                       │
 ```
 
@@ -256,7 +267,7 @@ async function loginWithWechat(code: string) {
 | 缓存层 | Redis |
 | Key | `wechat:session_key:{user_id}` |
 | TTL | 7200s（微信官方有效期） |
-| 用途 | 后续解密用户敏感数据（如手机号）|
+| 用途 | 后续解密用户敏感数据（如再次换绑手机号）|
 | 失效 | 用户重新登录时覆盖 |
 
 ---
@@ -330,7 +341,7 @@ async function loginWithWechat(code: string) {
 
 | US | 依赖方向 | 说明 |
 |----|---------|------|
-| US-005 | 依赖本 US | 用户补充资料：本 US 创建用户记录并置 `profile_completed=false`，US-005 完成后置 `true` |
+| US-005 | 依赖本 US | 用户完善个人资料：本 US 创建用户记录并写入 `phone`、`avatar_url`，置 `profile_completed=false`，US-005 完成后置 `true` |
 | US-006 | 共享 | 手机号/密码登录：共享 `user` 表、JWT 签发逻辑、`user_session` 表 |
 | US-007 | 依赖本 US | 账号注销：软删除本 US 创建的用户记录，`status=1` |
 | US-008 | 依赖本 US | 账号安全设置：依赖已登录态 |
@@ -348,6 +359,7 @@ async function loginWithWechat(code: string) {
 | 微信 code2session 返回 errcode=40029 | 401 `WECHAT_CODE_INVALID` |
 | 微信 code2session 返回 errcode=45011 | 502 `WECHAT_API_ERROR`（频率限制） |
 | 微信 code2session 超时（> 3s） | 504 `WECHAT_API_TIMEOUT` |
+| 手机号解密失败 | 400 `PHONE_DECRYPT_FAILED` |
 | `union_id` 缺失（用户未绑定开放平台） | 以 `openid` 兜底，记录告警日志 |
 | `union_id` 命中已注销账号（status=1） | 新建账号，不绑定原数据（PRD §5.2.1 第 4 条） |
 | 相同 code 5 分钟内重复提交 | 返回首次结果（幂等） |

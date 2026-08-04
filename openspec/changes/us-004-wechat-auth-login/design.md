@@ -12,7 +12,7 @@ US-004 是注册登录模块的首个 US，也是用户身份状态机的起点�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `user` | INSERT（首次登录） | `id`, `openid`, `union_id`, `identity_status='注册用户'`, `profile_completed=false`, `status=0`, `created_at` |
+| `user` | INSERT（首次登录） | `id`, `openid`, `union_id`, `phone`, `avatar_url`, `name`, `identity_status='注册用户'`, `profile_completed=false`, `status=0`, `created_at` |
 | `user_session` | INSERT（每次登录） | `id`, `user_id`, `session_key_encrypted`, `refresh_token_hash`, `expires_at`, `created_at` |
 
 ### user.status 字段类型
@@ -54,20 +54,24 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 
 - 鉴权：否（登录入口）
 - 幂等：是（以 `code` 为键，5 分钟内有效）
-- Request: `{ code: string }`
+- Request: `{ code: string, phoneEncryptedData: string, phoneIv: string, avatarUrl: string, nickName?: string, termsAccepted: boolean, privacyAccepted: boolean }`
 - Response 200: `{ accessToken, refreshToken, expiresIn: 7200, isNewUser, profileCompleted, userId }`
+- Response 400: `TERMS_NOT_ACCEPTED`（未勾选《用户须知》或《隐私协议》）
 - Response 401: `WECHAT_CODE_INVALID`（code 已失效）
 - Response 502: `WECHAT_API_ERROR`（微信接口错误）
 - Response 504: `WECHAT_API_TIMEOUT`（微信接口超时 3s）
-- Response 400: `VALIDATION_ERROR`（缺少 code 字段）
+- Response 400: `VALIDATION_ERROR`（缺少必要字段）
+- Response 400: `PHONE_DECRYPT_FAILED`（手机号解密失败）
 
 ### 业务规则
 
+- 必须校验 `termsAccepted=true` 且 `privacyAccepted=true`，否则直接返回 `TERMS_NOT_ACCEPTED`，不调用微信接口
 - `code` 调用 `code2session` 失败时按 errcode 区分：`40029` → 401，其他 → 502
 - `union_id` 命中 `status=0` 用户 → 复用，`isNewUser=false`
-- `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，`isNewUser=true`
+- `union_id` 未命中 → 新建用户，`identity_status='注册用户'`，写入 `phone`、`avatar_url`、`name`，`isNewUser=true`
 - `union_id` 命中 `status=1` 用户 → 新建账号，不绑定原数据（PRD §5.2.1 第 4 条）
 - `union_id` 缺失 → 以 `openid` 兜底
+- 手机号解密：使用 `session_key` 解密 `phoneEncryptedData`，失败返回 `PHONE_DECRYPT_FAILED`
 - 事务边界：`查询用户 + 创建用户 + 签发 token + 写 session` 必须在同一事务内
 
 ## State Machine
@@ -89,14 +93,17 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 ## Wechat OAuth Flow
 
 ```
-小程序 → wx.login() → code → POST /auth/wechat-login → 后端
+小程序 → wx.login() → code
+小程序 → getPhoneNumber → encryptedData + iv
+小程序 → POST /auth/wechat-login(code, phoneEncryptedData, phoneIv, avatarUrl, nickName) → 后端
 后端 → code2session(code) → 微信开放平台 → openid + union_id + session_key
+后端 → 解密手机号
 后端 → findByUnionId(union_id) → user 表
   ├─ 命中 active → 复用
-  └─ 未命中 → create (identity_status='注册用户')
+  └─ 未命中 → create (identity_status='注册用户', phone, avatar_url, name)
 后端 → 签发 JWT + 写 user_session + 缓存 session_key
 后端 → 返回 accessToken + refreshToken + isNewUser + profileCompleted
-前端 → 按 profileCompleted 跳转（补充资料页 / 首页）
+前端 → 按 profileCompleted 跳转（完善个人资料页 / 首页）
 ```
 
 ### code2session 调用
@@ -147,8 +154,8 @@ JWT payload: `{ sub, identity_status, profile_completed, iat, exp }`
 
 | US | 方向 | 说明 |
 |----|------|------|
-| US-005 | 依赖本 US | 补充资料：本 US 创建用户并置 `profile_completed=false` |
-| US-006 | 共享 | 手机号/密码登录共享 user 表与 JWT 逻辑 |
+| US-005 | 依赖本 US | 完善个人资料：本 US 创建用户并写入 `phone`、`avatar_url`，置 `profile_completed=false` |
+| US-006 | 共享 | 手机号验证码登录共享 user 表与 JWT 逻辑 |
 | US-007 | 依赖本 US | 注销：软删除本 US 创建的用户记录 |
 | US-017 | 依赖本 US | 购买体验课需先登录 |
 | US-020 | 依赖本 US | 购买正价套餐触发 注册用户→学员 |

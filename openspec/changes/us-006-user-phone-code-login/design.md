@@ -1,10 +1,10 @@
-# Design: US-006 用户手机号/账号密码登录
+# Design: US-006 用户手机号验证码登录
 
-> 本文档对应 `docs/stories/US-006-用户-手机号账号密码登录/tech-design.md` 的 OpenSpec 映射版本。
+> 本文档对应 `docs/stories/US-006-用户-手机号验证码登录/tech-design.md` 的 OpenSpec 映射版本。
 
 ## Overview
 
-US-006 提供手机号验证码与账号密码两种登录方式，是用户除了微信授权外进入系统的入口。核心是 3 个 API + 验证码服务 + bcrypt 密码校验 + 失败锁定 + 会话管理。
+US-006 提供手机号验证码登录方式，是用户除微信授权外进入系统的入口。核心是 2 个 API（发送验证码、手机号验证码登录）+ 验证码服务 + 会话管理。登录时必须校验用户已勾选《用户须知》和《隐私协议》。
 
 ## Data Model
 
@@ -12,7 +12,7 @@ US-006 提供手机号验证码与账号密码两种登录方式，是用户除�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `user` | UPDATE | `last_login_at`, `login_ip`, `failed_login_count`, `locked_until` |
+| `user` | INSERT/UPDATE | 首次登录 INSERT：`phone`, `identity_status='注册用户'`, `profile_completed=false`, `status=0`；已登录 UPDATE：`last_login_at`, `login_ip` |
 | `sms_code` | INSERT | `code_id`, `phone`, `code`, `scene='login'`, `expires_at`, `used` |
 | `user_login_log` | INSERT | `log_id`, `user_id`, `login_time`, `ip`, `device` |
 
@@ -34,43 +34,40 @@ CREATE INDEX idx_user_login_log_user_id ON user_login_log(user_id);
 - Request: `{ phone: string, scene: 'login' }`
 - Response 200: `{ sent: true }`
 - Response 400: `INVALID_PHONE`（手机号格式非法）
-- Response 404: `PHONE_NOT_REGISTERED`（手机号未注册）
 - Response 429: `SMS_RATE_LIMIT`（60 秒内已发送）
 
 ### POST /api/auth/login/phone
 
 - 鉴权：否
-- Request: `{ phone: string, code: string }`
+- Request: `{ phone: string, code: string, termsAccepted: boolean, privacyAccepted: boolean }`
 - Response 200: `{ token, expires_in: 2592000 }`
-- Response 401: `INVALID_CREDENTIALS`（验证码错误）
-- Response 401: `CODE_EXPIRED`（验证码已过期）
-- Response 429: `RATE_LIMIT_EXCEEDED`（登录过于频繁）
+- Response 400: `TERMS_NOT_ACCEPTED`（未勾选《用户须知》或《隐私协议》）
+- Response 401: `INVALID_SMS_CODE`（验证码错误或已过期）
+- Response 401: `ACCOUNT_DELETED`（账号已注销）
 
-### POST /api/auth/login/password
+### 业务规则
 
-- 鉴权：否
-- Request: `{ account: string, password: string }`
-- Response 200: `{ token, expires_in: 2592000 }`
-- Response 401: `INVALID_CREDENTIALS`（账号或密码错误）
-- Response 401: `ACCOUNT_LOCKED`（连续失败锁定）
-- Response 401: `ACCOUNT_DEACTIVATED`（账号已注销）
-- Response 401: `ACCOUNT_BANNED`（账号已封禁）
+- 必须校验 `termsAccepted=true` 且 `privacyAccepted=true`，否则直接返回 `TERMS_NOT_ACCEPTED`
+- 验证码 6 位数字，TTL 5 分钟，单次使用
+- 短信发送限流 1 次/分钟/手机号
+- 手机号未注册且验证码正确时自动创建用户记录
+- 已注销账号（status=1）拒绝登录，返回 `ACCOUNT_DELETED`
+- 登录成功后按 `profile_completed` 分流：false → US-005，true → 首页
 
 ## State Machine
 
-### 会话状态机
+### 用户身份状态机
 
 ```
-未登录 ──(登录成功)──→ 已登录
+游客 ──(US-006 首次验证码登录)──→ 注册用户 ──(US-020 购买正价套餐)──→ 学员
 ```
 
-本 US 不改变用户 `identity`，仅生成会话 token。
+本 US 首次登录时触发 `游客 → 注册用户` 状态转换。
 
 ## Caching
 
 | 层 | Key | TTL | 用途 | 失效策略 |
 |----|-----|-----|------|---------|
-| Redis | `login:fail:{account}` | 1800s | 连续密码失败次数 | 登录成功/锁定到期后清除 |
 | Redis | `sms:limit:{phone}` | 60s | 验证码发送限流 | 自然过期 |
 | Redis | `sms:code:{phone}:{scene}` | 300s | 验证码缓存 | 使用成功/过期后清除 |
 | Redis | `session:{token}` | 30 天 | 登录态缓存 | 退出登录/注销时删除 |
@@ -82,14 +79,11 @@ CREATE INDEX idx_user_login_log_user_id ON user_login_log(user_id);
 | 登录接口 P50 | < 150ms |
 | 登录接口 P99 | < 300ms |
 | 验证码发送接口 P99 | < 500ms |
-| bcrypt 校验 P99 | < 100ms |
 | 并发 200 QPS P99 | < 800ms |
 
 ## Security
 
 - `POST /api/auth/*` 无需登录鉴权
-- bcrypt 校验密码，防止时序攻击
-- 连续 5 次失败锁定 30 分钟
 - 验证码 6 位数字，TTL 5 分钟，单次使用
 - 短信发送限流 1 次/分钟/手机号
 - 登录日志记录 IP、设备指纹
@@ -99,9 +93,9 @@ CREATE INDEX idx_user_login_log_user_id ON user_login_log(user_id);
 
 | US | 方向 | 说明 |
 |----|------|------|
-| US-005 | 依赖 | 资料补充后才有手机号/密码 |
 | US-004 | 共享 | 复用 JWT 与会话管理 |
-| US-008 | 被依赖 | 账号安全设置需要登录态与密码校验 |
+| US-005 | 后续 | 资料补充：首次登录后 `profile_completed=false` 跳转 |
+| US-008 | 被依赖 | 账号安全设置需要登录态 |
 
 ## Mapping to Source Documents
 
