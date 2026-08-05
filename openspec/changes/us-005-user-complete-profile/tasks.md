@@ -6,11 +6,11 @@
 - GREEN: 实现 controller skeleton、auth middleware、route
 - COMMIT: `feat(user): add PUT /api/user/profile endpoint skeleton`
 
-## Task 2 必填项校验
+## Task 2 必填项校验与监护人信息联动
 
-- RED: 测试缺失头像/姓名/手机号/年龄/性别时返回 400；字段格式错误返回对应错误码
-- GREEN: 实现字段级校验（头像 URL、姓名长度、手机号格式、年龄范围、性别枚举）
-- COMMIT: `feat(user): add profile field validation`
+- RED: 测试缺失头像/姓名/手机号/年龄/性别时返回 400；字段格式错误返回对应错误码；age < 18 时缺失 guardian_name / guardian_phone 返回 400；age ≥ 18 时提交 guardian 字段被忽略
+- GREEN: 实现字段级校验（头像 URL、姓名长度、手机号格式、年龄范围、性别枚举、监护人信息条件必填）
+- COMMIT: `feat(user): add profile field validation including guardian conditional fields`
 
 ## Task 3 手机号唯一性校验
 
@@ -50,12 +50,28 @@
 
 ## Task 9 小程序完善个人资料页（首次完善入口）
 
-- RED: E2E 测试微信授权登录后 `profile_completed=false` 强制跳转资料页；必填项缺失阻止提交；保存成功后跳转首页
-- GREEN: 实现 `miniapp-user/src/pages/complete-profile/index.tsx`
-- COMMIT: `feat(miniapp): add complete profile page for first login`
+- RED: E2E 测试微信授权登录后 `profile_completed=false` 强制跳转资料页；必填项缺失阻止提交；保存成功后跳转首页；未成年人（age < 18）时动态展示监护人信息区且未填写阻止提交
+- GREEN: 实现 `miniapp-user/src/pages/complete-profile/index.tsx`，含年龄与监护人信息联动
+- COMMIT: `feat(miniapp): add complete profile page with guardian conditional fields`
 
 ## Task 10 小程序「我的 → 编辑资料」入口
 
-- RED: E2E 测试从「我的」进入编辑资料页回显当前内容；修改后保存返回「我的」；`profile_completed` 保持 true
+- RED: E2E 测试从「我的」进入编辑资料页回显当前内容；修改后保存返回「我的」；`profile_completed` 保持 true；年龄从成年人改为未成年人时展示监护人信息区，反之隐藏
 - GREEN: 实现「我的」页面编辑入口与资料页编辑模式
-- COMMIT: `feat(miniapp): add edit profile entry from mine page`
+- COMMIT: `feat(miniapp): add edit profile entry from mine page with guardian fields`
+
+---
+
+## GWT Coverage Matrix
+
+| GWT 场景 | Task 1 | Task 2 | Task 3 | Task 4 | Task 5 | Task 6 | Task 7 | Task 8 | Task 9 | Task 10 |
+|---------|--------|--------|--------|--------|--------|--------|--------|--------|--------|---------|
+| §6.1 成年人首次完善资料 | ✅ | ✅ | — | — | ✅ | ✅ | — | ✅ | ✅ | — |
+| §6.2 未成年人首次完善资料并填写监护人 | ✅ | ✅ | — | — | ✅ | ✅ | — | ✅ | ✅ | — |
+| §6.3 从「我的」编辑资料 | ✅ | ✅ | — | — | — | ✅ | — | ✅ | — | ✅ |
+| §6.4 手机号已被其他账号绑定 | ✅ | — | ✅ | — | — | — | — | — | — | — |
+| §6.5 必填项缺失 | — | ✅ | — | — | — | — | — | — | ✅ | ✅ |
+| §6.6 姓名含敏感词 | — | — | — | ✅ | — | — | — | — | ✅ | ✅ |
+| §6.7 未成年人未填写监护人信息 | — | ✅ | — | — | — | — | — | — | ✅ | ✅ |
+| §8.5 年龄从成年人改为未成年人 | — | ✅ | — | — | — | — | — | — | — | ✅ |
+| §8.6 年龄从未成年人改为成年人 | — | ✅ | — | — | — | — | — | — | — | ✅ |

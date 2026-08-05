@@ -344,8 +344,8 @@ async function loginWithWechat(code: string) {
 | US-005 | 依赖本 US | 用户完善个人资料：本 US 创建用户记录并写入 `phone`、`avatar_url`，置 `profile_completed=false`，US-005 完成后置 `true` |
 | US-006 | 共享 | 手机号/密码登录：共享 `user` 表、JWT 签发逻辑、`user_session` 表 |
 | US-007 | 依赖本 US | 账号注销：软删除本 US 创建的用户记录，`status=1` |
-| US-008 | 依赖本 US | 账号安全设置：依赖已登录态 |
-| US-009 | 依赖本 US | 隐私协议授权：依赖已登录态 |
+| US-009 | 依赖本 US | 隐私协议与用户须知授权：登录成功后记录同意版本 |
+| US-052 | 依赖本 US | 用户退出登录：依赖已登录态与 token 机制 |
 | US-017 | 依赖本 US | 购买体验课：需先完成登录 |
 | US-020 | 依赖本 US | 购买正价套餐：触发 注册用户→学员 状态转换 |
 | US-051 | 扩展本 US | 教练端微信授权登录：扩展 `POST /auth/wechat-login` 接口，新增 `app_type=coach` 分支 |

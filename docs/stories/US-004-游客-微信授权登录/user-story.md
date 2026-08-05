@@ -24,7 +24,10 @@
 ## 2. 触发条件
 
 - **触发方**：游客（微信小程序访客）
-- **触发动作**：游客首次打开小程序并需要使用受登录限制的功能（如购买套餐、预约教练），或主动点击「微信一键登录」按钮
+- **触发动作**：
+  1. 游客首次打开小程序并需要使用受登录限制的功能（如购买套餐、预约教练）
+  2. 游客在「我的」页面发现为未登录态，看到默认头像和「请登录」按钮，主动点击「请登录」按钮
+  3. 游客主动点击登录页「微信一键登录」按钮
 - **触发时机**：游客主动操作；或受登录态保护的功能被访问时由系统引导跳转
 
 > **角色命名说明**（v7 评审 P1-4 修复）：本 US 触发方统一为"游客"，与目录名 `US-004-游客-微信授权登录`、PRD 游客浏览主线、§9.2 身份状态机起点（游客 → 注册用户）保持一致。已注册用户登录态过期后重新登录也走本 US 流程，但触发身份仍归为"游客"（未登录态）。GWT 场景中的"用户"为行为主体泛指，不与角色名冲突。
@@ -36,7 +39,7 @@
 - [x] 游客已安装微信并打开小程序
 - [x] 游客已授权小程序获取基本信息（`scope.userInfo`）
 - [x] 游客已授权小程序获取手机号（`scope.phoneNumber`）
-- [x] 游客已阅读并勾选《用户须知》和《隐私协议》
+- [x] 游客每次登录时均已阅读并勾选《用户须知》和《隐私协议》（与首次/非首次无关）
 - [x] 后端服务正常可用，微信开放平台接口可达
 - [x] 系统已配置微信小程序 AppID / AppSecret
 - [x] 游客未处于已登录态（或登录态已过期）
@@ -59,10 +62,13 @@
    - 命中已有用户 → 复用账号
    - 未命中 → 新建用户记录，`identity_status = 注册用户`，`profile_completed = false`，写入 `phone` 与微信头像/昵称
 10. 后端签发 JWT `access_token` + `refresh_token`，将 `session_key` 写入 Redis（TTL 7200s）
-11. 返回登录结果（含 token、`is_new_user` 标志、`profile_completed` 标志）
-12. 前端按 `profile_completed` 决定跳转：
+11. 返回登录结果（含 `access_token`、`refresh_token`、`expires_in`、`is_new_user`、`profile_completed`、`user_id`）
+12. 前端将 `access_token` 与 `refresh_token` 存储到本地（如 `Taro.setStorageSync`），并记录 `expires_in`
+13. 前端按 `profile_completed` 决定跳转：
     - `false` → 跳转「完善个人资料页」（US-005）
     - `true` → 跳转小程序首页
+14. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
+15. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
 
 ### 4.2 异常分支
 
@@ -132,10 +138,10 @@ And   user.identity_status 保持为 "注册用户"（或更高：学员）
 ```gherkin
 Given 用户未勾选《用户须知》或《隐私协议》
 When  用户点击"微信一键登录"按钮
-Then  系统阻止登录
-And   返回错误码 TERMS_NOT_ACCEPTED
-And   前端展示文案"请阅读并同意《用户须知》和《隐私协议》"
+Then  前端拦截登录请求并展示文案"请阅读并同意《用户须知》和《隐私协议》"
 And   不调用 wx.login() 或 wx.getPhoneNumber
+And   不发起后端登录请求
+And   若用户绕过前端直接调用后端接口，后端返回错误码 TERMS_NOT_ACCEPTED
 And   不创建任何用户记录
 And   不签发 token
 ```
@@ -163,7 +169,7 @@ And   不创建任何用户记录
 And   不签发 token
 ```
 
-### 6.5 场景 5：登录凭证已失效（异常路径）
+### 6.6 场景 6：登录凭证已失效（异常路径）
 
 ```gherkin
 Given 用户提交的 code 已被使用或已超过 5 分钟有效期
@@ -172,6 +178,24 @@ Then  微信返回 errcode = 40029（invalid code）
 And   后端返回 HTTP 401 + 错误码 "WECHAT_CODE_INVALID"
 And   前端展示文案"登录凭证已失效，请重新点击登录"
 And   不创建任何用户记录
+```
+
+### 6.7 场景 7：登录成功后存储 token 并用其维持登录态（正常路径）
+
+```gherkin
+Given 用户已完成微信授权登录
+And   后端返回 access_token、refresh_token 和 expires_in = 7200
+When  前端收到登录响应
+Then  前端将 access_token 和 refresh_token 写入本地存储
+And   前端记录 access_token 过期时间
+When  用户访问受登录态保护的接口（如「我的」页面）
+Then  前端在 Authorization Header 中携带 Bearer {access_token}
+And   后端校验 token 有效后返回用户数据
+When  access_token 过期但 refresh_token 未过期
+Then  前端调用刷新接口换取新的 access_token
+And   后续请求使用新的 access_token
+When  本地 token 不存在或 refresh_token 已过期
+Then  前端引导用户重新进入登录页
 ```
 
 ---
@@ -228,10 +252,11 @@ And   不创建任何用户记录
 - [ ] US-005（用户完善个人资料 — 依赖本 US 创建的用户记录、`phone`、`avatar_url` 与 `profile_completed=false` 标志）
 - [ ] US-006（用户手机号验证码登录 — 共享 user 表与 JWT 签发逻辑）
 - [ ] US-007（用户账号注销 — 软删除本 US 创建的用户记录）
-- [ ] US-008（用户账号安全设置 — 依赖已登录态）
-- [ ] US-009（用户隐私协议授权与撤回 — 依赖已登录态）
+- [ ] US-009（用户/教练隐私协议与用户须知授权 — 登录页勾选协议，登录成功后记录同意版本）
+- [ ] US-052（用户退出登录 — 依赖已登录态）
 - [ ] US-017（游客购买体验课套餐 — 需先完成本 US 登录）
 - [ ] US-020（学员购买正价套餐 — 需先完成本 US 登录，且本 US 是身份状态机的起点）
+- [ ] US-042（管理员管理用户账号 — 管理员在后台查看、筛选、管理用户账号及详情）
 - [ ] US-051（教练微信授权登录并进入教练端 — 扩展本 US 的 `POST /api/v1/auth/wechat-login` 接口，新增 `app_type=coach` 分支）
 
 ---
@@ -243,7 +268,7 @@ And   不创建任何用户记录
 - [x] **V**aluable（有价值）- 是用户进入交易流程的入口，所有受保护功能的前置条件
 - [x] **E**stimable（可估算）- 1 人天明确，微信 OAuth 标准流程
 - [x] **S**mall（足够小）- 1 个 API + 1 个小程序页面，单 Sprint 可完成
-- [x] **T**estable（可测试）- 业务级 Gherkin 6 个场景可客观验证
+- [x] **T**estable（可测试）- 业务级 Gherkin 7 个场景可客观验证
 
 ---
 
@@ -263,7 +288,7 @@ And   不创建任何用户记录
 
 ### 11.3 验收标准
 
-- [x] 场景数量符合 US 等级 L2（6 个场景 = 2 正常 + 4 异常）
+- [x] 场景数量符合 US 等级 L2（7 个场景 = 3 正常 + 4 异常）
 - [x] 业务级 Gherkin，不绑死实现
 - [x] 用户可观察的结果可被验证
 

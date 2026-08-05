@@ -1,4 +1,4 @@
-# US-047 技术设计：管理员配置场馆、公告、闭馆换水与《用户须知》
+# US-047 技术设计：管理员配置场馆、公告、闭馆换水、《用户须知》与《隐私协议》
 
 > 角色：开发 | 最后更新：2026-07-30
 
@@ -19,8 +19,10 @@
 | `venue` | 新增/修改 | 场馆信息 |
 | `notice` | 新增/修改 | 公告 |
 | `venue_closure` | 新增 | 闭馆/换水 |
-| `terms_of_service` | 新增/修改 | 用户须知版本 |
-| `user_terms_sign` | 新增/修改 | 签署记录 |
+| `terms_policy` | 新增/修改 | 《用户须知》版本（与 US-009 统一表名） |
+| `privacy_policy` | 新增/修改 | 《隐私协议》版本（与 US-009 统一表名） |
+| `user_terms_consent` | 新增/修改 | 用户/教练《用户须知》同意记录（与 US-009 统一表名） |
+| `user_privacy_consent` | 新增/修改 | 用户/教练《隐私协议》同意记录（与 US-009 统一表名） |
 | `booking` / `package` | 修改 | 闭馆时取消并释放课时 |
 
 ### 1.2 索引
@@ -28,7 +30,10 @@
 ```sql
 CREATE UNIQUE INDEX idx_venue_closure_date ON venue_closure(date);
 CREATE INDEX idx_notice_status_time ON notice(status, publish_time);
-CREATE INDEX idx_terms_active ON terms_of_service(is_active);
+CREATE INDEX idx_terms_current ON terms_policy(is_current);
+CREATE INDEX idx_privacy_current ON privacy_policy(is_current);
+CREATE INDEX idx_user_terms_user_id ON user_terms_consent(user_id);
+CREATE INDEX idx_user_privacy_user_id ON user_privacy_consent(user_id);
 ```
 
 ---
@@ -58,7 +63,19 @@ CREATE INDEX idx_terms_active ON terms_of_service(is_active);
 - Body: `{ version, content }`
 - Response 200 / 400
 
-### 2.5 GET /api/admin/terms/sign-records
+### 2.5 GET/POST /api/admin/privacy
+
+- 鉴权：管理员登录 + `venue:write`
+- Body: `{ version, content }`
+- Response 200 / 400
+
+### 2.6 GET /api/admin/terms/consent-records
+
+- 鉴权：管理员登录 + `venue:read`
+- Query: `version`, `user_id`, `page`, `size`
+- Response 200
+
+### 2.7 GET /api/admin/privacy/consent-records
 
 - 鉴权：管理员登录 + `venue:read`
 - Query: `version`, `user_id`, `page`, `size`
@@ -70,8 +87,10 @@ CREATE INDEX idx_terms_active ON terms_of_service(is_active);
 
 ```
 booking.status: 已预约 ──[闭馆]──→ 已取消 (cancel_reason = 4，场馆闭馆)
-terms_of_service.is_active: 仅一个 true
-user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
+terms_policy.is_current: 仅一个 true
+privacy_policy.is_current: 仅一个 true
+user_terms_consent.status: 已同意 ──[版本更新]──→ 待重新同意
+user_privacy_consent.status: 已同意 ──[版本更新]──→ 待重新同意
 ```
 
 > **cancel_reason 字段类型**（v3 评审 P0 修复）：TINYINT 整型，全项目统一枚举 `1=学员取消 / 2=教练离职 / 3=学员旷课 / 4=场馆闭馆 / 5=教练请假 / 6=套餐冻结`。本 US 闭馆取消课程使用 `4=场馆闭馆`。
@@ -84,7 +103,8 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 |----|-----|-----|---------|
 | Redis | `venue:info` | 600s | 场馆信息变更时失效 |
 | Redis | `notices:active` | 300s | 公告变更时失效 |
-| Redis | `terms:active` | 600s | 用户须知变更时失效 |
+| Redis | `terms_policy:current` | 1h | 《用户须知》变更时失效 |
+| Redis | `privacy_policy:current` | 1h | 《隐私协议》变更时失效 |
 
 ---
 
@@ -109,7 +129,8 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 
 - 登录 + RBAC
 - 操作日志记录
-- 用户须知内容 XSS 过滤
+- 《用户须知》与《隐私协议》内容 XSS 过滤
+- 协议内容不可篡改：仅管理员可发布新版本，历史版本不可删除
 
 ---
 
@@ -119,6 +140,7 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 |----|---------|------|
 | US-014 / US-029 | 被依赖 | 预约数据 |
 | US-002 / US-019 | 依赖本 US | 展示场馆/公告/用户须知 |
+| US-009 | 依赖本 US | 提供《用户须知》与《隐私协议》版本内容及同意记录 |
 
 ---
 
@@ -127,7 +149,8 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 | 场景 | 处理 |
 |------|------|
 | 闭馆日期冲突 | 409 CLOSURE_DATE_CONFLICT |
-| 用户须知内容为空 | 400 TERMS_CONTENT_EMPTY |
+| 《用户须知》内容为空 | 400 TERMS_CONTENT_EMPTY |
+| 《隐私协议》内容为空 | 400 PRIVACY_CONTENT_EMPTY |
 | 无权限 | 403 FORBIDDEN |
 | 闭馆包含已完成课程 | 跳过，仅取消未上课 |
 
@@ -138,8 +161,8 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 | tech-design 章节 | 对应 test-plan Task |
 |------------------|---------------------|
 | §1 数据模型 | Task 1 |
-| §2 API 设计 | Task 2-6 |
-| §4 缓存策略 | Task 7 |
+| §2 API 设计 | Task 2-7 |
+| §4 缓存策略 | Task 8 |
 
 ---
 
@@ -158,3 +181,4 @@ user_terms_sign.status: 已签署 ──[版本更新]──→ 待重新签署
 | v1.0 | 2026-07-30 | Dev | 初版 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：§3 booking 状态机 cancel_reason 从字符串 'venue_closure' 改为整型 `4`（场馆闭馆），与全项目枚举一致 |
 | v1.2 | 2026-07-31 | Dev | P1-14 修复：§5.1 新增「闭馆异步任务失败补偿策略」（3 次指数退避重试 + `partial_failed` 标记 + `closure_task_failed` 表 + 人工介入入口 + 通知一致性约束） |
+| v1.3 | 2026-08-05 | Dev | 扩展：数据模型/API/缓存/状态机增加《隐私协议》管理；统一表名为 terms_policy / privacy_policy / user_terms_consent / user_privacy_consent |

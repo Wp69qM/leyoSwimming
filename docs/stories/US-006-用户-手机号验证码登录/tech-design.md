@@ -178,7 +178,7 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 | US | 方向 | 说明 |
 |----|------|------|
 | US-004 | 共享 | 微信授权登录：共享 user 表、JWT 签发逻辑 |
-| US-009 | 依赖 | 隐私协议授权：本 US 需校验用户已同意隐私协议 |
+| US-009 | 依赖 | 隐私协议与用户须知授权：本 US 需校验用户已勾选《用户须知》和《隐私协议》 |
 | US-005 | 被依赖 | 用户完善个人资料：本 US 首次登录后置 `profile_completed=false`，US-005 完成后置 true |
 | US-008 | 被依赖 | 账号安全设置：依赖本 US 产生的登录态 |
 

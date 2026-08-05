@@ -90,6 +90,7 @@ CREATE INDEX idx_card_visible_time ON homepage_card(status, visible_scope, start
 |----|------|------|
 | US-004 / US-042 | 被依赖 | 身份与权限基础 |
 | US-002 / US-019 | 依赖本 US | 游客/学员端首页展示 |
+| US-053 | 本 US 依赖 | 后台管理系统登录认证入口 |
 
 ## Mapping to Source Documents
 

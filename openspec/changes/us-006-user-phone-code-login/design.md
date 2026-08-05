@@ -40,18 +40,25 @@ CREATE INDEX idx_user_login_log_user_id ON user_login_log(user_id);
 
 - 鉴权：否
 - Request: `{ phone: string, code: string, termsAccepted: boolean, privacyAccepted: boolean }`
-- Response 200: `{ token, expires_in: 2592000 }`
+- Response 200: `{ access_token, refresh_token, expires_in: 7200, is_new_user, profile_completed, user_id }`
 - Response 400: `TERMS_NOT_ACCEPTED`（未勾选《用户须知》或《隐私协议》）
 - Response 401: `INVALID_SMS_CODE`（验证码错误或已过期）
-- Response 401: `ACCOUNT_DELETED`（账号已注销）
+
+### 登录态管理
+
+- 前端收到登录响应后，将 `access_token` 与 `refresh_token` 存储到本地（如 `Taro.setStorageSync`），并记录 `expires_in`
+- 后续请求在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token
+- 后端校验 `access_token` 有效后方可访问受保护接口
+- `access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
+- 本地 token 不存在或 `refresh_token` 过期时，前端引导用户重新登录
+- 复用 US-004 的 JWT/Session 服务实现
 
 ### 业务规则
 
 - 必须校验 `termsAccepted=true` 且 `privacyAccepted=true`，否则直接返回 `TERMS_NOT_ACCEPTED`
 - 验证码 6 位数字，TTL 5 分钟，单次使用
 - 短信发送限流 1 次/分钟/手机号
-- 手机号未注册且验证码正确时自动创建用户记录
-- 已注销账号（status=1）拒绝登录，返回 `ACCOUNT_DELETED`
+- 手机号未注册或手机号存在但 `status=1`（已注销）且验证码正确时，按 PRD §5.2.1 第 4 条重新创建用户记录，不绑定原账号数据
 - 登录成功后按 `profile_completed` 分流：false → US-005，true → 首页
 
 ## State Machine
@@ -70,7 +77,9 @@ CREATE INDEX idx_user_login_log_user_id ON user_login_log(user_id);
 |----|-----|-----|------|---------|
 | Redis | `sms:limit:{phone}` | 60s | 验证码发送限流 | 自然过期 |
 | Redis | `sms:code:{phone}:{scene}` | 300s | 验证码缓存 | 使用成功/过期后清除 |
-| Redis | `session:{token}` | 30 天 | 登录态缓存 | 退出登录/注销时删除 |
+| Redis | `wechat:session_key:{user_id}` | 7200s | 微信 session_key（US-004 使用） | 重新登录时覆盖 |
+| Redis | `auth:idempotent:wechat-login:{code}` | 300s | code 幂等键（US-004 使用） | 自然过期 |
+| Redis | `session:{user_id}` | 7d | 登录态缓存（refresh_token 有效期） | 退出登录/注销时删除 |
 
 ## Performance Targets
 
@@ -95,7 +104,7 @@ CREATE INDEX idx_user_login_log_user_id ON user_login_log(user_id);
 |----|------|------|
 | US-004 | 共享 | 复用 JWT 与会话管理 |
 | US-005 | 后续 | 资料补充：首次登录后 `profile_completed=false` 跳转 |
-| US-008 | 被依赖 | 账号安全设置需要登录态 |
+| US-052 | 被依赖 | 用户退出登录需要登录态 |
 
 ## Mapping to Source Documents
 

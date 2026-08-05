@@ -11,6 +11,8 @@
 | phone | VARCHAR(64) | 手机号，AES-256 加密，唯一索引 |
 | age | TINYINT | 年龄 3-99 |
 | gender | ENUM('male','female','secret') | 性别 |
+| guardian_name | VARCHAR(64) | 监护人姓名，age < 18 时必填 |
+| guardian_phone | VARCHAR(64) | 监护人手机号，age < 18 时必填，AES-256 加密 |
 | has_swim_basis | BOOLEAN | 有无游泳基础 |
 | swim_strokes | JSON | 会什么泳姿 |
 | swim_years | INT | 游泳年限 ≥0 |
@@ -48,14 +50,16 @@ profile_completed=false ──(US-005 资料完善完成)──→ profile_compl
 - 手机号加密存储，前端脱敏展示
 - 头像格式/大小限制
 - 姓名敏感词过滤
+- 监护人手机号加密存储，前端脱敏展示
 - 接口限流
 - 必须校验隐私协议已同意
 - 幂等键防重
+- 未成年人监护人信息必填校验
 
 ## 跨 US 依赖
 
 - 依赖 US-004（微信授权登录获取手机号/头像）
 - 依赖 US-006（手机号验证码登录已有手机号）
 - 依赖 US-009（隐私协议授权）
-- 被 US-008（账号安全）依赖
 - 被 US-037（教练管理学员信息）依赖
+- 被 US-052（用户退出登录）依赖

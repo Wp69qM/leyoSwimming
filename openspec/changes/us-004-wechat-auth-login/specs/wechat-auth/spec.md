@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 微信授权登录
 
-系统 MUST 提供 `POST /api/v1/auth/wechat-login` 接口，接收微信小程序 `wx.login()` 返回的 `code`、`wx.getPhoneNumber` 返回的加密手机号数据，以及 `terms_accepted` 和 `privacy_accepted` 标志。系统 MUST 首先校验 `terms_accepted=true` 且 `privacy_accepted=true`，否则拒绝登录。校验通过后调用微信 `code2session` 接口获取 `openid`/`union_id`/`session_key`，使用 `session_key` 解密手机号，按 `union_id` 查询或创建用户记录，并签发 JWT `access_token` 与 `refresh_token`。系统 MUST 在首次登录时将用户 `identity_status` 置为 `注册用户`（触发游客→注册用户状态转换），`profile_completed` 置为 `false`，写入手机号与微信头像。系统 MUST 以 `code` 为幂等键，5 分钟内重复提交返回首次结果。系统 MUST NOT 将 `session_key` 返回给前端。
+系统 MUST 提供 `POST /api/v1/auth/wechat-login` 接口，接收微信小程序 `wx.login()` 返回的 `code`、`wx.getPhoneNumber` 返回的加密手机号数据，以及 `terms_accepted` 和 `privacy_accepted` 标志。登录入口 MUST 支持两种触发路径：游客首次访问受登录限制功能时由系统引导跳转；或游客在「我的」页面发现未登录态（默认头像与「请登录」按钮）并主动点击「请登录」按钮跳转。系统 MUST 首先校验 `terms_accepted=true` 且 `privacy_accepted=true`，否则拒绝登录。校验通过后调用微信 `code2session` 接口获取 `openid`/`union_id`/`session_key`，使用 `session_key` 解密手机号，按 `union_id` 查询或创建用户记录，并签发 JWT `access_token` 与 `refresh_token`。系统 MUST 在首次登录时将用户 `identity_status` 置为 `注册用户`（触发游客→注册用户状态转换），`profile_completed` 置为 `false`，写入手机号与微信头像。系统 MUST 以 `code` 为幂等键，5 分钟内重复提交返回首次结果。系统 MUST NOT 将 `session_key` 返回给前端。
 
 #### Scenario: 首次微信授权登录成功，跳转完善个人资料页
 
@@ -41,10 +41,10 @@ And   前端跳转到小程序首页
 ```gherkin
 Given 用户未勾选《用户须知》或《隐私协议》
 When  用户点击"微信一键登录"按钮
-Then  系统阻止登录
-And   返回错误码 TERMS_NOT_ACCEPTED
-And   前端展示文案"请阅读并同意《用户须知》和《隐私协议》"
+Then  前端拦截登录请求并展示文案"请阅读并同意《用户须知》和《隐私协议》"
 And   不调用 wx.login() 或 wx.getPhoneNumber
+And   不发起后端登录请求
+And   若用户绕过前端直接调用后端接口，后端返回错误码 TERMS_NOT_ACCEPTED
 And   不创建任何用户记录
 And   不签发 token
 ```
@@ -125,4 +125,26 @@ Given user 表已存在 union_id='union_xxx' 且 status=0 的记录
 When  系统尝试再次插入相同 union_id 且 status=0 的记录
 Then  数据库拒绝插入（唯一索引冲突）
 And   系统返回已有用户记录（复用而非新建）
+```
+
+### Requirement: REQ-003 登录成功后存储 token 并用其维持登录态
+
+系统 MUST 在登录成功后向前端返回 `access_token`、`refresh_token` 和 `expires_in`。前端 MUST 将 token 存储到本地并在后续请求中通过 `Authorization: Bearer {access_token}` 携带。后端 MUST 校验 token 有效后方可访问受保护接口。`access_token` 过期但 `refresh_token` 有效时，前端 MUST 调用刷新接口换发新的 `access_token`；本地 token 不存在或 `refresh_token` 已过期时，前端 MUST 引导用户重新登录。
+
+#### Scenario: 登录成功后存储 token 并用其维持登录态
+
+```gherkin
+Given 用户已完成微信授权登录
+And   后端返回 access_token、refresh_token 和 expires_in = 7200
+When  前端收到登录响应
+Then  前端将 access_token 和 refresh_token 写入本地存储
+And   前端记录 access_token 过期时间
+When  用户访问受登录态保护的接口（如「我的」页面）
+Then  前端在 Authorization Header 中携带 Bearer {access_token}
+And   后端校验 token 有效后返回用户数据
+When  access_token 过期但 refresh_token 未过期
+Then  前端调用刷新接口换取新的 access_token
+And   后续请求使用新的 access_token
+When  本地 token 不存在或 refresh_token 已过期
+Then  前端引导用户重新进入登录页
 ```

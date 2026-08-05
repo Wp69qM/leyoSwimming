@@ -122,6 +122,14 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 
 JWT payload: `{ sub, identity_status, profile_completed, iat, exp }`
 
+### 登录态管理
+
+- 前端收到登录响应后，将 `access_token` 与 `refresh_token` 存储到本地（如 `Taro.setStorageSync`），并记录 `expires_in`
+- 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token
+- 后端校验 `access_token` 有效后方可访问受保护接口
+- 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录
+- `access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
+
 ## Caching
 
 | 层 | Key | TTL | 用途 | 失效策略 |
