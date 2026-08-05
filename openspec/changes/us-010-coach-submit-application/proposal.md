@@ -1,39 +1,40 @@
 ## Why
 
-> 教练提交入驻资料是教练端可用前提，也是教练服务上线的起点。通过收集证书、任教年限、总学员数、总课时数、个人简介与参考单价，平台可对教练资质进行审核，为学员提供可信赖的教练资源。
+> 教练提交入驻资料是教练端可用前提，也是教练服务上线的起点。通过收集微信基础信息、实名资质（身份证、身份证正反面、教练资格证、健康证、个人形象照）、教学履历（任教年限、总学员数、总课时数、擅长泳姿、个人简介）与服务设置（参考单价），平台可对教练资质进行审核，为学员提供可信赖的教练资源。
 
-PRD [§5.4.1](../../../docs/prd/prd.md) 要求首次注册需上传证书、任教年限、总学员数、总课时数、个人简介，教练可设置一节课的参考单价；[§5.5.1](../../../docs/prd/prd.md) 要求入驻资质需管理员审核。教练进入本 US 之前需先完成 US-051 教练端微信授权登录与 US-009 隐私协议授权。
+PRD [§5.4.1](../../../docs/prd/prd.md) 要求首次注册需上传证书、任教年限、总学员数、总课时数、个人简介，教练可设置一节课的参考单价；[§5.5.1](../../../docs/prd/prd.md) 要求入驻资质需管理员审核。字段设计进一步明确了身份证、各类资质照片、参考单价范围与 `coach.status = -1` 的默认未提交态。教练进入本 US 之前需先完成 US-051 教练端微信授权登录与 US-009 隐私协议授权。
 
 ## What Changes
 
-- 新增 `POST /api/coach/application` 接口（提交入驻资料）
-- 新增 `PUT /api/coach/application/draft` 接口（保存草稿，保存后 `coach.status` 同样为 0，不新增独立草稿态）
-- 新增 `GET /api/coach/application` 接口（查询当前申请状态）
-- 新增 `POST /api/upload/image` 接口（证书图片上传）
-- 新增 `coach` 表（教练基本信息、资质、参考单价、状态；含 `submitted_at` 区分草稿与已提交）
-- 新增 `coach_certificate` 表（证书图片存储）
-- 新增 `coach_audit_log` 表（记录入驻申请提交）
-- 新增 Redis 缓存：`coach:application:{user_id}`、`upload:temp:{file_key}`
-- 新增教练小程序"入驻资料填写页"与"提交成功页"
-- 触发教练状态机：**无 → 待审核(0)** 与 **驳回(2) → 待审核(0)**（提交审核与保存草稿均进入待审核态；已驳回教练可修改后重新提交）
-- 边界处理：必填项缺失、图片过大、参考单价超出范围、重复提交、已驳回重新提交
+- 新增 `POST /api/coach/application` 接口（提交入驻资料，请求体含全部字段及 `certificates: [{cert_type, image_url}]`）
+- 新增 `PUT /api/coach/application/draft` 接口（保存草稿，保存后 `coach.status = 0`、`submitted_at = NULL`，不新增独立草稿态）
+- 新增 `GET /api/coach/application` 接口（查询当前入驻资料完整字段 + 证书列表，用于等待审核页）
+- 新增 `POST /api/upload/image` 接口（通用图片上传，JPG/PNG，≤5MB）
+- 新增/明确 `coach` 表完整字段（含 `openid`、`union_id`、`phone`、`avatar_url`、AES 加密 `id_card_no`、`teaching_strokes`、`status` 默认 -1 等）
+- 新增/明确 `coach_certificate` 表（含 `cert_type` 枚举：ID_CARD_FRONT / ID_CARD_BACK / COACH_CERT / HEALTH_CERT / PORTRAIT / OTHER）
+- 新增 `coach_audit_log` 表记录（保持不变，记录 submit/approve/reject）
+- 新增 Redis 缓存：`coach:application:{openid}`、`upload:temp:{file_key}`
+- 新增教练小程序三个页面：C-教练端入驻资料填写页、C-教练端入驻提交成功页、C-教练端等待审核页
+- 触发教练状态机：-1（未提交）→ 0（待审核） 与 2（驳回）→ 0（待审核）
+- 明确错误码：`COACH_APPLICATION_PENDING`、`INVALID_REFERENCE_PRICE`、`MISSING_REQUIRED_FIELDS`、`INVALID_ID_CARD`、`IMAGE_TOO_LARGE`、`INVALID_IMAGE_FORMAT`
+- 边界处理：必填项缺失、身份证号非法、必填资质缺失、图片过大/格式错误、参考单价超出范围、重复提交、已驳回重新提交、等待审核页查看资料
 
 ## Capabilities
 
 ### New Capabilities
 
-- `coach-submit-application`: 教练提交入驻资料，包含证书上传、字段校验、参考单价范围校验、草稿保存、重复提交拦截与教练状态机初始转换
+- `coach-submit-application`: 教练提交入驻资料，包含微信基础信息、实名与资质、教学履历、服务设置、证书上传、字段校验、参考单价范围校验、草稿保存、重复提交拦截与教练状态机初始转换
 
 ### Modified Capabilities
 
-- `upload-image`: 新增证书图片上传场景
+- `upload-image`: 新增证书/身份证/形象照等图片上传场景
 
 ## Impact
 
-- **数据表**：新增 `coach`；新增 `coach_certificate`；新增 `coach_audit_log`
+- **数据表**：新增/明确 `coach`（完整字段）；新增/明确 `coach_certificate`（含 `cert_type`）；新增 `coach_audit_log`
 - **API**：新增 4 个端点（提交、草稿、状态查询、图片上传）
-- **缓存**：新增 Redis key `coach:application:{user_id}`（TTL 5min）、`upload:temp:{file_key}`（TTL 1h）
-- **状态机**：触发教练状态机 `无 → 待审核(0)` 与 `驳回(2) → 待审核(0)`
-- **前端**：新增教练小程序"入驻资料填写页"、"提交成功页"
-- **依赖**：前置 US-051（教练端微信授权登录）与 US-009（隐私协议授权）；被 US-011、US-012、US-013、US-014 依赖
-- **安全**：图片上传校验格式与大小；防重复提交；敏感字段后端校验
+- **缓存**：新增 Redis key `coach:application:{openid}`（TTL 5min）、`upload:temp:{file_key}`（TTL 1h）
+- **状态机**：触发教练状态机 `-1 → 0` 与 `2 → 0`
+- **前端**：新增教练小程序「入驻资料填写页」「入驻提交成功页」「等待审核页」
+- **依赖**：前置 US-051（教练端微信授权登录）与 US-009（隐私协议授权）；被 US-011、US-012、US-013、US-014、US-040 依赖
+- **安全**：身份证 AES 加密；图片上传校验格式与大小；防重复提交；敏感字段后端校验；参考单价后端校验

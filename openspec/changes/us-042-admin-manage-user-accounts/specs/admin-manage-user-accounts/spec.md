@@ -11,21 +11,7 @@ The system MUST provide an admin interface to list and view user accounts with f
 - **THEN** the system returns paginated users matching the filter
 - **AND** each item shows user ID, phone, identity, and registration time
 
-### Requirement: REQ-002 Admin shall reset user password
-
-The system MUST allow an admin to reset a user's password and force a password change on next login.
-
-#### Scenario: Reset password successfully
-
-- **GIVEN** admin M has user management permission
-- **AND** user U has phone "13800138000"
-- **WHEN** admin M clicks "重置密码" for user U
-- **THEN** `user.password_hash` is updated with a new random hash
-- **AND** `user.force_change_password` is set to `true`
-- **AND** one `audit_log` entry with `action = 'ADMIN_RESET_PASSWORD'` is created
-- **AND** the API returns HTTP 200 with message "密码已重置，用户首次登录需修改密码"
-
-### Requirement: REQ-003 Admin shall update user phone
+### Requirement: REQ-002 Admin shall update user phone
 
 The system MUST allow an admin to update a user's phone number after verifying uniqueness and ownership. Ownership MUST be verified by an SMS code sent to the original phone number; if verification is not possible, the admin MUST select "force change" and record the reason in `audit_log.remark`.
 
@@ -50,7 +36,7 @@ The system MUST allow an admin to update a user's phone number after verifying u
 - **AND** one `audit_log` entry with `action = 'ADMIN_UPDATE_PHONE'` and `remark = "原手机号已停机（强制变更）"` is created
 - **AND** the API returns HTTP 200 with message "手机号已强制更新"
 
-### Requirement: REQ-004 System shall enforce admin permission
+### Requirement: REQ-003 System shall enforce admin permission
 
 The system MUST reject user management operations from admins without the required permission. The system MUST also prevent `admin` roles from modifying `super_admin` accounts or granting the `super_admin` role.
 
@@ -69,7 +55,7 @@ The system MUST reject user management operations from admins without the requir
 - **THEN** the API returns HTTP 403 with error code `ADMIN_PERMISSION_DENIED`
 - **AND** user S.status remains unchanged
 
-### Requirement: REQ-005 System shall validate target user existence and phone uniqueness
+### Requirement: REQ-004 System shall validate target user existence and phone uniqueness
 
 The system MUST return clear errors when the target user does not exist or the new phone is already taken.
 
@@ -89,7 +75,7 @@ The system MUST return clear errors when the target user does not exist or the n
 - **THEN** the API returns HTTP 409 with error code `PHONE_ALREADY_EXISTS`
 - **AND** `user.phone` remains "13800138000"
 
-### Requirement: REQ-006 Admin shall ban and unban user accounts
+### Requirement: REQ-005 Admin shall ban and unban user accounts
 
 The system MUST allow an admin with `USER:BAN` permission to ban or unban a user account. The system MUST record the reason in `audit_log.remark`.
 

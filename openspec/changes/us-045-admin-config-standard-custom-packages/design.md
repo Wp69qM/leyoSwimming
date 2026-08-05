@@ -90,6 +90,7 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 |----|------|------|
 | US-010 / US-011 | 被依赖 | 教练数据 |
 | US-019 / US-020 | 依赖本 US | 学员浏览/购买套餐 |
+| US-053 | 本 US 依赖 | 后台管理系统登录认证入口 |
 
 ## Mapping to Source Documents
 

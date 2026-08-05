@@ -48,23 +48,25 @@
 - Create: `backend/src/routes/auth.ts`
 - Test: `backend/tests/controllers/auth.test.ts`
 
-**Spec coverage:** REQ-001 All 5 Scenarios (首次登录、老用户登录、code 失效、微信接口失败、幂等)
+**Spec coverage:** REQ-001 All 6 Scenarios (首次登录、老用户登录、未勾选协议、code 失效、微信接口失败、幂等)
 
-- [ ] **RED:** Write 7 failing tests — 200 + `isNewUser=true` (首次); 200 + `isNewUser=false` (老用户); 401 `WECHAT_CODE_INVALID`; 502 `WECHAT_API_ERROR`; 504 `WECHAT_API_TIMEOUT`; 幂等返回首次结果; 400 缺少 code
-- [ ] **GREEN:** Implement `wechatLogin` controller — validate `code`, check Redis idempotency (5min), call `WechatAuthService.authenticate`, call `SessionService.create`, cache idempotent result, map error codes to HTTP status
-- [ ] **COMMIT:** `feat(api): add POST /auth/wechat-login endpoint with idempotency and error mapping`
+- [ ] **RED:** Write 8 failing tests — 200 + `isNewUser=true` (首次); 200 + `isNewUser=false` (老用户); 400 `TERMS_NOT_ACCEPTED` (未勾选协议); 401 `WECHAT_CODE_INVALID`; 502 `WECHAT_API_ERROR`; 504 `WECHAT_API_TIMEOUT`; 幂等返回首次结果; 400 缺少 code
+- [ ] **GREEN:** Implement `wechatLogin` controller — validate `termsAccepted`/`privacyAccepted`, validate `code`, check Redis idempotency (5min), call `WechatAuthService.authenticate`, call `SessionService.create`, cache idempotent result, map error codes to HTTP status
+- [ ] **COMMIT:** `feat(api): add POST /auth/wechat-login endpoint with terms/privacy validation, idempotency and error mapping`
 
-## Task 5: 小程序登录页 [P1]
+## Task 5: 小程序登录页与登录态管理 [P1]
 
 **Files:**
 - Create: `miniapp-user/src/pages/login/index.tsx`
+- Create: `miniapp-user/src/utils/auth.ts`
 - Test: `miniapp-user/src/pages/login/index.test.tsx`
+- Test: `miniapp-user/src/utils/auth.test.tsx`
 
-**Spec coverage:** REQ-001 Scenarios "首次微信授权登录成功", "已注册用户微信授权登录成功", "微信接口调用失败"; 拒绝授权处理（user-story §6.3）
+**Spec coverage:** REQ-001 Scenarios "首次微信授权登录成功", "已注册用户微信授权登录成功", "未勾选《用户须知》或《隐私协议》", "微信接口调用失败"; 拒绝授权处理（user-story §6.4）; REQ-003 Scenario "登录成功后存储 token 并用其维持登录态"
 
-- [ ] **RED:** Write 5 failing tests — 拒绝授权展示提示文案; 首次登录跳转补充资料页; 老用户登录跳转首页; 微信接口错误展示文案; 防重复点击（按钮 disabled）
-- [ ] **GREEN:** Implement `LoginPage` — call `Taro.login()` → POST `/auth/wechat-login` → save tokens to storage → redirect by `profileCompleted` flag; handle auth deny error; disable button during loading
-- [ ] **COMMIT:** `feat(miniapp): add wechat login page with error handling and route redirect`
+- [ ] **RED:** Write 8 failing tests — 未勾选协议点击登录提示文案且不调用微信授权; 勾选协议后首次登录跳转补充资料页; 老用户登录跳转首页; 拒绝授权展示提示文案; 微信接口错误展示文案; 防重复点击（按钮 disabled）; 登录成功后 token 写入本地存储; 请求拦截器自动携带 Bearer token; token 过期触发刷新或重新登录
+- [ ] **GREEN:** Implement `LoginPage` — show terms/privacy checkbox; block login if not checked; call `Taro.login()` → POST `/auth/wechat-login` → save tokens to storage → redirect by `profileCompleted` flag; handle auth deny error; disable button during loading. Implement `auth.ts` — token storage helper, request interceptor attaching `Authorization: Bearer {access_token}`, token refresh on 401, redirect to login when refresh fails
+- [ ] **COMMIT:** `feat(miniapp): add wechat login page, token storage, request interceptor and session handling`
 
 ---
 
@@ -82,6 +84,8 @@
 |---------|--------|--------|--------|--------|--------|
 | §6.1 首次登录（正常） | ✅ | ✅ | ✅ | ✅ | ✅ |
 | §6.2 老用户登录（正常） | ✅ | ✅ | ✅ | ✅ | ✅ |
-| §6.3 拒绝授权（异常） | — | — | — | — | ✅ |
-| §6.4 微信接口失败（异常） | — | ✅ | — | ✅ | ✅ |
-| §6.5 code 失效（异常） | — | ✅ | — | ✅ | — |
+| §6.3 未勾选协议（异常） | — | — | — | ✅ | ✅ |
+| §6.4 拒绝授权（异常） | — | — | — | — | ✅ |
+| §6.5 微信接口失败（异常） | — | ✅ | — | ✅ | ✅ |
+| §6.6 code 失效（异常） | — | ✅ | — | ✅ | — |
+| §6.7 token 存储与登录态维持（正常） | — | — | ✅ | — | ✅ |

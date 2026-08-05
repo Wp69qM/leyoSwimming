@@ -108,6 +108,7 @@ package.status:
 | US | 方向 | 说明 |
 |----|------|------|
 | US-025 / US-027 | 被依赖 | 产生订单与退款申请 |
+| US-053 | 本 US 依赖 | 后台管理系统登录认证入口 |
 
 ## Mapping to Source Documents
 

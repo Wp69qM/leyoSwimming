@@ -220,6 +220,7 @@ And   coach.status 保持 4
 
 - [x] US-039（教练申请离职）—— 产生 status=4 与 pending_audit 工单
 - [x] US-014（教练管理可约时段）—— 提供 schedule_slot 数据
+- [x] US-053（管理员账号密码登录）—— 后台管理系统登录认证入口
 
 ### 9.2 后续 US（依赖本故事）
 

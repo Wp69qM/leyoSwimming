@@ -13,11 +13,11 @@
 **目标：**
 - 管理员可按身份、注册时间筛选用户
 - 管理员可查看用户详情
-- 管理员可重置密码、修改手机号、修改邮箱
+- 管理员可修改手机号、修改邮箱
 - 管理员可配置用户角色权限
 
 **非目标：**
-- 不实现用户自助修改资料（由 US-005/US-008 实现）
+- 不实现用户自助修改资料（由 US-005 实现）
 - 不实现账号注销（由 US-007 实现）
 - 不实现复杂的组织架构权限
 
@@ -34,10 +34,19 @@
 | user_id | BIGINT PK | | |
 | phone | VARCHAR(20) | UK | |
 | email | VARCHAR(128) | UK | nullable |
-| password_hash | VARCHAR(255) | | |
-| force_change_password | BOOLEAN | | 重置密码后强制修改 |
 | identity | TINYINT | IDX | 0=游客 1=注册用户 2=学员 |
 | status | TINYINT | IDX | 0=正常 1=注销 2=封禁 |
+| avatar_url | VARCHAR(512) | | 头像 URL |
+| name | VARCHAR(64) | | 用户姓名/昵称 |
+| gender | TINYINT | | 0=未知 1=男 2=女 |
+| age | INT | | 年龄 |
+| has_swim_basis | BOOLEAN | | 是否有游泳基础 |
+| swim_strokes | VARCHAR(128) | | 会什么泳姿，逗号分隔：蛙泳/自由泳/仰泳/蝶泳 |
+| swim_years | INT | | 游泳年限 |
+| personal_desc | VARCHAR(512) | | 个人描述 |
+| guardian_name | VARCHAR(64) | | 监护人姓名，age < 18 时必填 |
+| guardian_phone | VARCHAR(20) | | 监护人手机号，age < 18 时必填 |
+| profile_completed | BOOLEAN | IDX | 资料是否已完善 |
 | created_at | DATETIME | IDX | |
 | updated_at | DATETIME | | |
 | version | INT | | 乐观锁 |
@@ -68,20 +77,27 @@
 ### 4.1 `GET /api/admin/v1/users`
 
 - **鉴权**：管理员 JWT + `USER:READ`
-- **查询参数**：`identity`、`start_date`、`end_date`、`keyword`、`page`、`page_size`
-- **响应 200**：用户列表分页
+- **查询参数**：`identity`、`status`、`profile_completed`、`start_date`、`end_date`、`keyword`、`page`、`page_size`
+- **响应 200**：用户列表分页，返回字段：user_id, avatar_url, name, phone, gender, age, identity, profile_completed, status, created_at
 
 ### 4.2 `GET /api/admin/v1/users/{user_id}`
 
 - **鉴权**：管理员 JWT + `USER:READ`
-- **响应 200**：用户详情含角色列表
+- **响应 200**：用户详情含角色列表与完整档案
+- **返回档案字段**：avatar_url, name, phone, email, gender, age, identity, status, profile_completed, has_swim_basis, swim_strokes, swim_years, personal_desc, guardian_name, guardian_phone, created_at, updated_at, last_login_at
 - **错误码**：`USER_NOT_FOUND`（404）
 
-### 4.3 `POST /api/admin/v1/users/{user_id}/reset-password`
+### 4.3 `PUT /api/admin/v1/users/{user_id}/profile`
 
-- **鉴权**：管理员 JWT + `USER:PASSWORD_RESET`
-- **功能**：生成随机密码，更新 password_hash，设置 force_change_password=true
-- **响应 200**：`{ "message": "密码已重置" }`
+- **鉴权**：管理员 JWT + `USER:WRITE`
+- **功能**：管理员编辑用户资料（头像、姓名、性别、年龄、游泳基础、泳姿、游泳年限、个人描述、监护人信息等）
+- **请求体**：`{ "avatar_url": "...", "name": "...", "gender": 1, "age": 25, "has_swim_basis": true, "swim_strokes": "蛙泳,自由泳", "swim_years": 5, "personal_desc": "...", "guardian_name": "...", "guardian_phone": "...", "version": 1 }`
+- **业务规则**：
+  - `age < 18` 时，`guardian_name` 和 `guardian_phone` 必填
+  - `has_swim_basis = false` 时，`swim_strokes` 和 `swim_years` 可空
+  - 修改成功后记录 `audit_log` action='ADMIN_UPDATE_PROFILE'
+- **响应 200**：更新后的用户详情
+- **错误码**：`USER_NOT_FOUND`（404）、`USER_CONCURRENTLY_UPDATED`（409）、`INVALID_GUARDIAN_INFO`（400）
 
 ### 4.4 `PUT /api/admin/v1/users/{user_id}/phone`
 
@@ -151,7 +167,6 @@
 |--------|------|
 | `USER:READ` | 查看用户列表与详情 |
 | `USER:WRITE` | 修改用户手机号、邮箱 |
-| `USER:PASSWORD_RESET` | 重置用户密码 |
 | `USER:ROLE_ASSIGN` | 配置用户角色权限 |
 | `USER:BAN` | 封禁/解封用户账号 |
 
@@ -161,7 +176,6 @@
 |------|---------------|---------|------|
 | 查看用户列表/详情 | ✅ | ✅ | 均持有 `USER:READ` |
 | 修改手机号/邮箱 | ✅ | ✅（仅限非管理员用户） | 均持有 `USER:WRITE`；`admin` 不可修改 `super_admin` 或其他 `admin` |
-| 重置密码 | ✅ | ✅（仅限非管理员用户） | 均持有 `USER:PASSWORD_RESET`；`admin` 不可重置 `super_admin` 密码 |
 | 配置角色权限 | ✅ | ✅（不可授予 `super_admin`） | 均持有 `USER:ROLE_ASSIGN`；`admin` 不可将普通用户提升为 `super_admin` |
 | 封禁/解封账号 | ✅ | ✅（仅限非管理员用户） | 均持有 `USER:BAN`；`admin` 不可封禁 `super_admin` |
 | 删除账号 | ❌ | ❌ | 管理员无删除权限；账号注销由 US-007 用户自助完成 |
@@ -170,7 +184,6 @@
 
 - 接口按上表校验 JWT 与细粒度权限码
 - 禁止修改超级管理员（user_id=1 或角色 `super_admin`）的关键字段
-- 重置密码使用加密安全的随机字符串
 - 敏感操作写入 audit_log
 - 修改手机号必须通过原手机号短信验证码验证所有权；无法验证时须强制变更并记录原因
 
@@ -179,6 +192,7 @@
 ## 9. 跨 US 依赖
 
 - 依赖 US-004 / US-006 产生 user 记录
+- 依赖 US-005 产生用户档案字段（头像、姓名、年龄、性别、游泳档案、监护人信息等），本 US 在后台展示与编辑这些字段
 - 角色权限体系影响所有管理后台 US
 
 ---
@@ -187,7 +201,6 @@
 
 | 场景 | 测试方法 | 层级 |
 |------|---------|------|
-| 重置密码 | `test_admin_reset_password_success` | 集成 |
 | 修改手机号 | `test_admin_update_phone_success` | 集成 |
 | 无权限 | `test_admin_no_permission_denied` | 集成 |
 | 用户不存在 | `test_admin_user_not_found` | 集成 |
