@@ -12,7 +12,7 @@
 
 - 教练端账号体系完全独立于用户端：`app_type=coach` 时后端只操作 `coach` 表与 `coach_session` 表，不读、不写、不关联 `user` 表或 `user_session` 表。
 - 登录流程复用微信 OAuth 协议层：`wx.login()` 取 `code`，`wx.getPhoneNumber` 取加密手机号 `encryptedData` + `iv`，协议勾选校验与用户端一致。
-- 教练端没有「游客」身份，也没有 `profile_completed` 概念；登录成功后直接按 `coach.status` 计算 `redirect_page` 并分流。
+- 教练端没有「游客」身份，也没有 `profile_completed` 概念；登录成功后返回 `coach.status`，由前端映射到对应页面。
 - 新增 `GET /api/v1/coach/me/status` 供前端在登录态有效期内兜底查询入驻状态。
 - 登录成功后前端在 `onShow` 检查 token，过期用 `refresh_token` 刷新，`refresh_token` 过期则重新登录。
 
@@ -99,8 +99,7 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
   "refresh_token": "string",
   "expires_in": 7200,
   "is_new_coach": true,
-  "coach_status": -1,
-  "redirect_page": "coach_onboarding"
+  "coach_status": -1
 }
 ```
 
@@ -110,8 +109,7 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 | `refresh_token` | string | JWT refresh_token，有效期 7d |
 | `expires_in` | int | access_token 有效期秒数，默认 7200 |
 | `is_new_coach` | bool | 是否本次登录新建的 coach 记录 |
-| `coach_status` | int | -1/0/1/2/3/4 |
-| `redirect_page` | string | 前端跳转目标页 |
+| `coach_status` | int | -1/0/1/2/3/4，前端据此映射跳转目标页 |
 
 #### 错误码
 
@@ -131,15 +129,14 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 ```json
 {
   "coach_status": 1,
-  "rejection_reason": null,
-  "redirect_page": "coach_home"
+  "rejection_reason": null
 }
 ```
 
 - 需登录鉴权：Header `Authorization: Bearer {access_token}`。
 - `coach_status`：当前教练入驻状态；若教练记录不存在，返回 `-1` 并按未提交入驻资料处理（与登录态下调用一致）。
 - `rejection_reason`：status=2 时返回，其他状态返回 `null`。
-- `redirect_page`：按 `coach_status` 计算的目标页。
+- 前端根据 `coach_status` 映射跳转目标页。
 
 #### 错误码
 
@@ -151,16 +148,16 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 
 ## 4. 状态机映射
 
-| coach.status | redirect_page | 目标页面 |
-|-------------|---------------|---------|
-| -1 | `coach_onboarding` | 入驻资料页（US-010） |
-| 0 | `coach_pending` | 等待审核页 |
-| 1 | `coach_home` | 教练首页（US-012） |
-| 2 | `coach_rejected` | 重新提交入驻页（US-040） |
-| 3 | `coach_resigned` | 重新入驻页（US-040） |
-| 4 | `coach_resigning` | 离职处理中页 |
+| coach.status | 目标页面（前端映射） |
+|-------------|---------------------|
+| -1 | 入驻资料页（US-010） |
+| 0 | 等待审核页 |
+| 1 | 教练首页（US-012） |
+| 2 | 重新提交入驻页（US-040） |
+| 3 | 重新入驻页（US-040） |
+| 4 | 离职处理中页 |
 
-> `coach_onboarding_success`（入驻提交成功页）由 US-010 控制，本 US 不直接返回。
+> `coach_onboarding_success`（入驻提交成功页）由 US-010 控制，本 US 不直接返回；前端在 `coach.status=-1` 且提交入驻资料成功后由 US-010 自行跳转到该页。
 
 ---
 
@@ -183,14 +180,13 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
   ├─ findCoachByUnionId(union_id)
   │    ├─ 命中且 status != 3 → 复用 coach 记录
   │    └─ 未命中 或 status = 3 → 新建 coach 记录，status=-1，写入 phone/avatar/nickname
-  ├─ 计算 redirect_page
   ├─ 签发 JWT access_token + refresh_token
   ├─ 写入 coach_session 表（session_key 加密）
-  └─ 返回 { access_token, refresh_token, expires_in, is_new_coach, coach_status, redirect_page }
+  └─ 返回 { access_token, refresh_token, expires_in, is_new_coach, coach_status }
 
 前端
   ├─ 存储 access_token / refresh_token / expires_in
-  ├─ 按 redirect_page 跳转目标页
+  ├─ 按 coach_status 映射跳转目标页
   └─ onShow 检查 token：access_token 过期则刷新；refresh_token 过期则重新登录
 ```
 

@@ -54,7 +54,7 @@
 2. 用户勾选「我已阅读并同意《用户须知》和《隐私协议》」
 3. 小程序调用 `wx.login()` 获取临时登录凭证 `code`
 4. 小程序调用 `wx.getPhoneNumber` 获取加密手机号数据 `encryptedData` + `iv`
-5. 小程序将 `code`、`encryptedData`、`iv` 以及 `terms_accepted=true`、`privacy_accepted=true` 提交到后端 `POST /api/v1/auth/wechat-login`
+5. 小程序将 `code`、`encryptedData`、`iv` 以及 `terms_accepted=true`、`privacy_accepted=true`、`app_type=user` 提交到后端 `POST /api/v1/auth/wechat-login`
 6. 后端校验 `terms_accepted` 与 `privacy_accepted` 均为 true
 7. 后端调用微信 `code2session` 接口，用 `code` 换取 `openid`、`union_id`、`session_key`
 8. 后端使用 `session_key` 解密手机号，得到用户手机号 `phone`
@@ -400,6 +400,7 @@ Then  前端引导用户重新进入登录页
 
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
+| v1.4 | 2026-08-05 | PM | 用户端登录流程显式提交 `app_type=user`，与 US-051 的 `app_type=coach` 保持一致，便于后端按字段路由到 `user` 表 |
 | v1.3 | 2026-08-04 | PM | 新增登录时必须勾选并校验《用户须知》和《隐私协议》；新增异常场景与错误码 TERMS_NOT_ACCEPTED；GWT 场景从 5 个扩展为 6 个 |
 | v1.2 | 2026-07-31 | PM | v7 评审 P1-4 修复：§1 标题与角色、§2 触发方、§3 前置条件统一为"游客"（与目录名 `US-004-游客-微信授权登录`、PRD 游客浏览主线、§9.2 身份状态机起点一致）；新增 §2 角色命名说明 |
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§1 状态从 [DRAFT] 改为 [REVIEW]；§7.1 user.status 字段从 VARCHAR 'active' 改为 TINYINT 0（与 tech-design.md v1.1 / PRD §9.2.1 一致） |

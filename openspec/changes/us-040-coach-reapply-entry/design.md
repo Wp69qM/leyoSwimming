@@ -1,53 +1,175 @@
-## Context
+# Design: US-040 教练重新入驻
 
-本变更让已离职教练（`coach.status = 3`）可重新发起入驻申请，状态回到 0（待审核），复用 US-010/011 的审核流程。`coach.status = 3` 必须由 US-041 管理员审批教练离职通过后产生；US-039 教练申请离职需经 US-041 审批后才能进入本 US。核心约束是历史评分/评价保留但仅对老学员可见，已 frozen 的老学员套餐不自动恢复。
+> 本文档对应 `docs/stories/US-040-教练-重新入驻/tech-design.md` 的 OpenSpec 映射版本。
+
+## Overview
+
+US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。核心约束：
+
+- **不复用独立的重新入驻资料填写页**：已离职教练登录后由 US-051 / US-054 直接跳转 US-010 的 C-入驻资料填写页；或在「我的」页面点击「重新入驻」后由 `POST /api/coach/v1/reapply/entry` 校验并引导进入 US-010 的 C-入驻资料填写页。
+- **实际资料提交由 US-010 处理**：字段校验、图片上传、`coach.status` 从 3 更新为 0 等逻辑全部由 US-010 的 `POST /api/coach/application` 与 `PUT /api/coach/application/draft` 完成；US-010 创建 `previous_coach_status=3` 的 `coach_application` pending 快照。
+- **历史数据不隔离**：复用原 `coach` 记录，不回滚历史数据；历史评分/评价保留但仅对老学员可见。
+- **管理员重新入驻审核复用 US-011**：通过/拒绝重新入驻申请，触发 `coach.status` 0 → 1 或 0 → 3 的转换。
+
+`coach.status = 3` 必须由 US-041 管理员审批教练离职通过后产生；US-039 教练申请离职需经 US-041 审批后才能进入本 US。
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - 仅 `status = 3` 的教练可发起重新入驻
-- 重新入驻时 `coach.status` 从 3 变为 0，并生成新的入驻申请记录
-- 管理员可通过/拒绝重新入驻申请
+- 已离职教练登录后由 US-051 / US-054 直接跳转 US-010 的 C-入驻资料填写页
+- 「我的」页面点击「重新入驻」时，`POST /api/coach/v1/reapply/entry` 校验 status=3 并允许进入 US-010 的 C-入驻资料填写页
+- 管理员可通过/拒绝重新入驻申请（复用 US-011）
 - 历史评分对老学员保留可见，对新学员隐藏
 
 **Non-Goals:**
 
-- 不修改 US-010/011 新教练入驻的核心审核逻辑
+- 不新建独立的重新入驻资料填写页
+- 不将历史数据与新申请隔离
 - 不自动解冻老学员的 frozen package
 - 不删除或修改历史评价内容
+- 不修改 US-010 新教练入驻的核心字段校验逻辑
+- 不新增 `coach_application.is_reapply` 字段（使用 `previous_coach_status=3` 标识重新入驻）
 
-## Decisions
+## Data Model
 
-1. **复用 `coach_application` 表并增加 `is_reapply` 字段**
-   - 理由：避免重复建设审核流程，统一管理员审核入口
-   - 替代方案：新建 `coach_reapply_application` 表 —— rejected，增加维护成本且审核逻辑重复
+### 修改表
 
-2. **扩展 `coach_rating` / `review` 增加 `is_visible_to_new` 字段**
-   - 理由：精确控制重新入驻后历史评价对新学员的可见性，老学员不受影响
-   - 替代方案：按时间过滤历史评价 —— rejected，老学员也可能在重新入驻后查看，时间过滤不准确
+#### `coach_application`（入驻/重新入驻/编辑申请快照表）
 
-3. **不自动解冻 frozen package**
-   - 理由：PRD 明确要求已 frozen 的老学员 package 仍 frozen，等待学员主动换回原教练或退款
-   - 替代方案：重新入驻成功后批量恢复 active —— rejected，违反 PRD §5.4.8
+| 字段 | 类型 | 索引 | 备注 |
+|------|------|------|------|
+| `application_id` | BIGINT | PK | 申请快照 ID |
+| `coach_id` | BIGINT | FK | 教练 ID |
+| `status` | ENUM | IDX | draft / pending / approved / rejected |
+| `previous_coach_status` | TINYINT | IDX | 提交前 coach.status：-1/2/3；重新入驻时为 3 |
+| 资料字段 | — | — | 与 coach 表资料字段同构，作为快照 |
+| `submitted_at` | DATETIME | — | 正式提交时间 |
+| `approved_at` | DATETIME | — | 通过时间 |
+| `approved_by` | BIGINT | — | 审核管理员 ID |
+| `rejection_reason` | VARCHAR(512) | — | 驳回原因；**不冗余到 coach 表** |
 
-4. **幂等键去重**
-   - 理由：防止教练快速重复点击提交产生重复申请
-   - 键格式：`Idempotency-Key: coach:{coach_id}:reapply`
+> 说明：每次提交（含首次、驳回后重新提交、重新入驻）均新增一条记录，`coach_id` 不变，不隔离历史数据。`previous_coach_status=3` 表示重新入驻申请。
 
-## Risks / Trade-offs
+#### `coach_rating` / `review`（新增字段）
 
-- **[Risk]** 重新入驻教练历史差评对新学员隐藏，但老学员仍可见，可能引发老学员公平性质疑 → **Mitigation**: 产品侧在《用户须知》中说明评价可见性规则
-- **[Risk]** 管理员在入驻审核队列中难以区分新入驻与重新入驻 → **Mitigation**: 列表增加 `is_reapply` 标签与筛选条件
-- **[Risk]** 重新入驻成功后，原 frozen package 学员未及时感知教练回归 → **Mitigation**: 学员主动进入「我的套餐」可看到「换回原教练」入口（US-022 延伸）
+| 字段 | 类型 | 索引 | 备注 |
+|------|------|------|------|
+| `is_visible_to_new` | BOOLEAN | IDX | false=重新入驻后对新学员隐藏 |
 
-## Migration Plan
+### 读取表
 
-1. 执行 Knex migration 为 `coach_application` 增加 `is_reapply` 字段
-2. 执行 Knex migration 为 `coach_rating` / `review` 增加 `is_visible_to_new` 字段
-3. 部署后端接口与教练端/管理端页面
-4. 回滚：删除新增字段并回退代码
+- `coach`：读取当前状态与基础资料；重新入驻时复用原记录
+- `coach_application`：读取重新入驻申请记录与驳回原因
+- `coach_audit_log`：记录状态变更
 
-## Open Questions
+## API Design
 
-- 重新入驻是否需要重新上传证书？建议 MVP 沿用原 coach 资料，教练可修改后提交。
+### POST /api/coach/v1/reapply/entry
+
+- **鉴权**：教练 JWT
+- **功能**：校验当前教练 `coach.status = 3`，允许进入 US-010 的 C-入驻资料填写页；不修改 coach.status
+- **请求体**：`{ "idempotency_key": "..." }`（可选，用于入口点击幂等）
+- **响应 200**：
+  ```json
+  {
+    "code": 0,
+    "data": {
+      "coach_id": 20001,
+      "status": 3,
+      "entry_allowed": true,
+      "redirect_to": "coach_onboarding_page",
+      "prompt_message": "你的账号已离职，请重新提交入驻资料，审核通过后即可恢复接单。"
+    }
+  }
+  ```
+- **错误码**：
+  - `COACH_STATUS_NOT_ALLOWED`（403）：coach.status ≠ 3
+  - `REAPPLY_ALREADY_PENDING`（409）：coach.status = 0 且存在 pending 的 coach_application
+
+> 说明：实际资料填写与提交由 US-010 处理。本接口仅作「我的」页面入口校验与前端跳转提示。
+
+### GET /api/coach/v1/reapply/status（可选）
+
+- **鉴权**：教练 JWT
+- **功能**：返回当前教练最新的重新入驻申请状态（即最新 coach_application）
+- **响应 200**：`{ "application_id": 1001, "status": "pending", "submitted_at": "..." }`
+
+### POST /api/admin/coach/applications/{application_id}/approve
+
+- **鉴权**：管理员 JWT + `coach:audit` 权限
+- **功能**：复用 US-011；通过重新入驻，`coach_application` 快照覆盖 coach 表，`coach.status: 0 → 1`
+- **响应 200**：`{ "coach_id": 20001, "application_id": 10002, "status": 1, "approved_at": "..." }`
+- **错误码**：`NOT_PENDING`（409）
+
+### POST /api/admin/coach/applications/{application_id}/reject
+
+- **鉴权**：管理员 JWT + `coach:audit` 权限
+- **请求体**：`{ "reason": "资料不完整" }`
+- **功能**：复用 US-011；拒绝重新入驻，`coach_application.status = rejected`，`coach.status: 0 → 3`，coach 表生效资料保持不变
+- **响应 200**：`{ "coach_id": 20001, "application_id": 10002, "status": 3, "rejection_reason": "资料不完整" }`
+
+> 说明：通过/拒绝接口均复用 US-011 通用审核接口，US-040 不再新建独立管理员接口。
+
+## State Machine
+
+### 教练状态
+
+```
+3 已离职 ──[在 US-010 提交重新入驻资料]──→ 0 待审核
+0 待审核 ──[管理员通过，US-011]──────────→ 1 已通过
+0 待审核 ──[管理员拒绝，US-011]──────────→ 3 已离职
+```
+
+- `3 → 0` 的转换由 US-010 的提交接口触发，并创建 `previous_coach_status=3` 的 `coach_application` pending 快照。
+- `0 → 1` 与 `0 → 3` 的转换由 US-011 的审核接口触发。
+- US-040 仅提供 `3 → 0` 的入口校验与前端跳转提示，不直接修改 coach.status。
+
+### 入驻申请状态（coach_application.status）
+
+复用 US-010 状态机：`draft → pending → approved / rejected`；每次提交新增一条记录，`coach_id` 不变，`previous_coach_status=3` 表示重新入驻。
+
+## Caching
+
+- `coach:status:{coach_id}` 在状态变更时失效
+- `coach:profile:{coach_id}` 在审核通过后失效
+- `coach:application:{openid}` 在提交/审核后失效
+- 重新入驻入口校验不缓存
+
+## Performance Targets
+
+| 指标 | 目标 |
+|------|------|
+| `POST /api/coach/v1/reapply/entry` P99 | < 150ms |
+| `GET /api/coach/v1/reapply/status` P99 | < 150ms（如保留） |
+| 复用的 US-011 审核接口 P99 | < 200ms |
+| 历史评分可见性查询 P99 | < 100ms |
+
+## Security
+
+- 所有接口校验 JWT 身份
+- 教练端接口仅允许 `coach.status = 3` 调用
+- 管理员接口校验 `coach:audit` 权限
+- 操作记录审计日志
+- `idempotency_key` 防止重复点击
+
+## Cross-US Dependencies
+
+| US | 方向 | 说明 |
+|----|------|------|
+| US-041 | 依赖 | 审批通过后产生 `coach.status = 3`；US-039 通过 US-041 间接产生 status=3 |
+| US-010 | 依赖 | 处理重新入驻的资料填写、校验与提交；触发 `3 → 0` 转换 |
+| US-011 | 依赖 | 提供/复用管理员审核流程；触发 `0 → 1` / `0 → 3` 转换 |
+| US-051 / US-054 | 依赖 | 提供教练端登录态与 `coach_status` 分流 |
+| US-001 / US-012 | 被依赖 | 历史评分可见性影响教练列表/详情与教练主页 |
+
+## Mapping to Source Documents
+
+| 本文档章节 | 源文档 |
+|-----------|--------|
+| Context / Goals | `docs/stories/US-040-.../user-story.md` §1-§5 |
+| Data Model | `docs/stories/US-040-.../tech-design.md` §3 |
+| API Design | `docs/stories/US-040-.../tech-design.md` §4 |
+| State Machine | `docs/stories/US-040-.../tech-design.md` §5 |
+| Caching / Performance / Security | `docs/stories/US-040-.../tech-design.md` §6-§8 |

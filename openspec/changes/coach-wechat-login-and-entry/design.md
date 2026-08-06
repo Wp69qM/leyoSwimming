@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-051 是教练端小程序的入口 US。核心是为 `POST /api/v1/auth/wechat-login` 增加 `app_type=coach` 分支，此时后端直接查询/写入 `coach` 表与 `coach_session` 表，不再读/写 `user` 表或 `user_session` 表；登录成功后按 `coach.status` 返回 `redirect_page`，实现入驻状态分流。教练端没有游客身份，也没有 `profile_completed` 概念。
+US-051 是教练端小程序的入口 US。核心是为 `POST /api/v1/auth/wechat-login` 增加 `app_type=coach` 分支，此时后端直接查询/写入 `coach` 表与 `coach_session` 表，不再读/写 `user` 表或 `user_session` 表；登录成功后返回 `coach.status`，由前端映射跳转目标页，实现入驻状态分流。教练端没有游客身份，也没有 `profile_completed` 概念。
 
 ## Data Model
 
@@ -17,14 +17,14 @@ US-051 是教练端小程序的入口 US。核心是为 `POST /api/v1/auth/wecha
 
 ### coach.status 字段
 
-| 值 | 业务含义 | redirect_page |
-|----|---------|---------------|
-| `-1` | 未提交入驻资料 | `coach_onboarding` |
-| `0` | 待审核 | `coach_pending` |
-| `1` | 已通过 | `coach_home` |
-| `2` | 已驳回 | `coach_rejected` |
-| `3` | 已离职 | `coach_resigned` |
-| `4` | 申请离职中 | `coach_resigning` |
+| 值 | 业务含义 | 前端跳转目标页 |
+|----|---------|-----------------|
+| `-1` | 未提交入驻资料 | 入驻资料页 |
+| `0` | 待审核 | 等待审核页 |
+| `1` | 已通过 | 教练首页 |
+| `2` | 已驳回 | 重新提交入驻页 |
+| `3` | 已离职 | 重新入驻页 |
+| `4` | 申请离职中 | 离职处理中页 |
 
 ### 索引
 
@@ -66,11 +66,10 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
     "refresh_token": "string",
     "expires_in": 7200,
     "is_new_coach": true,
-    "coach_status": -1,
-    "redirect_page": "coach_onboarding"
+    "coach_status": -1
   }
   ```
-- Response 200 (`app_type=user` 或缺失）：与 US-004 保持一致，不含 `is_new_coach`/`coach_status`/`redirect_page`
+- Response 200 (`app_type=user`）：与 US-004 保持一致，不含 `is_new_coach`/`coach_status`
 - Response 400: `VALIDATION_ERROR`（缺少字段或非法 app_type）
 - Response 400: `TERMS_NOT_ACCEPTED`（协议未勾选）
 - Response 401: `WECHAT_CODE_INVALID`
@@ -85,26 +84,22 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
   ```json
   {
     "coach_status": 1,
-    "rejection_reason": null,
-    "redirect_page": "coach_home"
+    "rejection_reason": null
   }
   ```
-- 若 coach 记录不存在，返回 `coach_status=-1`、`redirect_page=coach_onboarding`。
+- 若 coach 记录不存在，返回 `coach_status=-1`。
 
-## Redirect Page Decision Logic
+## Frontend Status-to-Page Mapping
+
+前端在本地维护 `coach_status` 到目标页面的映射，后端不再返回 `redirect_page`：
 
 ```
-function resolveRedirectPage(coachStatus) {
-  switch (coachStatus) {
-    case -1: return 'coach_onboarding';
-    case 0: return 'coach_pending';
-    case 1: return 'coach_home';
-    case 2: return 'coach_rejected';
-    case 3: return 'coach_resigned';
-    case 4: return 'coach_resigning';
-    default: return 'coach_onboarding';
-  }
-}
+coach_status: -1 → 入驻资料页
+             0 → 等待审核页
+             1 → 教练首页
+             2 → 重新提交入驻页
+             3 → 重新入驻页
+             4 → 离职处理中页
 ```
 
 ## State Machine
@@ -132,12 +127,11 @@ function resolveRedirectPage(coachStatus) {
    → findCoachByUnionId(union_id) → coach 表
      ├─ 命中且 status != 3 → 复用
      └─ 未命中 或 status = 3 → create coach (status=-1, phone, avatar_url, nickname)
-   → 计算 redirect_page
    → 签发 JWT + 写 coach_session + 缓存 session_key
-   → 返回 token + is_new_coach + coach_status + redirect_page
+   → 返回 token + is_new_coach + coach_status
 前端 → 存储 token
    → onShow 检查 token：过期则刷新，refresh 过期则重新登录
-   → 按 redirect_page 跳转
+   → 按 coach_status 映射跳转
 ```
 
 ## JWT & Session

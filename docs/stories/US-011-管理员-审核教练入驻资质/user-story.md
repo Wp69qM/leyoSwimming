@@ -33,7 +33,7 @@
 ## 3. 前置条件
 
 - [x] 管理员已登录 Web 后台
-- [x] 存在 status = 0 且 `submitted_at IS NOT NULL` 的教练入驻申请（依赖 US-010；草稿不进入审核列表）
+- [x] 存在 `coach_application.status = pending` 的教练入驻/重新入驻申请（依赖 US-010；草稿不进入审核列表）
 - [x] 管理员具有「教练审核」权限
 
 ---
@@ -43,17 +43,21 @@
 ### 4.1 主路径
 
 1. 管理员进入「用户管理 → 教练审核」列表
-2. 系统展示待审核教练及其提交资料
-3. 管理员查看教练证书、任教年限、个人简介、参考单价
+2. 系统展示 `coach_application.status = pending` 的申请及其快照资料（含证书、任教年限、个人简介、参考单价、previous_coach_status 标记是否重新入驻）
+3. 管理员查看 coach_application 快照资料
 4. 管理员点击「通过」
-5. 系统校验权限与状态
-6. 系统更新 `coach.status = 1`（已通过）
-7. 系统发送审核通过通知给教练
-8. 教练端功能解锁
+5. 系统校验权限与 coach_application.status = pending
+6. 系统将 coach_application 快照字段覆盖写入 `coach` 表生效资料
+7. 系统更新 `coach.status = 1`（已通过）、`coach.approved_at = 当前时间`
+8. 系统更新 `coach_application.status = approved`、`approved_at`、`approved_by`
+9. 系统将快照证书写入 `coach_certificate` 表（覆盖旧证书）
+10. 系统写入 `coach_audit_log`：`action='approve'`、`from_status=0`、`to_status=1`
+11. 系统发送审核通过通知给教练
+12. 教练端功能解锁
 
 ### 4.2 异常分支
 
-- **分支 1**：资料不全 → 管理员点击「驳回」并填写原因
+- **分支 1**：资料不全 → 管理员点击「驳回」并填写原因；系统标记 `coach_application.status = rejected` 并写入 `rejection_reason`；`coach.status` 恢复为 `previous_coach_status`（-1→2，2→2，3→3）
 - **分支 2**：管理员无权限 → 返回 403
 
 ---
@@ -74,10 +78,16 @@
 
 ```gherkin
 Given 管理员已登录且有教练审核权限
-And   存在 coach.status = 0 的入驻申请
-When  管理员查看资料后点击「通过」
-Then  coach.status 更新为 1（已通过）
+And   存在 coach_application.status = pending 的入驻申请（application_id=10001，previous_coach_status=-1）
+And   该申请快照中姓名为"张教练"、参考单价为 300.00 元
+When  管理员查看 coach_application 快照资料后点击「通过」
+Then  coach_application.status 更新为 approved
+And   coach_application.approved_at 记录当前时间
+And   coach 表生效资料被覆盖为 application 快照内容（姓名"张教练"、参考单价 300.00 元）
+And   coach.status 更新为 1（已通过）
 And   coach.approved_at 记录当前时间
+And   coach_certificate 表被该 application 快照证书覆盖
+And   系统写入 coach_audit_log：action='approve'、from_status=0、to_status=1、application_id=10001
 And   教练收到审核通过通知
 And   教练端功能解锁
 ```
@@ -86,10 +96,12 @@ And   教练端功能解锁
 
 ```gherkin
 Given 管理员已登录且有教练审核权限
-And   存在 coach.status = 0 的入驻申请
+And   存在 coach_application.status = pending 的入驻申请（application_id=10001，previous_coach_status=-1）
 When  管理员点击「驳回」并填写原因"证书不清晰"
-Then  coach.status 更新为 2（驳回）
-And   coach.rejection_reason = "证书不清晰"
+Then  coach_application.status 更新为 rejected
+And   coach_application.rejection_reason = "证书不清晰"
+And   coach.status 更新为 2（驳回）
+And   系统写入 coach_audit_log：action='reject'、from_status=0、to_status=2、reason="证书不清晰"、application_id=10001
 And   教练收到驳回通知及原因
 And   教练可重新修改资料后提交
 ```
@@ -98,10 +110,27 @@ And   教练可重新修改资料后提交
 
 ```gherkin
 Given 管理员已登录但无教练审核权限
+And   存在 coach_application.status = pending 的申请
 When  管理员尝试调用审核接口
 Then  返回 HTTP 403
+And   coach_application.status 保持 pending
 And   coach.status 保持不变
 And   前端提示"您没有操作权限"
+```
+
+### 6.4 场景 4：已离职教练重新入驻申请被驳回
+
+```gherkin
+Given 管理员已登录且有教练审核权限
+And   存在 coach_application.status = pending 的重新入驻申请（application_id=10002，previous_coach_status=3）
+And   教练当前 coach.status = 0
+When  管理员点击「驳回」并填写原因"资料不完整"
+Then  coach_application.status 更新为 rejected
+And   coach_application.rejection_reason = "资料不完整"
+And   coach.status 恢复为 3（已离职）
+And   系统写入 coach_audit_log：action='reject'、from_status=0、to_status=3、reason="资料不完整"、application_id=10002
+And   教练收到驳回通知及原因
+And   coach 表生效资料保持离职前状态不变
 ```
 
 ---
@@ -112,24 +141,29 @@ And   前端提示"您没有操作权限"
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | coach | 修改 | status、approved_at、rejection_reason |
-| 2 | coach_audit_log | 新增 | 记录审核人、时间、结果、原因 |
+| 1 | coach | 修改 | 审核通过时 coach_application 快照字段覆盖写入；status、approved_at 更新 |
+| 2 | coach_application | 修改 | status 由 pending 更新为 approved/rejected；approved_at、approved_by、rejection_reason |
+| 3 | coach_certificate | 修改 | 审核通过时由 coach_certificate_application 快照覆盖写入 |
+| 4 | coach_audit_log | 新增 | 记录审核人、时间、结果、原因；from_status / to_status 记录 coach.status 变更 |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/admin/coach/applications | GET | 新增 | 待审核列表 |
-| 2 | /api/admin/coach/applications/{id}/approve | POST | 新增 | 审核通过 |
-| 3 | /api/admin/coach/applications/{id}/reject | POST | 新增 | 审核驳回 |
+| 1 | /api/admin/coach/applications | GET | 新增 | 待审核列表；查询 coach_application.status = pending |
+| 2 | /api/admin/coach/applications/{application_id}/approve | POST | 新增 | 审核通过；将快照覆盖写入 coach 表及 coach_certificate 表 |
+| 3 | /api/admin/coach/applications/{application_id}/reject | POST | 新增 | 审核驳回；coach.status 恢复为 previous_coach_status |
 
 ### 7.3 状态机影响
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | coach.status | 0 → 1 | 管理员通过 | 教练状态机 |
-| 2 | coach.status | 0 → 2 | 管理员驳回 | 教练状态机 |
-| 3 | coach.status | 2 → 0 | 教练重新提交入驻资料（对应 US-040） | 已驳回教练修改资料后重新提交，回到待审核 |
+| 1 | coach.status | 0 → 1 | 管理员通过 | 生命周期状态机 |
+| 2 | coach.status | 0 → previous_coach_status | 管理员驳回 | previous_coach_status=-1 时目标为 2；=2 时目标为 2；=3 时目标为 3 |
+| 3 | coach_application.status | pending → approved | 管理员通过 | 快照状态机 |
+| 4 | coach_application.status | pending → rejected | 管理员驳回 | 快照状态机 |
+| 5 | coach.status | 2 → 0 | 已驳回教练重新提交（US-010） | 创建新 pending application |
+| 6 | coach.status | 3 → 0 | 已离职教练重新入驻提交（US-040） | 创建新 pending application |
 
 ---
 
@@ -137,21 +171,27 @@ And   前端提示"您没有操作权限"
 
 ### 8.1 边界场景 1：重复审核
 
-- **触发条件**：管理员对已通过/已驳回记录再次点击通过/驳回
-- **预期行为**：幂等或拒绝，状态不变
+- **触发条件**：管理员对 coach_application.status 已为 approved/rejected 的记录再次点击通过/驳回
+- **预期行为**：幂等或拒绝，coach.status 与 coach_application.status 均不变
 - **用户可见反馈**："该申请已审核，无需重复操作"
 
 ### 8.2 边界场景 2：已驳回教练重新提交后再次审核
 
-- **触发条件**：coach.status 从 2 被 US-010 重新置为 0
-- **预期行为**：管理员按正常待审核流程处理，可再次通过或驳回
+- **触发条件**：coach.status 从 2 被 US-010 重新置为 0，并创建新的 pending coach_application
+- **预期行为**：管理员按正常待审核流程处理，可再次通过或驳回；coach 表生效资料在通过前保持旧值
 - **用户可见反馈**：审核列表中展示该记录为新的待审核申请
 
 ### 8.3 边界场景 3：批量审核
 
-- **触发条件**：管理员勾选多条待审核记录批量通过
-- **预期行为**：逐条校验并更新，失败项单独提示
+- **触发条件**：管理员勾选多条 coach_application.status = pending 记录批量通过
+- **预期行为**：逐条校验并更新，失败项单独提示；每条通过的 application 快照独立覆盖对应 coach 表
 - **用户可见反馈**："成功通过 N 条，失败 M 条"
+
+### 8.4 边界场景 4：已离职教练重新入驻审核驳回
+
+- **触发条件**：coach_application.previous_coach_status = 3 的重新入驻申请被驳回
+- **预期行为**：coach_application.status = rejected，coach.status 恢复为 3；coach 表生效资料不变
+- **用户可见反馈**：教练端展示"重新入驻申请被驳回"及原因，仍显示已离职状态
 
 ---
 

@@ -1,6 +1,6 @@
 # US-011 管理员审核教练入驻资质 — 测试计划
 
-> **状态**：初稿　|　**最后更新**：2026-07-30
+> **状态**：初稿　|　**最后更新**：2026-08-05
 
 ---
 
@@ -8,11 +8,13 @@
 
 | # | Task | RED | GREEN | COMMIT |
 |---|------|-----|-------|--------|
-| 1 | 待审核列表查询 | 写失败测试 | 最小实现 | commit |
-| 2 | 审核通过 | 写失败测试 | 最小实现 | commit |
-| 3 | 审核驳回 | 写失败测试 | 最小实现 | commit |
+| 1 | 待审核列表查询（查询 coach_application.status=pending 快照） | 写失败测试 | 最小实现 | commit |
+| 2 | 审核通过（快照字段覆盖 coach 生效资料与 coach_certificate） | 写失败测试 | 最小实现 | commit |
+| 3 | 审核驳回（coach.status 恢复为 previous_coach_status） | 写失败测试 | 最小实现 | commit |
 | 4 | 权限校验 | 写失败测试 | 最小实现 | commit |
-| 5 | 状态机校验 | 写失败测试 | 最小实现 | commit |
+| 5 | 状态机校验（仅 pending → approved/rejected） | 写失败测试 | 最小实现 | commit |
+| 6 | 发送审核通知 | 写失败测试 | 最小实现 | commit |
+| 7 | Web 管理后台审核页面 | 写失败测试 | 最小实现 | commit |
 
 ---
 
@@ -24,23 +26,39 @@
 # backend/tests/test_coach_audit.py
 
 def test_coach_approve_success():
-    """审核通过成功"""
+    """审核通过：coach_application.status=approved，coach 生效资料被快照覆盖，coach.status=1"""
+    pass
+
+def test_coach_approve_snapshot_overwrites_coach():
+    """审核通过时 coach_application 快照字段覆盖写入 coach 表生效资料"""
+    pass
+
+def test_coach_approve_snapshot_certificates_overwrite():
+    """审核通过时 coach_certificate_application 快照证书覆盖写入 coach_certificate"""
     pass
 
 def test_coach_reject_success():
-    """审核驳回成功"""
+    """首次申请审核驳回：coach_application.status=rejected，coach.status=2"""
     pass
 
-def test_coach_approve_no_permission():
+def test_coach_reject_resignation_reapply():
+    """已离职重新入驻申请驳回：coach.status 恢复为 3，生效资料不变"""
+    pass
+
+def test_coach_reject_no_permission():
     """无权限审核返回 403"""
     pass
 
 def test_coach_approve_not_pending():
-    """非待审核状态拒绝"""
+    """非 pending 申请通过返回 NOT_PENDING"""
+    pass
+
+def test_coach_audit_already_reviewed():
+    """已审核记录再次审核返回 ALREADY_REVIEWED"""
     pass
 
 def test_coach_audit_resubmitted_application():
-    """已驳回教练重新提交后再次审核"""
+    """已驳回教练重新提交后再次审核：按新 pending 快照处理"""
     pass
 ```
 
@@ -50,11 +68,15 @@ def test_coach_audit_resubmitted_application():
 # backend/tests/integration/test_coach_audit_api.py
 
 def test_api_coach_approve_200():
-    """POST /api/admin/coach/applications/{id}/approve 成功"""
+    """POST /api/admin/coach/applications/{id}/approve 成功，快照覆盖生效资料"""
     pass
 
 def test_api_coach_reject_200():
-    """POST /api/admin/coach/applications/{id}/reject 成功"""
+    """POST /api/admin/coach/applications/{id}/reject 成功，status 恢复 previous_coach_status"""
+    pass
+
+def test_api_coach_applications_list_200():
+    """GET /api/admin/coach/applications 仅返回 pending 快照列表"""
     pass
 ```
 
@@ -74,7 +96,18 @@ def test_e2e_coach_audit():
 
 | GWT 场景 | 测试方法 |
 |----------|----------|
-| 审核通过 | test_coach_approve_success / test_api_coach_approve_200 |
+| 审核通过 | test_coach_approve_success / test_coach_approve_snapshot_overwrites_coach / test_coach_approve_snapshot_certificates_overwrite / test_api_coach_approve_200 |
 | 审核驳回 | test_coach_reject_success / test_api_coach_reject_200 |
-| 无权限审核 | test_coach_approve_no_permission |
-| 已驳回重新提交后审核 | test_coach_audit_resubmitted_application |
+| 无权限审核 | test_coach_reject_no_permission |
+| 已离职重新入驻申请被驳回 | test_coach_reject_resignation_reapply |
+| 重复审核 | test_coach_audit_already_reviewed |
+| 待审核列表查询 | test_api_coach_applications_list_200 |
+
+---
+
+## 变更日志
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-07-30 | 初版 |
+| v2.0 | 2026-08-05 | 重构为快照表设计：审核目标改为 coach_application；通过时快照覆盖 coach 与 coach_certificate；驳回时恢复 previous_coach_status；新增已离职重新入驻驳回测试用例 |

@@ -16,7 +16,7 @@
 
 | 范围 | 说明 |
 |------|------|
-| 单元测试 | `redirect_page` 计算逻辑、协议勾选校验、幂等逻辑 |
+| 单元测试 | 协议勾选校验、幂等逻辑 |
 | 集成测试 | `POST /api/v1/auth/wechat-login`（`app_type=coach`）、`GET /api/v1/coach/me/status` |
 | E2E 测试 | 教练端登录 → 按状态跳转完整流程 |
 
@@ -34,25 +34,25 @@
 ### Task 2：扩展 WechatAuthService 以支持教练端 [P0]
 
 - **RED**：编写测试用例，验证 `app_type=coach` 时：
-  - 无 coach 记录 → 新建 coach（status=-1），返回 `is_new_coach=true`、`coach_status=-1`、`redirect_page=coach_onboarding`。
-  - status=1 → 返回 `coach_home`。
-  - status=0 → 返回 `coach_pending`。
-  - status=2 → 返回 `coach_rejected` 并带 `rejection_reason`。
+  - 无 coach 记录 → 新建 coach（status=-1），返回 `is_new_coach=true`、`coach_status=-1`。
+  - status=1 → 返回 `coach_status=1`。
+  - status=0 → 返回 `coach_status=0`。
+  - status=2 → 返回 `coach_status=2` 并带 `rejection_reason`。
   - status=3 → 视为未命中，新建 coach。
   - 未勾选协议 → 抛 `TERMS_NOT_ACCEPTED`。
   - 非法 `app_type` → 抛 `VALIDATION_ERROR`。
-- **GREEN**：扩展 `WechatAuthService.authenticate({ code, encryptedData, iv, termsAccepted, privacyAccepted, appType })` —— `appType='coach'` 时直接查/写 `coach` 表，不调用 user repo，计算 `redirect_page`。
-- **REFACTOR**：提取 `resolveCoachRedirectPage(coachStatus)` 纯函数；提取协议校验函数。
+- **GREEN**：扩展 `WechatAuthService.authenticate({ code, encryptedData, iv, termsAccepted, privacyAccepted, appType })` —— `appType='coach'` 时直接查/写 `coach` 表，不调用 user repo，返回 `coach_status`。
+- **REFACTOR**：提取协议校验函数。
 - **COMMIT**：`feat(auth): extend WechatAuthService to support independent coach login`
 
 ### Task 3：改造 `POST /api/v1/auth/wechat-login` 端点 [P0]
 
 - **RED**：编写测试用例，验证：
-  - `app_type=coach` 未入驻返回 200 + `redirect_page=coach_onboarding`。
-  - `app_type=coach` 已通过返回 200 + `coach_home`。
+  - `app_type=coach` 未入驻返回 200 + `coach_status=-1`、`is_new_coach=true`。
+  - `app_type=coach` 已通过返回 200 + `coach_status=1`、`is_new_coach=false`。
   - `app_type=coach` 缺失 `encryptedData`/`iv` 返回 400。
   - `app_type=coach` 未勾选协议返回 400 + `TERMS_NOT_ACCEPTED`。
-  - `app_type=user` 保持 US-004 响应格式（不含 `coach_status`/`redirect_page`/`is_new_coach`）。
+  - `app_type=user` 保持 US-004 响应格式（不含 `coach_status`/`is_new_coach`）。
   - 非法 `app_type` 返回 400。
   - 幂等返回首次结果。
 - **GREEN**：更新 controller 接收 `encryptedData`、`iv`、`terms_accepted`、`privacy_accepted`、`app_type`，透传 service，按 `app_type` 决定响应字段。
@@ -61,8 +61,8 @@
 ### Task 4：新增 `GET /api/v1/coach/me/status` 端点 [P0]
 
 - **RED**：编写测试用例，验证登录态下：
-  - status=1 → `coach_status=1`、`redirect_page=coach_home`。
-  - 无 coach 记录 → `coach_status=-1`、`redirect_page=coach_onboarding`。
+  - status=1 → `coach_status=1`、`rejection_reason=null`。
+  - 无 coach 记录 → `coach_status=-1`。
   - status=2 → `rejection_reason` 非空。
   - 未登录返回 401。
 - **GREEN**：实现 `GET /api/v1/coach/me/status`，auth middleware 从 JWT 取 `coach_id`，查询 coach 表返回状态。
@@ -78,7 +78,7 @@
   - 已登录且 token 有效时打开小程序 → 调用 `/coach/me/status` 并跳转。
   - token 过期 → 用 refresh_token 刷新。
   - refresh_token 过期 → 重新登录。
-- **GREEN**：实现 `CoachLoginPage` — 勾选协议 → `Taro.login()` → `wx.getPhoneNumber()` → POST `/auth/wechat-login` with `app_type=coach` → 存 token → 按 `redirect_page` 跳转；实现路由守卫处理 token 刷新/重登。
+- **GREEN**：实现 `CoachLoginPage` — 勾选协议 → `Taro.login()` → `wx.getPhoneNumber()` → POST `/auth/wechat-login` with `app_type=coach` → 存 token → 按 `coach_status` 映射跳转；实现路由守卫处理 token 刷新/重登。
 - **COMMIT**：`feat(coach-miniapp): add login page and coach status route guard`
 
 ---
@@ -112,7 +112,7 @@
 ### 5.2 教练端状态默认值
 
 - 新建 coach 记录：`status=-1`、`phone` 为解密手机号、`avatar_url` / `nickname` 来自微信授权。
-- `is_new_coach=true`、`coach_status=-1`、`redirect_page=coach_onboarding`。
+- `is_new_coach=true`、`coach_status=-1`。
 
 ### 5.3 协议校验
 

@@ -1,5 +1,3 @@
-# Tasks: US-011 管理员审核教练入驻资质
-
 > 本文档对应 `docs/stories/US-011-管理员-审核教练入驻资质/test-plan.md` 的 OpenSpec 映射版本。
 > 每个 Task 严格遵循 RED → GREEN → COMMIT 循环。
 
@@ -12,7 +10,7 @@
 
 **Spec coverage:** REQ-003 Scenario "查询待审核列表"
 
-- [ ] **RED:** Write 2 failing tests — 有权限管理员返回 status=0 列表；无权限返回 403
+- [ ] **RED:** Write 2 failing tests — 有权限管理员返回 coach_application.status=pending 列表；无权限返回 403
 - [ ] **GREEN:** Implement `GET /api/admin/coach/applications` with RBAC and status filter
 - [ ] **COMMIT:** `feat(admin): add pending coach applications list`
 
@@ -25,9 +23,9 @@
 
 **Spec coverage:** REQ-001 Scenario "审核通过"
 
-- [ ] **RED:** Write 2 failing tests — 待审核记录通过返回 status=1；非待审核记录返回 `NOT_PENDING`
-- [ ] **GREEN:** Implement approve service with state machine validation
-- [ ] **COMMIT:** `feat(admin): add coach application approve`
+- [ ] **RED:** Write 3 failing tests — pending 申请通过返回 status=1；coach 生效资料被快照覆盖；coach_certificate 被快照证书覆盖
+- [ ] **GREEN:** Implement approve service with snapshot overwrite and state machine validation
+- [ ] **COMMIT:** `feat(admin): add coach application approve with snapshot overwrite`
 
 ## Task 3: 审核驳回 [P0]
 
@@ -36,11 +34,11 @@
 - Modify: `backend/src/services/admin/coach_audit.ts`
 - Test: `backend/tests/services/admin/coach_audit.test.ts`
 
-**Spec coverage:** REQ-002 Scenario "审核驳回"
+**Spec coverage:** REQ-002 Scenarios "审核驳回", "已离职教练重新入驻申请被驳回"
 
-- [ ] **RED:** Write 2 failing tests — 待审核记录驳回返回 status=2 及原因；未填原因返回 `MISSING_REJECTION_REASON`
-- [ ] **GREEN:** Implement reject service with reason validation
-- [ ] **COMMIT:** `feat(admin): add coach application reject`
+- [ ] **RED:** Write 3 failing tests — 首次申请驳回后 coach.status=2；重新入驻申请驳回后 coach.status=3；未填原因返回 MISSING_REJECTION_REASON
+- [ ] **GREEN:** Implement reject service with previous_coach_status restoration
+- [ ] **COMMIT:** `feat(admin): add coach application reject with status restoration`
 
 ## Task 4: 权限校验 [P0]
 
@@ -63,8 +61,8 @@
 
 **Spec coverage:** REQ-002 Scenario "重复审核"
 
-- [ ] **RED:** Write 2 failing tests — 已通过记录再次通过返回 `ALREADY_REVIEWED`；已驳回记录再次驳回返回 `ALREADY_REVIEWED`
-- [ ] **GREEN:** Add state machine guard allowing only 0 → 1/2
+- [ ] **RED:** Write 2 failing tests — approved 记录再次通过返回 ALREADY_REVIEWED；rejected 记录再次驳回返回 ALREADY_REVIEWED
+- [ ] **GREEN:** Add state machine guard allowing only pending → approved/rejected
 - [ ] **COMMIT:** `feat(admin): enforce coach audit state machine`
 
 ## Task 6: 发送审核通知 [P1]
@@ -109,5 +107,6 @@
 | §6.1 审核通过（正常） | — | ✅ | — | ✅ | ✅ | ✅ | ✅ |
 | §6.2 审核驳回（正常） | — | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 | §6.3 无权限审核（异常） | ✅ | — | — | ✅ | — | — | — |
+| §6.4 已离职重新入驻驳回（边界） | — | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 重复审核（边界） | — | — | — | — | ✅ | — | — |
 | 待审核列表查询 | ✅ | — | — | ✅ | — | — | ✅ |

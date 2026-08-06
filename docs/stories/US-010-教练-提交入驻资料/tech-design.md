@@ -10,56 +10,103 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `coach` | 新增/修改 | 教练主表，含微信登录信息、实名资质、教学履历、服务设置与审核状态 |
-| `coach_certificate` | 新增/修改 | 证书图片，按 `cert_type` 区分类型 |
-| `coach_audit_log` | 新增 | 审核日志，记录 submit/approve/reject 动作（本 US 触发 submit）|
+| `coach` | 新增/修改 | 教练生效资料与生命周期状态主表；pending 期间生效资料不变 |
+| `coach_application` | 新增 | 入驻/重新入驻/编辑申请快照表，保存每次提交/草稿的完整资料副本 |
+| `coach_certificate_application` | 新增 | 申请快照关联证书图片 |
+| `coach_certificate` | 只读 | 已生效证书（仅审核通过后才写入）|
+| `coach_audit_log` | 新增 | 状态变更事件日志，记录 submit/approve/reject/draft_save |
 
 ### 1.2 字段定义
 
-**coach 表**
+**coach 表（生效资料 + 生命周期）**
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | `coach_id` | BIGINT | PK | 教练 ID |
 | `openid` | VARCHAR(64) | UK | 微信登录 openid |
 | `union_id` | VARCHAR(64) | UK | 微信 unionid |
-| `phone` | VARCHAR(16) | UK | 微信解密手机号，脱敏展示 |
-| `name` | VARCHAR(32) | 非空 | 姓名/昵称，1-32 字符 |
-| `avatar_url` | VARCHAR(512) | 可空 | 微信头像 URL，80×80 圆形展示 |
-| `id_card_no` | VARCHAR(64) | 非空 | 18 位中国大陆身份证号，后端 AES 加密存储 |
-| `teaching_years` | INT | 非空 | 任教年限，0-60 |
-| `total_students` | INT | 非空 | 总学员数，0-99999 |
-| `total_hours` | INT | 非空 | 总课时数，0-99999 |
-| `teaching_strokes` | JSON / VARCHAR(128) | 可空 | 擅长泳姿，多选：蛙泳/自由泳/仰泳/蝶泳 |
-| `bio` | VARCHAR(500) | 非空 | 个人简介，10-500 字符 |
-| `reference_price` | DECIMAL(10,2) | 非空 | 参考单价（元/节），50-2000 |
-| `status` | TINYINT | 默认 -1 | -1=未提交入驻资料，0=待审核，1=已通过，2=已驳回，3=已离职，4=申请离职中 |
-| `submitted_at` | DATETIME | 可空 | 正式提交审核时间；NULL 表示草稿 |
-| `approved_at` | DATETIME | 可空 | 审核通过时间 |
-| `rejection_reason` | VARCHAR(255) | 可空 | 驳回原因；重新提交时清空 |
+| `phone` | VARCHAR(16) | UK | 手机号，登录后写入 |
+| `name` | VARCHAR(32) | 可空 | 姓名/昵称，1-32 字符；审核通过后写入 |
+| `avatar_url` | VARCHAR(512) | 可空 | 头像 URL |
+| `gender` | TINYINT | 可空 | 性别：1=男 / 2=女 / 3=其他 |
+| `age` | INT | 可空 | 年龄，18-80 |
+| `email` | VARCHAR(128) | 可空 | 邮箱 |
+| `wechat_qr_url` | VARCHAR(512) | 可空 | 微信二维码图片 URL |
+| `id_card_no` | VARCHAR(64) | 可空 | 18 位中国大陆身份证号，AES 加密 |
+| `teaching_years` | INT | 可空 | 任教年限，0-60 |
+| `total_students` | INT | 可空 | 总学员数，0-99999 |
+| `total_hours` | INT | 可空 | 总课时数，0-99999 |
+| `teaching_strokes` | JSON / VARCHAR(128) | 可空 | 擅长泳姿 |
+| `bio` | VARCHAR(500) | 可空 | 个人简介，10-500 字符 |
+| `reference_price` | DECIMAL(10,2) | 可空 | 参考单价（元/节），50-2000 |
+| `status` | TINYINT | 默认 -1 | -1=未提交，0=待审核，1=已通过，2=已驳回，3=已离职，4=申请离职中 |
+| `submitted_at` | DATETIME | 可空 | 当前 pending application 的提交时间 |
+| `approved_at` | DATETIME | 可空 | 最近一次审核通过时间 |
 | `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
 | `updated_at` | DATETIME | 默认 CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
 
-**coach_certificate 表**
+**coach_application 表（申请快照）**
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| `application_id` | BIGINT | PK | 申请快照 ID |
+| `coach_id` | BIGINT | FK | 教练 ID |
+| `status` | ENUM | 非空 | draft / pending / approved / rejected |
+| `previous_coach_status` | TINYINT | 可空 | 提交前 coach.status（-1/2/3）；draft 时为空 |
+| `name` | VARCHAR(32) | 可空 | 姓名/昵称快照 |
+| `avatar_url` | VARCHAR(512) | 可空 | 头像 URL 快照 |
+| `gender` | TINYINT | 可空 | 性别快照 |
+| `age` | INT | 可空 | 年龄快照 |
+| `email` | VARCHAR(128) | 可空 | 邮箱快照 |
+| `wechat_qr_url` | VARCHAR(512) | 可空 | 微信二维码快照 |
+| `id_card_no` | VARCHAR(64) | 可空 | 身份证号快照，AES 加密 |
+| `teaching_years` | INT | 可空 | 任教年限快照 |
+| `total_students` | INT | 可空 | 总学员数快照 |
+| `total_hours` | INT | 可空 | 总课时数快照 |
+| `teaching_strokes` | JSON / VARCHAR(128) | 可空 | 擅长泳姿快照 |
+| `bio` | VARCHAR(500) | 可空 | 个人简介快照 |
+| `reference_price` | DECIMAL(10,2) | 可空 | 参考单价快照 |
+| `submitted_at` | DATETIME | 可空 | 正式提交时间；draft 时为 NULL |
+| `approved_at` | DATETIME | 可空 | 审核通过时间 |
+| `approved_by` | BIGINT | 可空 | 审核管理员 ID |
+| `rejection_reason` | VARCHAR(512) | 可空 | 驳回原因；rejected 时写入 |
+| `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
+| `updated_at` | DATETIME | 默认 CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+**coach_certificate_application 表（快照证书）**
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | `cert_id` | BIGINT | PK | 证书 ID |
-| `coach_id` | BIGINT | FK | 教练 ID |
+| `application_id` | BIGINT | FK | 申请快照 ID |
 | `cert_type` | ENUM | 非空 | ID_CARD_FRONT / ID_CARD_BACK / COACH_CERT / HEALTH_CERT / PORTRAIT / OTHER |
 | `image_url` | VARCHAR(512) | 非空 | 图片 URL |
 | `sort_order` | INT | 默认 0 | 同类型证书排序 |
 | `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
 
-**coach_audit_log 表（保持不变）**
+**coach_certificate 表（已生效证书）**
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| `cert_id` | BIGINT | PK | 证书 ID |
+| `coach_id` | BIGINT | FK | 教练 ID |
+| `cert_type` | ENUM | 非空 | 证书类型 |
+| `image_url` | VARCHAR(512) | 非空 | 图片 URL |
+| `sort_order` | INT | 默认 0 | 排序 |
+| `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
+
+**coach_audit_log 表**
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | `log_id` | BIGINT | PK | 日志 ID |
 | `coach_id` | BIGINT | FK | 教练 ID |
-| `action` | ENUM | 非空 | submit / approve / reject |
-| `operator_id` | BIGINT | 可空 | 操作人 ID（系统触发为 NULL）|
-| `remark` | VARCHAR(255) | 可空 | 备注（如驳回原因）|
+| `application_id` | BIGINT | FK | 关联申请快照 ID；draft_save 可为 NULL |
+| `admin_id` | BIGINT | FK | 管理员 ID；教练自身动作为 NULL |
+| `action` | ENUM | 非空 | submit / approve / reject / draft_save |
+| `from_status` | TINYINT | 非空 | 变更前 coach.status |
+| `to_status` | TINYINT | 非空 | 变更后 coach.status |
+| `reason` | VARCHAR(512) | 可空 | 原因 |
 | `created_at` | DATETIME | 默认 CURRENT_TIMESTAMP | 创建时间 |
 
 ### 1.3 索引
@@ -70,10 +117,14 @@ CREATE UNIQUE INDEX idx_coach_openid ON coach(openid);
 CREATE UNIQUE INDEX idx_coach_union_id ON coach(union_id);
 CREATE UNIQUE INDEX idx_coach_phone ON coach(phone);
 
--- 待审核/已通过/已驳回记录的唯一性，用于防重复提交
-CREATE UNIQUE INDEX idx_coach_active_application ON coach(openid) WHERE status IN (-1, 0, 1, 2);
+-- 每个教练只能有一条待审核申请
+CREATE UNIQUE INDEX idx_coach_pending_application ON coach_application(coach_id) WHERE status = 'pending';
+
+-- 查询教练最新申请/草稿
+CREATE INDEX idx_coach_application_coach_status ON coach_application(coach_id, status, created_at DESC);
 
 -- 证书查询索引
+CREATE INDEX idx_coach_certificate_application_id_type ON coach_certificate_application(application_id, cert_type);
 CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, cert_type);
 ```
 
@@ -92,11 +143,16 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 
 ### 2.2 POST /api/coach/application
 
-- **鉴权**：教练端登录态（需 US-051 登录态）
+- **鉴权**：教练端登录态（需 US-051/US-054 登录态）
 - **请求体**：
   ```json
   {
     "name": "张教练",
+    "avatar_url": "https://cdn.example.com/avatar.png",
+    "gender": 1,
+    "age": 30,
+    "email": "coach@example.com",
+    "wechat_qr_url": "https://cdn.example.com/wechat-qr.png",
     "id_card_no": "110101199001011234",
     "teaching_years": 5,
     "total_students": 100,
@@ -120,18 +176,24 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
     "code": 0,
     "data": {
       "coach_id": 20001,
+      "application_id": 10001,
       "status": 0,
       "submitted_at": "2026-08-05T14:30:00+08:00"
     }
   }
   ```
 - **错误码**：
-  - `COACH_APPLICATION_PENDING`（400401）：已存在待审核/已通过记录，禁止重复提交
+  - `COACH_APPLICATION_PENDING`（400401）：已存在 pending 状态的 coach_application，禁止重复提交
   - `INVALID_REFERENCE_PRICE`（400402）：参考单价超出 50-2000 范围
   - `MISSING_REQUIRED_FIELDS`（400403）：必填字段或必填资质缺失
   - `INVALID_ID_CARD`（400404）：身份证号格式不合法
   - `IMAGE_TOO_LARGE`（400405）：单张图片超过 5MB
   - `INVALID_IMAGE_FORMAT`（400406）：图片格式非 JPG/PNG
+
+- **说明**：
+  - 校验通过后创建/复用 `coach_application` 快照，`status = pending`，记录 `previous_coach_status` 与 `submitted_at`。
+  - 更新 `coach.status = 0`、`coach.submitted_at = now`；coach 表生效资料此时**不更新**，等待 US-011 审核通过后再覆盖。
+  - 写入 `coach_audit_log`：`action='submit'`、`from_status=previous_coach_status`、`to_status=0`。
 
 ### 2.3 PUT /api/coach/application/draft
 
@@ -143,16 +205,17 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
     "code": 0,
     "data": {
       "coach_id": 20001,
-      "status": 0,
+      "application_id": 10001,
+      "status": "draft",
       "submitted_at": null
     }
   }
   ```
 - **说明**：
-  - 保存草稿与提交审核均写入 `status = 0`，不新增独立草稿态。
-  - `submitted_at = NULL` 表示草稿，US-011 审核列表必须过滤 `submitted_at IS NOT NULL` 的记录。
-  - `status = -1` 的教练首次保存草稿后，`status` 变为 0 但 `submitted_at` 为空。
-  - `status = 2` 的教练保存草稿或重新提交时，`status` 重置为 0，并清空 `rejection_reason`。
+  - 保存草稿仅创建或更新 `coach_application` 快照，`status = draft`，不修改 `coach.status`。
+  - `submitted_at = NULL` 表示草稿；US-011 审核列表仅查询 `coach_application.status = pending` 的记录。
+  - `coach.status = -1/2/3` 的教练保存草稿时，coach.status 均保持不变；草稿数据仅写入 coach_application 快照。
+  - `coach.status = 3` 的教练重新入驻时复用原 coach 记录，历史数据不回滚、不隔离。
 
 ### 2.4 GET /api/coach/application
 
@@ -163,9 +226,14 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
     "code": 0,
     "data": {
       "coach_id": 20001,
+      "application_id": 10001,
       "name": "张教练",
       "avatar_url": "https://cdn.example.com/avatar.png",
-      "phone": "138****8888",
+      "phone": "13800138000",
+      "gender": 1,
+      "age": 30,
+      "email": "coach@example.com",
+      "wechat_qr_url": "https://cdn.example.com/wechat-qr.png",
       "id_card_no": "110101********1234",
       "teaching_years": 5,
       "total_students": 100,
@@ -175,7 +243,8 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
       "reference_price": 300.00,
       "status": 0,
       "submitted_at": "2026-08-05T14:30:00+08:00",
-      "rejection_reason": null,
+      "entry_type": "first",
+      "prompt_message": null,
       "certificates": [
         { "cert_id": 1, "cert_type": "ID_CARD_FRONT", "image_url": "..." },
         { "cert_id": 2, "cert_type": "ID_CARD_BACK", "image_url": "..." },
@@ -187,7 +256,11 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
   }
   ```
 - **响应 404**：`NO_APPLICATION`（尚未创建 coach 记录）
-- **说明**：返回手机号与身份证号均为脱敏展示；完整图片 URL 用于等待审核页查看。
+- **说明**：
+  - 返回数据来自**最新 coach_application 快照**（draft/pending/rejected）；审核通过后 coach 表生效资料由 US-011 覆盖写入。
+  - 身份证号脱敏展示；完整图片 URL 用于等待审核页查看。
+  - `entry_type` 枚举：`draft`（status=draft）、`first`（status=pending 且 previous_coach_status=-1）、`rejected`（coach.status=2，最新 application 为 rejected）、`reapply`（coach.status=3，最新 application 为 rejected 或 pending previous_coach_status=3）。
+  - `prompt_message`：coach.status=2 时返回最新 rejected application 的 `rejection_reason`；coach.status=3 时返回固定重新入驻说明文案；其他状态返回 `null`。
 
 ### 2.5 POST /api/upload/image
 
@@ -211,14 +284,35 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 
 ## 3. 状态机
 
+### 3.1 coach.status（生命周期状态）
+
 ```
--1 未提交 ──[保存草稿]──→ 0 待审核（submitted_at = NULL）
--1 未提交 ──[提交审核]──→ 0 待审核（submitted_at = now）
-  2 已驳回 ──[重新提交]──→ 0 待审核（submitted_at = now，rejection_reason = NULL）
+-1 未提交 ──[保存草稿]──→ -1 未提交（coach_application.status = draft）
+-1 未提交 ──[提交审核]──→ 0 待审核（coach_application.status = pending, previous_coach_status=-1）
+  2 已驳回 ──[保存草稿]──→ 2 已驳回（coach_application.status = draft）
+  2 已驳回 ──[重新提交]──→ 0 待审核（coach_application.status = pending, previous_coach_status=2）
+  3 已离职 ──[保存草稿]──→ 3 已离职（coach_application.status = draft）
+  3 已离职 ──[重新入驻提交]──→ 0 待审核（coach_application.status = pending, previous_coach_status=3）
+
+  0 待审核 ──[管理员通过]──→ 1 已通过（coach_application 快照覆盖 coach 生效资料）
+  0 待审核 ──[管理员驳回]──→ previous_coach_status
+            ├── previous_coach_status=-1 → 2 已驳回
+            ├── previous_coach_status=2  → 2 已驳回
+            └── previous_coach_status=3  → 3 已离职
 ```
 
-- 本 US 触发初始转换（-1 → 0）与驳回后重新提交转换（2 → 0）。
-- 后续 US-011 触发：0 → 1（通过）或 0 → 2（驳回）。
+### 3.2 coach_application.status（快照状态）
+
+```
+draft 草稿 ──[提交审核]──→ pending 待审核
+pending 待审核 ──[管理员通过]──→ approved 已通过
+pending 待审核 ──[管理员驳回]──→ rejected 已驳回
+```
+
+- 本 US 触发 coach.status 的初始转换（-1 → 0）、驳回后重新提交转换（2 → 0）与已离职重新入驻转换（3 → 0）。保存草稿不触发 coach.status 转换。
+- US-011 触发审核结果：coach.status 0 → 1（通过）或 0 → previous_coach_status（驳回）；coach_application.status pending → approved/rejected。
+- pending 期间 coach 表生效资料保持不变；审核通过后将 coach_application 快照字段覆盖写入 coach 表及 coach_certificate 表。
+- `status = 3` 的教练重新入驻时复用原 coach 记录，历史数据不回滚、不隔离。
 
 ---
 
@@ -269,4 +363,5 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 |------|------|------|
 | v1.0 | 2026-07-30 | 初版 |
 | v1.1 | 2026-07-31 | 新增 `submitted_at` 字段，区分草稿与已提交 |
+| v2.1 | 2026-08-05 | 已离职教练（status=3）重新入驻与 US-010 合并；GET /api/coach/application 响应新增 `entry_type` 与 `prompt_message`；状态机增加 3 → 0 转换；明确历史数据不复用隔离 |
 | v2.0 | 2026-08-05 | 按字段设计补全 coach/coach_certificate 全部字段；新增身份证、图片、参考单价等错误码；明确 GET 接口返回完整资料；新增 `cert_type` 枚举与状态机 -1 初始态 |

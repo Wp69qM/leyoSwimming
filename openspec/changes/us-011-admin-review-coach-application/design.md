@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-011 是教练上线的质量关卡，管理员对教练入驻资料进行通过/驳回操作。核心是 3 个 API + RBAC 权限 + 状态机校验 + 通知。
+US-011 是教练上线的质量关卡，管理员对 `coach_application` 快照进行通过/驳回操作。审核通过时，快照字段覆盖写入 `coach` 生效资料，快照证书覆盖写入 `coach_certificate`；审核驳回时，`coach.status` 恢复为 `previous_coach_status`，生效资料保持不变。
 
 ## Data Model
 
@@ -12,18 +12,23 @@ US-011 是教练上线的质量关卡，管理员对教练入驻资料进行通�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `coach` | UPDATE | `status`, `approved_at`, `rejection_reason`, `auditor_id` |
-| `coach_audit_log` | INSERT | `log_id`, `coach_id`, `admin_id`, `action`, `reason`, `created_at` |
+| `coach_application` | UPDATE | `status` pending → approved/rejected，`approved_at`、`approved_by`、`rejection_reason` |
+| `coach` | UPDATE | 通过时由 `coach_application` 快照覆盖生效资料；`status`、`approved_at` 更新 |
+| `coach_certificate_application` | 读取 | 通过时读取快照证书 |
+| `coach_certificate` | INSERT / UPDATE | 通过时由 `coach_certificate_application` 快照覆盖写入 |
+| `coach_audit_log` | INSERT | `log_id`, `coach_id`, `application_id`, `admin_id`, `action`（approve/reject）, `from_status`, `to_status`, `reason`, `created_at` |
 | `notification` | INSERT | `notification_id`, `user_id`, `type`, `title`, `content`, `created_at` |
 
 ### 索引
 
 ```sql
 -- 待审核列表查询索引
-CREATE INDEX idx_coach_status_created ON coach(status, created_at);
+CREATE INDEX idx_coach_application_status_submitted ON coach_application(status, submitted_at);
+CREATE INDEX idx_coach_application_coach_status ON coach_application(coach_id, status, created_at DESC);
 
 -- 审核日志查询索引
 CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
+CREATE INDEX idx_coach_audit_log_application_id ON coach_audit_log(application_id);
 ```
 
 ## API Design
@@ -31,27 +36,30 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 ### GET /api/admin/coach/applications
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
-- Request query: `page`, `page_size`, `keyword`, `submitted_at_not_null=true`
-- Response 200: `{ total, list: [{ coach_id, name, phone, reference_price, status, created_at, certificates }] }`
-- 说明：待审核列表仅返回 `status=0` 且 `submitted_at IS NOT NULL` 的记录，避免草稿进入审核队列
+- Request query: `page`, `page_size`, `keyword`, `status=pending`
+- Response 200: `{ total, list: [{ application_id, coach_id, name, phone, reference_price, previous_coach_status, submitted_at, certificates }] }`
+- 说明：待审核列表仅返回 `coach_application.status = pending` 的记录，避免草稿进入审核队列；`previous_coach_status=3` 标记重新入驻申请
 - Response 403: `FORBIDDEN`
 
-### POST /api/admin/coach/applications/{id}/approve
+### POST /api/admin/coach/applications/{application_id}/approve
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
-- Response 200: `{ coach_id, status: 1, approved_at }`
+- Response 200: `{ coach_id, application_id, status: 1, approved_at }`
 - Response 400: `NOT_PENDING`
 - Response 403: `FORBIDDEN`
 - Response 409: `ALREADY_REVIEWED`
+- 说明：校验 `coach_application.status = pending` 后，将快照字段覆盖写入 `coach` 表，将快照证书覆盖写入 `coach_certificate` 表；更新 `coach.status=1`、`coach.approved_at=now`；更新 `coach_application.status=approved`、`approved_at`、`approved_by`；写入 `coach_audit_log`；异步发送通知；失效相关缓存。
 
-### POST /api/admin/coach/applications/{id}/reject
+### POST /api/admin/coach/applications/{application_id}/reject
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
 - Request: `{ reason: string }`
-- Response 200: `{ coach_id, status: 2, rejection_reason }`
+- Response 200: `{ coach_id, application_id, status: <恢复后的status>, rejection_reason }`
 - Response 400: `MISSING_REJECTION_REASON`
 - Response 400: `NOT_PENDING`
 - Response 403: `FORBIDDEN`
+- Response 409: `ALREADY_REVIEWED`
+- 说明：校验 `coach_application.status = pending` 后，更新 `coach_application.status=rejected`、`rejection_reason=reason`；根据 `previous_coach_status` 恢复 `coach.status`（-1→2，2→2，3→3）；写入 `coach_audit_log`；异步发送通知；失效相关缓存。
 
 ## State Machine
 
@@ -59,16 +67,28 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 
 ```
 待审核(0) ──[通过]──→ 已通过(1)
-待审核(0) ──[驳回]──→ 驳回(2)
-驳回(2) ──[重新提交，US-040]──→ 待审核(0)
+待审核(0) ──[驳回]──→ previous_coach_status
+            ├── previous=-1 → 驳回(2)
+            ├── previous=2  → 驳回(2)
+            └── previous=3  → 已离职(3)
+驳回(2) ──[重新提交，US-010]──→ 待审核(0)
+已离职(3) ──[重新入驻提交，US-010]──→ 待审核(0)
+```
+
+### 申请快照状态机
+
+```
+draft 草稿 ──[提交审核，US-010]──→ pending 待审核
+pending 待审核 ──[通过]──→ approved 已通过
+pending 待审核 ──[驳回]──→ rejected 已驳回
 ```
 
 本 US 触发的转换：
 
 | 转换 | 触发条件 | 字段变更 |
 |------|---------|---------|
-| 待审核 → 已通过 | 管理员通过 | `status=1`, `approved_at` 赋值, `auditor_id` 赋值 |
-| 待审核 → 驳回 | 管理员驳回 | `status=2`, `rejection_reason` 赋值, `auditor_id` 赋值 |
+| 待审核 → 已通过 | 管理员通过 | `coach.status=1`，`coach.approved_at` 赋值；`coach_application` 快照覆盖 `coach` 生效资料；`coach_certificate_application` 快照覆盖 `coach_certificate`；写入 coach_audit_log（from_status=0, to_status=1）|
+| 待审核 → previous_coach_status | 管理员驳回 | `coach.status` 恢复为 previous_coach_status；`coach_application.status=rejected`，`rejection_reason` 赋值；写入 coach_audit_log（from_status=0, to_status=恢复后的status, reason=驳回原因）|
 
 ## Caching
 
@@ -76,6 +96,7 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 |----|-----|-----|------|---------|
 | Redis | `admin:coach:applications` | 1min | 待审核列表缓存 | 新提交/审核后失效 |
 | Redis | `coach:{coach_id}` | 立即失效 | 教练详情缓存 | 审核后清除 |
+| Redis | `coach:application:{openid}` | 立即失效 | 教练申请状态缓存 | 审核后清除 |
 
 ## Performance Targets
 
@@ -90,7 +111,7 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 
 - 所有接口必须管理员登录鉴权
 - RBAC 权限校验（`coach:audit`）
-- 状态机校验（仅 0 可转 1/2）
+- 状态机校验（仅 `coach_application.status = pending` 可转 approved/rejected）
 - 记录审计日志
 - 异步发送通知
 
@@ -98,7 +119,7 @@ CREATE INDEX idx_coach_audit_log_coach_id ON coach_audit_log(coach_id);
 
 | US | 方向 | 说明 |
 |----|------|------|
-| US-010 | 依赖 | 产生待审核数据 |
+| US-010 | 依赖 | 产生待审核快照数据 |
 | US-012 / US-013 / US-014 | 被依赖 | 审核通过后解锁教练端功能 |
 
 ## Mapping to Source Documents

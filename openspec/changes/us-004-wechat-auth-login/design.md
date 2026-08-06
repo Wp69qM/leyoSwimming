@@ -54,7 +54,7 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 
 - 鉴权：否（登录入口）
 - 幂等：是（以 `code` 为键，5 分钟内有效）
-- Request: `{ code: string, phoneEncryptedData: string, phoneIv: string, avatarUrl: string, nickName?: string, termsAccepted: boolean, privacyAccepted: boolean }`
+- Request: `{ code: string, phoneEncryptedData: string, phoneIv: string, avatarUrl: string, nickName?: string, termsAccepted: boolean, privacyAccepted: boolean, appType: 'user' }`
 - Response 200: `{ accessToken, refreshToken, expiresIn: 7200, isNewUser, profileCompleted, userId }`
 - Response 400: `TERMS_NOT_ACCEPTED`（未勾选《用户须知》或《隐私协议》）
 - Response 401: `WECHAT_CODE_INVALID`（code 已失效）
@@ -95,7 +95,7 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 ```
 小程序 → wx.login() → code
 小程序 → getPhoneNumber → encryptedData + iv
-小程序 → POST /auth/wechat-login(code, phoneEncryptedData, phoneIv, avatarUrl, nickName) → 后端
+小程序 → POST /auth/wechat-login(code, phoneEncryptedData, phoneIv, avatarUrl, nickName, appType='user') → 后端
 后端 → code2session(code) → 微信开放平台 → openid + union_id + session_key
 后端 → 解密手机号
 后端 → findByUnionId(union_id) → user 表

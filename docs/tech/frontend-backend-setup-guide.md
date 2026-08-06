@@ -315,12 +315,12 @@ shared/
 - 统一缓存、任务编排、依赖图。
 - 命令示例：
   ```bash
-  pnpm dev          # 同时启动所有前端
-  pnpm build        # 统一构建
-  pnpm test         # 统一测试
+  yarn dev          # 同时启动所有前端
+  yarn build        # 统一构建
+  yarn test         # 统一测试
   ```
 
-若项目初期简单，也可用 **pnpm workspace** + 独立 `package.json`。
+若项目初期简单，也可用 **yarn workspace** + 独立 `package.json`。
 
 ### 8.2 代码质量
 
@@ -342,12 +342,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: yarn/action-setup@v2
       - name: Install & Lint & Test
         run: |
-          pnpm install
-          pnpm lint
-          pnpm test
+          yarn install
+          yarn lint
+          yarn test
       - name: Build Backend
         run: cd backend && ./mvnw test package
 ```
@@ -491,7 +491,7 @@ ECC-main（同层目录）是面向多 AI 工具协作的脚手架项目，以�
 
 1. 创建 `miniapp-user/`、`miniapp-coach/`、`web-admin/`、`backend/`、`shared/`、`deploy/`、`tools/` 目录。
 2. 为每个目录初始化项目脚手架并提交初始 `AGENT.md`。
-3. 根目录添加 `pnpm-workspace.yaml` 或 Turborepo 配置。
+3. 根目录添加 `yarn-workspace.yaml` 或 Turborepo 配置。
 4. 配置 `docker-compose.yml`（MySQL 8 + Redis 7）。
 5. 配置 GitHub Actions 基础 CI（lint + test）。
 

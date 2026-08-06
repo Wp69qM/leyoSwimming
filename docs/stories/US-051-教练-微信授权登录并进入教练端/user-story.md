@@ -58,16 +58,15 @@
    - 命中已有教练记录 → 复用账号
    - 未命中 → 新建教练记录，`coach.status = -1`（未提交入驻资料），写入 `phone` 与微信头像/昵称
 10. 后端签发 JWT `access_token` + `refresh_token`，将会话写入 `coach_session` 表（`session_key` 加密存储，可同步缓存 Redis TTL 7200s）
-11. 返回登录结果（含 `access_token`、`refresh_token`、`expires_in`、`is_new_coach`、`coach_status`、`redirect_page`）
+11. 返回登录结果（含 `access_token`、`refresh_token`、`expires_in`、`is_new_coach`、`coach_status`）
 12. 前端将 `access_token` 与 `refresh_token` 存储到本地，并记录 `expires_in`
-13. 前端按 `redirect_page` 决定跳转：
-    - `coach_onboarding` → 跳转「入驻资料页」（US-010）
-    - `coach_onboarding_success` → 跳转「入驻提交成功页」
-    - `coach_pending` → 跳转「等待审核页」
-    - `coach_rejected` → 跳转「重新提交入驻页」（US-040）
-    - `coach_resigned` → 跳转「重新入驻页」（US-040）
-    - `coach_resigning` → 跳转「离职处理中页」
-    - `coach_home` → 跳转「教练首页」（US-012 起）
+13. 前端按 `coach_status` 决定跳转：
+    - `-1`（未提交入驻资料） → 跳转「入驻资料填写页」（US-010）
+    - `0`（待审核） → 跳转「等待审核页」
+    - `1`（已通过） → 跳转「教练首页」（US-012 起）
+    - `2`（已驳回） → 跳转「入驻资料填写页」（US-010，顶部展示驳回原因条）
+    - `3`（已离职） → 跳转「入驻资料填写页」（US-010，顶部展示重新入驻说明条）
+    - `4`（申请离职中） → 跳转「离职处理中页」
 14. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
 15. 前端在 app 启动或依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导教练重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
 
@@ -117,6 +116,7 @@ Then  系统创建新 coach 记录，coach.status = -1（未提交入驻资料�
 And   coach.phone 等于解密后的微信手机号
 And   返回 access_token 和 refresh_token
 And   is_new_coach = true
+And   coach_status = -1
 And   前端跳转到"入驻资料页"（US-010）
 ```
 
@@ -131,7 +131,7 @@ Then  系统复用已有 coach 记录，不新建账号
 And   返回 access_token 和 refresh_token
 And   is_new_coach = false
 And   coach_status = 1
-And   前端跳转到"教练首页"
+And   前端按 coach_status=1 跳转到"教练首页"
 ```
 
 ### 6.3 场景 3：待审核教练授权登录，跳转等待审核页（正常路径）
@@ -143,7 +143,7 @@ When  教练点击"微信一键登录"按钮并同意授权
 Then  系统复用已有 coach 记录
 And   coach_status = 0
 And   返回 access_token 和 refresh_token
-And   前端跳转到"等待审核页"
+And   前端按 coach_status=0 跳转到"等待审核页"
 ```
 
 ### 6.4 场景 4：教练拒绝微信授权或手机号授权（异常路径）
@@ -171,17 +171,18 @@ And   不创建任何 coach 记录
 And   不签发 token
 ```
 
-### 6.6 场景 6：已驳回教练授权登录，跳转重新提交入驻页（异常路径）
+### 6.6 场景 6：已驳回教练授权登录，跳转入驻资料填写页（异常路径）
 
 ```gherkin
 Given 教练存在 coach 记录，coach.status = 2（已驳回），rejection_reason 不为空
 And   教练已勾选《用户须知》和《隐私协议》
 When  教练点击"微信一键登录"按钮并同意授权
 Then  系统复用已有 coach 记录
+And   is_new_coach = false
 And   coach_status = 2
 And   返回 access_token 和 refresh_token
-And   前端跳转到"重新提交入驻页"（US-040）
-And   页面显示驳回原因
+And   前端按 coach_status=2 跳转到"入驻资料填写页"（US-010）
+And   页面顶部展示驳回原因条并回显历史内容
 ```
 
 ### 6.7 场景 7：登录成功后存储 token 并用其维持登录态（正常路径）
@@ -219,7 +220,7 @@ Then  前端引导教练重新进入登录页
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/auth/wechat-login` | POST | 修改 | 新增请求参数 `app_type=coach`；响应新增 `coach_status`（-1/0/1/2/3/4）与 `redirect_page` 枚举 |
+| 1 | `/api/v1/auth/wechat-login` | POST | 修改 | 新增请求参数 `app_type=coach`；响应新增 `coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面 |
 | 2 | `/api/v1/coach/me/status` | GET | 新增 | 登录后查询当前教练入驻状态（兜底，登录态有效期内可调用） |
 
 ### 7.3 状态机影响
@@ -258,7 +259,7 @@ Then  前端引导教练重新进入登录页
 - [ ] US-011（管理员审核教练入驻资质 — 决定 coach.status 0→1/2 转换）
 - [ ] US-012（教练管理个人主页与参考单价 — coach.status=1 时跳转的教练首页）
 - [ ] US-039（教练申请离职 — 触发 coach.status 1→4）
-- [ ] US-040（教练重新入驻 — 处理 coach.status 2/3 的重新提交）
+- [ ] US-040（教练重新入驻 — 提供 status=3 的「重新入驻」入口，实际资料填写由 US-010 处理）
 - [ ] US-041（管理员处理教练离职 — 触发 coach.status 4→3）
 
 ---
@@ -362,10 +363,10 @@ Then  前端引导教练重新进入登录页
 
 - **背景**：教练登录后可能处于多种入驻状态，需要自动跳转到正确页面
 - **选项**：
-  - A. 登录成功后统一跳到教练首页，首页再根据 coach_status 二次弹窗/跳转
+  - A. 登录接口只返回 `coach_status`，前端根据状态映射一次跳转到目标页
   - B. 登录接口直接返回 `redirect_page`，前端一次跳转到目标页
-- **结论**：选 B，减少中间态和二次请求，体验更直接
-- **影响范围**：登录接口响应字段 + 前端路由逻辑
+- **结论**：选 A，接口更精简，状态到页面的映射由前端统一维护
+- **影响范围**：前端路由逻辑 + 登录接口响应字段（不再返回 `redirect_page`）
 
 ### 14.3 用户端与教练端账号独立
 
@@ -385,7 +386,7 @@ Then  前端引导教练重新进入登录页
 | wx.login 成功 | 微信回调 | 调用 wx.getPhoneNumber 获取手机号 | — |
 | 手机号授权成功 | 微信回调 | 提交 code + encryptedData + iv + app_type=coach 到后端 | — |
 | wx.login 失败/拒绝 | 微信回调 | 展示错误文案 + 恢复按钮可点击 | 文案见 §6.4 |
-| 后端返回成功 | HTTP 200 | 按 redirect_page 跳转 | 见 §14.2 |
+| 后端返回成功 | HTTP 200 | 按 coach_status 跳转 | 见 §14.2 |
 | 后端返回错误 | HTTP 4xx/5xx | 展示对应错误文案 + 恢复按钮 | 文案见 §6.4-6.6 |
 | 点击「重新授权」按钮 | tap | 调用 wx.openSetting() | 见 US-004 §14.3 |
 
@@ -399,7 +400,7 @@ Then  前端引导教练重新进入登录页
 | 登录查询/写入表 | `user` 表 | `coach` 表 |
 | 会话表 | `user_session` | `coach_session` |
 | 账号身份 | 游客 → 注册用户 → 完善资料 | 无游客身份，登录即教练账号 |
-| 登录后跳转依据 | `identity_status`、`profile_completed` | `coach.status`（-1/0/1/2/3/4） |
+| 登录后跳转依据 | `identity_status`、`profile_completed` | `coach.status`（-1/0/1/2/3/4），由前端映射跳转页面 |
 | 是否有完善资料步骤 | 有（US-006） | 无；登录成功后直接按入驻状态分流 |
 | 是否有游客状态 | 有（US-004） | 无；未登录时只能看到登录页 |
 | 首次登录默认状态 | `identity_status='注册用户'`，`profile_completed=false` | `coach.status=-1`（未提交入驻资料） |
@@ -421,6 +422,7 @@ Then  前端引导教练重新进入登录页
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-08-03 | PM | 初版：新增教练端微信授权登录入口 US，补全教练端登录/入驻状态分流规格 |
+| v1.2 | 2026-08-05 | PM | 登录后状态分流由方案 B（后端返回 redirect_page）改为方案 A（只返回 coach_status，前端映射跳转）；同步更新 §4.1、§6、§7.2、§14.2、§14.4、§14.5 |
 | v1.1 | 2026-08-05 | PM | 重构：教练端直接查 coach 表，不再复用 user 表；移除 profile_completed；coach.status 增加 -1=未提交入驻资料；登录流程与用户端一致（含手机号授权与协议勾选）；新增 §5 账号体系区分规则、§12 备注、§14.5 与用户端对比表 |
 
 ---

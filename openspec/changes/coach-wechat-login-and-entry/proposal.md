@@ -8,7 +8,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录；[§3.1 
 
 ## What Changes
 
-- 改造 `POST /api/v1/auth/wechat-login` 接口：新增请求参数 `app_type=coach`、`encryptedData`、`iv`、`terms_accepted`、`privacy_accepted`；响应新增 `is_new_coach`、`coach_status`（-1/0/1/2/3/4）与 `redirect_page` 枚举字段。
+- 改造 `POST /api/v1/auth/wechat-login` 接口：新增请求参数 `app_type=coach`、`encryptedData`、`iv`、`terms_accepted`、`privacy_accepted`；响应新增 `is_new_coach`、`coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面。
 - `app_type=coach` 时后端直接查询/写入 `coach` 表与 `coach_session` 表，不读、不写、不关联 `user` 表或 `user_session` 表。
 - 首次登录且 `coach` 表无记录时，新建 `coach` 记录，`status=-1`（未提交入驻资料），写入手机号、微信头像/昵称。
 - 登录时必须校验 `terms_accepted` 与 `privacy_accepted` 均为 `true`，否则返回 `TERMS_NOT_ACCEPTED`。
@@ -23,11 +23,11 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录；[§3.1 
 
 ### New Capabilities
 
-- `coach-wechat-login`: 教练在教练端小程序通过微信授权登录，系统直接查 `coach` 表并按 `coach.status` 返回 `redirect_page`，实现入驻状态分流。
+- `coach-wechat-login`: 教练在教练端小程序通过微信授权登录，系统直接查 `coach` 表并返回 `coach.status`，由前端映射跳转目标页，实现入驻状态分流。
 
 ### Modified Capabilities
 
-- `wechat-auth` (US-004): 扩展 `POST /api/v1/auth/wechat-login` 接口，新增 `app_type` 参数与教练端专属响应字段 `is_new_coach`/`coach_status`/`redirect_page`，使其同时服务于用户端和教练端，但两端的账号数据独立。
+- `wechat-auth` (US-004): 扩展 `POST /api/v1/auth/wechat-login` 接口，新增 `app_type` 参数与教练端专属响应字段 `is_new_coach`/`coach_status`，使其同时服务于用户端和教练端，但两端的账号数据独立。
 
 ## Impact
 

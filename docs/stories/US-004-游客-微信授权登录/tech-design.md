@@ -93,7 +93,8 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
   "phoneEncryptedData": "...",
   "phoneIv": "...",
   "avatarUrl": "https://thirdwx.qlogo.cn/...",
-  "nickName": "微信用户"
+  "nickName": "微信用户",
+  "app_type": "user"
 }
 ```
 
@@ -104,7 +105,7 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 | `phoneIv` | string | 是 | `getPhoneNumber` 返回的加密初始向量 |
 | `avatarUrl` | string | 是 | 用户微信头像 URL |
 | `nickName` | string | 否 | 用户微信昵称，作为默认姓名占位 |
-| `app_type` | string | 否 | 应用类型，枚举：`user`（默认）/ `coach`；`coach` 由 US-051 扩展使用，本 US 响应不变 |
+| `app_type` | string | 是 | 应用类型，枚举：`user` / `coach`；用户端小程序必须显式提交 `user`，后端按该字段路由到 `user` 表；`coach` 由 US-051 扩展使用 |
 
 **Response 200**
 
@@ -401,3 +402,4 @@ async function loginWithWechat(code: string) {
 | v1.0 | 2026-07-30 | Dev | 初版：数据模型 / API / 状态机 / 微信 OAuth 流程 / JWT / 缓存 / 性能 / 安全 / 跨 US 依赖 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：user.status 字段类型统一为整型 TINYINT（0=正常/1=软删除/2=封禁），对齐 PRD §9.2.1 |
 | v1.2 | 2026-08-03 | Dev | 增加 US-051 扩展说明：`POST /auth/wechat-login` 支持 `app_type=coach`，`app_type=user`（默认）时响应格式不变 |
+| v1.3 | 2026-08-05 | Dev | 用户端请求 MUST 显式携带 `app_type='user'`，字段必填，后端按该字段路由到 `user` 表；请求示例与字段说明同步更新 |
