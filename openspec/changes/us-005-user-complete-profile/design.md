@@ -10,7 +10,7 @@
 | name | VARCHAR(64) | 姓名，必填 |
 | phone | VARCHAR(64) | 手机号，AES-256 加密，唯一索引 |
 | age | TINYINT | 年龄 3-99 |
-| gender | ENUM('male','female','secret') | 性别 |
+| gender | ENUM('male','female') | 性别 |
 | guardian_name | VARCHAR(64) | 监护人姓名，age < 18 时必填 |
 | guardian_phone | VARCHAR(64) | 监护人手机号，age < 18 时必填，AES-256 加密 |
 | has_swim_basis | BOOLEAN | 有无游泳基础 |

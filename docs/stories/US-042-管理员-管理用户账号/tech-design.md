@@ -38,7 +38,7 @@
 | status | TINYINT | IDX | 0=正常 1=注销 2=封禁 |
 | avatar_url | VARCHAR(512) | | 头像 URL |
 | name | VARCHAR(64) | | 用户姓名/昵称 |
-| gender | TINYINT | | 0=未知 1=男 2=女 |
+| gender | TINYINT | | 1=男 2=女；未完善资料时为 NULL |
 | age | INT | | 年龄 |
 | has_swim_basis | BOOLEAN | | 是否有游泳基础 |
 | swim_strokes | VARCHAR(128) | | 会什么泳姿，逗号分隔：蛙泳/自由泳/仰泳/蝶泳 |

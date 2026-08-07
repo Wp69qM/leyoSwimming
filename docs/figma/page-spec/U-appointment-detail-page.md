@@ -100,7 +100,7 @@
 | 容器 | 343×自适应，x = 16，y = 232（头部卡下方 12px），背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
 | 区标题 | "课程信息"，16px / Medium `color-text-primary`，顶部 padding 16px |
 | 课程时间行 | 56px 高，左侧 24×24 时钟图标 `color-text-secondary`，标题 "上课时间" 14px / Regular `color-text-secondary`，右侧值 "8月2日 周五 09:00-10:00" 14px / Medium `color-text-primary` |
-| 教练行 | 56px 高，左侧 24×24 用户图标，标题 "教练"，右侧教练头像 32×32 圆形 + 姓名 14px / Medium `color-text-primary` + 右侧箭头 16×16 `color-text-disabled` |
+| 教练行 | 56px 高，左侧 24×24 用户图标，标题 "教练"，右侧教练个人形象照 32×32 圆形 + 姓名 14px / Medium `color-text-primary` + 右侧箭头 16×16 `color-text-disabled` |
 | 课程类型行 | 56px 高，标题 "课程类型"，右侧 "体验课" / "正价课" 胶囊标签 |
 | 课程地点行 | 56px 高，标题 "上课地点"，右侧 "A 泳池" 或场馆名（P3 可选，MVP 可隐藏） |
 | 签到时间行 | 56px 高，标题 "签到时间"，右侧 "08:55" / "未签到" 14px / Medium；已签到用 `color-success`，未签到用 `color-text-secondary` |
@@ -115,7 +115,7 @@
 | 字段 | 值 |
 |------|-----|
 | 容器 | 343×80，x = 16，y = （课程信息卡下方 12px），背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
-| 教练头像 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，x = 16，y = 16 |
+| 教练个人形象照 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，x = 16，y = 16 |
 | 教练姓名 | "张教练"，16px / Medium `color-text-primary`，位于头像右侧 12px，y = 18 |
 | 副信息 | "教龄 5 年 · 评分 4.8"，12px / Regular `color-text-secondary`，位于姓名下方 4px |
 | 联系按钮 | 右侧 "联系教练" 文字按钮 14px / Medium `color-primary` |

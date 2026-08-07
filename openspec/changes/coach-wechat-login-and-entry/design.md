@@ -12,7 +12,7 @@ US-051 是教练端小程序的入口 US。核心是为 `POST /api/v1/auth/wecha
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `coach` | 读取/新增 | `id`, `openid`, `union_id`, `phone`, `avatar_url`, `nickname`, `status`, `rejection_reason`, `submitted_at` |
+| `coach` | 读取/新增 | `id`, `openid`, `union_id`, `phone`, `nickname`, `status`, `rejection_reason`, `submitted_at` |
 | `coach_session` | 新增 | `id`, `coach_id`, `session_key_encrypted`, `refresh_token_hash`, `expires_at` |
 
 ### coach.status 字段
@@ -126,7 +126,7 @@ coach_status: -1 → 入驻资料页
    → session_key 解密手机号 → phone
    → findCoachByUnionId(union_id) → coach 表
      ├─ 命中且 status != 3 → 复用
-     └─ 未命中 或 status = 3 → create coach (status=-1, phone, avatar_url, nickname)
+     └─ 未命中 或 status = 3 → create coach (status=-1, phone, nickname)
    → 签发 JWT + 写 coach_session + 缓存 session_key
    → 返回 token + is_new_coach + coach_status
 前端 → 存储 token

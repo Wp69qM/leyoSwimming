@@ -9,8 +9,8 @@
 
 **Spec coverage:** REQ-001 Scenarios "未入驻教练首次授权登录", "已入驻通过教练授权登录", "待审核教练授权登录", "已驳回教练授权登录", "已离职教练重新登录"
 
-- [ ] **RED:** Write failing tests — `findCoachByUnionId` returns coach with status=1/0/2; returns null when no coach record; treats status=3 as null; `createCoach` creates status=-1 record with phone/avatar/nickname.
-- [ ] **GREEN:** Implement `CoachRepository.findCoachByUnionId(unionId)` — `WHERE union_id=? AND status != 3`; implement `CoachRepository.createCoach({ openid, unionId, phone, avatarUrl, nickname })`.
+- [ ] **RED:** Write failing tests — `findCoachByUnionId` returns coach with status=1/0/2; returns null when no coach record; treats status=3 as null; `createCoach` creates status=-1 record with phone/nickname.
+- [ ] **GREEN:** Implement `CoachRepository.findCoachByUnionId(unionId)` — `WHERE union_id=? AND status != 3`; implement `CoachRepository.createCoach({ openid, unionId, phone, nickname })`.
 - [ ] **COMMIT:** `feat(coach): add CoachRepository for direct coach login`
 
 ## Task 2: 扩展 WechatAuthService 以支持教练端 [P0]

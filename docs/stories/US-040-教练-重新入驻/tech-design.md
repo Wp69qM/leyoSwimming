@@ -4,7 +4,7 @@
 
 ## 1. 上下文
 
-本 US 让已离职教练（`coach.status = 3`）可重新发起入驻申请。教练点击「重新入驻」后直接进入 US-010 的 C-入驻资料填写页，由 US-010 处理资料校验与提交，创建新的 `coach_application` pending 快照（`previous_coach_status = 3`），`coach.status` 从 3 变为 0（待审核）。审核通过时快照字段覆盖 coach 表生效资料；审核驳回时 `coach.status` 恢复为 3，coach 表生效资料保持不变。历史评分/评价保留但仅对老学员可见，已 frozen 的老学员套餐不自动恢复。
+本 US 让已离职教练（`coach.status = 3`）可重新发起入驻申请。已离职教练登录教练端时，US-051 / US-054 按 `coach_status = 3` 直接跳转 US-010 的 C-入驻资料填写页；由 US-010 处理资料校验与提交，创建新的 `coach_application` pending 快照（`previous_coach_status = 3`），`coach.status` 从 3 变为 0（待审核）。审核通过时快照字段覆盖 coach 表生效资料；审核驳回时 `coach.status` 恢复为 3，coach 表生效资料保持不变。历史评分/评价保留并对新老学员均可见，已 frozen 的老学员套餐不自动恢复。
 
 ---
 
@@ -12,10 +12,10 @@
 
 **目标：**
 - 仅 `status = 3` 的教练可发起重新入驻
-- 重新入驻时教练进入 US-010 的 C-入驻资料填写页，由 US-010 处理提交后创建 `coach_application` pending 快照，`coach.status` 从 3 变为 0
+- 已离职教练登录后由 US-051 / US-054 直接跳转 US-010 的 C-入驻资料填写页；由 US-010 处理提交后创建 `coach_application` pending 快照，`coach.status` 从 3 变为 0
 - 管理员可通过/拒绝重新入驻申请；通过时快照覆盖 coach 生效资料，拒绝时 coach.status 恢复为 3
 - 历史数据保留在原有 coach 记录下，不回滚、不隔离
-- 历史评分对老学员保留可见，对新学员隐藏
+- 历史评分/评价保留，新老学员均可见
 
 **非目标：**
 - 不新建独立的重新入驻资料填写页
@@ -45,12 +45,6 @@
 
 > 说明：每次提交（含首次、驳回后重新提交、重新入驻）均新增一条记录，`coach_id` 不变，不隔离历史数据。`previous_coach_status=3` 表示重新入驻申请。
 
-#### `coach_rating` / `review`（新增字段）
-
-| 字段 | 类型 | 索引 | 备注 |
-|------|------|------|------|
-| `is_visible_to_new` | BOOLEAN | IDX | false=重新入驻后对新学员隐藏 |
-
 ### 3.2 读取表
 
 - `coach`：读取当前状态与基础资料；重新入驻时复用原记录
@@ -61,44 +55,16 @@
 
 ## 4. API 设计
 
-### 4.1 `POST /api/coach/v1/reapply/entry`
+> 教练端不新增重新入驻入口 API。已离职教练的入口由 US-051 / US-054 登录响应中的 `coach_status = 3` 自动分流提供；实际资料填写、校验与提交复用 US-010 的接口。
 
-- **鉴权**：教练 JWT
-- **功能**：校验当前教练 `coach.status = 3`，允许进入 US-010 的 C-入驻资料填写页；不修改 coach.status
-- **请求体**：`{ "idempotency_key": "..." }`（可选，用于入口点击幂等）
-- **响应 200**：
-  ```json
-  {
-    "code": 0,
-    "data": {
-      "coach_id": 20001,
-      "status": 3,
-      "entry_allowed": true,
-      "redirect_to": "coach_onboarding_page",
-      "prompt_message": "你的账号已离职，请重新提交入驻资料，审核通过后即可恢复接单。"
-    }
-  }
-  ```
-- **错误码**：
-  - `COACH_STATUS_NOT_ALLOWED`（403）：coach.status ≠ 3
-  - `REAPPLY_ALREADY_PENDING`（409）：coach.status = 0 且存在 pending 的 coach_application
-
-> 说明：实际资料填写与提交由 US-010 处理。本接口仅作入口校验与前端跳转提示。
-
-### 4.2 `GET /api/coach/v1/reapply/status`（可选）
-
-- **鉴权**：教练 JWT
-- **功能**：返回当前教练最新的重新入驻申请状态（即最新 coach_application）
-- **响应 200**：`{ "application_id": 1001, "status": "pending", "submitted_at": "..." }`
-
-### 4.3 `POST /api/admin/coach/applications/{application_id}/approve`
+### 4.1 `POST /api/admin/coach/applications/{application_id}/approve`
 
 - **鉴权**：管理员 JWT
 - **功能**：复用 US-011；通过重新入驻，`coach_application` 快照覆盖 coach 表，`coach.status: 0 → 1`
 - **响应 200**：`{ "coach_id": 20001, "application_id": 10002, "status": 1, "approved_at": "..." }`
 - **错误码**：`APPLICATION_NOT_PENDING`（409）
 
-### 4.4 `POST /api/admin/coach/applications/{application_id}/reject`
+### 4.2 `POST /api/admin/coach/applications/{application_id}/reject`
 
 - **鉴权**：管理员 JWT
 - **请求体**：`{ "reason": "资料不完整" }`
@@ -134,8 +100,7 @@
 
 ## 7. 性能指标
 
-- `POST /api/coach/v1/reapply/entry` P99 < 150ms
-- `GET /api/coach/v1/reapply/status` P99 < 150ms（如保留）
+- 登录状态分流由 US-051 / US-054 返回 coach_status，不产生额外接口调用
 - 管理员审核接口 P99 < 200ms
 
 ---
@@ -143,9 +108,9 @@
 ## 8. 安全
 
 - 所有接口校验 JWT 身份
-- 教练端接口仅允许 `coach.status = 3` 调用
 - 管理员接口校验 `MANAGE_COACH` 权限
 - 操作记录审计日志
+- US-010 的提交接口需校验 `coach.status = 3` 时才允许创建 `previous_coach_status=3` 的重新入驻快照
 
 ---
 
@@ -162,10 +127,10 @@
 
 | 场景 | 测试方法 | 层级 |
 |------|---------|------|
-| 已离职教练进入 US-010 重新入驻 | `test_reapply_entry_success` | 集成 |
+| 已离职教练登录后自动进入 US-010 重新入驻 | `test_reapply_login_redirect` | 集成 |
 | 管理员通过重新入驻 | `test_approve_reapply_success` | 集成 |
-| 非已离职教练禁止重新入驻 | `test_not_resigned_cannot_reapply` | 集成 |
+| 非已离职教练登录后不按重新入驻分流 | `test_not_resigned_no_redirect` | 集成 |
 | 重复发起重新入驻 | `test_reapply_duplicate` | 集成 |
 | 审核拒绝 | `test_reject_reapply_success` | 集成 |
-| 并发发起幂等 | `test_reapply_idempotent` | 集成 |
-| 历史评分对新学员隐藏 | `test_rating_hidden_for_new_students` | 单元/集成 |
+| 并发提交幂等 | `test_reapply_idempotent` | 集成 |
+| 历史评分对新学员可见 | `test_rating_visible_for_new_students` | 单元/集成 |

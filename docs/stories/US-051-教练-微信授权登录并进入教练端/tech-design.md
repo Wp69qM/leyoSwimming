@@ -28,7 +28,6 @@
 | `openid` | string | 教练端微信小程序 openid |
 | `union_id` | string | 微信 union_id，跨小程序唯一 |
 | `phone` | string | 解密后的微信手机号 |
-| `avatar_url` | string | 微信头像 URL |
 | `nickname` / `name` | string | 微信昵称（可选） |
 | `status` | smallint | -1=未提交入驻资料，0=待审核，1=已通过，2=已驳回，3=已离职，4=申请离职中 |
 | `rejection_reason` | text | 驳回原因（status=2 时非空） |

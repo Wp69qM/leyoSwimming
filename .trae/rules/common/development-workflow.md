@@ -17,6 +17,7 @@ The Feature Implementation Workflow describes the development pipeline: research
 1. **Plan First**
    - Use **planner** agent to create implementation plan
    - Generate planning docs before coding: PRD, architecture, system_design, tech_doc, task_list
+   - **API 设计必须遵循 [api-convention.md](../../../docs/tech/api-convention.md)**：统一使用 `POST`，URL 按 `/list`、`/detail`、`/add`、`/update`、`/delete`、业务动作命名，参数通过 JSON body 传递
    - Identify dependencies and risks
    - Break down into phases
 

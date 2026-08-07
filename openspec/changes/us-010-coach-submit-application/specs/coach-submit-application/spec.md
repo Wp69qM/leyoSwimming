@@ -169,9 +169,38 @@ Given 教练已成功提交入驻资料，coach.status = 0
 And   存在 status = pending 的 coach_application
 When  教练进入 C-等待审核页
 Then  页面展示"审核中，请耐心等待"状态
-And   展示已提交资料摘要卡片（头像、姓名、手机号、参考单价、提交时间、审核中标签），数据来自 coach_application 快照
+And   展示已提交资料摘要卡片（个人形象照、姓名、手机号、参考单价、提交时间、审核中标签），数据来自 coach_application 快照
 When  教练点击「查看完整入驻资料」
 Then  弹出详情浮层，只读展示 coach_application 快照中的全部字段与证书图片列表
+```
+
+#### Scenario: 入驻提交成功页展示
+
+```gherkin
+Given 教练点击「提交审核」成功
+And   coach.status 由 -1/2/3 变为 0（待审核）
+And   系统已创建 status = pending 的 coach_application
+When  页面跳转 C-入驻提交成功页
+Then  页面展示 120×120 成功插画
+And   主标题为"提交成功"（首次提交/驳回后重新提交）或"重新入驻申请已提交"（已离职后重新入驻）
+And   副标题为"提交成功，等待审核"
+And   展示"2 秒后自动跳转等待审核页"提示
+And   展示已提交资料摘要卡（头像、姓名、手机号、参考单价、审核中标签）
+And   展示"查看审核进度"主按钮
+And   2 秒后自动跳转 C-等待审核页
+When  教练点击"查看审核进度"按钮
+Then  立即跳转 C-等待审核页
+```
+
+#### Scenario: 已提交入驻资料的教练登录后直接跳转等待审核页
+
+```gherkin
+Given 教练已完成入驻资料提交，coach.status = 0
+And   存在 status = pending 的 coach_application
+When  教练通过 US-051/US-054 登录教练端
+Then  系统返回 coach_status = 0
+And   前端直接跳转 C-等待审核页
+And   页面按"等待审核页查看已提交资料"场景展示审核中状态与资料摘要
 ```
 
 #### Scenario: 草稿状态查询资料

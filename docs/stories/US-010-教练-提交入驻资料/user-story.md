@@ -50,12 +50,9 @@
    - `status = 2`：顶部展示红色驳回原因条，文案来自该教练最新一条 `status = rejected` 的 `coach_application` 记录的 `rejection_reason`。
    - `status = 3`：顶部展示黄色/橙色重新入驻说明条，文案固定为「你的账号已离职，请重新提交入驻资料，审核通过后即可恢复接单。」（前端硬编码，方案 A）。
 3. 页面展示**基础信息**分组，字段如下：
-   - 头像（必填）：
-     - 若教练通过 US-051 微信授权登录，默认回填微信头像，支持编辑替换；
-     - 若教练通过 US-054 手机号验证码登录，需手动上传头像，必填。
    - 姓名/昵称输入框（必填，1-32 字符）。
    - 手机号（只读）。
-   - 性别（必填）：单选，选项为男 / 女 / 其他。
+   - 性别（必填）：单选，选项为男 / 女。
    - 年龄（必填）：整数，18-80 岁。
    - 邮箱（必填）：有效邮箱格式，长度 ≤128 字符。
    - 微信二维码（必填）：图片 1 张，JPG/PNG，≤5MB，用于学员添加教练微信。
@@ -95,7 +92,7 @@
 | 1 | 首次注册需上传证书、任教年限、总学员数、总课时数、个人简介 | [§5.4.1](../../prd/prd.md) |
 | 2 | 入驻资质需管理员审核 | [§5.4.1](../../prd/prd.md) |
 | 3 | 教练可设置一节课的参考单价 | [§5.4.1](../../prd/prd.md) |
-| 4 | 身份证号须为 18 位中国大陆身份证，后端 AES 加密存储，后台审核详情页脱敏展示 | 字段设计（C-入驻资料填写页）|
+| 4 | 身份证号须为 18 位中国大陆身份证，后端 AES 加密存储，管理员审核详情页可完整展示身份证号 | 字段设计（C-入驻资料填写页）|
 | 5 | 身份证正反面、教练资格证、健康证、个人形象照必须上传；单张图片 ≤5MB，格式 JPG/PNG | 字段设计（C-入驻资料填写页）|
 | 6 | 参考单价范围 50-2000 元/节，保留两位小数 | 字段设计（C-入驻资料填写页）|
 | 7 | 保存草稿仅更新 `coach_application` 快照，`status = draft`，`coach.status` 保持不变；提交审核后创建/更新 `coach_application` 快照为 `pending`，`coach.status = 0` 并写入 `submitted_at`，进入审核队列 | 本 US 设计决策 |
@@ -113,7 +110,7 @@
 
 ```gherkin
 Given 教练已完成登录且 coach.status = -1
-And   头像、姓名、手机号已带入
+And   姓名、手机号已带入
 When  教练选择性别「男」
 And   教练填写年龄 30 岁、邮箱 "coach@example.com"
 And   教练上传微信二维码 1 张
@@ -152,7 +149,7 @@ And   该记录不进入 US-011 审核队列
 
 ```gherkin
 Given 教练进入入驻资料页且 coach.status = -1
-When  教练未上传头像、未选择性别、未填写年龄、未填写邮箱、未上传微信二维码、未上传身份证正面照、未填写任教年限、未填写个人简介、未设置参考单价
+When  教练未选择性别、未填写年龄、未填写邮箱、未上传微信二维码、未上传身份证正面照、未上传个人形象照、未填写任教年限、未填写个人简介、未设置参考单价
 And   教练点击「提交审核」
 Then  前端阻止提交
 And   缺失字段下方提示"此项为必填"
@@ -253,9 +250,38 @@ Given 教练已成功提交入驻资料，coach.status = 0
 And   存在 status = pending 的 coach_application
 When  教练进入 C-等待审核页
 Then  页面展示"审核中，请耐心等待"状态
-And   展示已提交资料摘要卡片（头像、姓名、手机号、参考单价、提交时间、审核中标签），数据来自 coach_application 快照
+And   展示已提交资料摘要卡片（个人形象照、姓名、手机号、参考单价、提交时间、审核中标签），数据来自 coach_application 快照
 When  教练点击「查看完整入驻资料」
 Then  弹出详情浮层，只读展示 coach_application 快照中的全部字段与证书图片列表
+```
+
+### 6.11 场景 11：入驻提交成功页展示
+
+```gherkin
+Given 教练点击「提交审核」成功
+And   coach.status 由 -1/2/3 变为 0（待审核）
+And   系统已创建 status = pending 的 coach_application
+When  页面跳转 C-入驻提交成功页
+Then  页面展示 120×120 成功插画
+And   主标题为"提交成功"（首次提交/驳回后重新提交）或"重新入驻申请已提交"（已离职后重新入驻）
+And   副标题为"提交成功，等待审核"
+And   展示"2 秒后自动跳转等待审核页"提示
+And   展示已提交资料摘要卡（个人形象照、姓名、手机号、参考单价、审核中标签）
+And   展示"查看审核进度"主按钮
+And   2 秒后自动跳转 C-等待审核页
+When  教练点击"查看审核进度"按钮
+Then  立即跳转 C-等待审核页
+```
+
+### 6.12 场景 12：已提交入驻资料的教练登录后直接跳转等待审核页
+
+```gherkin
+Given 教练已完成入驻资料提交，coach.status = 0
+And   存在 status = pending 的 coach_application
+When  教练通过 US-051/US-054 登录教练端
+Then  系统返回 coach_status = 0
+And   前端直接跳转 C-等待审核页
+And   页面按场景 10 展示审核中状态与资料摘要
 ```
 
 ---
@@ -266,8 +292,8 @@ Then  弹出详情浮层，只读展示 coach_application 快照中的全部字�
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | coach | 新增/修改 | 教练生效资料与生命周期状态：`coach_id` PK、`openid` UK、`union_id` UK、`phone` UK、`name`、`avatar_url`、`gender` TINYINT（1=男 / 2=女 / 3=其他）、`age` INT（18-80）、`email` VARCHAR(128)、`wechat_qr_url`、`id_card_no`（AES 加密）、`teaching_years`、`total_students`、`total_hours`、`teaching_strokes`、`bio`、`reference_price`、`status` TINYINT（默认 -1，-1=未提交，0=待审核，1=已通过，2=已驳回，3=已离职，4=申请离职中）、`submitted_at`、`approved_at`、`created_at`、`updated_at` |
-| 2 | coach_application | 新增 | 入驻申请快照：`application_id` PK、`coach_id` FK、`status` ENUM（draft/pending/approved/rejected）、`previous_coach_status` TINYINT（提交前 coach.status：-1/2/3）、`submitted_at`、`approved_at`、`approved_by`、`rejection_reason`；快照字段与 coach 表资料字段同构（avatar_url/name/gender/age/email/wechat_qr_url/id_card_no/teaching_years/total_students/total_hours/teaching_strokes/bio/reference_price） |
+| 1 | coach | 新增/修改 | 教练生效资料与生命周期状态：`coach_id` PK、`openid` UK、`union_id` UK、`phone` UK、`name`、`gender` TINYINT（1=男 / 2=女）、`age` INT（18-80）、`email` VARCHAR(128)、`wechat_qr_url`、`id_card_no`（AES 加密）、`teaching_years`、`total_students`、`total_hours`、`teaching_strokes`、`bio`、`reference_price`、`status` TINYINT（默认 -1，-1=未提交，0=待审核，1=已通过，2=已驳回，3=已离职，4=申请离职中）、`submitted_at`、`approved_at`、`created_at`、`updated_at` |
+| 2 | coach_application | 新增 | 入驻申请快照：`application_id` PK、`coach_id` FK、`status` ENUM（draft/pending/approved/rejected）、`previous_coach_status` TINYINT（提交前 coach.status：-1/2/3）、与 coach 资料字段同构的快照字段（`name`/`gender`/`age`/`email`/`wechat_qr_url`/`id_card_no`/`teaching_years`/`total_students`/`total_hours`/`teaching_strokes`/`bio`/`reference_price`）、`submitted_at`、`approved_at`、`approved_by`、`rejection_reason`、`created_at`、`updated_at` |
 | 3 | coach_certificate_application | 新增 | 申请快照关联证书：`cert_id` PK、`application_id` FK、`cert_type` ENUM（ID_CARD_FRONT, ID_CARD_BACK, COACH_CERT, HEALTH_CERT, PORTRAIT, OTHER）、`image_url`、`sort_order`、`created_at` |
 | 4 | coach_audit_log | 新增 | 记录状态变更事件：`log_id`、`coach_id` FK、`application_id` FK、`admin_id`、`action`（submit/approve/reject/draft_save）、`from_status`、`to_status`、`reason`、`created_at` |
 
@@ -275,9 +301,9 @@ Then  弹出详情浮层，只读展示 coach_application 快照中的全部字�
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/coach/application | POST | 新增/修改 | 提交入驻资料；请求体含全部字段及 `certificates: [{cert_type, image_url}]`；创建 coach_application 快照为 pending，coach.status 变为 0 |
+| 1 | /api/coach/application | POST | 新增/修改 | 提交入驻资料；请求体含 coach 资料同构字段（`name`/`gender`/`age`/`email`/`wechat_qr_url`/`id_card_no`/`teaching_years`/`total_students`/`total_hours`/`teaching_strokes`/`bio`/`reference_price`）及 `certificates: [{cert_type, image_url}]`；创建 coach_application 快照为 pending，coach.status 变为 0 |
 | 2 | /api/coach/application/draft | PUT | 新增/修改 | 保存草稿；请求体同提交接口；创建或更新 coach_application 快照为 draft，coach.status 保持不变 |
-| 3 | /api/coach/application | GET | 新增 | 返回 coach_application 快照完整资料（含证书列表）及 `entry_type`（draft/first/rejected/reapply）与 `prompt_message`（驳回原因或重新入驻说明），用于填写页与等待审核页 |
+| 3 | /api/coach/application | GET | 新增 | 返回 coach_application 快照完整资料（含证书列表）；额外返回派生字段 `entry_type`（draft/first/rejected/reapply，由 coach.status 与 coach_application.status 推导）与 `prompt_message`（驳回原因或重新入驻说明，来自 `rejection_reason` 或固定文案），用于填写页与等待审核页 |
 | 4 | /api/upload/image | POST | 新增 | 通用图片上传（JPG/PNG，≤5MB）|
 
 ### 7.3 状态机影响

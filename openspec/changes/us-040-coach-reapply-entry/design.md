@@ -6,9 +6,9 @@
 
 US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。核心约束：
 
-- **不复用独立的重新入驻资料填写页**：已离职教练登录后由 US-051 / US-054 直接跳转 US-010 的 C-入驻资料填写页；或在「我的」页面点击「重新入驻」后由 `POST /api/coach/v1/reapply/entry` 校验并引导进入 US-010 的 C-入驻资料填写页。
+- **不复用独立的重新入驻资料填写页**：已离职教练登录后由 US-051 / US-054 直接跳转 US-010 的 C-入驻资料填写页。
 - **实际资料提交由 US-010 处理**：字段校验、图片上传、`coach.status` 从 3 更新为 0 等逻辑全部由 US-010 的 `POST /api/coach/application` 与 `PUT /api/coach/application/draft` 完成；US-010 创建 `previous_coach_status=3` 的 `coach_application` pending 快照。
-- **历史数据不隔离**：复用原 `coach` 记录，不回滚历史数据；历史评分/评价保留但仅对老学员可见。
+- **历史数据不隔离**：复用原 `coach` 记录，不回滚历史数据；历史评分/评价保留并对新老学员均可见。
 - **管理员重新入驻审核复用 US-011**：通过/拒绝重新入驻申请，触发 `coach.status` 0 → 1 或 0 → 3 的转换。
 
 `coach.status = 3` 必须由 US-041 管理员审批教练离职通过后产生；US-039 教练申请离职需经 US-041 审批后才能进入本 US。
@@ -19,9 +19,8 @@ US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。�
 
 - 仅 `status = 3` 的教练可发起重新入驻
 - 已离职教练登录后由 US-051 / US-054 直接跳转 US-010 的 C-入驻资料填写页
-- 「我的」页面点击「重新入驻」时，`POST /api/coach/v1/reapply/entry` 校验 status=3 并允许进入 US-010 的 C-入驻资料填写页
 - 管理员可通过/拒绝重新入驻申请（复用 US-011）
-- 历史评分对老学员保留可见，对新学员隐藏
+- 历史评分/评价保留并对新老学员均可见
 
 **Non-Goals:**
 
@@ -52,12 +51,6 @@ US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。�
 
 > 说明：每次提交（含首次、驳回后重新提交、重新入驻）均新增一条记录，`coach_id` 不变，不隔离历史数据。`previous_coach_status=3` 表示重新入驻申请。
 
-#### `coach_rating` / `review`（新增字段）
-
-| 字段 | 类型 | 索引 | 备注 |
-|------|------|------|------|
-| `is_visible_to_new` | BOOLEAN | IDX | false=重新入驻后对新学员隐藏 |
-
 ### 读取表
 
 - `coach`：读取当前状态与基础资料；重新入驻时复用原记录
@@ -66,35 +59,7 @@ US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。�
 
 ## API Design
 
-### POST /api/coach/v1/reapply/entry
-
-- **鉴权**：教练 JWT
-- **功能**：校验当前教练 `coach.status = 3`，允许进入 US-010 的 C-入驻资料填写页；不修改 coach.status
-- **请求体**：`{ "idempotency_key": "..." }`（可选，用于入口点击幂等）
-- **响应 200**：
-  ```json
-  {
-    "code": 0,
-    "data": {
-      "coach_id": 20001,
-      "status": 3,
-      "entry_allowed": true,
-      "redirect_to": "coach_onboarding_page",
-      "prompt_message": "你的账号已离职，请重新提交入驻资料，审核通过后即可恢复接单。"
-    }
-  }
-  ```
-- **错误码**：
-  - `COACH_STATUS_NOT_ALLOWED`（403）：coach.status ≠ 3
-  - `REAPPLY_ALREADY_PENDING`（409）：coach.status = 0 且存在 pending 的 coach_application
-
-> 说明：实际资料填写与提交由 US-010 处理。本接口仅作「我的」页面入口校验与前端跳转提示。
-
-### GET /api/coach/v1/reapply/status（可选）
-
-- **鉴权**：教练 JWT
-- **功能**：返回当前教练最新的重新入驻申请状态（即最新 coach_application）
-- **响应 200**：`{ "application_id": 1001, "status": "pending", "submitted_at": "..." }`
+> 教练端不新增重新入驻入口 API。已离职教练的入口由 US-051 / US-054 登录响应中的 `coach_status = 3` 自动分流提供；实际资料填写、校验与提交复用 US-010 的接口。
 
 ### POST /api/admin/coach/applications/{application_id}/approve
 
@@ -124,7 +89,7 @@ US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。�
 
 - `3 → 0` 的转换由 US-010 的提交接口触发，并创建 `previous_coach_status=3` 的 `coach_application` pending 快照。
 - `0 → 1` 与 `0 → 3` 的转换由 US-011 的审核接口触发。
-- US-040 仅提供 `3 → 0` 的入口校验与前端跳转提示，不直接修改 coach.status。
+- US-040 仅通过 US-051 / US-054 的登录响应提供前端跳转提示，不直接修改 coach.status。
 
 ### 入驻申请状态（coach_application.status）
 
@@ -141,18 +106,15 @@ US-040 让已离职教练（`coach.status = 3`）可重新发起入驻申请。�
 
 | 指标 | 目标 |
 |------|------|
-| `POST /api/coach/v1/reapply/entry` P99 | < 150ms |
-| `GET /api/coach/v1/reapply/status` P99 | < 150ms（如保留） |
+| 登录状态分流由 US-051 / US-054 返回 coach_status，不产生额外接口调用 |
 | 复用的 US-011 审核接口 P99 | < 200ms |
-| 历史评分可见性查询 P99 | < 100ms |
 
 ## Security
 
 - 所有接口校验 JWT 身份
-- 教练端接口仅允许 `coach.status = 3` 调用
 - 管理员接口校验 `coach:audit` 权限
 - 操作记录审计日志
-- `idempotency_key` 防止重复点击
+- US-010 的提交接口需校验 `coach.status = 3` 时才允许创建 `previous_coach_status=3` 的重新入驻快照
 
 ## Cross-US Dependencies
 

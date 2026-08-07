@@ -124,7 +124,7 @@
 | 容器 | 343×自适应，白底卡片，`radius-lg` 12px，`shadow-card`，内边距 16px |
 | 卡片头部行 | 左侧「订单号：202608020001」12px / Regular `color-text-secondary`；右侧状态徽标 |
 | 分割线 | 1px `#F0F0F0`，位于头部下方 12px |
-| 教练头像 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，位于左侧 |
+| 教练个人形象照 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，位于左侧 |
 | 套餐名称 | 16px / Medium `color-text-primary`，位于头像右侧 12px，顶部与头像顶部对齐 |
 | 教练姓名 | "教练：张教练"，12px / Regular `color-text-secondary`，位于套餐名下方 4px |
 | 订单金额 | "¥1,800"，18px / Bold `color-text-primary`，位于卡片右侧垂直居中 |

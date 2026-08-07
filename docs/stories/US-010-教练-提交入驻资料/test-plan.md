@@ -148,6 +148,14 @@ def test_e2e_coach_application_resigned_reapply():
 def test_e2e_coach_pending_page_view_detail():
     """等待审核页查看完整入驻资料浮层"""
     pass
+
+def test_e2e_coach_application_success_page():
+    """入驻提交成功页展示：插画、标题、摘要卡、2 秒自动跳转、查看审核进度按钮"""
+    pass
+
+def test_e2e_coach_login_redirect_to_pending_page():
+    """已提交入驻资料的教练登录后直接跳转等待审核页"""
+    pass
 ```
 
 ---
@@ -166,6 +174,8 @@ def test_e2e_coach_pending_page_view_detail():
 | 场景 8：已驳回教练重新提交 | test_coach_application_resubmit_after_rejection / test_e2e_coach_application_rejected_resubmit |
 | 场景 9：已离职教练重新入驻并回显历史资料 | test_coach_application_reapply_after_resignation / test_api_coach_application_reapply_200 / test_api_coach_application_get_reapply_200 / test_e2e_coach_application_resigned_reapply |
 | 场景 10：等待审核页查看已提交资料 | test_api_coach_application_get_200 / test_e2e_coach_pending_page_view_detail |
+| 场景 11：入驻提交成功页展示 | test_e2e_coach_application_success_page |
+| 场景 12：已提交入驻资料的教练登录后直接跳转等待审核页 | test_e2e_coach_login_redirect_to_pending_page |
 
 ---
 
@@ -177,3 +187,4 @@ def test_e2e_coach_pending_page_view_detail():
 | v2.0 | 2026-08-05 | 按字段设计新增身份证校验、必填资质校验、图片格式校验、等待审核页查询、驳回重新提交等测试用例与任务 |
 | v2.1 | 2026-08-05 | 新增已离职教练（status=3）重新入驻提交、GET /api/coach/application reapply 响应、对应单元/集成/E2E 测试用例与验收映射 |
 | v3.0 | 2026-08-05 | 重构为快照表设计：草稿仅写入 coach_application 快照，不修改 coach.status；提交创建 pending 快照； coach 表生效资料在审核前保持不变；历史驳回原因保留在 coach_application 与 audit_log |
+| v3.1 | 2026-08-05 | 补充场景 11/12 的 E2E 测试用例与验收映射：入驻提交成功页、登录后跳转等待审核页 |

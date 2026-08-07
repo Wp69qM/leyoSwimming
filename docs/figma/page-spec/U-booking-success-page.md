@@ -88,7 +88,7 @@
 | 右侧状态徽标 | 使用 [README.md §2.5.3](../../../docs/figma/README.md) Tag 组件："已预约" 背景 `color-primary` 浅色 #E6F7FF / 文字 `color-primary` #1890FF，位于右上角 16px |
 | 时间大标题 | "08:00 - 09:00"，24px / Bold `color-text-primary`，x = 16，y = 68 |
 | 日期行 | "2026-08-05 周三"，14px / Regular `color-text-secondary`，位于时间标题下方 4px |
-| 教练信息行 | 左侧 32×32 圆形教练头像 + "张教练" 14px / Medium `color-text-primary` + "任教 X 年" 12px / Regular `color-text-secondary`，y = 118 |
+| 教练信息行 | 左侧 32×32 圆形教练个人形象照 + "张教练" 14px / Medium `color-text-primary` + "任教 X 年" 12px / Regular `color-text-secondary`，y = 118 |
 | 地点行 | 左侧地点图标 16×16 + " Leyo 游泳中心 · 1 号泳池"，14px / Regular `color-text-secondary`，y = 156 |
 | 剩余课时行 | 左侧课时图标 16×16 + "预约后剩余 X 节课"，14px / Regular `color-text-secondary`，y = 186 |
 | 温馨提示 | "课前 24 小时外可随时取消"，12px / Regular `color-success`，y = 222 |

@@ -10,7 +10,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录；[§3.1 
 
 - 改造 `POST /api/v1/auth/wechat-login` 接口：新增请求参数 `app_type=coach`、`encryptedData`、`iv`、`terms_accepted`、`privacy_accepted`；响应新增 `is_new_coach`、`coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面。
 - `app_type=coach` 时后端直接查询/写入 `coach` 表与 `coach_session` 表，不读、不写、不关联 `user` 表或 `user_session` 表。
-- 首次登录且 `coach` 表无记录时，新建 `coach` 记录，`status=-1`（未提交入驻资料），写入手机号、微信头像/昵称。
+- 首次登录且 `coach` 表无记录时，新建 `coach` 记录，`status=-1`（未提交入驻资料），写入手机号、微信昵称（可选）。
 - 登录时必须校验 `terms_accepted` 与 `privacy_accepted` 均为 `true`，否则返回 `TERMS_NOT_ACCEPTED`。
 - 新增教练端入驻状态查询接口 `GET /api/v1/coach/me/status`（登录态兜底）。
 - 新增教练端微信授权登录页（与用户端视觉一致，底部固定「微信一键登录」按钮 + 协议勾选区）。

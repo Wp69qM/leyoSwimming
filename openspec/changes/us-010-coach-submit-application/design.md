@@ -12,8 +12,8 @@ US-010 是教练端流程起点，教练提交资质资料后进入待审核状�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `coach` | INSERT / UPDATE | `coach_id`, `openid` UK, `union_id` UK, `phone` UK, `name`, `avatar_url`, `gender` TINYINT（1=男 / 2=女 / 3=其他）, `age` INT（18-80）, `email` VARCHAR(128), `wechat_qr_url`, `id_card_no`（AES 加密）, `teaching_years`, `total_students`, `total_hours`, `teaching_strokes`, `bio`, `reference_price`, `status`（默认 -1）, `submitted_at`, `approved_at`, `created_at`, `updated_at` |
-| `coach_application` | INSERT / UPDATE | `application_id` PK, `coach_id` FK, `status` ENUM（draft/pending/approved/rejected）, `previous_coach_status` TINYINT, 与 coach 资料字段同构的快照字段, `submitted_at`, `approved_at`, `approved_by`, `rejection_reason`, `created_at`, `updated_at` |
+| `coach` | INSERT / UPDATE | `coach_id`, `openid` UK, `union_id` UK, `phone` UK, `name`, `gender` TINYINT（1=男 / 2=女）, `age` INT（18-80）, `email` VARCHAR(128), `wechat_qr_url`, `id_card_no`（AES 加密）, `teaching_years`, `total_students`, `total_hours`, `teaching_strokes`, `bio`, `reference_price`, `status`（默认 -1）, `submitted_at`, `approved_at`, `created_at`, `updated_at` |
+| `coach_application` | INSERT / UPDATE | `application_id` PK, `coach_id` FK, `status` ENUM（draft/pending/approved/rejected）, `previous_coach_status` TINYINT, 与 coach 资料字段同构的快照字段（`name`/`gender`/`age`/`email`/`wechat_qr_url`/`id_card_no`/`teaching_years`/`total_students`/`total_hours`/`teaching_strokes`/`bio`/`reference_price`）, `submitted_at`, `approved_at`, `approved_by`, `rejection_reason`, `created_at`, `updated_at` |
 | `coach_certificate_application` | INSERT / UPDATE | `cert_id` PK, `application_id` FK, `cert_type`（ID_CARD_FRONT/ID_CARD_BACK/COACH_CERT/HEALTH_CERT/PORTRAIT/OTHER）, `image_url`, `sort_order`, `created_at` |
 | `coach_certificate` | 只读（写入由 US-011 负责） | `cert_id`, `coach_id` FK, `cert_type`, `image_url`, `sort_order`, `created_at` |
 | `coach_audit_log` | INSERT | `log_id`, `coach_id`, `application_id`, `admin_id`, `action`（submit/approve/reject/draft_save）, `from_status`, `to_status`, `reason`, `created_at`；本 US 触发 `action='submit'` 与 `action='draft_save'` |
@@ -55,7 +55,7 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 ### POST /api/coach/application
 
 - 鉴权：是（教练端登录态）
-- Request: `{ name, avatar_url, gender, age, email, wechat_qr_url, id_card_no, teaching_years, total_students, total_hours, teaching_strokes, bio, reference_price, certificates: [{cert_type, image_url}] }`
+- Request: `{ name, gender, age, email, wechat_qr_url, id_card_no, teaching_years, total_students, total_hours, teaching_strokes, bio, reference_price, certificates: [{cert_type, image_url}] }`
 - Response 200: `{ coach_id, application_id, status: 0, submitted_at }`
 - Response 400: `COACH_APPLICATION_PENDING`（已存在 pending 状态的 coach_application，禁止重复提交）
 - Response 400: `INVALID_REFERENCE_PRICE`（参考单价超出 50-2000 范围）
@@ -74,7 +74,7 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 ### GET /api/coach/application
 
 - 鉴权：是
-- Response 200: 返回**最新 coach_application 快照**（draft/pending/rejected）完整资料含 `certificates` 列表；若不存在任何 application 快照且 coach.status=3，则回显 coach 表历史生效资料；身份证号脱敏展示；额外返回 `entry_type`（draft/first/rejected/reapply）与 `prompt_message`
+- Response 200: 返回**最新 coach_application 快照**（draft/pending/rejected）完整资料含 `certificates` 列表；若不存在任何 application 快照且 coach.status=3，则回显 coach 表历史生效资料；身份证号脱敏展示；额外返回派生字段 `entry_type`（draft/first/rejected/reapply，由 coach.status 与 coach_application.status 推导）与 `prompt_message`（来自 `rejection_reason` 或固定文案）
 - Response 404: `NO_APPLICATION`（coach 记录不存在）
 
 ### POST /api/upload/image

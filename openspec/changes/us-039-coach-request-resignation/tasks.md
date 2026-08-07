@@ -15,7 +15,7 @@
 
 - [ ] 3.1 Reject apply when `coach.status != 1` — maps to REQ-003
 - [ ] 3.2 Reject duplicate apply when `coach.status = 4` — maps to REQ-004
-- [ ] 3.3 Enforce action enum value fixed to `refund` (MVP forces 100% refund; transfer/continue not allowed)
+- [ ] 3.3 Support action enum values `refund`, `transfer`, `continue` per PRD §5.4.7 three-way choice; validate `target_coach_id` when action = transfer — maps to REQ-002
 - [ ] 3.4 Generate `refund_record` with `refund_amount = unit_price × remaining_hours` when action = refund or package remains unregistered at submit
 
 ## 4. Security & Audit
@@ -29,9 +29,10 @@
 - [ ] 5.1 Build resignation entry page with status-aware visibility
 - [ ] 5.2 Build resignation ticket page with package list and action form
 - [ ] 5.3 Build submit confirmation dialog (no cancel dialog in MVP)
+- [ ] 5.4 Build C-教练端离职处理中页 with ticket status, progress, customer service entry — maps to REQ-006 / Scenarios "Coach enters resignation processing page after application", "Coach with status=4 logs in and redirects to resignation processing page"
 
 ## 6. Verification
 
 - [ ] 6.1 Run unit tests for state machine and idempotency
-- [ ] 6.2 Run integration tests for all 5 GWT scenarios
+- [ ] 6.2 Run integration tests for all 7 GWT scenarios
 - [ ] 6.3 Run `openspec validate us-039-coach-request-resignation --json` and fix issues

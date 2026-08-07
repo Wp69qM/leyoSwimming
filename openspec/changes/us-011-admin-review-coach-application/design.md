@@ -33,27 +33,39 @@ CREATE INDEX idx_coach_audit_log_application_id ON coach_audit_log(application_i
 
 ## API Design
 
-### GET /api/admin/coach/applications
+> 本变更所有接口遵循 [API 接口规范](../../../docs/tech/api-convention.md)：统一使用 `POST`，URL 按动作命名，参数通过 JSON body 传递。
+
+### POST /api/admin/coach/application/list
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
-- Request query: `page`, `page_size`, `keyword`, `status=pending`
-- Response 200: `{ total, list: [{ application_id, coach_id, name, phone, reference_price, previous_coach_status, submitted_at, certificates }] }`
-- 说明：待审核列表仅返回 `coach_application.status = pending` 的记录，避免草稿进入审核队列；`previous_coach_status=3` 标记重新入驻申请
+- Request body: `{ page, pageSize, keyword, status }`（`status` 默认 `pending`，可选值 `all` / `pending` / `approved` / `rejected`）
+- Response 200: `{ total, list: [{ coach_id, name, gender, age, teaching_years, teaching_strokes, latest_submitted_at, status, previous_coach_status, latest_application_id }] }`
+- 说明：按 `coach_id` 聚合，每个教练一行，展示该教练在筛选状态下的最新申请；默认仅返回存在 `coach_application.status = pending` 的教练；支持按状态筛选全部 / 待审核 / 已通过 / 已驳回，避免草稿进入审核队列；`previous_coach_status=3` 标记重新入驻申请；列表不展示头像，字段聚焦审核决策所需信息
 - Response 403: `FORBIDDEN`
 
-### POST /api/admin/coach/applications/{application_id}/approve
+### POST /api/admin/coach/application/detail
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
+- Request body: `{ applicationId }`
+- Response 200: `{ application_id, coach_id, previous_coach_status, submitted_at, profile: { name, phone, gender, age, email, wechat_qr_url, id_card_no, teaching_years, total_students, total_hours, teaching_strokes, bio, reference_price }, certificates: [{ cert_type, image_url }], application_history: [{ application_id, status, submitted_at, approved_at, approved_by, rejection_reason }] }`
+- 说明：返回 coach_application 快照完整资料，并附带该教练（coach_id）的所有历史申请记录；管理员作为审核人员，手机号与身份证号须完整展示，不脱敏
+- Response 403: `FORBIDDEN`
+- Response 404: `APPLICATION_NOT_FOUND`
+
+### POST /api/admin/coach/application/approve
+
+- 鉴权：是（管理员 + `coach:audit` 权限）
+- Request body: `{ applicationId, remark? }`
 - Response 200: `{ coach_id, application_id, status: 1, approved_at }`
 - Response 400: `NOT_PENDING`
 - Response 403: `FORBIDDEN`
 - Response 409: `ALREADY_REVIEWED`
 - 说明：校验 `coach_application.status = pending` 后，将快照字段覆盖写入 `coach` 表，将快照证书覆盖写入 `coach_certificate` 表；更新 `coach.status=1`、`coach.approved_at=now`；更新 `coach_application.status=approved`、`approved_at`、`approved_by`；写入 `coach_audit_log`；异步发送通知；失效相关缓存。
 
-### POST /api/admin/coach/applications/{application_id}/reject
+### POST /api/admin/coach/application/reject
 
 - 鉴权：是（管理员 + `coach:audit` 权限）
-- Request: `{ reason: string }`
+- Request body: `{ applicationId, reason }`（`reason` 必填）
 - Response 200: `{ coach_id, application_id, status: <恢复后的status>, rejection_reason }`
 - Response 400: `MISSING_REJECTION_REASON`
 - Response 400: `NOT_PENDING`

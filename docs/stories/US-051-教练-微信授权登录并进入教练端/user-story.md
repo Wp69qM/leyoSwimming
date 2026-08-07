@@ -56,7 +56,7 @@
 8. 后端使用 `session_key` 解密手机号，得到教练手机号 `phone`
 9. 后端按 `union_id` 查询 `coach` 表：
    - 命中已有教练记录 → 复用账号
-   - 未命中 → 新建教练记录，`coach.status = -1`（未提交入驻资料），写入 `phone` 与微信头像/昵称
+   - 未命中 → 新建教练记录，`coach.status = -1`（未提交入驻资料），写入 `phone` 与微信昵称（可选）
 10. 后端签发 JWT `access_token` + `refresh_token`，将会话写入 `coach_session` 表（`session_key` 加密存储，可同步缓存 Redis TTL 7200s）
 11. 返回登录结果（含 `access_token`、`refresh_token`、`expires_in`、`is_new_coach`、`coach_status`）
 12. 前端将 `access_token` 与 `refresh_token` 存储到本地，并记录 `expires_in`
@@ -86,7 +86,7 @@
 
 | # | 规则 | 章节 |
 |---|------|------|
-| 1 | 支持微信授权登录，首次登录时获取手机号与头像 | [§5.2.1](../../prd/prd.md) |
+| 1 | 支持微信授权登录，首次登录时获取手机号 | [§5.2.1](../../prd/prd.md) |
 | 2 | 教练是独立角色，教练端数据独立存储在 `coach` 表，不与用户端 `user` 表重叠 | [§3.1 身份类型](../../prd/prd.md) / 本 US 设计决策 |
 | 3 | 教练端没有「游客」与「注册用户」的身份分层，登录后直接按入驻状态分流 | 本 US 设计决策 |
 | 4 | 教练入驻资质需管理员审核 | [§5.4.1](../../prd/prd.md) |
@@ -213,7 +213,7 @@ Then  前端引导教练重新进入登录页
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `coach` | 新增/读取 | 首次登录教练端且 coach 表无记录时插入：`openid`、`union_id`、`phone`（解密后的微信手机号）、`avatar_url`（微信头像）、`name`（微信昵称，可选）、`status=-1`、`created_at` |
+| 1 | `coach` | 新增/读取 | 首次登录教练端且 coach 表无记录时插入：`openid`、`union_id`、`phone`（解密后的微信手机号）、`name`（微信昵称，可选）、`status=-1`、`created_at` |
 | 2 | `coach_session` | 新增 | 写入教练会话记录：`coach_id`、`session_key`（加密）、`expires_at`、`refresh_token_hash` |
 
 ### 7.2 API 影响

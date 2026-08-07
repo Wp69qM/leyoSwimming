@@ -475,7 +475,7 @@ ECC-main（同层目录）是面向多 AI 工具协作的脚手架项目，以�
 3. **不可变更新**：禁止直接修改共享状态，返回新对象。
 4. **小文件原则**：200-400 行为宜，800 行上限；按领域而非技术层组织。
 5. **安全 checklist**：提交前必须检查无硬编码密钥、输入校验、SQL 注入、XSS、CSRF、限流、错误脱敏。
-6. **API 响应统一 envelope**：`{ data, meta, error }`，HTTP 状态码语义化。
+6. **API 接口规范**：遵循 [api-convention.md](./api-convention.md)，采用 RPC over HTTP 风格，统一使用 `POST`，URL 通过 `/list`、`/detail`、`/add`、`/approve` 等动作命名，参数主要放 JSON body。
 7. **Repository 模式**：数据访问抽象，业务逻辑不依赖存储细节。
 8. **Conventional Commits**：`feat(scope): message`。
 9. **Skills 优先于 Commands**：新的工作流优先放到 `.trae/skills/`，而非新增命令。

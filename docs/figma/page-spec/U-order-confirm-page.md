@@ -80,7 +80,7 @@
 | 字段 | 值 |
 |------|-----|
 | 容器 | 343×72，x = 16，y = 96（NavBar 底部 8px 间距），圆角 12px（`radius-lg`），背景 `#FFFFFF`，`shadow-card` |
-| 教练头像 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，x = 16 / y = 12 |
+| 教练个人形象照 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，x = 16 / y = 12 |
 | 教练姓名 | 16px / Medium `color-text-primary`，位于头像右侧 12px，y = 14 |
 | 状态徽标 | 使用 [README.md §3.1](../../../docs/figma/README.md) 教练实时状态徽标：空闲中 / 上课中 / 休息中 / 已下班 / 请假中；位于姓名右侧 8px |
 | 副信息 | "任教 X 年 · 评分 4.8"，12px / Regular `color-text-secondary`，位于姓名下方 4px |

@@ -80,3 +80,30 @@ The system MUST reject any attempt to register an action for a package that does
 - **WHEN** coach C registers action "refund" for P2
 - **THEN** the API returns HTTP 403 with error code `NOT_OWN_PACKAGE`
 - **AND** no `coach_resignation_action` record is written
+
+### Requirement: REQ-006 System shall display the coach resignation processing page
+
+The system MUST redirect the coach to the "C-教练端离职处理中页" after a successful resignation application. The system MUST display the current ticket status, ticket number, progress message, estimated processing time, and provide entry points to view the resignation ticket and contact customer service. The system MUST redirect a coach with `coach.status = 4` to the processing page upon login via US-051/US-054 with `redirect_page = "coach_resigning"`.
+
+#### Scenario: Coach enters resignation processing page after application
+
+- **GIVEN** coach C is logged in and coach.status = 1
+- **AND** coach C has 2 active packages
+- **WHEN** coach C submits resignation with reason "个人原因"
+- **THEN** coach.status is updated to 4
+- **AND** a resignation ticket is created with ticket.status = "processing"
+- **AND** the page redirects to C-教练端离职处理中页
+- **AND** the page shows title "离职申请已提交，正在处理中"
+- **AND** the page shows ticket number and progress "等待教练处理学员套餐"
+- **AND** the page shows "预计 1-3 个工作日内完成审批"
+- **AND** the page provides "查看离职工单" primary button
+- **AND** the page provides "联系客服 / 帮助" text entry
+
+#### Scenario: Coach with status=4 logs in and redirects to resignation processing page
+
+- **GIVEN** coach C has coach.status = 4
+- **AND** there is an existing resignation ticket with status = "processing"
+- **WHEN** coach C logs in via US-051/US-054
+- **THEN** the system returns coach_status = 4 and redirect_page = "coach_resigning"
+- **AND** the frontend redirects to C-教练端离职处理中页
+- **AND** the page displays current ticket progress per the previous scenario

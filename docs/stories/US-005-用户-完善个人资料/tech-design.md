@@ -29,7 +29,7 @@
 | `user` | UPDATE | `name` | 用户姓名，必填，展示用 |
 | `user` | UPDATE | `phone` | 手机号，AES-256 加密，登录时已获取，可修改 |
 | `user` | UPDATE | `age` | 年龄，整数 3-99 |
-| `user` | UPDATE | `gender` | 性别，枚举：male/female/secret |
+| `user` | UPDATE | `gender` | 性别，枚举：male/female |
 | `user` | UPDATE | `has_swim_basis` | 有无游泳基础，布尔 |
 | `user` | UPDATE | `swim_strokes` | 会什么泳姿，JSON 数组：["breaststroke", "freestyle", ...] |
 | `user` | UPDATE | `swim_years` | 游泳年限，整数 ≥0 |

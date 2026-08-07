@@ -27,8 +27,7 @@
 | `union_id` | VARCHAR(64) | UK | 微信 unionid |
 | `phone` | VARCHAR(16) | UK | 手机号，登录后写入 |
 | `name` | VARCHAR(32) | 可空 | 姓名/昵称，1-32 字符；审核通过后写入 |
-| `avatar_url` | VARCHAR(512) | 可空 | 头像 URL |
-| `gender` | TINYINT | 可空 | 性别：1=男 / 2=女 / 3=其他 |
+| `gender` | TINYINT | 可空 | 性别：1=男 / 2=女 |
 | `age` | INT | 可空 | 年龄，18-80 |
 | `email` | VARCHAR(128) | 可空 | 邮箱 |
 | `wechat_qr_url` | VARCHAR(512) | 可空 | 微信二维码图片 URL |
@@ -54,7 +53,6 @@
 | `status` | ENUM | 非空 | draft / pending / approved / rejected |
 | `previous_coach_status` | TINYINT | 可空 | 提交前 coach.status（-1/2/3）；draft 时为空 |
 | `name` | VARCHAR(32) | 可空 | 姓名/昵称快照 |
-| `avatar_url` | VARCHAR(512) | 可空 | 头像 URL 快照 |
 | `gender` | TINYINT | 可空 | 性别快照 |
 | `age` | INT | 可空 | 年龄快照 |
 | `email` | VARCHAR(128) | 可空 | 邮箱快照 |
@@ -148,7 +146,6 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
   ```json
   {
     "name": "张教练",
-    "avatar_url": "https://cdn.example.com/avatar.png",
     "gender": 1,
     "age": 30,
     "email": "coach@example.com",
@@ -228,7 +225,6 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
       "coach_id": 20001,
       "application_id": 10001,
       "name": "张教练",
-      "avatar_url": "https://cdn.example.com/avatar.png",
       "phone": "13800138000",
       "gender": 1,
       "age": 30,

@@ -42,9 +42,14 @@
 
 ### 4.1 主路径
 
-1. 管理员进入「用户管理 → 教练审核」列表
-2. 系统展示 `coach_application.status = pending` 的申请及其快照资料（含证书、任教年限、个人简介、参考单价、previous_coach_status 标记是否重新入驻）
-3. 管理员查看 coach_application 快照资料
+1. 管理员进入「用户管理 → 教练审核」列表。
+2. 系统默认展示 `coach_application.status = pending` 的教练列表，按 `coach_id` 维度聚合（每个教练只展示一行）。列表表格字段包含：教练 ID、姓名、性别、年龄、教学年限、擅长泳姿、最新提交时间、流程状态（待审核/已通过/已驳回）、previous_coach_status（首次入驻/已驳回重新入驻/已离职重新入驻）、latest_application_id。管理员可通过状态筛选切换为全部 / 待审核 / 已通过 / 已驳回。
+3. 管理员点击「详情」进入审核详情页，系统展示该教练当前最新申请（`latest_application_id`）的 coach_application 快照完整资料，并在「申请历史」区域展示该教练的所有历史申请记录（含申请 ID、状态、时间、审核人、驳回原因）：
+   - **基础信息**：姓名/昵称、手机号、性别、年龄、邮箱、微信二维码。
+   - **实名与资质**：身份证号、身份证正面照、身份证反面照、教练资格证、健康证、个人形象照。
+   - **教学履历**：任教年限、总学员数、总课时数、擅长泳姿、个人简介。
+   - **服务设置**：参考单价（元/节）。
+   - **审核辅助信息**：previous_coach_status、提交时间、coach_audit_log 历史记录（如有）。
 4. 管理员点击「通过」
 5. 系统校验权限与 coach_application.status = pending
 6. 系统将 coach_application 快照字段覆盖写入 `coach` 表生效资料
@@ -57,7 +62,9 @@
 
 ### 4.2 异常分支
 
-- **分支 1**：资料不全 → 管理员点击「驳回」并填写原因；系统标记 `coach_application.status = rejected` 并写入 `rejection_reason`；`coach.status` 恢复为 `previous_coach_status`（-1→2，2→2，3→3）
+- **分支 1**：资料不全 → 管理员点击「驳回」并填写原因；系统标记 `coach_application.status = rejected` 并写入 `rejection_reason`；`coach.status` 恢复为 `previous_coach_status`（-1→2，2→2，3→3）。
+  - 列表页驳回：点击「驳回」后弹出轻量输入框（Popconfirm 或小型 Dialog），管理员填写驳回原因后确认。
+  - 详情页驳回：点击「驳回」后底部/侧边弹出原因输入区，驳回原因必填，支持常用原因快捷选择。
 - **分支 2**：管理员无权限 → 返回 403
 
 ---
@@ -141,18 +148,21 @@ And   coach 表生效资料保持离职前状态不变
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | coach | 修改 | 审核通过时 coach_application 快照字段覆盖写入；status、approved_at 更新 |
+| 1 | coach | 修改 | 审核通过时 coach_application 快照字段覆盖写入：`name`、`gender`、`age`、`email`、`wechat_qr_url`、`id_card_no`、`teaching_years`、`total_students`、`total_hours`、`teaching_strokes`、`bio`、`reference_price`；更新 `status=1`、`approved_at` |
 | 2 | coach_application | 修改 | status 由 pending 更新为 approved/rejected；approved_at、approved_by、rejection_reason |
-| 3 | coach_certificate | 修改 | 审核通过时由 coach_certificate_application 快照覆盖写入 |
+| 3 | coach_certificate | 修改 | 审核通过时由 coach_certificate_application 快照覆盖写入：`cert_type`（ID_CARD_FRONT/ID_CARD_BACK/COACH_CERT/HEALTH_CERT/PORTRAIT/OTHER）、`image_url`、`sort_order` |
 | 4 | coach_audit_log | 新增 | 记录审核人、时间、结果、原因；from_status / to_status 记录 coach.status 变更 |
 
 ### 7.2 API 影响
 
+> 本 US 接口遵循 [API 接口规范](../../../tech/api-convention.md)：统一使用 `POST`，URL 按 `/list`、`/detail`、`/approve`、`/reject` 动作命名，参数通过 JSON body 传递。
+
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/admin/coach/applications | GET | 新增 | 待审核列表；查询 coach_application.status = pending |
-| 2 | /api/admin/coach/applications/{application_id}/approve | POST | 新增 | 审核通过；将快照覆盖写入 coach 表及 coach_certificate 表 |
-| 3 | /api/admin/coach/applications/{application_id}/reject | POST | 新增 | 审核驳回；coach.status 恢复为 previous_coach_status |
+| 1 | /api/admin/coach/application/list | POST | 新增 | 教练审核列表；请求体 `{ page, pageSize, keyword, status }`；按 coach_id 聚合，每个教练一行；默认 status=pending，支持筛选全部 / pending / approved / rejected；返回 coach_id、姓名、性别、年龄、教学年限、擅长泳姿、最新提交时间、流程状态、previous_coach_status、latest_application_id |
+| 2 | /api/admin/coach/application/detail | POST | 新增 | 审核详情；请求体 `{ applicationId }`；返回 coach_application 快照完整资料（基础信息/实名与资质/教学履历/服务设置/证书列表）、该教练的申请历史列表及 coach_audit_log 历史 |
+| 3 | /api/admin/coach/application/approve | POST | 新增 | 审核通过；请求体 `{ applicationId, remark? }`；将快照覆盖写入 coach 表及 coach_certificate 表 |
+| 4 | /api/admin/coach/application/reject | POST | 新增 | 审核驳回；请求体 `{ applicationId, reason }`；coach.status 恢复为 previous_coach_status |
 
 ### 7.3 状态机影响
 
@@ -293,9 +303,12 @@ And   coach 表生效资料保持离职前状态不变
 
 | 交互 | 触发 | 反馈 | 备注 |
 |------|------|------|------|
-| 点击通过 | 点击按钮 | 二次确认后更新状态 | 成功后刷新列表 |
-| 点击驳回 | 点击按钮 | 弹出原因输入框 | 强制填写原因 |
+| 列表页点击通过 | 点击按钮 | 跳转至审核详情页 | 通过原因非必填，详情页完成最终通过 |
+| 列表页点击驳回 | 点击按钮 | 弹出轻量输入框 / Popconfirm | 必填驳回原因；确认后立即执行驳回 |
+| 详情页点击通过 | 点击按钮 | 二次确认后更新状态 | 通过原因非必填 |
+| 详情页点击驳回 | 点击按钮 | 底部/侧边展开原因输入区 | 驳回原因必填，支持常用原因快捷选择 |
 | 查看证书大图 | 点击图片 | 弹窗放大预览 | 支持左右切换 |
+| 展开申请历史 | 点击「申请历史」 | 展开时间轴/表格 | 展示该教练所有申请记录及驳回原因 |
 
 ---
 

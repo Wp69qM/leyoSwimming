@@ -4,7 +4,7 @@
 
 ### Requirement: REQ-001 教练端微信授权登录与状态分流
 
-系统 MUST 在教练端小程序提供微信授权登录入口。系统 MUST 改造 `POST /api/v1/auth/wechat-login` 接口以接收 `app_type=coach` 参数，并在登录成功后返回 `coach.status`，由前端映射跳转至正确页面。系统 MUST 在 `coach` 表无记录时直接创建 `coach` 记录（`status=-1` 未提交入驻资料，`phone` 为解密后的微信手机号，`avatar_url`/`nickname` 来自微信授权），并设置 `is_new_coach=true`。系统 MUST 在 `coach` 表已存在记录且 `status != 3` 时复用该记录，设置 `is_new_coach=false`。系统 MUST 在 `coach.status=3`（已离职）时视为未命中，新建 coach 记录且不绑定旧数据。系统 MUST NOT 在 `app_type=coach` 时创建、查询或复用 `user` 表记录。系统 MUST 以 `code` 为幂等键，5 分钟内重复提交返回首次结果。系统 MUST NOT 将 `session_key` 返回给前端。系统 MUST 校验《用户须知》和《隐私协议》勾选，未勾选时返回 `TERMS_NOT_ACCEPTED`。
+系统 MUST 在教练端小程序提供微信授权登录入口。系统 MUST 改造 `POST /api/v1/auth/wechat-login` 接口以接收 `app_type=coach` 参数，并在登录成功后返回 `coach.status`，由前端映射跳转至正确页面。系统 MUST 在 `coach` 表无记录时直接创建 `coach` 记录（`status=-1` 未提交入驻资料，`phone` 为解密后的微信手机号，`nickname` 来自微信授权），并设置 `is_new_coach=true`。系统 MUST 在 `coach` 表已存在记录且 `status != 3` 时复用该记录，设置 `is_new_coach=false`。系统 MUST 在 `coach.status=3`（已离职）时视为未命中，新建 coach 记录且不绑定旧数据。系统 MUST NOT 在 `app_type=coach` 时创建、查询或复用 `user` 表记录。系统 MUST 以 `code` 为幂等键，5 分钟内重复提交返回首次结果。系统 MUST NOT 将 `session_key` 返回给前端。系统 MUST 校验《用户须知》和《隐私协议》勾选，未勾选时返回 `TERMS_NOT_ACCEPTED`。
 
 #### Scenario: 未入驻教练首次授权登录，跳转入驻资料页
 
@@ -49,6 +49,21 @@ And   is_new_coach = false
 And   coach_status = 0
 And   返回 access_token 和 refresh_token
 And   前端按 coach_status=0 跳转到"等待审核页"
+```
+
+#### Scenario: 申请离职中教练授权登录，跳转离职处理中页
+
+```gherkin
+Given 教练存在 coach 记录，coach.status = 4（申请离职中）
+And   存在 status = processing 的离职工单
+And   教练已勾选《用户须知》和《隐私协议》
+And   教练已同意授权小程序获取手机号
+When  教练点击"微信一键登录"按钮并同意授权
+Then  系统复用已有 coach 记录
+And   is_new_coach = false
+And   coach_status = 4
+And   返回 access_token 和 refresh_token
+And   前端按 coach_status=4 跳转到"离职处理中页"（US-039）
 ```
 
 #### Scenario: 教练拒绝微信授权或手机号授权

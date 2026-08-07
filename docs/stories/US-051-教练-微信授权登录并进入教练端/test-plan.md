@@ -26,8 +26,8 @@
 
 ### Task 1：Coach Repository — findCoachByUnionId / createCoach [P0]
 
-- **RED**：编写测试用例，验证 `findCoachByUnionId` 返回 status=1/0/2 的 coach、status=3 时视为未命中、未命中返回 null；验证 `createCoach` 创建 status=-1 记录并写入 phone/avatar/nickname。
-- **GREEN**：实现 `CoachRepository.findCoachByUnionId(unionId)`（`WHERE union_id=? AND status != 3`）与 `CoachRepository.createCoach({ openid, unionId, phone, avatarUrl, nickname })`。
+- **RED**：编写测试用例，验证 `findCoachByUnionId` 返回 status=1/0/2 的 coach、status=3 时视为未命中、未命中返回 null；验证 `createCoach` 创建 status=-1 记录并写入 phone/nickname。
+- **GREEN**：实现 `CoachRepository.findCoachByUnionId(unionId)`（`WHERE union_id=? AND status != 3`）与 `CoachRepository.createCoach({ openid, unionId, phone, nickname })`。
 - **REFACTOR**：提取 coach 创建时的默认值构造函数。
 - **COMMIT**：`feat(coach): add CoachRepository for direct coach login`
 
@@ -111,7 +111,7 @@
 
 ### 5.2 教练端状态默认值
 
-- 新建 coach 记录：`status=-1`、`phone` 为解密手机号、`avatar_url` / `nickname` 来自微信授权。
+- 新建 coach 记录：`status=-1`、`phone` 为解密手机号、`nickname`（可选）来自微信授权。
 - `is_new_coach=true`、`coach_status=-1`。
 
 ### 5.3 协议校验

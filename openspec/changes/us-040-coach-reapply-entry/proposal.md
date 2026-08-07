@@ -6,12 +6,10 @@ PRD [§5.4.8](../../../docs/prd/prd.md) 要求状态 3（已离职）的教练�
 
 ## What Changes
 
-- 教练端「我的」页面为 `coach.status = 3` 的教练展示「重新入驻」入口
 - 已离职教练登录教练端时，US-051 / US-054 按 `coach_status = 3` 直接跳转 US-010 的 C-入驻资料填写页（顶部展示重新入驻说明条）
-- 新增 `POST /api/coach/v1/reapply/entry` 接口：教练在「我的」页面点击「重新入驻」时校验 `coach.status = 3`，允许进入 US-010 的 C-入驻资料填写页；不直接修改 `coach.status`
 - 实际资料填写、字段校验、图片上传、提交审核全部由 US-010 的 `POST /api/coach/application` 与 `PUT /api/coach/application/draft` 处理；US-010 创建 `previous_coach_status=3` 的 `coach_application` pending 快照
 - 管理员重新入驻审核复用 US-011 接口：`POST /api/admin/coach/applications/{application_id}/approve` 与 `/reject`；通过时快照覆盖 coach 生效资料，`coach.status: 0 → 1`；拒绝时 `coach.status` 恢复为 3
-- 历史评分/评价保留，且仅对老学员可见，对新学员隐藏（`coach_rating.is_visible_to_new = false`）
+- 历史评分/评价保留，并对新老学员均可见
 - 已 frozen 的老学员套餐不自动恢复为 active，等待老学员主动换回原教练或退款
 - 边界处理：非已离职教练禁止重新入驻、重复发起、已离职重新入驻审核驳回后状态恢复为 3
 
@@ -19,7 +17,7 @@ PRD [§5.4.8](../../../docs/prd/prd.md) 要求状态 3（已离职）的教练�
 
 ### New Capabilities
 
-- `coach-reapply-entry`: 已离职教练重新发起入驻申请并恢复教学资格，包含登录后自动分流、"我的"页面入口校验、历史评分对新学员隐藏
+- `coach-reapply-entry`: 已离职教练重新发起入驻申请并恢复教学资格，包含登录后自动分流、历史评分对全体学员可见
 
 ### Modified Capabilities
 
@@ -28,9 +26,9 @@ PRD [§5.4.8](../../../docs/prd/prd.md) 要求状态 3（已离职）的教练�
 
 ## Impact
 
-- **数据表**：`coach`（`status` 3 → 0 → 1 或 3 → 0 → 3）；`coach_application`（`previous_coach_status=3` 的 pending/rejected 快照）；`coach_rating` / `review`（`is_visible_to_new`）
-- **API**：新增 `/api/coach/v1/reapply/entry`；复用 US-010 提交/草稿接口；复用 US-011 审核接口
+- **数据表**：`coach`（`status` 3 → 0 → 1 或 3 → 0 → 3）；`coach_application`（`previous_coach_status=3` 的 pending/rejected 快照）
+- **API**：复用 US-010 提交/草稿接口；复用 US-011 审核接口
 - **状态机**：触发 `coach.status` 3 → 0（由 US-010 提交接口触发）、0 → 1（US-011 通过）、0 → 3（US-011 拒绝）
-- **前端**：教练端「我的」页面新增「重新入驻」入口；US-010 C-入驻资料填写页新增 status=3 重新入驻说明条
+- **前端**：US-051 / US-054 登录响应按 coach_status=3 自动跳转 US-010 C-入驻资料填写页；US-010 C-入驻资料填写页新增 status=3 重新入驻说明条
 - **依赖**：依赖 US-041 产生 `coach.status = 3`；依赖 US-010 处理资料提交；依赖 US-011 提供审核流程；US-039 通过 US-041 间接产生 status=3
-- **安全**：所有接口校验 JWT 身份；教练端接口仅允许 `coach.status = 3` 调用；管理员接口校验 `coach:audit` 权限；操作记录审计日志
+- **安全**：所有接口校验 JWT 身份；US-010 提交接口需校验 `coach.status = 3` 时才允许创建 `previous_coach_status=3` 的重新入驻快照；管理员接口校验 `coach:audit` 权限；操作记录审计日志

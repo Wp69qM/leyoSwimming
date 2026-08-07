@@ -79,7 +79,7 @@
 | 字段 | 值 |
 |------|-----|
 | 容器 | 375×240，y=88，背景 `gradient-water` |
-| 大头像 | 80×80 圆形（`radius-pill`），居中 x=187.5，y=140；默认背景 `color-primary` 浅色 #E6F7FF |
+| 个人形象照 | 80×80 圆形（`radius-pill`），居中 x=187.5，y=140；默认背景 `color-primary` 浅色 #E6F7FF |
 | 教练姓名 | y=232，`font-size-h2` 20px Medium 白色，居中 |
 | 实时状态徽标 | 位于姓名右侧 8px，使用 §3.1 教练实时状态徽标样式（Tag 组件） |
 | 评分行 | y=260，⭐ 16px 金色（#FAAD14）+ 评分数字 16px Bold 白色 + "分" 12px Regular 白色 80% |

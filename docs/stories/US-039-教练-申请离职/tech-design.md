@@ -38,7 +38,7 @@
 | ticket_id | BIGINT PK | | |
 | coach_id | BIGINT FK | IDX | |
 | reason | VARCHAR(500) | | 离职原因 |
-| status | TINYINT | IDX | 0=processing, 1=pending_audit, 2=approved, 3=rejected, 4=cancelled |
+| status | TINYINT | IDX | 0=processing, 1=pending_audit, 2=approved, 3=rejected；MVP 不支持教练自行撤销，无 cancelled 状态 |
 | total_packages | INT | | 待处理 active 套餐数 |
 | handled_packages | INT | | 已登记数 |
 | created_at | DATETIME | | |

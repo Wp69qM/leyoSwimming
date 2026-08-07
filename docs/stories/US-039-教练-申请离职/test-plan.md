@@ -60,23 +60,32 @@
 
 **对应**：user-story.md 场景 2、5 / tech-design §4.3
 
-### Task 5：提交与撤销工单
+### Task 5：提交工单至管理员审批队列
 
 - [ ] **5.1 RED**：编写教练提交工单至 `pending_audit` 的测试
 - [ ] **5.2 RED**：编写提交时未确认套餐自动按 refund 生成 `refund_record` 的测试
-- [ ] **5.3 RED**：编写撤销工单恢复 coach.status=1 的测试
-- [ ] **5.4 RED**：编写非 processing 状态不可撤销的测试
-- [ ] **5.5 GREEN**：实现 submit / cancel 接口；submit 时未确认套餐默认生成退款记录
-- [ ] **5.6 COMMIT**：`feat(us-039): submit and cancel resignation ticket with default refund`
+- [ ] **5.3 RED**：编写非 processing 状态不可提交的测试
+- [ ] **5.4 GREEN**：实现 submit 接口；submit 时未确认套餐默认生成退款记录
+- [ ] **5.5 COMMIT**：`feat(us-039): submit resignation ticket to admin queue with default refund`
 
-**对应**：user-story.md 边界场景 1 / tech-design §4.4、§4.5
+**对应**：user-story.md 场景 1 / tech-design §4.4
 
-### Task 6：审计与缓存失效
+### Task 6：离职处理中页
 
-- [ ] **6.1 RED**：编写 audit_log 写入测试（status 变更、action 登记）
-- [ ] **6.2 RED**：编写 coach.status 缓存失效测试
-- [ ] **6.3 GREEN**：实现审计日志与缓存失效
-- [ ] **6.4 COMMIT**：`feat(us-039): audit log and cache invalidation`
+- [ ] **6.1 RED**：编写提交成功后跳转 C-离职处理中页的 E2E 测试
+- [ ] **6.2 RED**：编写 coach.status=4 时登录跳转 C-离职处理中页的 E2E 测试
+- [ ] **6.3 RED**：编写 C-离职处理中页展示工单号、进度、客服入口的测试
+- [ ] **6.4 GREEN**：实现离职处理中页数据查询与前端跳转
+- [ ] **6.5 COMMIT**：`feat(us-039): coach resignation processing page`
+
+**对应**：user-story.md 场景 6、7
+
+### Task 7：审计与缓存失效
+
+- [ ] **7.1 RED**：编写 audit_log 写入测试（status 变更、action 登记）
+- [ ] **7.2 RED**：编写 coach.status 缓存失效测试
+- [ ] **7.3 GREEN**：实现审计日志与缓存失效
+- [ ] **7.4 COMMIT**：`feat(us-039): audit log and cache invalidation`
 
 **对应**：tech-design §6、§8
 
@@ -87,14 +96,15 @@
 | # | 用例名称 | 对应 GWT 场景 | 测试方法 | 期望结果 |
 |---|---------|--------------|---------|---------|
 | 1 | 教练成功提交离职申请 | 6.1 | `test_apply_resignation_success` | coach.status=4，生成 processing 工单，清单含 3 份套餐 |
-| 2 | 教练确认学员套餐全额退款 | 6.2 | `test_register_refund_confirmation_success` | coach_resignation_action +1，action=refund；refund_record 金额 = 单价 × 剩余课时 |
+| 2 | 教练确认学员套餐处理结果 | 6.2 | `test_register_refund_confirmation_success` | coach_resignation_action +1，action=refund/transfer/continue |
 | 3 | 非已通过教练无法申请 | 6.3 | `test_not_approved_cannot_apply` | 入口隐藏或接口 403 |
 | 4 | 重复提交离职申请 | 6.4 | `test_apply_resignation_duplicate` | HTTP 409，不生成新工单 |
 | 5 | 登记非自己名下套餐 | 6.5 | `test_register_action_not_own_package` | HTTP 403，错误码 NOT_OWN_PACKAGE |
-| 6 | 教练撤销离职申请 | 8.1 | `test_cancel_resignation_success` | coach.status 恢复 1，工单 cancelled |
-| 7 | 教练名下无 active 套餐 | 8.2 | `test_apply_resignation_no_active_packages` | 允许提交，工单清单为空 |
-| 8 | 并发提交幂等 | 8.3 | `test_apply_resignation_idempotent` | 仅 1 条工单 |
-| 9 | 未登记套餐默认全额退款 | 6.2 / §12 | `test_submit_default_refund_record` | 自动生成 refund_record，金额 = 单价 × 剩余课时 |
+| 6 | 提交后跳转离职处理中页 | 6.6 | `test_resignation_processing_page_after_apply` | 展示标题、工单号、进度、客服入口 |
+| 7 | status=4 登录跳转离职处理中页 | 6.7 | `test_login_redirect_to_resigning_page` | 返回 redirect_page=coach_resigning，跳转处理中页 |
+| 8 | 教练名下无 active 套餐 | 8.2 | `test_apply_resignation_no_active_packages` | 允许提交，工单清单为空 |
+| 9 | 并发提交幂等 | 8.3 | `test_apply_resignation_idempotent` | 仅 1 条工单 |
+| 10 | 未登记套餐默认全额退款 | 6.2 / §12 | `test_submit_default_refund_record` | 自动生成 refund_record，金额 = 单价 × 剩余课时 |
 
 ---
 
@@ -103,5 +113,15 @@
 - [ ] 单元测试全部通过
 - [ ] 集成测试全部通过
 - [ ] 所有 GWT 场景均有对应自动化测试
-- [ ] 状态机转换 100% 覆盖（1→4、4→1、processing→pending_audit、processing→cancelled）
+- [ ] 状态机转换 100% 覆盖（1→4、processing→pending_audit）
+- [ ] 离职处理中页跳转与展示覆盖（提交后跳转、status=4 登录跳转）
 - [ ] 无 TBD/TODO 遗留
+
+---
+
+## 5. 变更日志
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-07-30 | 初版 |
+| v1.1 | 2026-08-05 | 补充 C-离职处理中页任务与测试用例；移除 MVP 不支持的"撤销离职申请"相关任务与验收项，与 user-story.md §8.1 保持一致 |

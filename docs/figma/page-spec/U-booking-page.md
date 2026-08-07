@@ -83,7 +83,7 @@
 | 字段 | 值 |
 |------|-----|
 | 容器 | 343×80，x = 16，y = 96（NavBar 底部 8px 间距），圆角 12px（`radius-lg`），背景 `#FFFFFF`，`shadow-card` |
-| 左侧教练头像 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，x = 16 / y = 16 |
+| 左侧教练个人形象照 | 48×48 圆形（`Avatar-md`），背景 `#E6F7FF`，x = 16 / y = 16 |
 | 教练姓名 | 16px / Medium `color-text-primary`，位于头像右侧 12px，y = 16 |
 | 套餐类型标签 | 体验课 = Success Tag "体验课"；正价课 = Primary Tag "正价课"；位于姓名右侧 8px |
 | 剩余课时 | "剩余 X 节课 · 有效期至 YYYY-MM-DD"，12px / Regular `color-text-secondary`，位于姓名下方 4px |

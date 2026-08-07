@@ -14,7 +14,7 @@
 | user | avatar_url | VARCHAR(512) | 头像 |
 | user | name | VARCHAR(64) | 姓名 |
 | user | age | TINYINT | 年龄 |
-| user | gender | ENUM | male/female/secret |
+| user | gender | ENUM | male/female |
 | user | guardian_name | VARCHAR(64) | 监护人姓名（age < 18） |
 | user | guardian_phone | VARCHAR(64) | 监护人手机号（age < 18），AES-256 加密 |
 | user_role | user_id / role_id | BIGINT | 用户角色关联 |

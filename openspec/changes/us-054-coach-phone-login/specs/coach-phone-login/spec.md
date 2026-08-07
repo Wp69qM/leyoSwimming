@@ -89,7 +89,7 @@ And   不签发任何 token
 
 ### Requirement: REQ-004 已注册教练手机号登录成功
 
-系统 MUST 在手机号和验证码均正确且教练已勾选协议时，按手机号查询 `coach` 表。若手机号存在且 `coach.status ≠ 3`，系统 MUST 复用该记录并更新 `last_login_at` 与 `login_ip`。系统 MUST 签发 JWT `access_token` + `refresh_token`，返回 `expires_in`、`is_new_coach=false`、`coach_status`。
+系统 MUST 在手机号和验证码均正确且教练已勾选协议时，按手机号查询 `coach` 表。若手机号存在，系统 MUST 复用该记录并更新 `last_login_at` 与 `login_ip`（含 `status=3` 已离职账号，登录后按 `coach_status=3` 跳转 US-010 重新入驻资料填写页）。系统 MUST 签发 JWT `access_token` + `refresh_token`，返回 `expires_in`、`is_new_coach=false`、`coach_status`。
 
 #### Scenario: 已通过教练手机号登录成功
 
@@ -119,6 +119,35 @@ And   coach_status = 0
 And   前端按 coach_status = 0 跳转到等待审核页
 ```
 
+#### Scenario: 申请离职中教练手机号登录成功
+
+```gherkin
+Given coach 表中存在手机号 13800138000 且 coach.status = 4
+And   存在 status = processing 的离职工单
+And   教练已勾选《用户须知》和《隐私协议》
+When  教练输入手机号 13800138000 和正确验证码 123456
+And   教练点击「登录」
+Then  系统复用已有 coach 记录
+And   is_new_coach = false
+And   coach_status = 4
+And   前端按 coach_status = 4 跳转到离职处理中页（US-039）
+```
+
+#### Scenario: 已离职教练手机号登录后进入重新入驻
+
+```gherkin
+Given coach 表中存在手机号 13800138000 且 coach.status = 3（已离职）
+And   教练已勾选《用户须知》和《隐私协议》
+When  教练输入手机号 13800138000 和正确验证码 123456
+And   教练点击「登录」
+Then  系统复用原 coach 记录
+And   系统返回登录态 token 与 coach_status = 3
+And   is_new_coach = false
+And   前端按 coach_status=3 跳转 US-010 的 C-入驻资料填写页（顶部展示重新入驻说明条）
+And   表单自动回显 coach 表历史内容
+And   原账号历史数据保留
+```
+
 ---
 
 ### Requirement: REQ-005 未注册手机号首次登录自动注册
@@ -143,29 +172,7 @@ And   前端按 coach_status = -1 跳转到入驻资料页（US-010）
 
 ---
 
-### Requirement: REQ-006 已离职手机号重新注册登录
-
-系统 MUST 在手机号存在但 `coach.status = 3`（已离职）时，按 PRD §5.2.1 第 4 条重新创建新教练账号，新记录 `coach.status = -1`，新记录 `coach_id` 与原记录不同，原账号数据不绑定。系统 MUST 签发 JWT，返回 `is_new_coach=true`、`coach_status=-1`。
-
-#### Scenario: 已离职手机号重新注册
-
-```gherkin
-Given coach 表中存在手机号 13800138000 且 coach.status = 3
-And   教练已勾选《用户须知》和《隐私协议》
-When  教练输入手机号 13800138000 和正确验证码 123456
-And   教练点击「登录」
-Then  系统重新创建新 coach 记录
-And   新记录 coach.status = -1
-And   新记录 coach_id 与原离职账号不同
-And   原离职账号数据不被新账号访问或绑定
-And   is_new_coach = true
-And   coach_status = -1
-And   前端按 coach_status = -1 跳转到入驻资料页（US-010）
-```
-
----
-
-### Requirement: REQ-007 登录态维持与 token 刷新
+### Requirement: REQ-006 登录态维持与 token 刷新
 
 系统 MUST 在登录成功后返回 `access_token`（有效期 2 小时）与 `refresh_token`（有效期 7 天）。前端 MUST 将 token 存储于本地，并在访问受保护接口时于 `Authorization: Bearer {access_token}` 中携带。`access_token` 过期但 `refresh_token` 有效时，前端 MUST 调用刷新接口换发新的 `access_token`；`refresh_token` 过期或不存在时，前端 MUST 引导教练重新登录。
 
@@ -189,7 +196,7 @@ Then  前端引导教练重新进入登录页
 
 ---
 
-### Requirement: REQ-008 安全与审计
+### Requirement: REQ-007 安全与审计
 
 系统 MUST 对 `coach.phone` 进行加密存储。系统 MUST 将验证码以安全方式存储于 `sms_code` 表并设置 TTL，使用后立即失效或标记为已使用。系统 MUST 记录登录日志至 `coach_login_log` 表，包括登录时间、IP、设备、登录方式（phone）。系统 MUST 在日志中对手机号进行脱敏展示。
 
