@@ -10,11 +10,10 @@
 |---|------|----------|-----|-------|--------|
 | 1 | 换绑手机号接口 | §6.1 | 写失败测试 | 最小实现 | commit |
 | 2 | 修改密码接口（含首次设置） | §6.2 / §6.6 | 写失败测试 | 最小实现 | commit |
-| 3 | 邮箱绑定接口 | — | 写失败测试 | 最小实现 | commit |
-| 4 | 设备列表查询 | §6.5 | 写失败测试 | 最小实现 | commit |
-| 5 | 下线设备功能 | §6.5 | 写失败测试 | 最小实现 | commit |
-| 6 | 换绑频率限制 | §8.1 | 写失败测试 | 最小实现 | commit |
-| 7 | 小程序账号安全页 | §6.1 / §6.2 / §6.5 | 写失败测试 | 最小实现 | commit |
+| 3 | 设备列表查询 | §6.5 | 写失败测试 | 最小实现 | commit |
+| 4 | 下线设备功能 | §6.5 | 写失败测试 | 最小实现 | commit |
+| 5 | 换绑频率限制 | §8.1 | 写失败测试 | 最小实现 | commit |
+| 6 | 小程序账号安全页 | §6.1 / §6.2 / §6.5 | 写失败测试 | 最小实现 | commit |
 
 ---
 
@@ -63,25 +62,7 @@
 
 ---
 
-## Task 3: 邮箱绑定接口 [P1]
-
-**Files:**
-- Modify: `backend/src/controllers/user/security.ts`
-- Test: `backend/tests/controllers/user/security.test.ts`
-
-**RED:**
-- 有效邮箱 + 验证码正确 → 返回 200，email 更新
-- 邮箱格式非法 → 返回 `INVALID_EMAIL`
-- 验证码错误 → 返回 `CODE_INVALID`
-
-**GREEN:**
-- 实现 `PUT /api/user/security/email`，校验邮箱格式，更新 user.email
-
-**COMMIT:** `feat(user): add email bind endpoint`
-
----
-
-## Task 4: 设备列表查询 [P0]
+## Task 3: 设备列表查询 [P0]
 
 **Files:**
 - Create: `backend/src/repositories/user_session.ts`
@@ -100,7 +81,7 @@
 
 ---
 
-## Task 5: 下线设备功能 [P0]
+## Task 4: 下线设备功能 [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/user/security.ts`
@@ -119,7 +100,7 @@
 
 ---
 
-## Task 6: 换绑频率限制 [P1]
+## Task 5: 换绑频率限制 [P1]
 
 **Files:**
 - Modify: `backend/src/services/user/phone_change.ts`
@@ -136,7 +117,7 @@
 
 ---
 
-## Task 7: 小程序账号安全页 [P1]
+## Task 6: 小程序账号安全页 [P1]
 
 **Files:**
 - Create: `miniapp-user/src/pages/security/index.tsx`

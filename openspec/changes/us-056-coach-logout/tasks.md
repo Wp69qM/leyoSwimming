@@ -14,7 +14,7 @@
 **Spec coverage:** REQ-001 Scenarios "教练正常退出登录", "本地 token 已过期或不存在"; REQ-002 Scenario "退出登录后端教练会话失效"
 
 - [ ] **RED:** Write 4 failing tests — 正常退出使 coach refresh_token 失效；access_token 无效返回 401；重复调用幂等返回 200；用户端 token 调用教练端逻辑被拒绝
-- [ ] **GREEN:** Implement `POST /api/v1/auth/logout` — 校验 access_token 与 `app_type='coach'`，按 refresh_token hash 标记 coach_session 失效
+- [ ] **GREEN:** Implement `POST /api/coach/auth/logout` — 校验 access_token 与 `app_type='coach'`，按 refresh_token hash 标记 coach_session 失效
 - [ ] **COMMIT:** `feat(auth): add POST /auth/logout endpoint to revoke coach session`
 
 ## Task 2: 教练端小程序「我的」页面退出登录逻辑 [P0]

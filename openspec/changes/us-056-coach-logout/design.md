@@ -27,7 +27,7 @@ CREATE INDEX idx_coach_session_coach_id ON coach_session(coach_id);
 
 ## API Design
 
-### POST /api/v1/auth/logout
+### POST /api/coach/auth/logout
 
 - 鉴权：是（需有效 coach access_token，且 JWT payload 中 `app_type='coach'`）
 - 幂等：是（同一 token 重复调用视为已退出）
@@ -64,12 +64,12 @@ CREATE INDEX idx_coach_session_coach_id ON coach_session(coach_id);
 ```
 教练端「我的」页面 → 点击「退出登录」 → 弹出确认弹窗
   → 教练点击「取消」 → 关闭弹窗，保持登录态
-  → 教练点击「确定」 → 调用 POST /auth/logout → 清除本地 token → 跳转回教练登录页（pages/login/index）
+  → 教练点击「确定」 → 调用 POST /api/coach/auth/logout → 清除本地 token → 跳转回教练登录页（pages/login/index）
 ```
 
 ## Security
 
-- `POST /auth/logout` 必须登录鉴权，并校验 `app_type='coach'`
+- `POST /api/coach/auth/logout` 必须登录鉴权，并校验 `app_type='coach'`
 - 退出后 coach `refresh_token` 必须失效
 - 前端清除 storage 时需同时清除内存与持久化 storage
 - 多设备场景下仅失效当前 session，不影响其他设备

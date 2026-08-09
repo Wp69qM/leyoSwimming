@@ -6,10 +6,10 @@
 
 ## 2. Core Implementation
 
-- [ ] 2.1 Implement `GET /api/admin/v1/resignation-tickets` — maps to REQ-001 / Scenario: List pending audit queue
-- [ ] 2.2 Implement `GET /api/admin/v1/resignation-tickets/{ticket_id}` returning checklist state
-- [ ] 2.3 Implement `POST /api/admin/v1/resignation-tickets/{ticket_id}/approve` — maps to REQ-002 / Scenario: Approve resignation successfully
-- [ ] 2.4 Implement `POST /api/admin/v1/resignation-tickets/{ticket_id}/reject` — maps to REQ-003 / Scenario: Reject resignation successfully
+- [ ] 2.1 Implement `POST /api/admin/coach/resignation-ticket/list` — maps to REQ-001 / Scenario: List pending audit queue
+- [ ] 2.2 Implement `POST /api/admin/coach/resignation-ticket/detail` returning checklist state — request body `{ ticketId }`
+- [ ] 2.3 Implement `POST /api/admin/coach/resignation-ticket/approve` — maps to REQ-002 / Scenario: Approve resignation successfully — request body `{ ticketId }`
+- [ ] 2.4 Implement `POST /api/admin/coach/resignation-ticket/reject` — maps to REQ-003 / Scenario: Reject resignation successfully — request body `{ ticketId, reason }`
 
 ## 3. Checklist Validation
 

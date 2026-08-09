@@ -15,8 +15,8 @@
 **Spec coverage:** REQ-001 Scenarios "管理员正常登录", "用户名或密码错误", "管理员账号被禁用"
 
 - [ ] **RED:** Write 3 failing tests — 正常登录成功返回单一 token（24h）；错误密码返回 401；禁用账号返回 403
-- [ ] **GREEN:** Implement `POST /api/v1/admin/auth/login` — 校验用户名/密码/状态，生成单一 JWT token（24h），记录日志
-- [ ] **COMMIT:** `feat(admin-auth): add POST /admin/auth/login endpoint`
+- [ ] **GREEN:** Implement `POST /api/admin/auth/login` — 校验用户名/密码/状态，生成单一 JWT token（24h），记录日志
+- [ ] **COMMIT:** `feat(admin-auth): add POST /api/admin/auth/login endpoint`
 
 ## Task 2: 后端管理员退出登录接口 [P0]
 
@@ -29,8 +29,8 @@
 **Spec coverage:** REQ-002 Scenario "管理员退出登录"
 
 - [ ] **RED:** Write failing test — 退出后 token 失效，再次访问受保护接口返回 401
-- [ ] **GREEN:** Implement `POST /api/v1/admin/auth/logout` — 校验 token，按 token hash 失效 admin_session
-- [ ] **COMMIT:** `feat(admin-auth): add POST /admin/auth/logout endpoint`
+- [ ] **GREEN:** Implement `POST /api/admin/auth/logout` — 校验 token，按 token hash 失效 admin_session
+- [ ] **COMMIT:** `feat(admin-auth): add POST /api/admin/auth/logout endpoint`
 
 ## Task 3: Web 管理员登录页 + 路由守卫 [P0]
 

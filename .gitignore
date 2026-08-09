@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+target/
+*.jar
+*.war
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+!deploy/.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# WeChat miniprogram
+miniprogram_npm/
+project.private.config.json
+
+# Local uploads
+uploads/

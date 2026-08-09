@@ -12,9 +12,9 @@
 
 **Spec coverage:** REQ-001 Scenario "正常更新个人主页"（查询部分）
 
-- [ ] **RED:** Write 2 failing tests — `GET /api/coach/profile` 未登录返回 401；已登录且 status=1 的教练返回完整主页信息
-- [ ] **GREEN:** Implement `GET /api/coach/profile` controller skeleton with coach auth middleware and route registration
-- [ ] **COMMIT:** `feat(coach): add GET /api/coach/profile endpoint skeleton`
+- [ ] **RED:** Write 2 failing tests — `POST /api/coach/profile/detail` 未登录返回 401；已登录且 status=1 的教练返回完整主页信息
+- [ ] **GREEN:** Implement `POST /api/coach/profile/detail` controller skeleton with coach auth middleware and route registration
+- [ ] **COMMIT:** `feat(coach): add POST /api/coach/profile/detail endpoint skeleton`
 
 ## Task 2: 个人主页更新接口 [P0]
 
@@ -25,9 +25,9 @@
 
 **Spec coverage:** REQ-001 Scenario "正常更新个人主页"
 
-- [ ] **RED:** Write 2 failing tests — `PUT /api/coach/profile` 更新简介成功；status≠1 返回 `COACH_STATUS_NOT_ALLOWED`
-- [ ] **GREEN:** Implement `PUT /api/coach/profile` with `bio`、`teaching_years`、`phone`、`qr_code_url` update and `coach.status = 1` check
-- [ ] **COMMIT:** `feat(coach): add PUT /api/coach/profile update endpoint`
+- [ ] **RED:** Write 2 failing tests — `POST /api/coach/profile/update` 更新简介成功；status≠1 返回 `COACH_STATUS_NOT_ALLOWED`
+- [ ] **GREEN:** Implement `POST /api/coach/profile/update` with `name`、`gender`、`age`、`email`、`wechat_qr_url`、`portrait_url`、`teaching_years`、`teaching_strokes`、`bio` update and `coach.status = 1` check
+- [ ] **COMMIT:** `feat(coach): add POST /api/coach/profile/update update endpoint`
 
 ## Task 3: 证书图片管理 [P0]
 
@@ -51,7 +51,7 @@
 **Spec coverage:** REQ-001 Scenario "个人简介含敏感词"
 
 - [ ] **RED:** Write 2 failing tests — 含敏感词简介返回 `SENSITIVE_CONTENT`；正常简介通过
-- [ ] **GREEN:** Implement sensitive word filter service and integrate into `PUT /api/coach/profile`
+- [ ] **GREEN:** Implement sensitive word filter service and integrate into `POST /api/coach/profile/update`
 - [ ] **COMMIT:** `feat(coach): add bio sensitive content filter`
 
 ## Task 5: 主页变更审计日志 [P0]
@@ -75,9 +75,9 @@
 
 **Spec coverage:** REQ-002 Scenario "正常更新参考单价"
 
-- [ ] **RED:** Write 2 failing tests — `PUT /api/coach/reference-price` 更新 350 元成功；未登录返回 401
-- [ ] **GREEN:** Implement `PUT /api/coach/reference-price` endpoint updating `reference_price`、`price_changed_at` and `price_change_count_today`
-- [ ] **COMMIT:** `feat(coach): add PUT /api/coach/reference-price endpoint`
+- [ ] **RED:** Write 2 failing tests — `POST /api/coach/reference-price/update` 更新 350 元成功；未登录返回 401
+- [ ] **GREEN:** Implement `POST /api/coach/reference-price/update` endpoint updating `reference_price`、`price_changed_at` and `price_change_count_today`
+- [ ] **COMMIT:** `feat(coach): add POST /api/coach/reference-price/update endpoint`
 
 ## Task 7: 参考单价范围校验 [P0]
 

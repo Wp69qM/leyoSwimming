@@ -27,14 +27,14 @@ CREATE INDEX idx_user_session_user_id ON user_session(user_id);
 
 ## API Design
 
-### POST /api/v1/auth/logout
+### POST /api/user/auth/logout
 
 - 鉴权：是（需有效 access_token）
 - 幂等：是（同一 token 重复调用视为已退出）
 - Request Headers: `Authorization: Bearer {access_token}`
 - Request Body: `{ refreshToken?: string }`
-- Response 200: `{ message: "退出登录成功" }`
-- Response 401: `TOKEN_INVALID`
+- Response 200: `{ code: 0, message: "退出登录成功", data: null }`
+- Response 401: `{ code: 40101, message: "登录态已失效，请重新登录", data: null }`
 
 ### 业务规则
 
@@ -64,12 +64,12 @@ CREATE INDEX idx_user_session_user_id ON user_session(user_id);
 ```
 「我的」页面 → 点击「退出登录」 → 弹出确认弹窗
   → 用户点击「取消」 → 关闭弹窗，保持登录态
-  → 用户点击「确定」 → 调用 POST /auth/logout → 清除本地 token → 刷新「我的」页面为未登录态
+  → 用户点击「确定」 → 调用 POST /api/user/auth/logout → 清除本地 token → 刷新「我的」页面为未登录态
 ```
 
 ## Security
 
-- `POST /auth/logout` 必须登录鉴权
+- `POST /api/user/auth/logout` 必须登录鉴权
 - 退出后 `refresh_token` 必须失效
 - 前端清除 storage 时需同时清除内存与持久化 storage
 - 多设备场景下仅失效当前 session，不影响其他设备

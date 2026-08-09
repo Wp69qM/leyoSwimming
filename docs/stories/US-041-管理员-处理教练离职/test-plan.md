@@ -17,8 +17,8 @@
 
 ### Task 1：审批队列与详情查询
 
-- [ ] **1.1 RED**：编写 `GET /api/admin/v1/resignation-tickets` 返回 pending_audit 列表测试
-- [ ] **1.2 RED**：编写工单详情返回 checklist 状态测试
+- [ ] **1.1 RED**：编写 `POST /api/admin/coach/resignation-ticket/list` 返回 pending_audit 列表测试
+- [ ] **1.2 RED**：编写 `POST /api/admin/coach/resignation-ticket/detail` 返回工单详情与 checklist 状态测试
 - [ ] **1.3 GREEN**：实现列表与详情查询
 - [ ] **1.4 REFACTOR**：封装 admin resignation DTO
 - [ ] **1.5 COMMIT**：`feat(us-041): admin resignation ticket list and detail`

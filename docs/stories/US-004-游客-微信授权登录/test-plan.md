@@ -22,10 +22,10 @@
 | Task | 标题 | 优先级 | 对应 GWT 场景 |
 |------|------|--------|--------------|
 | 1 | User Repository（findByUnionId + create） | P0 | [§6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径) |
-| 2 | 微信 OAuth Service（code2session + 用户创建/查询） | P0 | §6.1、§6.2、[§6.4 场景 4](./user-story.md#64-场景-4微信接口调用失败异常路径)、[§6.5 场景 5](./user-story.md#65-场景-5登录凭证已失效异常路径) |
+| 2 | 微信 OAuth Service（code2session + 用户创建/查询） | P0 | §6.1、§6.2、[§6.5 场景 5](./user-story.md#65-场景-5微信接口调用失败异常路径)、[§6.6 场景 6](./user-story.md#66-场景-6登录凭证已失效异常路径) |
 | 3 | JWT 签发与验证 | P0 | §6.1、§6.2（token 签发） |
-| 4 | POST /auth/wechat-login API 端点 | P0 | §6.1-6.5 全部场景 |
-| 5 | 小程序登录页 | P1 | [§6.3 场景 3](./user-story.md#63-场景-3用户拒绝授权异常路径)、§6.1、§6.2 |
+| 4 | POST /api/user/auth/wechat-login API 端点 | P0 | §6.1、§6.2、§6.3、§6.5、§6.6 全部 API 异常场景 |
+| 5 | 小程序登录页 | P1 | [§6.4 场景 4](./user-story.md#64-场景-4用户拒绝授权异常路径)、§6.1、§6.2 |
 
 ---
 
@@ -175,7 +175,7 @@ git commit -m "feat(user): add UserRepository with findByUnionId and create (ide
 - Create: `backend/src/clients/wechat.ts`
 - Test: `backend/tests/services/wechat-auth.test.ts`
 
-**对应 GWT**：[user-story.md §6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径)、[§6.4 场景 4](./user-story.md#64-场景-4微信接口调用失败异常路径)、[§6.5 场景 5](./user-story.md#65-场景-5登录凭证已失效异常路径)
+**对应 GWT**：[user-story.md §6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径)、[§6.5 场景 5](./user-story.md#65-场景-5微信接口调用失败异常路径)、[§6.6 场景 6](./user-story.md#66-场景-6登录凭证已失效异常路径)
 
 - [ ] **Step 1: 写失败测试**
 
@@ -531,14 +531,14 @@ git commit -m "feat(auth): add JwtService and SessionService with access_token +
 
 ---
 
-### Task 4: POST /auth/wechat-login API 端点 [P0]
+### Task 4: POST /api/user/auth/wechat-login API 端点 [P0]
 
 **Files:**
 - Create: `backend/src/controllers/auth.ts`
 - Create: `backend/src/routes/auth.ts`
 - Test: `backend/tests/controllers/auth.test.ts`
 
-**对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径)、[§6.3 场景 3](./user-story.md#63-场景-3用户拒绝授权异常路径)、[§6.4 场景 4](./user-story.md#64-场景-4微信接口调用失败异常路径)、[§6.5 场景 5](./user-story.md#65-场景-5登录凭证已失效异常路径)
+**对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径)、[§6.3 场景 3](./user-story.md#63-场景-3用户未勾选用户须知或隐私协议异常路径)、[§6.5 场景 5](./user-story.md#65-场景-5微信接口调用失败异常路径)、[§6.6 场景 6](./user-story.md#66-场景-6登录凭证已失效异常路径)
 
 - [ ] **Step 1: 写失败测试**
 
@@ -547,11 +547,11 @@ git commit -m "feat(auth): add JwtService and SessionService with access_token +
 import request from 'supertest';
 import { app } from '../../src/app';
 
-describe('POST /auth/wechat-login', () => {
+describe('POST /api/user/auth/wechat-login', () => {
   it('场景 1: 首次登录返回 200 + isNewUser=true + profileCompleted=false', async () => {
     // mock WechatAuthService: 新用户
     const res = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'code_new_user' });
 
     expect(res.status).toBe(200);
@@ -567,7 +567,7 @@ describe('POST /auth/wechat-login', () => {
 
   it('场景 2: 老用户登录返回 200 + isNewUser=false', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'code_old_user' });
 
     expect(res.status).toBe(200);
@@ -577,7 +577,7 @@ describe('POST /auth/wechat-login', () => {
 
   it('场景 5: code 失效返回 401 + WECHAT_CODE_INVALID', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'invalid_code' });
 
     expect(res.status).toBe(401);
@@ -587,7 +587,7 @@ describe('POST /auth/wechat-login', () => {
 
   it('场景 4: 微信接口错误返回 502 + WECHAT_API_ERROR', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'wechat_error_code' });
 
     expect(res.status).toBe(502);
@@ -597,7 +597,7 @@ describe('POST /auth/wechat-login', () => {
 
   it('场景 4 超时: 返回 504 + WECHAT_API_TIMEOUT', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'timeout_code' });
 
     expect(res.status).toBe(504);
@@ -606,20 +606,34 @@ describe('POST /auth/wechat-login', () => {
 
   it('幂等: 相同 code 5 分钟内重复提交返回首次结果', async () => {
     const first = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'idempotent_code' });
 
     const second = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({ code: 'idempotent_code' });
 
     expect(second.status).toBe(200);
     expect(second.body.userId).toBe(first.body.userId);
   });
 
+  it('场景 3: 未勾选协议返回 400 + TERMS_NOT_ACCEPTED', async () => {
+    const res = await request(app)
+      .post('/api/user/auth/wechat-login')
+      .send({
+        code: 'code_any',
+        terms_accepted: false,
+        privacy_accepted: false,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('TERMS_NOT_ACCEPTED');
+    expect(res.body.message).toBe('请阅读并同意《用户须知》和《隐私协议》');
+  });
+
   it('缺少 code 字段返回 400', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/wechat-login')
+      .post('/api/user/auth/wechat-login')
       .send({});
 
     expect(res.status).toBe(400);
@@ -644,12 +658,19 @@ const wechatAuth = new WechatAuthService();
 const session = new SessionService();
 
 export async function wechatLogin(ctx) {
-  const { code } = ctx.request.body;
+  const { code, terms_accepted, privacy_accepted } = ctx.request.body;
 
   // 1. 参数校验
   if (!code) {
     ctx.status = 400;
     ctx.body = { error: 'VALIDATION_ERROR', message: 'code 字段必填' };
+    return;
+  }
+
+  // 1.1 协议勾选校验（与 tech-design §2.1 业务规则一致）
+  if (terms_accepted !== true || privacy_accepted !== true) {
+    ctx.status = 400;
+    ctx.body = { error: 'TERMS_NOT_ACCEPTED', message: '请阅读并同意《用户须知》和《隐私协议》' };
     return;
   }
 
@@ -702,7 +723,7 @@ export async function wechatLogin(ctx) {
 import Router from 'koa-router';
 import { wechatLogin } from '../controllers/auth';
 
-const router = new Router({ prefix: '/api/v1/auth' });
+const router = new Router({ prefix: '/api/user/auth' });
 router.post('/wechat-login', wechatLogin);
 export default router;
 ```
@@ -710,13 +731,13 @@ export default router;
 - [ ] **Step 4: 跑测试确认通过**
 
 Run: `npm test -- auth.test.ts`
-Expected: PASS（7 个测试全过）
+Expected: PASS（8 个测试全过）
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add backend/src/controllers/auth.ts backend/src/routes/auth.ts backend/tests/controllers/auth.test.ts
-git commit -m "feat(api): add POST /auth/wechat-login endpoint with idempotency and error mapping"
+git commit -m "feat(api): add POST /api/user/auth/wechat-login endpoint with idempotency and error mapping"
 ```
 
 ---
@@ -727,7 +748,7 @@ git commit -m "feat(api): add POST /auth/wechat-login endpoint with idempotency 
 - Create: `miniapp-user/src/pages/login/index.tsx`
 - Create: `miniapp-user/src/pages/login/index.test.tsx`
 
-**对应 GWT**：[user-story.md §6.3 场景 3](./user-story.md#63-场景-3用户拒绝授权异常路径)、[§6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径)
+**对应 GWT**：[user-story.md §6.4 场景 4](./user-story.md#64-场景-4用户拒绝授权异常路径)、[§6.1 场景 1](./user-story.md#61-场景-1首次微信授权登录成功跳转补充资料页正常路径)、[§6.2 场景 2](./user-story.md#62-场景-2已注册用户微信授权登录成功跳转首页正常路径)
 
 - [ ] **Step 1: 写失败测试**
 
@@ -841,7 +862,7 @@ export default function LoginPage() {
 
       // 2. 提交到后端
       const res = await Taro.request({
-        url: `${API_BASE}/api/v1/auth/wechat-login`,
+        url: `${API_BASE}/api/user/auth/wechat-login`,
         method: 'POST',
         data: { code },
       });
@@ -921,9 +942,12 @@ git commit -m "feat(miniapp): add wechat login page with error handling and rout
 |---------|--------|--------|--------|--------|--------|
 | §6.1 首次登录（正常） | ✅ | ✅ | ✅ | ✅ | ✅ |
 | §6.2 老用户登录（正常） | ✅ | ✅ | ✅ | ✅ | ✅ |
-| §6.3 拒绝授权（异常） | — | — | — | — | ✅ |
-| §6.4 微信接口失败（异常） | — | ✅ | — | ✅ | ✅ |
-| §6.5 code 失效（异常） | — | ✅ | — | ✅ | — |
+| §6.3 未勾选协议（异常） | — | — | — | ✅ | — |
+| §6.4 拒绝授权（异常） | — | — | — | — | ✅ |
+| §6.5 微信接口失败（异常） | — | ✅ | — | ✅ | ✅ |
+| §6.6 code 失效（异常） | — | ✅ | — | ✅ | — |
+| §6.7 登录成功后存储 token（正常） | — | — | ✅ | — | ✅ |
+| §6.8 用户选择使用手机号登录（交互路径） | — | — | — | — | ✅ |
 
 ---
 
@@ -941,3 +965,4 @@ git commit -m "feat(miniapp): add wechat login page with error handling and rout
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：5 个 Task 完整示范（双重角色：TDD 任务清单 + 测试计划）；覆盖 5 个 GWT 场景；显式验证状态机转换（游客→注册用户） |
+| v1.1 | 2026-08-08 | Dev | 同步 user-story 8 个 GWT 场景，补充 §6.7 / §6.8 覆盖矩阵 |

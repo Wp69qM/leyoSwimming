@@ -6,10 +6,10 @@
 
 ## 2. Core Implementation
 
-- [ ] 2.1 Implement `POST /api/coach/v1/resignation/apply` with status check and idempotency — maps to REQ-001 / Scenario: Successful resignation application
-- [ ] 2.2 Implement `GET /api/coach/v1/resignation/ticket` to return ticket and active package list — maps to REQ-001 / Scenario: Successful resignation application
-- [ ] 2.3 Implement `PUT /api/coach/v1/resignation/tickets/{id}/packages/{package_id}/action` with ownership check — maps to REQ-002 / Scenario: Successful refund action registration with auto-generated refund record and REQ-005
-- [ ] 2.4 Implement `POST /api/coach/v1/resignation/tickets/{id}/submit` to move ticket to pending_audit and generate default refund records for unregistered active packages
+- [ ] 2.1 Implement `POST /api/coach/resignation/apply` with status check and idempotency — maps to REQ-001 / Scenario: Successful resignation application
+- [ ] 2.2 Implement `POST /api/coach/resignation/detail` to return ticket and active package list — maps to REQ-001 / Scenario: Successful resignation application
+- [ ] 2.3 Implement `POST /api/coach/resignation/package/refund` with ownership check — maps to REQ-002 / Scenario: Successful refund action registration with auto-generated refund record and REQ-005
+- [ ] 2.4 Implement `POST /api/coach/resignation/submit` to move ticket to pending_audit and generate default refund records for unregistered active packages
 
 ## 3. Validation & State Machine
 
@@ -29,7 +29,7 @@
 - [ ] 5.1 Build resignation entry page with status-aware visibility
 - [ ] 5.2 Build resignation ticket page with package list and action form
 - [ ] 5.3 Build submit confirmation dialog (no cancel dialog in MVP)
-- [ ] 5.4 Build C-教练端离职处理中页 with ticket status, progress, customer service entry — maps to REQ-006 / Scenarios "Coach enters resignation processing page after application", "Coach with status=4 logs in and redirects to resignation processing page"
+- [ ] 5.4 Build C-教练端离职处理中页 with ticket status, progress, customer service entry — maps to REQ-006 / Scenarios "Coach enters resignation processing page after application", "Coach with status=4 actively views resignation processing page"
 
 ## 6. Verification
 

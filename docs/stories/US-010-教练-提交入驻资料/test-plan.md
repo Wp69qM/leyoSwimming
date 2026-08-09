@@ -80,11 +80,11 @@ def test_coach_application_invalid_image_format():
 # backend/tests/integration/test_coach_application_api.py
 
 def test_api_coach_application_200():
-    """POST /api/coach/application 正常返回 200，创建 pending 快照"""
+    """POST /api/coach/application/submit 正常返回 200，创建 pending 快照"""
     pass
 
 def test_api_coach_application_draft_200():
-    """PUT /api/coach/application/draft 正常返回 200 且创建 draft 快照，coach.status 不变"""
+    """POST /api/coach/application/save-draft 正常返回 200 且创建 draft 快照，coach.status 不变"""
     pass
 
 def test_api_coach_application_400_pending():
@@ -100,27 +100,27 @@ def test_api_coach_application_400_invalid_price():
     pass
 
 def test_api_coach_application_get_200():
-    """GET /api/coach/application 返回最新 coach_application 快照完整资料含证书列表"""
+    """POST /api/coach/application/detail 返回最新 coach_application 快照完整资料含证书列表"""
     pass
 
 def test_api_coach_application_reapply_200():
-    """已离职教练 POST /api/coach/application 提交后 status=3 → 0，创建 previous_coach_status=3 快照"""
+    """已离职教练 POST /api/coach/application/submit 提交后 status=3 → 0，创建 previous_coach_status=3 快照"""
     pass
 
 def test_api_coach_application_get_reapply_200():
-    """GET /api/coach/application 对 status=3 返回 entry_type=reapply 与 prompt_message"""
+    """POST /api/coach/application/detail 对 status=3 返回 entry_type=reapply 与 prompt_message"""
     pass
 
 def test_api_upload_image_200():
-    """POST /api/upload/image 上传合规图片成功"""
+    """POST /api/common/file/upload 上传合规图片成功"""
     pass
 
 def test_api_upload_image_413():
-    """POST /api/upload/image 超大图片返回 IMAGE_TOO_LARGE"""
+    """POST /api/common/file/upload 超大图片返回 IMAGE_TOO_LARGE"""
     pass
 
 def test_api_upload_image_400_format():
-    """POST /api/upload/image 非法格式返回 INVALID_IMAGE_FORMAT"""
+    """POST /api/common/file/upload 非法格式返回 INVALID_IMAGE_FORMAT"""
     pass
 ```
 
@@ -185,6 +185,6 @@ def test_e2e_coach_login_redirect_to_pending_page():
 |------|------|------|
 | v1.0 | 2026-07-30 | 初版 |
 | v2.0 | 2026-08-05 | 按字段设计新增身份证校验、必填资质校验、图片格式校验、等待审核页查询、驳回重新提交等测试用例与任务 |
-| v2.1 | 2026-08-05 | 新增已离职教练（status=3）重新入驻提交、GET /api/coach/application reapply 响应、对应单元/集成/E2E 测试用例与验收映射 |
+| v2.1 | 2026-08-05 | 新增已离职教练（status=3）重新入驻提交、POST /api/coach/application/detail reapply 响应、对应单元/集成/E2E 测试用例与验收映射 |
 | v3.0 | 2026-08-05 | 重构为快照表设计：草稿仅写入 coach_application 快照，不修改 coach.status；提交创建 pending 快照； coach 表生效资料在审核前保持不变；历史驳回原因保留在 coach_application 与 audit_log |
 | v3.1 | 2026-08-05 | 补充场景 11/12 的 E2E 测试用例与验收映射：入驻提交成功页、登录后跳转等待审核页 |

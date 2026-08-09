@@ -1,10 +1,10 @@
 # US-006 用户手机号验证码登录
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-04
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-phone-login-page.md](../../figma/page-spec/U-phone-login-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -25,7 +25,9 @@
 ## 2. 触发条件
 
 - **触发方**：用户
-- **触发动作**：在登录页选择「手机号登录」，输入手机号并获取验证码，提交登录
+- **触发动作**：
+  1. 在登录页选择「手机号登录」，输入手机号并获取验证码，提交登录
+  2. 在登录页底部点击「使用微信一键登录」按钮，跳转回 US-004 微信授权登录页
 - **触发时机**：用户主动操作，退出登录后或切换账号时；或受登录态保护的功能被访问时由系统引导跳转
 
 ---
@@ -44,20 +46,21 @@
 
 ### 4.1 主路径（已注册手机号登录）
 
-1. 用户进入登录页，选择「手机号登录」
+1. 用户进入登录页，页面展示品牌区、手机号输入区、验证码输入区、《用户须知》和《隐私协议》勾选区、「登录」主按钮，以及底部文字按钮「使用微信一键登录」
 2. 用户输入手机号
 3. 用户点击「获取验证码」，系统校验手机号格式并发送短信验证码
 4. 用户输入收到的短信验证码
 5. 用户勾选「我已阅读并同意《用户须知》和《隐私协议》」
 6. 用户点击「登录」
 7. 系统校验手机号、验证码，以及是否勾选《用户须知》和《隐私协议》
-8. 校验通过，后端签发 JWT `access_token` + `refresh_token`，返回 `expires_in`、`is_new_user`、`profile_completed`、`user_id`
-9. 前端将 `access_token` 与 `refresh_token` 存储到本地（如 `Taro.setStorageSync`），并记录 `expires_in`（登录态管理规则与 US-004 一致）
-10. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
-11. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
+8. 校验通过，后端签发 JWT `accessToken` + `refreshToken`，返回 `expiresIn`、`isNewUser`、`profileCompleted`、`userId`
+9. 前端将 `accessToken` 与 `refreshToken` 存储到本地（如 `Taro.setStorageSync`），并记录 `expiresIn`（登录态管理规则与 US-004 一致）
+10. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {accessToken}` 中携带 token；后端校验 token 有效后方可访问
+11. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`accessToken` 过期但 `refreshToken` 有效时，前端调用刷新接口换发新的 `accessToken`
 12. 系统按 `profile_completed` 决定跳转：
     - `false` → 跳转「完善个人资料页」（US-005）
     - `true` → 跳转小程序首页
+13. 若用户在步骤 1 点击底部「使用微信一键登录」，则页面跳转至「微信授权登录页」（US-004），本 US 流程结束
 
 ### 4.2 主路径（未注册手机号首次登录即注册）
 
@@ -74,11 +77,12 @@
      - `identity_status = '注册用户'`
      - `profile_completed = false`
      - `phone = 输入的手机号`
-8. 后端签发 JWT `access_token` + `refresh_token`，返回 `expires_in`、`is_new_user`、`profile_completed`、`user_id`
-9. 前端将 `access_token` 与 `refresh_token` 存储到本地，并记录 `expires_in`（登录态管理规则与 US-004 一致）
-10. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
-11. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
+8. 后端签发 JWT `accessToken` + `refreshToken`，返回 `expiresIn`、`isNewUser`、`profileCompleted`、`userId`
+9. 前端将 `accessToken` 与 `refreshToken` 存储到本地，并记录 `expiresIn`（登录态管理规则与 US-004 一致）
+10. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {accessToken}` 中携带 token；后端校验 token 有效后方可访问
+11. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`accessToken` 过期但 `refreshToken` 有效时，前端调用刷新接口换发新的 `accessToken`
 12. 系统跳转「完善个人资料页」（US-005）
+13. 若用户在步骤 1 点击底部「使用微信一键登录」，则页面跳转至「微信授权登录页」（US-004），本 US 流程结束
 
 ### 4.3 异常分支
 
@@ -160,7 +164,7 @@ And   前端提示"验证码错误或已过期"
 And   不签发任何 token
 ```
 
-### 6.4 场景 4：60 秒内重复获取验证码
+### 6.5 场景 5：60 秒内重复获取验证码
 
 ```gherkin
 Given 用户刚刚获取过验证码
@@ -169,7 +173,7 @@ Then  系统拒绝发送
 And   前端提示"请 60 秒后再试"
 ```
 
-### 6.5 场景 5：已注销手机号重新注册登录
+### 6.6 场景 6：已注销手机号重新注册登录
 
 ```gherkin
 Given user 表中存在手机号 13800138000 且 status = 1（已注销）
@@ -185,7 +189,7 @@ And   页面跳转至「完善个人资料页」（US-005）
 And   原注销账号数据不被新账号访问或绑定
 ```
 
-### 6.6 场景 6：网络异常导致登录失败
+### 6.7 场景 7：网络异常导致登录失败
 
 ```gherkin
 Given 用户输入正确的手机号 13800138000 和验证码 123456
@@ -193,6 +197,17 @@ When  用户点击「登录」时网络断开或后端超时
 Then  前端提示"网络异常，请检查网络后重试"
 And   登录态未被创建
 And   user.last_login_at 不更新
+```
+
+### 6.8 场景 8：用户选择使用微信一键登录（交互路径）
+
+```gherkin
+Given 用户已进入手机号验证码登录页
+When  用户点击页面底部「使用微信一键登录」按钮
+Then  页面跳转至「微信授权登录页」（US-004）
+And   不调用 /api/user/auth/phone-login 或 /api/common/sms/send
+And   不创建或修改任何 user 记录
+And   不签发 token
 ```
 
 ---
@@ -204,15 +219,15 @@ And   user.last_login_at 不更新
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
 | 1 | user | 新增/修改 | 未注册手机号首次登录时 INSERT 新记录；已注册手机号登录时 UPDATE last_login_at、login_ip；已注销手机号（status=1）登录时按 PRD §5.2.1 第 4 条重新 INSERT 新记录，原数据不绑定 |
-| 2 | user_login_log | 新增 | 记录登录时间、IP、设备 |
-| 3 | sms_code | 新增 | 存储验证码 |
+| 2 | user_login_log | 新增 | 记录登录时间、IP、设备信息（device_info） |
+| 3 | sms_code | 新增 | 存储验证码，手机号以 phone_hash 形式存储 |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/auth/login/phone | POST | 新增 | 手机号验证码登录 |
-| 2 | /api/auth/sms/code | POST | 新增 | 发送登录验证码 |
+| 1 | /api/user/auth/phone-login | POST | 新增 | 手机号验证码登录 |
+| 2 | /api/common/sms/send | POST | 新增 | 发送登录验证码 |
 
 ### 7.3 状态机影响
 
@@ -267,7 +282,7 @@ And   user.last_login_at 不更新
 - [x] **V**aluable（有价值）- 满足非微信登录场景
 - [x] **E**stimable（可估算）- 0.5 人天明确
 - [x] **S**mall（足够小）- 单一登录功能
-- [x] **T**estable（可测试）- 6 个 GWT 场景可验证
+- [x] **T**estable（可测试）- 8 个 GWT 场景可验证
 
 ---
 
@@ -287,7 +302,7 @@ And   user.last_login_at 不更新
 
 ### 11.3 验收标准
 
-- [x] 场景数量符合 L2（3 正常 + 3 异常 = 6 个；其中 1 个为注销后重新注册登录的特殊正常路径）
+- [x] 场景数量符合 L2（4 正常 + 4 异常 = 8 个；其中 1 个为注销后重新注册登录的特殊正常路径）
 - [x] 业务级 Gherkin，不绑死实现
 - [x] 用户可观察的结果可被验证
 
@@ -303,17 +318,18 @@ And   user.last_login_at 不更新
 
 - **验证码 TTL**：5 分钟
 - **登录限流**：同一手机号 60 秒内只能发送 1 条验证码
-- **会话有效期**：小程序登录态 30 天
+- **会话有效期**：`accessToken` 有效期 2 小时，`refreshToken` 有效期 7 天（与 US-004 一致）
 - **自动注册**：未注册手机号首次验证码登录即视为注册，需后续在 US-005 中完善资料
 
 ---
 
 ## 13. Figma 链接
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 手机号登录页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 手机号登录页关键 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 手机号登录页 | [U-phone-login-page.md](../../figma/page-spec/U-phone-login-page.md) | ✅ |
+| 2 | 登录页协议浮层 | [U-login-protocol-modal.md](../../figma/page-spec/U-login-protocol-modal.md) | ✅ |
+| 3 | 微信授权登录页 | [U-wechat-auth-page.md](../../figma/page-spec/U-wechat-auth-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -321,7 +337,7 @@ And   user.last_login_at 不更新
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
-| **手机号登录页** | 🔲 | 🔲 | 🔲 | 🔲 | 含手机号输入、验证码输入 |
+| **手机号登录页** | 🔲 | 🔲 | 🔲 | 🔲 | 含手机号输入、验证码输入；底部含「使用微信一键登录」入口，点击跳转 US-004 |
 
 ---
 
@@ -337,7 +353,7 @@ And   user.last_login_at 不更新
 
 - **背景**：登录时必须校验用户已勾选《用户须知》和《隐私协议》
 - **选项**：A. 前端校验即可；B. 前端 + 后端双重校验
-- **结论**：选 B，前端点击登录时立即提示，后端 `POST /api/auth/login/phone` 同时校验 `terms_accepted=true` 且 `privacy_accepted=true`
+- **结论**：选 B，前端点击登录时立即提示，后端 `POST /api/user/auth/phone-login` 同时校验 `terms_accepted=true` 且 `privacy_accepted=true`
 - **影响范围**：登录页交互、后端登录接口
 
 ---

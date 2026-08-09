@@ -15,6 +15,7 @@
 - `coach_certificate`：教练资质证书表
 - `coach_application`：历史入驻申请快照表（仅读取，用于详情页展示历史）
 - `coach_audit_log`：教练相关操作审计日志
+- `package`：仅读取，用于统计教练名下 active 套餐的去重学员数
 
 ### 2.2 coach 表关键字段
 
@@ -43,7 +44,7 @@
 | 字段 | 说明 |
 |------|------|
 | `coach_id` | 教练 ID |
-| `cert_type` | ID_CARD_FRONT / ID_CARD_BACK / QUALIFICATION / HEALTH / PORTRAIT |
+| `cert_type` | ID_CARD_FRONT / ID_CARD_BACK / COACH_CERT / HEALTH_CERT / PORTRAIT / OTHER |
 | `image_url` | 图片 URL |
 | `created_at` / `updated_at` | 创建/更新时间 |
 
@@ -80,13 +81,19 @@
           "teachingYears": 5,
           "teachingStrokes": ["自由泳", "蛙泳"],
           "approvedAt": "2026-08-01T10:00:00+08:00",
+          "tenure": "2 年 3 个月",
           "status": 1,
+          "currentStudentCount": 12,
           "realtimeStatus": "空闲中"
         }
       ]
     }
   }
   ```
+
+- **字段计算说明**：
+  - `tenure`：基于 `coach.approved_at` 与当前时间计算，格式为「X 年 Y 个月」；不足 1 年显示「X 个月」
+  - `currentStudentCount`：该教练名下 `package.status = active` 的去重学员数（按 `package.user_id` 去重）
 
 ### 3.2 POST /api/admin/coach/detail
 
@@ -125,13 +132,26 @@
   - 写入 `coach_audit_log` action='ADMIN_CANCEL_COACH_ENTRY'
   - 触发 US-041 教练离职后续处理（清空可约时段、通知学员等）
 
-## 4. 安全与审计
+## 4. 状态机
+
+### 4.1 coach.status
+
+```
+—（新建）──→ 已通过(1)
+已通过(1) ──[取消入驻]──→ 已离职(3)
+已驳回(2) ──[编辑资料]──→ 已驳回(2)（status 不变）
+已离职(3) ──[编辑资料]──→ 已离职(3)（status 不变）
+```
+
+> 编辑资料不触发 coach.status 状态转换；取消入驻仅对 `status=1` 的教练生效。
+
+## 5. 安全与审计
 
 - 所有写操作记录 `coach_audit_log`
 - 手机号、身份证号等敏感字段按需脱敏/加密
 - 管理员权限通过 RBAC 校验
 
-## 5. 错误码
+## 6. 错误码
 
 | 错误码 | HTTP 状态码 | 说明 |
 |--------|------------|------|

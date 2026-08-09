@@ -11,7 +11,7 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `user` | 修改 | status = 1（软删除）, deleted_at 赋值 |
-| `user_session` | 删除 | 清除所有会话 |
+| `user_session` | 删除记录 | 清除所有登录态 |
 | `audit_log` | 新增 | 记录注销审计日志 |
 
 ### 1.2 字段定义
@@ -31,18 +31,42 @@
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
-| `/api/user/account/cancel/check` | GET | 查询是否满足注销条件 |
+| `/api/user/account/cancel-check` | POST | 查询是否满足注销条件 |
 | `/api/user/account/cancel` | POST | 提交注销申请 |
 
-### 2.1 POST /api/user/account/cancel
+### 2.1 POST /api/user/account/cancel-check
 
+- **鉴权**：是（需登录态）
 - **请求体**：
   ```json
+  {}
+  ```
+- **响应体**：
+  ```json
   {
-    "verify_code": "123456",
-    "agreement_version": "v1.0"
+    "code": 0,
+    "data": {
+      "can_cancel": true,
+      "checks": {
+        "no_active_package": true,
+        "no_pending_order": true,
+        "no_ongoing_booking": true
+      }
+    }
   }
   ```
+- **错误码**：`AUTH_001`（未登录/Token 无效）
+
+> 说明：与 user-story §4.1 步骤 2-4 对应，进入注销页时前置展示 checklist。
+
+### 2.2 POST /api/user/account/cancel
+
+- **鉴权**：是（需登录态）
+- **请求体**：
+  ```json
+  {}
+  ```
+  > 注：MVP 阶段仅通过弹窗二次确认，无需短信验证码或协议版本号。
 - **响应体**：
   ```json
   {
@@ -53,7 +77,7 @@
     }
   }
   ```
-- **错误码**：`ACTIVE_PACKAGE_EXISTS` (400201), `PENDING_ORDER_EXISTS` (400202)
+- **错误码**：`ACTIVE_PACKAGE_EXISTS` (400201), `PENDING_ORDER_EXISTS` (400202), `ONGOING_BOOKING_EXISTS` (400203)
 
 ---
 
@@ -84,8 +108,8 @@
 
 ### 5.2 安全
 
-- 必须二次验证（密码或验证码）
-- 注销前校验无 active 套餐、无未完成订单
+- MVP 阶段二次确认采用弹窗确认/取消，无需密码或验证码
+- 注销前校验无 active 套餐、无未完成订单、无进行中预约
 - 记录审计日志（操作人、时间、IP、设备）
 - 90 天后匿名化处理（定时任务）
 

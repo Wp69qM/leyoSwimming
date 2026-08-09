@@ -12,8 +12,8 @@
 
 **Spec coverage:** REQ-002 Scenarios "查询满足注销条件", "查询不满足注销条件"
 
-- [ ] **RED:** Write 2 failing tests — 无套餐/订单返回 `can_cancel=true`；有套餐/订单返回 `can_cancel=false` 及数量
-- [ ] **GREEN:** Implement `GET /api/user/account/cancel/check` with package/order queries
+- [ ] **RED:** Write 2 failing tests — 无套餐/订单/预约返回 `can_cancel=true`；有套餐/订单/预约返回 `can_cancel=false` 及数量
+- [ ] **GREEN:** Implement `POST /api/user/account/cancel-check` with package/order/booking queries
 - [ ] **COMMIT:** `feat(user): add account cancel check endpoint`
 
 ## Task 2: 正常注销流程 [P0]
@@ -25,7 +25,7 @@
 
 **Spec coverage:** REQ-001 Scenario "正常注销账号"
 
-- [ ] **RED:** Write 2 failing tests — 满足条件且验证通过返回 200，`user.status=2`；会话被清除
+- [ ] **RED:** Write 2 failing tests — 满足条件返回 200，`user.status=1`；会话被清除
 - [ ] **GREEN:** Implement cancel service with transaction: update user, delete sessions, insert audit log
 - [ ] **COMMIT:** `feat(user): implement account cancellation flow`
 
@@ -66,19 +66,7 @@
 - [ ] **GREEN:** Implement session revocation for all user tokens
 - [ ] **COMMIT:** `feat(user): revoke all sessions after account cancellation`
 
-## Task 6: 二次验证 [P1]
-
-**Files:**
-- Modify: `backend/src/services/user/cancel.ts`
-- Test: `backend/tests/services/user/cancel.test.ts`
-
-**Spec coverage:** REQ-001 Scenario "二次验证失败"
-
-- [ ] **RED:** Write 1 failing test — 错误验证码返回 `INVALID_CREDENTIALS`
-- [ ] **GREEN:** Add verify_code validation before cancel
-- [ ] **COMMIT:** `feat(user): add secondary verification for account cancellation`
-
-## Task 7: 小程序注销确认页 [P1]
+## Task 6: 小程序注销确认页 [P1]
 
 **Files:**
 - Create: `miniapp-user/src/pages/account-cancel/index.tsx`
@@ -94,17 +82,17 @@
 
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6
 - 每 Task = 1 commit
 - 禁止 placeholder（TBD / TODO / "实现 later"）
-- P0 必做（Task 1-5），P1 选做（Task 6-7）
+- P0 必做（Task 1-5），P1 选做（Task 6）
 
 ## GWT Coverage Matrix
 
-| GWT 场景 | Task 1 | Task 2 | Task 3 | Task 4 | Task 5 | Task 6 | Task 7 |
-|---------|--------|--------|--------|--------|--------|--------|--------|
-| §6.1 正常注销账号（正常） | — | ✅ | — | — | ✅ | — | ✅ |
-| §6.2 存在 active 套餐（异常） | ✅ | — | ✅ | — | — | — | — |
-| §6.3 存在未完成订单（异常） | ✅ | — | — | ✅ | — | — | — |
-| 二次验证失败（异常） | — | — | — | — | — | ✅ | — |
-| 重复提交幂等（边界） | — | ✅ | — | — | — | — | — |
+| GWT 场景 | Task 1 | Task 2 | Task 3 | Task 4 | Task 5 | Task 6 |
+|---------|--------|--------|--------|--------|--------|--------|
+| §6.1 正常注销账号（正常） | — | ✅ | — | — | ✅ | ✅ |
+| §6.2 存在 active 套餐（异常） | ✅ | — | ✅ | — | — | — |
+| §6.3 存在未完成订单（异常） | ✅ | — | — | ✅ | — | — |
+| §6.4 存在进行中预约时注销（异常） | ✅ | — | — | — | — | — |
+| 重复提交幂等（边界） | — | ✅ | — | — | — | — |

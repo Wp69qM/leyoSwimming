@@ -7,8 +7,8 @@ PRD [§5.4.8](../../../docs/prd/prd.md) 要求状态 3（已离职）的教练�
 ## What Changes
 
 - 已离职教练登录教练端时，US-051 / US-054 按 `coach_status = 3` 直接跳转 US-010 的 C-入驻资料填写页（顶部展示重新入驻说明条）
-- 实际资料填写、字段校验、图片上传、提交审核全部由 US-010 的 `POST /api/coach/application` 与 `PUT /api/coach/application/draft` 处理；US-010 创建 `previous_coach_status=3` 的 `coach_application` pending 快照
-- 管理员重新入驻审核复用 US-011 接口：`POST /api/admin/coach/applications/{application_id}/approve` 与 `/reject`；通过时快照覆盖 coach 生效资料，`coach.status: 0 → 1`；拒绝时 `coach.status` 恢复为 3
+- 实际资料填写、字段校验、图片上传、提交审核全部由 US-010 的 `POST /api/coach/application/submit` 与 `POST /api/coach/application/save-draft` 处理；US-010 创建 `previous_coach_status=3` 的 `coach_application` pending 快照
+- 管理员重新入驻审核复用 US-011 接口：`POST /api/admin/coach/application/approve` 与 `POST /api/admin/coach/application/reject`（请求体含 `applicationId`）；通过时快照覆盖 coach 生效资料，`coach.status: 0 → 1`；拒绝时 `coach.status` 恢复为 3
 - 历史评分/评价保留，并对新老学员均可见
 - 已 frozen 的老学员套餐不自动恢复为 active，等待老学员主动换回原教练或退款
 - 边界处理：非已离职教练禁止重新入驻、重复发起、已离职重新入驻审核驳回后状态恢复为 3

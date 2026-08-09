@@ -8,18 +8,18 @@
 
 ### Requirement: REQ-001 首次登录后强制完善资料
 
-当用户使用微信授权登录或手机号验证码登录成功后，若 `profile_completed=false`，系统 MUST 强制跳转至完善个人资料页，未保存必填项前不可进入首页。未成年人（`age < 18`）MUST 额外填写监护人姓名与监护人手机号。
+当用户使用微信授权登录或手机号验证码登录成功后，若 `profileCompleted=false`，系统 MUST 强制跳转至完善个人资料页，未保存必填项前不可进入首页。未成年人（`age < 18`）MUST 额外填写监护人姓名与监护人手机号。
 
 #### Scenario: 微信授权登录后首次完善个人资料（成年人）
-- **GIVEN** 用户已完成微信授权登录，`identity_status = '注册用户'` 且 `profile_completed = false`
+- **GIVEN** 用户已完成微信授权登录，`identityStatus = '注册用户'` 且 `profileCompleted = false`
 - **AND** 系统未存在手机号 13800138000 的其他注册用户
 - **AND** 用户已同意隐私协议 v2.0
 - **WHEN** 用户上传头像、填写姓名 "张 swimmer"、确认手机号 13800138000、选择年龄 25、性别 男
 - **AND** 用户填写有游泳基础，选择泳姿 "蛙泳/自由泳"，游泳年限 "3年"，个人描述 "想提高自由泳"
 - **AND** 用户点击「保存」
 - **THEN** 系统保存成功
-- **AND** `user.profile_completed = true`
-- **AND** `user.identity_status` 保持 '注册用户' 不变
+- **AND** `user.profileCompleted = true`
+- **AND** `user.identityStatus` 保持 '注册用户' 不变
 - **AND** `user.status = 0`（正常）
 - **AND** `user.phone = 13800138000`
 - **AND** `user.name = 张 swimmer`
@@ -28,7 +28,7 @@
 - **AND** 页面跳转至首页
 
 #### Scenario: 未成年人首次登录后完善个人资料并填写监护人信息
-- **GIVEN** 用户已完成微信授权登录，`identity_status = '注册用户'` 且 `profile_completed = false`
+- **GIVEN** 用户已完成微信授权登录，`identityStatus = '注册用户'` 且 `profileCompleted = false`
 - **AND** 系统未存在手机号 13900139000 的其他注册用户
 - **AND** 用户已同意隐私协议 v2.0
 - **WHEN** 用户上传头像、填写姓名 "李小小"、确认手机号 13900139000、选择年龄 12、性别 女
@@ -37,10 +37,10 @@
 - **AND** 用户选择无游泳基础
 - **AND** 用户点击「保存」
 - **THEN** 系统保存成功
-- **AND** `user.profile_completed = true`
+- **AND** `user.profileCompleted = true`
 - **AND** `user.age = 12`
-- **AND** `user.guardian_name = "李大伟"`
-- **AND** `user.guardian_phone = 13800138000`
+- **AND** `user.guardianName = "李大伟"`
+- **AND** `user.guardianPhone = 13800138000`
 - **AND** 页面跳转至首页
 
 ### Requirement: REQ-002 从「我的」编辑个人资料
@@ -48,13 +48,13 @@
 系统 MUST 允许已完善资料的用户从「我的 → 个人资料」进入编辑资料页，修改任意字段后保存。年龄变更导致未成年人/成年人身份切换时，系统 MUST 动态展示或隐藏监护人信息填写区。
 
 #### Scenario: 从「我的」编辑个人资料
-- **GIVEN** 用户已完善个人资料，`profile_completed = true`
+- **GIVEN** 用户已完善个人资料，`profileCompleted = true`
 - **WHEN** 用户在「我的」页面点击「编辑资料」
 - **AND** 用户将姓名从 "张 swimmer" 修改为 "张教练"
 - **AND** 用户点击「保存」
 - **THEN** 系统保存成功
 - **AND** `user.name = "张教练"`
-- **AND** `user.profile_completed` 保持 true
+- **AND** `user.profileCompleted` 保持 true
 - **AND** 页面返回「我的」页面
 
 ### Requirement: REQ-003 手机号唯一性校验
@@ -94,7 +94,7 @@
 
 #### Scenario: 姓名含敏感词
 - **GIVEN** 用户已完成登录
-- **WHEN** 用户填写姓名 "习近平" 并提交
+- **WHEN** 用户填写姓名 "测试敏感姓名" 并提交
 - **THEN** 返回错误码 `SENSITIVE_NAME`
 - **AND** 前端提示"姓名包含敏感内容，请重新输入"
 - **AND** `user.name` 未被保存
@@ -111,7 +111,7 @@
 
 ### Requirement: REQ-007 未成年人监护人信息联动
 
-当用户填写的年龄 < 18 周岁时，系统 MUST 动态展示监护人姓名和监护人手机号输入区，且这两个字段 MUST 为必填；当用户填写的年龄 ≥ 18 周岁时，系统 MUST 隐藏监护人信息区，但已保存的 `guardian_name` / `guardian_phone` 可保留。
+当用户填写的年龄 < 18 周岁时，系统 MUST 动态展示监护人姓名和监护人手机号输入区，且这两个字段 MUST 为必填；当用户填写的年龄 ≥ 18 周岁时，系统 MUST 隐藏监护人信息区，但已保存的 `guardianName` / `guardianPhone` 可保留。
 
 #### Scenario: 用户将年龄从成年人修改为未成年人
 - **GIVEN** 用户已进入完善个人资料页
@@ -123,7 +123,7 @@
 - **GIVEN** 用户已进入完善个人资料页，当前年龄为 12
 - **WHEN** 用户将年龄从 12 修改为 25
 - **THEN** 系统隐藏监护人信息填写区
-- **AND** 已保存的 `guardian_name` / `guardian_phone` 保留在数据库但不再展示和校验必填
+- **AND** 已保存的 `guardianName` / `guardianPhone` 保留在数据库但不再展示和校验必填
 
 ## Delta Header
 
@@ -132,6 +132,6 @@ delta:
   change: us-005-user-complete-profile
   capability: user-complete-profile
   type: revise
-  rationale: 新增未成年人监护人信息管理：年龄 < 18 时必填 guardian_name / guardian_phone；补充对应 GWT 场景、异常分支与边界场景
+  rationale: 新增未成年人监护人信息管理：年龄 < 18 时必填 guardianName / guardianPhone；补充对应 GWT 场景、异常分支与边界场景
   scope: docs/stories/US-005, openspec/changes/us-005-user-complete-profile
 ```

@@ -6,11 +6,11 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求教练个人主页展示任教年�
 
 ## What Changes
 
-- 新增 `GET /api/coach/profile` 接口（获取教练个人主页信息）
-- 新增 `PUT /api/coach/profile` 接口（更新个人主页资料）
-- 新增 `PUT /api/coach/reference-price` 接口（更新参考单价）
-- 复用 `POST /api/upload/image` 接口（上传证书/二维码图片）
-- 修改 `coach` 表：更新 `bio`、`teaching_years`、`phone`、`qr_code_url`、`reference_price`、`price_changed_at`、`price_change_count_today`
+- 新增 `POST /api/coach/profile/detail` 接口（获取教练个人主页信息）
+- 新增 `POST /api/coach/profile/update` 接口（更新个人主页资料）
+- 新增 `POST /api/coach/reference-price/update` 接口（更新参考单价）
+- 复用 `POST /api/common/file/upload` 接口（上传证书/二维码图片）
+- 修改 `coach` 表：更新 `name`、`gender`、`age`、`email`、`wechat_qr_url`、`teaching_years`、`teaching_strokes`、`bio`、`reference_price`、`price_changed_at`、`price_change_count_today`
 - 新增/修改 `coach_certificate` 表：证书图片增删改
 - 新增 `coach_update_log` 表：记录主页与单价变更历史
 - 新增 Redis 缓存失效策略：教练详情缓存、教练列表缓存更新后立即失效
@@ -31,7 +31,7 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求教练个人主页展示任教年�
 ## Impact
 
 - **数据表**：修改 `coach`（新增/更新资料字段）；新增/修改 `coach_certificate`；新增 `coach_update_log`
-- **API**：新增 3 个端点 `GET /api/coach/profile`、`PUT /api/coach/profile`、`PUT /api/coach/reference-price`（均需教练登录鉴权且 `coach.status = 1`）
+- **API**：新增 3 个端点 `POST /api/coach/profile/detail`、`POST /api/coach/profile/update`、`POST /api/coach/reference-price/update`（均需教练登录鉴权且 `coach.status = 1`）
 - **缓存**：教练详情 `coach:{coach_id}` 与教练列表 `coach:list:*` 更新后立即失效
 - **状态机**：不改变 `coach.status`，仅更新资料与价格字段
 - **前端**：新增教练端 2 个页面（个人主页编辑页、参考单价设置页）

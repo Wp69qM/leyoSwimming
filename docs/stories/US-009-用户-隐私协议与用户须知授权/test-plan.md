@@ -1,229 +1,116 @@
 # US-009 用户/教练隐私协议与用户须知授权 — 测试计划
 
-> **状态**：已评审　|　**最后更新**：2026-07-31
+> **状态**：已评审　|　**最后更新**：2026-08-08
 
 ---
 
-## TDD 任务清单
+## 1. 测试目标
 
-| # | Task | RED | GREEN | REFACTOR | COMMIT |
-|---|------|-----|-------|----------|--------|
-| 1 | 当前协议查询接口 | 写失败测试 | 最小实现 | 提取 service | commit |
-| 2 | 用户授权状态查询 | 写失败测试 | 最小实现 | 提取 service | commit |
-| 3 | 同意协议 | 写失败测试 | 最小实现 | 幂等封装 | commit |
-| 4 | 撤回授权 | 写失败测试 | 最小实现 | 状态检查封装 | commit |
-| 5 | 版本更新后重新同意 | 写失败测试 | 最小实现 | 中间件复用 | commit |
-| 6 | 小程序隐私协议页 | 写失败测试 | 最小实现 | — | commit |
-| 7 | 小程序隐私设置页 | 写失败测试 | 最小实现 | — | commit |
+验证隐私协议与用户须知授权功能：
+- 游客/未登录用户可查询当前生效的《用户须知》和《隐私协议》内容
+- 登录成功后系统记录用户/教练同意的协议版本
+- 用户/教练可在设置页查看协议内容，但不可撤回授权
+- 协议版本更新后，未登录用户再次登录需重新同意
 
 ---
 
-## Task 1: 当前协议查询接口 [P0]
+## 2. 测试范围
 
-**Files:**
-- Create: `backend/src/services/privacy_policy.ts`
-- Create: `backend/src/controllers/privacy_policy.ts`
-- Create: `backend/src/routes/privacy_policy.ts`
-- Test: `backend/tests/controllers/privacy_policy.test.ts`
-
-**Spec coverage:** REQ-003 Scenario "协议版本更新后未重新同意"
-
-- [ ] **RED:** Write 2 failing tests — 存在当前协议返回版本内容；无当前协议返回 404 `NO_CURRENT_PRIVACY_POLICY`；游客未登录可访问。
-- [ ] **GREEN:** Implement `GET /api/privacy-policy/current` with current version lookup.
-- [ ] **REFACTOR:** Extract `PrivacyPolicyService.getCurrent()`.
-- [ ] **COMMIT:** `feat(privacy): add current privacy policy endpoint`
-
-## Task 2: 用户授权状态查询 [P0]
-
-**Files:**
-- Create: `backend/src/services/user_privacy_consent.ts`
-- Create: `backend/src/controllers/user/privacy.ts`
-- Create: `backend/src/routes/user/privacy.ts`
-- Test: `backend/tests/controllers/user/privacy.test.ts`
-
-**Spec coverage:** REQ-003 Scenario "协议版本更新后未重新同意"
-
-- [ ] **RED:** Write 3 failing tests — 游客访问返回 401；未同意用户返回 `none` + `required_version`；已同意用户返回 `agreed` + 版本号。
-- [ ] **GREEN:** Implement `GET /api/user/privacy/status` with current policy comparison.
-- [ ] **REFACTOR:** Extract `UserPrivacyConsentService.getStatus(user_id)`.
-- [ ] **COMMIT:** `feat(privacy): add user privacy status endpoint`
-
-## Task 3: 同意协议 [P0]
-
-**Files:**
-- Modify: `backend/src/controllers/user/privacy.ts`
-- Modify: `backend/src/services/user_privacy_consent.ts`
-- Test: `backend/tests/controllers/user/privacy.test.ts`
-
-**Spec coverage:** REQ-001 Scenario "正常同意隐私协议"
-
-- [ ] **RED:** Write 3 failing tests — 登录用户同意当前版本返回 200 并写入 `status='agreed'`；非当前版本返回 `VERSION_MISMATCH`；游客调用返回 401。
-- [ ] **GREEN:** Implement `POST /api/user/privacy/consent` with `action='agree'`.
-- [ ] **REFACTOR:** Wrap agree logic in `UserPrivacyConsentService.agree(user_id, version)` with `INSERT ... ON DUPLICATE KEY UPDATE` 幂等.
-- [ ] **COMMIT:** `feat(privacy): add privacy consent agreement endpoint`
-
-## Task 4: 撤回授权 [P0]
-
-**Files:**
-- Modify: `backend/src/controllers/user/privacy.ts`
-- Modify: `backend/src/services/user_privacy_consent.ts`
-- Test: `backend/tests/controllers/user/privacy.test.ts`
-
-**Spec coverage:** REQ-002 Scenario "撤回隐私授权"
-
-- [ ] **RED:** Write 3 failing tests — 已同意用户撤回成功，`status='revoked'`；未同意用户撤回返回 `ALREADY_REVOKED`；游客调用返回 401。
-- [ ] **GREEN:** Implement `POST /api/user/privacy/consent` with `action='revoke'`.
-- [ ] **REFACTOR:** Add `UserPrivacyConsentService.revoke(user_id, version)` with pre-condition check.
-- [ ] **COMMIT:** `feat(privacy): add privacy consent revoke endpoint`
-
-## Task 5: 版本更新后重新同意 / 授权拦截 [P0]
-
-**Files:**
-- Create: `backend/src/middleware/privacy_consent.ts`
-- Modify: `backend/src/routes/*`（需授权功能路由，如购买套餐）
-- Test: `backend/tests/middleware/privacy_consent.test.ts`
-
-**Spec coverage:** REQ-003 Scenario "协议版本更新后未重新同意"；REQ-002 Scenario "撤回授权后访问需授权功能"
-
-- [ ] **RED:** Write 3 failing tests — 同意版本 < 当前版本访问购买接口被拦截；已撤回访问购买接口被拦截；已同意当前版本可正常访问。
-- [ ] **GREEN:** Implement `privacyConsentMiddleware` blocking unauthorized functions.
-- [ ] **REFACTOR:** Reuse middleware on protected routes (US-017 / US-020).
-- [ ] **COMMIT:** `feat(privacy): enforce privacy consent on protected routes`
-
-## Task 6: 小程序隐私协议页 [P1]
-
-**Files:**
-- Create: `miniapp-user/src/pages/privacy/index.tsx`
-- Test: `miniapp-user/src/pages/privacy/index.test.tsx`
-
-**Spec coverage:** REQ-001 Scenarios "正常同意隐私协议", "不同意隐私协议"
-
-- [ ] **RED:** Write 2 failing tests — 点击同意进入首页；点击不同意停留在当前页并提示。
-- [ ] **GREEN:** Implement privacy policy page with agree/disagree handling.
-- [ ] **COMMIT:** `feat(miniapp): add privacy policy page`
-
-## Task 7: 小程序隐私设置页 [P1]
-
-**Files:**
-- Create: `miniapp-user/src/pages/privacy/settings.tsx`
-- Test: `miniapp-user/src/pages/privacy/settings.test.tsx`
-
-**Spec coverage:** REQ-002 Scenario "撤回隐私授权"
-
-- [ ] **RED:** Write 1 failing test — 点击撤回授权后状态更新并提示影响。
-- [ ] **GREEN:** Implement privacy settings page with revoke flow and impact notice.
-- [ ] **COMMIT:** `feat(miniapp): add privacy settings page`
+- **后端**：
+  - `POST /api/common/terms/current`
+  - `POST /api/common/privacy/current`
+  - `POST /api/user/terms/status`
+  - `POST /api/user/privacy/status`
+  - `POST /api/user/terms/consent`
+  - `POST /api/user/privacy/consent`
+- **前端**：
+  - 登录页协议浮层弹窗（同意/不同意/关闭）
+  - 「我的 → 设置 → 用户须知/隐私协议」查看页
 
 ---
 
-## Execution Discipline
+## 3. TDD 任务清单
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7
-- 每 Task = RED → GREEN → REFACTOR → COMMIT
-- 禁止 placeholder（`TBD` / `TODO` / `pass`）
-- P0 必做（Task 1-5），P1 选做（Task 6-7）
+### Task 1：当前协议查询接口 [P0]
 
----
+- **RED**：编写测试 — 存在当前《用户须知》/《隐私协议》时返回版本与内容；无当前版本时返回 404 `NO_CURRENT_TERMS_POLICY` / `NO_CURRENT_PRIVACY_POLICY`；游客未登录可访问。
+- **GREEN**：实现 `POST /api/common/terms/current` 与 `POST /api/common/privacy/current`。
+- **COMMIT**：`feat(common): add current terms and privacy policy endpoints`
 
-## 测试用例（参考实现）
+### Task 2：用户授权状态查询 [P0]
 
-### 单元测试
+- **RED**：编写测试 — 游客访问返回 401；未同意用户返回 `none` + `required_version`；已同意当前版本用户返回 `agreed` + 版本号。
+- **GREEN**：实现 `POST /api/user/terms/status` 与 `POST /api/user/privacy/status`。
+- **COMMIT**：`feat(privacy): add user terms and privacy status endpoints`
 
-```python
-# backend/tests/services/test_user_privacy_consent.py
+### Task 3：同意协议 [P0]
 
-def test_agree_creates_record(db, user):
-    svc = UserPrivacyConsentService(db)
-    result = svc.agree(user_id=user.id, version='v2.0')
-    assert result.status == 'agreed'
-    assert result.agreed_at is not None
-    assert db.query(UserPrivacyConsent).count() == 1
+- **RED**：编写测试 — 登录用户同意当前版本《用户须知》/《隐私协议》返回 200 并写入 `status='agreed'`；非当前版本返回 `VERSION_MISMATCH`；重复同意当前版本幂等返回 200。
+- **GREEN**：实现 `POST /api/user/terms/consent` 与 `POST /api/user/privacy/consent`。
+- **COMMIT**：`feat(privacy): add terms and privacy consent agreement endpoints`
 
-def test_agree_idempotent(db, user):
-    svc = UserPrivacyConsentService(db)
-    svc.agree(user.id, 'v2.0')
-    svc.agree(user.id, 'v2.0')
-    assert db.query(UserPrivacyConsent).count() == 1
+### Task 4：版本更新后重新同意 / 授权拦截 [P0]
 
-def test_revoke_after_agree(db, user):
-    svc = UserPrivacyConsentService(db)
-    svc.agree(user.id, 'v2.0')
-    result = svc.revoke(user.id, 'v2.0')
-    assert result.status == 'revoked'
-    assert result.revoked_at is not None
+- **RED**：编写测试 — 已同意旧版本的用户访问需授权功能时被拦截；同意当前版本后可正常访问。
+- **GREEN**：实现协议版本比对中间件并在需授权功能路由上复用。
+- **COMMIT**：`feat(privacy): enforce latest terms and privacy consent on protected routes`
 
-def test_revoke_without_agree_fails(db, user):
-    svc = UserPrivacyConsentService(db)
-    with pytest.raises(AlreadyRevokedError):
-        svc.revoke(user.id, 'v2.0')
-```
+### Task 5：小程序登录页协议浮层弹窗 [P1]
 
-### 集成测试
+- **RED**：编写 E2E 测试 — 点击协议名唤起浮层；点击「同意」后勾选框变为已勾选并记录同意版本；点击「不同意」后勾选框未勾选并阻止登录；点击浮层外部关闭浮层且状态不变。
+- **GREEN**：实现登录页协议浮层弹窗组件。
+- **COMMIT**：`feat(miniapp): add login protocol modal with agree/disagree`
 
-```python
-# backend/tests/integration/test_privacy_api.py
+### Task 6：小程序协议查看页 [P1]
 
-def test_api_current_policy_200(client):
-    res = client.get('/api/privacy-policy/current')
-    assert res.status_code == 200
-    assert res.json()['version'] == 'v2.0'
-
-def test_api_current_policy_404(client):
-    res = client.get('/api/privacy-policy/current')
-    assert res.status_code == 404
-    assert res.json()['code'] == 'NO_CURRENT_PRIVACY_POLICY'
-
-def test_api_status_401_for_guest(client):
-    res = client.get('/api/user/privacy/status')
-    assert res.status_code == 401
-
-def test_api_consent_401_for_guest(client):
-    res = client.post('/api/user/privacy/consent', json={
-        'version': 'v2.0', 'action': 'agree'
-    })
-    assert res.status_code == 401
-
-def test_api_consent_agree_200(client, auth_headers):
-    res = client.post('/api/user/privacy/consent', json={
-        'version': 'v2.0', 'action': 'agree'
-    }, headers=auth_headers)
-    assert res.status_code == 200
-    assert res.json()['status'] == 'agreed'
-
-def test_api_consent_version_mismatch(client, auth_headers):
-    res = client.post('/api/user/privacy/consent', json={
-        'version': 'v1.0', 'action': 'agree'
-    }, headers=auth_headers)
-    assert res.status_code == 400
-    assert res.json()['code'] == 'VERSION_MISMATCH'
-```
-
-### E2E 测试
-
-```python
-# e2e/tests/test_privacy_flow.py
-
-def test_e2e_first_time_consent(page):
-    page.goto('/pages/privacy/index')
-    page.check('同意协议')
-    page.click('同意')
-    assert page.url.endswith('/pages/home/index')
-
-def test_e2e_revoke_impact(page, logged_in_user):
-    page.goto('/pages/privacy/settings')
-    page.click('撤回授权')
-    page.click('确认')
-    assert page.text_content('.toast') == '已撤回授权，部分功能可能受限'
-```
+- **RED**：编写 E2E 测试 — 从「我的 → 设置」进入「用户须知」/「隐私协议」查看页，展示当前协议内容，页面无「撤回授权」按钮。
+- **GREEN**：实现设置页协议查看页。
+- **COMMIT**：`feat(miniapp): add terms and privacy view pages in settings`
 
 ---
 
-## 验收标准映射
+## 4. 测试用例映射
+
+| 场景 | 测试方法 | 层级 |
+|------|---------|------|
+| 登录页点击协议名并同意后成功登录 | `test_login_protocol_agree_and_login` | E2E |
+| 登录页不同意协议导致无法登录 | `test_login_protocol_disagree_blocks_login` | E2E |
+| 登录后查看用户须知和隐私协议 | `test_view_terms_and_privacy_in_settings` | E2E |
+| 教练端登录页点击协议名并同意后进入教练端 | `test_coach_login_protocol_agree` | E2E |
+| 点击勾选框或外层文字直接切换勾选状态 | `test_protocol_checkbox_toggle` | E2E |
+| 点击浮层外部关闭浮层且状态不变 | `test_protocol_modal_dismiss_keep_state` | E2E |
+| 当前协议查询 | `test_api_current_terms_and_privacy` | 集成 |
+| 游客态查询用户授权状态返回 401 | `test_api_terms_status_401_guest` / `test_api_privacy_status_401_guest` | 集成 |
+| 同意当前版本协议 | `test_api_terms_consent_agree` / `test_api_privacy_consent_agree` | 集成 |
+| 非当前版本同意返回 VERSION_MISMATCH | `test_api_terms_consent_version_mismatch` / `test_api_privacy_consent_version_mismatch` | 集成 |
+| 协议版本更新后未重新同意被拦截 | `test_api_version_mismatch_blocks_protected_route` | 集成 |
+
+---
+
+## 5. Mock / 样本数据
+
+- **当前生效协议**：`terms_policy.version = 'v2.0'`, `privacy_policy.version = 'v2.0'`
+- **历史协议版本**：`v1.0`
+
+---
+
+## 6. 验收标准映射
 
 | GWT 场景 | 覆盖 Task | 测试方法 |
 |----------|----------|----------|
-| 正常同意隐私协议 | Task 3, 6 | `test_agree_creates_record` / `test_api_consent_agree_200` / `test_e2e_first_time_consent` |
-| 不同意隐私协议 | Task 6 | E2E 不同意分支 |
-| 撤回隐私授权 | Task 4, 7 | `test_revoke_after_agree` / `test_e2e_revoke_impact` |
-| 协议版本更新后未重新同意 | Task 1, 2, 5 | `test_api_status_mismatch_blocks` / middleware tests |
-| 游客态尝试同意/撤回 | Task 2, 3, 4 | `test_api_status_401_for_guest` / `test_api_consent_401_for_guest` |
+| §6.1 登录页点击协议名并同意后成功登录 | Task 3, 5 | `test_login_protocol_agree_and_login` |
+| §6.2 登录页不同意协议导致无法登录 | Task 5 | `test_login_protocol_disagree_blocks_login` |
+| §6.3 登录后查看用户须知和隐私协议 | Task 6 | `test_view_terms_and_privacy_in_settings` |
+| §6.4 教练端登录页点击协议名并同意后进入教练端 | Task 5 | `test_coach_login_protocol_agree` |
+| §6.5 点击勾选框或外层文字直接切换勾选状态 | Task 5 | `test_protocol_checkbox_toggle` |
+| §6.6 点击浮层外部关闭浮层且状态不变 | Task 5 | `test_protocol_modal_dismiss_keep_state` |
+
+---
+
+## 7. 验收执行检查单
+
+- [ ] 单元测试全部通过
+- [ ] 集成测试全部通过
+- [ ] 所有 GWT 场景均有对应自动化测试
+- [ ] 覆盖率：service 层 ≥ 80%，validator 层 100%
+- [ ] 无 TBD/TODO 遗留

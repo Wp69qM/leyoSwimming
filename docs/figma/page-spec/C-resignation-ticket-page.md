@@ -23,6 +23,14 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 主页面 | C-离职工单处理页 | https://www.calicat.cn/design/ea7ec847-47bc-492e-a4b0-d86d9190d702?node-id=0fb7eb5c-36f2-49cf-aba9-87c5bc5aa86c |
+
+---
+
 ## 2. 教练状态维度
 
 ### 2.1 适用状态

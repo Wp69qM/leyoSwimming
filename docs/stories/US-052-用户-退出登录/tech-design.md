@@ -43,11 +43,11 @@ CREATE INDEX idx_user_session_user_id ON user_session(user_id);
 
 ## 2. API 设计
 
-### 2.1 POST /api/v1/auth/logout
+### 2.1 POST /api/user/auth/logout
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `POST /api/v1/auth/logout` |
+| 路径 | `POST /api/user/auth/logout` |
 | 鉴权 | 是（需携带有效 access_token） |
 | 幂等 | 是（同一 token 重复调用视为已退出） |
 
@@ -73,7 +73,9 @@ Authorization: Bearer {access_token}
 
 ```json
 {
-  "message": "退出登录成功"
+  "code": 0,
+  "message": "退出登录成功",
+  "data": null
 }
 ```
 
@@ -122,7 +124,7 @@ Authorization: Bearer {access_token}
    │ 1. 点击「退出登录」       │
    │ 2. 弹出确认弹窗           │
    │ 3. 用户点击「确定」       │
-   ├──── POST /auth/logout ───→│
+   ├──── POST /api/user/auth/logout ───→│
    │   Authorization: Bearer   │
    │                          │
    │ 4. 校验 access_token     │
@@ -146,7 +148,7 @@ Authorization: Bearer {access_token}
 
 ## 5. 安全 / 鉴权
 
-- `POST /api/v1/auth/logout` 必须登录鉴权
+- `POST /api/user/auth/logout` 必须登录鉴权
 - 必须校验请求中的 `access_token` 属于当前登录用户
 - 退出后 `refresh_token` 必须失效，禁止用其换发新的 `access_token`
 - 清除前端存储时需同时清除内存与持久化 storage
@@ -179,7 +181,7 @@ Authorization: Bearer {access_token}
 
 | tech-design 章节 | 对应 test-plan Task |
 |------------------|---------------------|
-| §2.1 POST /auth/logout | Task 1（后端退出接口） |
+| §2.1 POST /api/user/auth/logout | Task 1（后端退出接口） |
 | §4 前端流程 | Task 2（前端退出逻辑） |
 | §5 安全/鉴权 | Task 1 + Task 2 |
 

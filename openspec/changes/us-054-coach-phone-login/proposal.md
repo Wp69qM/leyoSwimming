@@ -5,8 +5,8 @@
 ## What Changes
 
 - 在教练端登录页增加「手机号登录」入口，点击后进入独立手机号登录页。
-- 新增教练端短信验证码发送接口 `POST /api/v1/auth/coach/sms/code`。
-- 新增教练端手机号验证码登录接口 `POST /api/v1/auth/coach/login/phone`。
+- 新增教练端短信验证码发送接口 `POST /api/common/sms/send`。
+- 新增教练端手机号验证码登录接口 `POST /api/coach/auth/phone-login`。
 - 登录成功后后端按手机号查询/创建 `coach` 记录，签发 JWT，返回 `coach_status`。
 - 未注册手机号首次登录自动创建 `coach` 记录，`coach.status = -1`（未提交入驻资料）。
 - 已离职手机号（`status = 3`）登录时复用原 coach 记录，登录后按 `coach_status=3` 跳转 US-010 重新入驻资料填写页，原账号历史数据保留。

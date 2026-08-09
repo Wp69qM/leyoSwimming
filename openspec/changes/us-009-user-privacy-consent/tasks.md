@@ -3,19 +3,19 @@
 ## Task 1: 当前协议查询接口 [P0]
 
 - RED: 测试存在当前《用户须知》返回版本内容；存在当前《隐私协议》返回版本内容；无当前协议返回 404
-- GREEN: 实现 `GET /api/terms-policy/current` 与 `GET /api/privacy-policy/current`
+- GREEN: 实现 `POST /api/common/terms/current` 与 `POST /api/common/privacy/current`
 - COMMIT: `feat(terms-privacy): add current terms and privacy policy endpoints`
 
 ## Task 2: 用户协议同意状态查询 [P0]
 
-- RED: 测试游客访问返回 401；未同意返回 `agreed=false`；已同意返回版本号
-- GREEN: 实现 `GET /api/user/terms/status` 与 `GET /api/user/privacy/status`
+- RED: 测试游客访问返回 401；未同意返回 `status='none'`；已同意返回 `status='agreed'` 与版本号
+- GREEN: 实现 `POST /api/user/terms/status` 与 `POST /api/user/privacy/status`
 - COMMIT: `feat(terms-privacy): add user terms and privacy status endpoints`
 
 ## Task 3: 同意协议记录接口 [P0]
 
 - RED: 测试游客调用返回 401；同意当前版本返回 200 并写入记录；非当前版本返回 `VERSION_MISMATCH`
-- GREEN: 实现 `POST /api/user/terms-consent` 与 `POST /api/user/privacy-consent`
+- GREEN: 实现 `POST /api/user/terms/consent` 与 `POST /api/user/privacy/consent`
 - COMMIT: `feat(terms-privacy): add terms and privacy consent agreement endpoints`
 
 ## Task 4: 登录页协议浮层弹窗 [P0]

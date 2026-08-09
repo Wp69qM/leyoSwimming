@@ -9,8 +9,8 @@ PRD [§10.1](../../../docs/prd/prd.md) 要求后台管理系统通过独立的�
 - 新增 `admin_user` 表：存储管理员用户名、密码哈希、姓名、角色、状态
 - 新增 `admin_session` 表：存储单一管理员会话 token（有效期 24 小时）
 - 新增 `admin_login_log` 表：记录登录成功/失败日志
-- 新增 `POST /api/v1/admin/auth/login` 接口：管理员账号密码登录，返回单一 token（24h）和 userInfo
-- 新增 `POST /api/v1/admin/auth/logout` 接口：管理员退出登录
+- 新增 `POST /api/admin/auth/login` 接口：管理员账号密码登录，返回单一 token（24h）和 userInfo
+- 新增 `POST /api/admin/auth/logout` 接口：管理员退出登录
 - 新增 Web 管理员登录页：居中卡片式布局，含用户名、密码输入框和登录按钮
 - 新增 Web 路由守卫与请求拦截器：token 缺失/过期自动跳转登录页并提示"登录信息已过期，请重新登录"
 - 新增全局导航栏右上角管理员名字下拉菜单：含退出登录选项，页面展示 userInfo
@@ -31,7 +31,7 @@ PRD [§10.1](../../../docs/prd/prd.md) 要求后台管理系统通过独立的�
 ## Impact
 
 - **数据表**：新增 `admin_user`、`admin_session`（单一 token，24h）、`admin_login_log`
-- **API**：新增 2 个端点 `POST /api/v1/admin/auth/login`、`POST /api/v1/admin/auth/logout`
+- **API**：新增 2 个端点 `POST /api/admin/auth/login`、`POST /api/admin/auth/logout`
 - **状态机**：新增管理员登录态状态机 `未登录 ⇄ 已登录`
 - **前端**：新增 Web 管理员登录页、路由守卫与 401 拦截器、全局导航栏退出菜单
 - **依赖**：本 US 无前置依赖；所有管理后台 US（US-041 ~ US-049）依赖本 US

@@ -1,10 +1,10 @@
 # US-011 管理员审核教练入驻资质
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-coach-audit-queue-page.md](../../figma/page-spec/A-coach-audit-queue-page.md) / [A-coach-audit-detail-page.md](../../figma/page-spec/A-coach-audit-detail-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -44,21 +44,17 @@
 
 1. 管理员进入「用户管理 → 教练审核」列表。
 2. 系统默认展示 `coach_application.status = pending` 的教练列表，按 `coach_id` 维度聚合（每个教练只展示一行）。列表表格字段包含：教练 ID、姓名、性别、年龄、教学年限、擅长泳姿、最新提交时间、流程状态（待审核/已通过/已驳回）、previous_coach_status（首次入驻/已驳回重新入驻/已离职重新入驻）、latest_application_id。管理员可通过状态筛选切换为全部 / 待审核 / 已通过 / 已驳回。
-3. 管理员点击「详情」进入审核详情页，系统展示该教练当前最新申请（`latest_application_id`）的 coach_application 快照完整资料，并在「申请历史」区域展示该教练的所有历史申请记录（含申请 ID、状态、时间、审核人、驳回原因）：
-   - **基础信息**：姓名/昵称、手机号、性别、年龄、邮箱、微信二维码。
-   - **实名与资质**：身份证号、身份证正面照、身份证反面照、教练资格证、健康证、个人形象照。
-   - **教学履历**：任教年限、总学员数、总课时数、擅长泳姿、个人简介。
-   - **服务设置**：参考单价（元/节）。
-   - **审核辅助信息**：previous_coach_status、提交时间、coach_audit_log 历史记录（如有）。
-4. 管理员点击「通过」
-5. 系统校验权限与 coach_application.status = pending
-6. 系统将 coach_application 快照字段覆盖写入 `coach` 表生效资料
-7. 系统更新 `coach.status = 1`（已通过）、`coach.approved_at = 当前时间`
-8. 系统更新 `coach_application.status = approved`、`approved_at`、`approved_by`
-9. 系统将快照证书写入 `coach_certificate` 表（覆盖旧证书）
-10. 系统写入 `coach_audit_log`：`action='approve'`、`from_status=0`、`to_status=1`
-11. 系统发送审核通过通知给教练
-12. 教练端功能解锁
+3. 管理员可执行以下任一操作：
+   - **列表页直接通过**：在待审核列表中点击「通过」，系统弹出二次确认，确认后直接执行通过逻辑。
+   - **详情页查看后通过**：点击「详情」进入审核详情页，系统展示该教练当前最新申请（`latest_application_id`）的 coach_application 快照完整资料，并在「申请历史」区域展示该教练的所有历史申请记录（含申请 ID、状态、时间、审核人、驳回原因）。管理员确认无误后点击「通过」。
+4. 系统校验权限与 coach_application.status = pending
+5. 系统将 coach_application 快照字段覆盖写入 `coach` 表生效资料
+6. 系统更新 `coach.status = 1`（已通过）、`coach.approved_at = 当前时间`
+7. 系统更新 `coach_application.status = approved`、`approved_at`、`approved_by`
+8. 系统将快照证书写入 `coach_certificate` 表（覆盖旧证书）
+9. 系统写入 `coach_audit_log`：`action='approve'`、`from_status=0`、`to_status=1`
+10. 系统发送审核通过通知给教练
+11. 教练端功能解锁
 
 ### 4.2 异常分支
 
@@ -81,13 +77,15 @@
 
 ## 6. 验收标准（业务级 Gherkin）
 
-### 6.1 场景 1：审核通过
+### 6.1 场景 1：审核列表直接通过
 
 ```gherkin
 Given 管理员已登录且有教练审核权限
 And   存在 coach_application.status = pending 的入驻申请（application_id=10001，previous_coach_status=-1）
 And   该申请快照中姓名为"张教练"、参考单价为 300.00 元
-When  管理员查看 coach_application 快照资料后点击「通过」
+When  管理员在教练审核列表点击「通过」
+And   系统弹出二次确认弹窗
+And   管理员点击「确认通过」
 Then  coach_application.status 更新为 approved
 And   coach_application.approved_at 记录当前时间
 And   coach 表生效资料被覆盖为 application 快照内容（姓名"张教练"、参考单价 300.00 元）
@@ -95,11 +93,32 @@ And   coach.status 更新为 1（已通过）
 And   coach.approved_at 记录当前时间
 And   coach_certificate 表被该 application 快照证书覆盖
 And   系统写入 coach_audit_log：action='approve'、from_status=0、to_status=1、application_id=10001
+And   列表刷新，该行状态变为「已通过」
 And   教练收到审核通过通知
 And   教练端功能解锁
 ```
 
-### 6.2 场景 2：审核驳回
+### 6.2 场景 2：审核详情页通过
+
+```gherkin
+Given 管理员已登录且有教练审核权限
+And   存在 coach_application.status = pending 的入驻申请（application_id=10001，previous_coach_status=-1）
+And   该申请快照中姓名为"张教练"、参考单价为 300.00 元
+When  管理员点击「详情」查看 coach_application 快照资料
+And   点击「通过」
+And   系统弹出二次确认弹窗
+And   管理员点击「确认通过」
+Then  coach_application.status 更新为 approved
+And   coach 表生效资料被覆盖为 application 快照内容（姓名"张教练"、参考单价 300.00 元）
+And   coach.status 更新为 1（已通过）
+And   coach_certificate 表被该 application 快照证书覆盖
+And   系统写入 coach_audit_log：action='approve'、from_status=0、to_status=1、application_id=10001
+And   页面提示"操作成功"并返回列表
+And   教练收到审核通过通知
+And   教练端功能解锁
+```
+
+### 6.3 场景 3：审核驳回
 
 ```gherkin
 Given 管理员已登录且有教练审核权限
@@ -113,7 +132,7 @@ And   教练收到驳回通知及原因
 And   教练可重新修改资料后提交
 ```
 
-### 6.3 场景 3：无权限审核
+### 6.4 场景 4：无权限审核
 
 ```gherkin
 Given 管理员已登录但无教练审核权限
@@ -125,7 +144,7 @@ And   coach.status 保持不变
 And   前端提示"您没有操作权限"
 ```
 
-### 6.4 场景 4：已离职教练重新入驻申请被驳回
+### 6.5 场景 5：已离职教练重新入驻申请被驳回
 
 ```gherkin
 Given 管理员已登录且有教练审核权限
@@ -148,10 +167,11 @@ And   coach 表生效资料保持离职前状态不变
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | coach | 修改 | 审核通过时 coach_application 快照字段覆盖写入：`name`、`gender`、`age`、`email`、`wechat_qr_url`、`id_card_no`、`teaching_years`、`total_students`、`total_hours`、`teaching_strokes`、`bio`、`reference_price`；更新 `status=1`、`approved_at` |
-| 2 | coach_application | 修改 | status 由 pending 更新为 approved/rejected；approved_at、approved_by、rejection_reason |
+| 1 | coach | 修改 | 审核通过时 coach_application 快照字段覆盖写入：`name`、`phone`、`gender`、`age`、`email`、`wechat_qr_url`、`id_card_no`、`teaching_years`、`total_students`、`total_hours`、`teaching_strokes`、`bio`、`reference_price`；更新 `status=1`、`approved_at` |
+| 2 | coach_application | 修改 | status 由 pending 更新为 approved/rejected；`previous_coach_status`、`submitted_at`、`approved_at`、`approved_by`、`rejection_reason` |
 | 3 | coach_certificate | 修改 | 审核通过时由 coach_certificate_application 快照覆盖写入：`cert_type`（ID_CARD_FRONT/ID_CARD_BACK/COACH_CERT/HEALTH_CERT/PORTRAIT/OTHER）、`image_url`、`sort_order` |
-| 4 | coach_audit_log | 新增 | 记录审核人、时间、结果、原因；from_status / to_status 记录 coach.status 变更 |
+| 4 | coach_audit_log | 新增 | 记录审核人、时间、结果、原因；`coach_id`、`application_id`、`admin_id`、`action`（approve/reject）、`from_status` / `to_status` 记录 coach.status 变更 |
+| 5 | notification | 新增 | 向教练发送审核结果通知 |
 
 ### 7.2 API 影响
 
@@ -226,7 +246,7 @@ And   coach 表生效资料保持离职前状态不变
 - [x] **V**aluable（有价值）- 控制教练质量
 - [x] **E**stimable（可估算）- 0.5 人天明确
 - [x] **S**mall（足够小）- 单一审核操作
-- [x] **T**estable（可测试）- 3 个 GWT 场景可验证
+- [x] **T**estable（可测试）- 5 个 GWT 场景可验证
 
 ---
 
@@ -246,7 +266,7 @@ And   coach 表生效资料保持离职前状态不变
 
 ### 11.3 验收标准
 
-- [x] 场景数量符合 L1（1 正常 + 2 异常 = 3 个）
+- [x] 场景数量符合 L1（3 正常 + 2 异常 = 5 个）
 - [x] 业务级 Gherkin，不绑死实现
 - [x] 用户可观察的结果可被验证
 
@@ -263,16 +283,21 @@ And   coach 表生效资料保持离职前状态不变
 - **权限码**：`coach:audit`
 - **通知渠道**：小程序订阅消息 + 短信
 - **审计要求**：审核操作必须记录 audit_log
-- **教练状态机**：0=待审核 1=已通过 2=驳回 3=已离职 4=申请离职中；驳回后可在 US-040 中重新提交（2 → 0）
+- **教练状态机**：0=待审核 1=已通过 2=驳回 3=已离职 4=申请离职中；驳回后可在 US-010 中重新提交（2 → 0）
 
 ---
 
 ## 13. Figma 链接
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 教练审核列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 教练审核详情页 frame node-id | 🔲 待设计填写 | 🔲 |
+> Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
+> 页面规格详见：
+> - [A-教练入驻审核队列页](../../figma/page-spec/A-coach-audit-queue-page.md)
+> - [A-教练入驻审核详情页](../../figma/page-spec/A-coach-audit-detail-page.md)
+
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 教练入驻审核队列页 | [A-coach-audit-queue-page.md](../../figma/page-spec/A-coach-audit-queue-page.md) | ✅ |
+| 2 | 教练入驻审核详情页 | [A-coach-audit-detail-page.md](../../figma/page-spec/A-coach-audit-detail-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -303,7 +328,7 @@ And   coach 表生效资料保持离职前状态不变
 
 | 交互 | 触发 | 反馈 | 备注 |
 |------|------|------|------|
-| 列表页点击通过 | 点击按钮 | 跳转至审核详情页 | 通过原因非必填，详情页完成最终通过 |
+| 列表页点击通过 | 点击按钮 | 弹出二次确认弹窗 | 确认后直接通过并刷新列表，不跳转详情页；通过原因非必填 |
 | 列表页点击驳回 | 点击按钮 | 弹出轻量输入框 / Popconfirm | 必填驳回原因；确认后立即执行驳回 |
 | 详情页点击通过 | 点击按钮 | 二次确认后更新状态 | 通过原因非必填 |
 | 详情页点击驳回 | 点击按钮 | 底部/侧边展开原因输入区 | 驳回原因必填，支持常用原因快捷选择 |
@@ -325,6 +350,7 @@ And   coach 表生效资料保持离职前状态不变
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
+| v1.1 | 2026-08-08 | PM | 教练审核列表「通过」按钮改为二次确认后直接通过，不再跳转详情页；新增详情页通过场景；场景数更新为 5 |
 
 ---
 

@@ -26,7 +26,7 @@
 | `coach_id` | BIGINT | FK | 教练 ID |
 | `status` | ENUM | 非空 | draft / pending / approved / rejected |
 | `previous_coach_status` | TINYINT | 非空 | 提交前 coach.status（-1/2/3） |
-| 资料字段（name/avatar_url/gender/age/email/wechat_qr_url/id_card_no/teaching_years/total_students/total_hours/teaching_strokes/bio/reference_price） | — | 可空 | 申请快照字段，与 coach 表同构 |
+| 资料字段（name/phone/gender/age/email/wechat_qr_url/id_card_no/teaching_years/total_students/total_hours/teaching_strokes/bio/reference_price） | — | 可空 | 申请快照字段，与 coach 表同构 |
 | `submitted_at` | DATETIME | 可空 | 提交时间 |
 | `approved_at` | DATETIME | 可空 | 通过时间 |
 | `approved_by` | BIGINT | 可空 | 审核管理员 ID |
@@ -53,19 +53,21 @@
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
-| `/api/admin/coach/applications` | GET | 待审核列表；查询 coach_application.status = pending |
-| `/api/admin/coach/applications/{application_id}/approve` | POST | 通过；将快照覆盖写入 coach 及 coach_certificate |
-| `/api/admin/coach/applications/{application_id}/reject` | POST | 驳回；coach.status 恢复为 previous_coach_status |
+| `/api/admin/coach/application/list` | POST | 待审核列表；请求体 `{ page, pageSize, status }` |
+| `/api/admin/coach/application/detail` | POST | 审核详情；请求体 `{ applicationId }` |
+| `/api/admin/coach/application/approve` | POST | 通过；请求体 `{ applicationId }` |
+| `/api/admin/coach/application/reject` | POST | 驳回；请求体 `{ applicationId, reason }` |
 
-### 2.1 GET /api/admin/coach/applications
+### 2.1 POST /api/admin/coach/application/list
 
-- **查询参数**：`status=pending`、`page`、`page_size`
+- **请求体**：`{ "status": "pending", "page": 1, "pageSize": 20 }`
 - **说明**：待审核列表直接查询 `coach_application.status = pending`，不再依赖 coach.status/submitted_at 推断
 
-### 2.2 POST /api/admin/coach/applications/{application_id}/approve
+### 2.2 POST /api/admin/coach/application/approve
 
+- **请求体**：`{ "applicationId": 10001, "remark?": "审核通过" }`（`remark` 可选）
 - **功能**：
-  1. 校验 `coach_application.status = pending`
+  1. 校验 `coach_application.status = pending`（非 pending 返回 `NOT_PENDING`/`ALREADY_REVIEWED`）
   2. 将 coach_application 快照字段覆盖写入 coach 表
   3. 将 coach_certificate_application 快照覆盖写入 coach_certificate 表
   4. 更新 `coach.status = 1`、`coach.approved_at = now`
@@ -77,20 +79,20 @@
   {
     "code": 0,
     "data": {
-      "coach_id": 20001,
-      "application_id": 10001,
+      "coachId": 20001,
+      "applicationId": 10001,
       "status": 1,
-      "approved_at": "2026-07-30T12:00:00Z"
+      "approvedAt": "2026-07-30T12:00:00Z"
     }
   }
   ```
-- **错误码**：`NOT_PENDING` (400501), `FORBIDDEN` (403001)
+- **错误码**：`NOT_PENDING` (400501), `ALREADY_REVIEWED` (400502), `FORBIDDEN` (403001)
 
-### 2.3 POST /api/admin/coach/applications/{application_id}/reject
+### 2.3 POST /api/admin/coach/application/reject
 
-- **请求体**：`{ "reason": "证书不清晰" }`
+- **请求体**：`{ "applicationId": 10001, "reason": "证书不清晰" }`
 - **功能**：
-  1. 校验 `coach_application.status = pending`
+  1. 校验 `coach_application.status = pending`（非 pending 返回 `NOT_PENDING`/`ALREADY_REVIEWED`）
   2. 更新 `coach_application.status = rejected`、`rejection_reason = reason`
   3. 根据 `coach_application.previous_coach_status` 恢复 `coach.status`：
      - previous_coach_status=-1 → coach.status=2
@@ -103,14 +105,14 @@
   {
     "code": 0,
     "data": {
-      "coach_id": 20001,
-      "application_id": 10001,
+      "coachId": 20001,
+      "applicationId": 10001,
       "status": 2,
-      "rejection_reason": "证书不清晰"
+      "rejectionReason": "证书不清晰"
     }
   }
   ```
-- **错误码**：`NOT_PENDING` (400501), `FORBIDDEN` (403001)
+- **错误码**：`NOT_PENDING` (400501), `ALREADY_REVIEWED` (400502), `FORBIDDEN` (403001)
 
 ---
 

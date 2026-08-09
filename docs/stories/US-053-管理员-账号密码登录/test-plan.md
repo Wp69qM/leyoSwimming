@@ -48,10 +48,10 @@
 import request from 'supertest';
 import { app } from '../../../src/app';
 
-describe('POST /api/v1/admin/auth/login', () => {
+describe('POST /api/admin/auth/login', () => {
   it('场景 1: 正确的用户名密码登录成功', async () => {
     const res = await request(app)
-      .post('/api/v1/admin/auth/login')
+      .post('/api/admin/auth/login')
       .send({ username: 'admin', password: 'correct_password' });
 
     expect(res.status).toBe(200);
@@ -62,7 +62,7 @@ describe('POST /api/v1/admin/auth/login', () => {
 
   it('场景 2: 错误的用户名或密码返回 401', async () => {
     const res = await request(app)
-      .post('/api/v1/admin/auth/login')
+      .post('/api/admin/auth/login')
       .send({ username: 'admin', password: 'wrong_password' });
 
     expect(res.status).toBe(401);
@@ -71,7 +71,7 @@ describe('POST /api/v1/admin/auth/login', () => {
 
   it('场景 3: 被禁用的账号返回 403', async () => {
     const res = await request(app)
-      .post('/api/v1/admin/auth/login')
+      .post('/api/admin/auth/login')
       .send({ username: 'disabled_admin', password: 'correct_password' });
 
     expect(res.status).toBe(403);
@@ -126,7 +126,7 @@ Expected: PASS
 
 ```bash
 git add backend/src/controllers/admin/auth.ts backend/src/routes/admin/auth.ts backend/src/services/admin/session.ts backend/src/services/admin/user.ts backend/tests/controllers/admin/login.test.ts
-git commit -m "feat(admin-auth): add POST /admin/auth/login endpoint"
+git commit -m "feat(admin-auth): add POST /api/admin/auth/login endpoint"
 ```
 
 ---
@@ -145,22 +145,22 @@ git commit -m "feat(admin-auth): add POST /admin/auth/login endpoint"
 
 ```typescript
 // backend/tests/controllers/admin/logout.test.ts
-describe('POST /api/v1/admin/auth/logout', () => {
+describe('POST /api/admin/auth/logout', () => {
   it('退出登录后 token 失效', async () => {
     const loginRes = await request(app)
-      .post('/api/v1/admin/auth/login')
+      .post('/api/admin/auth/login')
       .send({ username: 'admin', password: 'correct_password' });
 
     const { token } = loginRes.body;
 
     const logoutRes = await request(app)
-      .post('/api/v1/admin/auth/logout')
+      .post('/api/admin/auth/logout')
       .set('Authorization', `Bearer ${token}`);
 
     expect(logoutRes.status).toBe(200);
 
     const protectedRes = await request(app)
-      .get('/api/v1/admin/users')
+      .post('/api/admin/user/list')
       .set('Authorization', `Bearer ${token}`);
 
     expect(protectedRes.status).toBe(401);
@@ -179,17 +179,13 @@ export async function logout(ctx) {
   const accessToken = authHeader?.replace('Bearer ', '');
 
   if (!accessToken) {
-    ctx.status = 401;
-    ctx.body = { error: 'TOKEN_INVALID', message: '登录态已失效' };
+    ctx.status = 200;
+    ctx.body = { message: '退出登录成功' };
     return;
   }
 
-  jwt.verify(accessToken, process.env.JWT_SECRET || 'dev-secret');
-
-  const { refreshToken } = ctx.request.body || {};
-  if (refreshToken) {
-    await adminSessionService.revoke(refreshToken);
-  }
+  // 按 token hash 标记当前 admin_session 失效
+  await adminSessionService.revokeByToken(accessToken);
 
   ctx.body = { message: '退出登录成功' };
 }
@@ -201,7 +197,7 @@ export async function logout(ctx) {
 
 ```bash
 git add backend/src/controllers/admin/auth.ts backend/src/routes/admin/auth.ts backend/src/services/admin/session.ts backend/tests/controllers/admin/logout.test.ts
-git commit -m "feat(admin-auth): add POST /admin/auth/logout endpoint"
+git commit -m "feat(admin-auth): add POST /api/admin/auth/logout endpoint"
 ```
 
 ---

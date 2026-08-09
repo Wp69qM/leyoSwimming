@@ -77,11 +77,11 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 
 ## 2. API 设计
 
-### 2.1 POST /auth/wechat-login
+### 2.1 POST /api/user/auth/wechat-login
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `POST /api/v1/auth/wechat-login` |
+| 路径 | `POST /api/user/auth/wechat-login` |
 | 鉴权 | 否（登录入口） |
 | 幂等 | 是（以 `code` 为幂等键，5 分钟内有效） |
 
@@ -94,7 +94,9 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
   "phoneIv": "...",
   "avatarUrl": "https://thirdwx.qlogo.cn/...",
   "nickName": "微信用户",
-  "app_type": "user"
+  "app_type": "user",
+  "terms_accepted": true,
+  "privacy_accepted": true
 }
 ```
 
@@ -106,6 +108,8 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 | `avatarUrl` | string | 是 | 用户微信头像 URL |
 | `nickName` | string | 否 | 用户微信昵称，作为默认姓名占位 |
 | `app_type` | string | 是 | 应用类型，枚举：`user` / `coach`；用户端小程序必须显式提交 `user`，后端按该字段路由到 `user` 表；`coach` 由 US-051 扩展使用 |
+| `terms_accepted` | boolean | 是 | 是否已勾选《用户须知》，必须为 `true` |
+| `privacy_accepted` | boolean | 是 | 是否已勾选《隐私协议》，必须为 `true` |
 
 **Response 200**
 
@@ -138,6 +142,15 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 }
 ```
 
+**Response 400 — 未勾选协议**
+
+```json
+{
+  "error": "TERMS_NOT_ACCEPTED",
+  "message": "请阅读并同意《用户须知》和《隐私协议》"
+}
+```
+
 **Response 502 — 微信接口错误**
 
 ```json
@@ -159,6 +172,7 @@ CREATE INDEX idx_user_session_refresh_token ON user_session(refresh_token_hash);
 **业务规则**
 > **US-051 扩展说明**：US-051 扩展了本接口以支持 `app_type=coach`，但 `app_type=user` 或缺失时响应格式与本 US 完全一致。`coach_status` 与 `redirect_page` 字段仅在 `app_type=coach` 时返回，详见 US-051 技术设计文档。
 
+- `terms_accepted` 与 `privacy_accepted` 必须同时为 `true`，任一未勾选返回 400 `TERMS_NOT_ACCEPTED`
 - `code` 调用 `code2session` 失败时按 errcode 区分：`40029` → 401，`45011` → 502（频率限制），其他 → 502
 - `app_type` 非法值 → 400 `VALIDATION_ERROR`（US-051 扩展的校验）
 - `union_id` 命中已有 `status=0` 用户 → 复用，`isNewUser=false`
@@ -232,7 +246,7 @@ async function loginWithWechat(code: string) {
   │ 4. encryptedData+iv │                       │
   ←─────────────────────────────────────────────┤
   │                     │                       │
-  │ 5. POST /auth/wechat-login (code+手机号加密数据) │
+  │ 5. POST /api/user/auth/wechat-login (code+手机号加密数据) │
   ├────────────────────→│                       │
   │                     │ 6. code2session(code) │
   │                     ├──────────────────────→│
@@ -326,7 +340,7 @@ async function loginWithWechat(code: string) {
 
 ## 8. 安全 / 鉴权
 
-- `POST /auth/wechat-login` **无需登录**（登录入口）
+- `POST /api/user/auth/wechat-login` **无需登录**（登录入口）
 - `code` 必须来自前端 `wx.login()`，后端不接受手工构造的 code
 - `session_key` **绝不返回给前端**（仅在后端使用，解密敏感数据时用）
 - `access_token` 使用 HS256 签名，密钥从环境变量读取
@@ -349,7 +363,7 @@ async function loginWithWechat(code: string) {
 | US-052 | 依赖本 US | 用户退出登录：依赖已登录态与 token 机制 |
 | US-017 | 依赖本 US | 购买体验课：需先完成登录 |
 | US-020 | 依赖本 US | 购买正价套餐：触发 注册用户→学员 状态转换 |
-| US-051 | 扩展本 US | 教练端微信授权登录：扩展 `POST /auth/wechat-login` 接口，新增 `app_type=coach` 分支 |
+| US-051 | 扩展本 US | 教练端微信授权登录：扩展教练端微信登录接口（如 `POST /api/coach/auth/wechat-login`），新增 `app_type=coach` 分支 |
 
 ---
 
@@ -374,7 +388,7 @@ async function loginWithWechat(code: string) {
 | tech-design 章节 | 对应 test-plan Task |
 |------------------|---------------------|
 | §1 数据模型 + 索引 | Task 1（User Repository） |
-| §2.1 POST /auth/wechat-login | Task 4（API 端点） |
+| §2.1 POST /api/user/auth/wechat-login | Task 4（API 端点） |
 | §3 状态机影响 | Task 2（OAuth Service，含状态转换） |
 | §4 微信 OAuth 流程 | Task 2（OAuth Service） |
 | §5 JWT 签发 | Task 3（JWT Service） |
@@ -401,5 +415,5 @@ async function loginWithWechat(code: string) {
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：数据模型 / API / 状态机 / 微信 OAuth 流程 / JWT / 缓存 / 性能 / 安全 / 跨 US 依赖 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0 修复：user.status 字段类型统一为整型 TINYINT（0=正常/1=软删除/2=封禁），对齐 PRD §9.2.1 |
-| v1.2 | 2026-08-03 | Dev | 增加 US-051 扩展说明：`POST /auth/wechat-login` 支持 `app_type=coach`，`app_type=user`（默认）时响应格式不变 |
+| v1.2 | 2026-08-03 | Dev | 增加 US-051 扩展说明：教练端微信登录接口支持 `app_type=coach`，用户端 `app_type=user`（默认）时响应格式不变 |
 | v1.3 | 2026-08-05 | Dev | 用户端请求 MUST 显式携带 `app_type='user'`，字段必填，后端按该字段路由到 `user` 表；请求示例与字段说明同步更新 |

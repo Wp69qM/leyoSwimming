@@ -1,6 +1,6 @@
 # US-004 游客微信授权登录
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-07-31
@@ -28,6 +28,7 @@
   1. 游客首次打开小程序并需要使用受登录限制的功能（如购买套餐、预约教练）
   2. 游客在「我的」页面发现为未登录态，看到默认头像和「请登录」按钮，主动点击「请登录」按钮
   3. 游客主动点击登录页「微信一键登录」按钮
+  4. 游客主动点击登录页底部「使用手机号登录」按钮，跳转至 US-006 手机号验证码登录页
 - **触发时机**：游客主动操作；或受登录态保护的功能被访问时由系统引导跳转
 
 > **角色命名说明**（v7 评审 P1-4 修复）：本 US 触发方统一为"游客"，与目录名 `US-004-游客-微信授权登录`、PRD 游客浏览主线、§9.2 身份状态机起点（游客 → 注册用户）保持一致。已注册用户登录态过期后重新登录也走本 US 流程，但触发身份仍归为"游客"（未登录态）。GWT 场景中的"用户"为行为主体泛指，不与角色名冲突。
@@ -50,11 +51,11 @@
 
 ### 4.1 主路径
 
-1. 用户在小程序入口点击「微信一键登录」按钮前，页面展示《用户须知》和《隐私协议》勾选区
+1. 用户在小程序入口进入登录页，页面展示品牌区、《用户须知》和《隐私协议》勾选区，以及两个登录入口：主按钮「微信一键登录」和底部文字按钮「使用手机号登录」
 2. 用户勾选「我已阅读并同意《用户须知》和《隐私协议》」
-3. 小程序调用 `wx.login()` 获取临时登录凭证 `code`
+3. 用户点击「微信一键登录」；小程序调用 `wx.login()` 获取临时登录凭证 `code`
 4. 小程序调用 `wx.getPhoneNumber` 获取加密手机号数据 `encryptedData` + `iv`
-5. 小程序将 `code`、`encryptedData`、`iv` 以及 `terms_accepted=true`、`privacy_accepted=true`、`app_type=user` 提交到后端 `POST /api/v1/auth/wechat-login`
+5. 小程序将 `code`、`phoneEncryptedData`、`phoneIv`、`avatarUrl`、`nickName` 以及 `terms_accepted=true`、`privacy_accepted=true`、`app_type=user` 提交到后端 `POST /api/user/auth/wechat-login`
 6. 后端校验 `terms_accepted` 与 `privacy_accepted` 均为 true
 7. 后端调用微信 `code2session` 接口，用 `code` 换取 `openid`、`union_id`、`session_key`
 8. 后端使用 `session_key` 解密手机号，得到用户手机号 `phone`
@@ -62,13 +63,14 @@
    - 命中已有用户 → 复用账号
    - 未命中 → 新建用户记录，`identity_status = 注册用户`，`profile_completed = false`，写入 `phone` 与微信头像/昵称
 10. 后端签发 JWT `access_token` + `refresh_token`，将 `session_key` 写入 Redis（TTL 7200s）
-11. 返回登录结果（含 `access_token`、`refresh_token`、`expires_in`、`is_new_user`、`profile_completed`、`user_id`）
-12. 前端将 `access_token` 与 `refresh_token` 存储到本地（如 `Taro.setStorageSync`），并记录 `expires_in`
-13. 前端按 `profile_completed` 决定跳转：
+11. 返回登录结果（含 `accessToken`、`refreshToken`、`expiresIn`、`isNewUser`、`profileCompleted`、`userId`）
+12. 前端将 `accessToken` 与 `refreshToken` 存储到本地（如 `Taro.setStorageSync`），并记录 `expiresIn`
+13. 前端按 `profileCompleted` 决定跳转：
     - `false` → 跳转「完善个人资料页」（US-005）
     - `true` → 跳转小程序首页
-14. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
-15. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
+14. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {accessToken}` 中携带 token；后端校验 token 有效后方可访问
+15. 前端在 app 启动或「我的」等依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导用户重新登录；`accessToken` 过期但 `refreshToken` 有效时，前端调用刷新接口换发新的 `accessToken`
+16. 若用户在步骤 1 点击底部「使用手机号登录」，则页面跳转至「手机号验证码登录页」（US-006），本 US 流程结束
 
 ### 4.2 异常分支
 
@@ -114,7 +116,7 @@ Then  系统创建新用户记录，identity_status = "注册用户"
 And   profile_completed = false
 And   user.phone 等于解密后的微信手机号
 And   user.avatar_url 等于微信头像 URL
-And   返回 access_token 和 refresh_token
+And   返回 accessToken 和 refreshToken
 And   前端跳转到"完善个人资料"页（US-005）
 And   user.union_id 等于微信返回的 union_id
 And   user.identity_status 由 "游客" 转换为 "注册用户"
@@ -127,8 +129,8 @@ Given 用户已注册且 profile_completed = true，user 表中存在其 union_i
 And   用户已勾选《用户须知》和《隐私协议》
 When  用户点击"微信一键登录"按钮并同意授权
 Then  系统复用已有用户记录，不新建账号
-And   返回 access_token 和 refresh_token
-And   is_new_user = false
+And   返回 accessToken 和 refreshToken
+And   isNewUser = false
 And   前端跳转到小程序首页
 And   user.identity_status 保持为 "注册用户"（或更高：学员）
 ```
@@ -184,18 +186,29 @@ And   不创建任何用户记录
 
 ```gherkin
 Given 用户已完成微信授权登录
-And   后端返回 access_token、refresh_token 和 expires_in = 7200
+And   后端返回 accessToken、refreshToken 和 expiresIn = 7200
 When  前端收到登录响应
-Then  前端将 access_token 和 refresh_token 写入本地存储
-And   前端记录 access_token 过期时间
+Then  前端将 accessToken 和 refreshToken 写入本地存储
+And   前端记录 accessToken 过期时间
 When  用户访问受登录态保护的接口（如「我的」页面）
-Then  前端在 Authorization Header 中携带 Bearer {access_token}
+Then  前端在 Authorization Header 中携带 Bearer {accessToken}
 And   后端校验 token 有效后返回用户数据
-When  access_token 过期但 refresh_token 未过期
-Then  前端调用刷新接口换取新的 access_token
-And   后续请求使用新的 access_token
-When  本地 token 不存在或 refresh_token 已过期
+When  accessToken 过期但 refreshToken 未过期
+Then  前端调用刷新接口换取新的 accessToken
+And   后续请求使用新的 accessToken
+When  本地 token 不存在或 refreshToken 已过期
 Then  前端引导用户重新进入登录页
+```
+
+### 6.8 场景 8：用户选择使用手机号登录（交互路径）
+
+```gherkin
+Given 用户已进入微信授权登录页
+When  用户点击页面底部「使用手机号登录」按钮
+Then  页面跳转至「手机号验证码登录页」（US-006）
+And   不调用 wx.login() 或 wx.getPhoneNumber
+And   不创建任何用户记录
+And   不签发 token
 ```
 
 ---
@@ -209,13 +222,13 @@ Then  前端引导用户重新进入登录页
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
 | 1 | `user` | 新增 | 首次登录时插入新记录：`openid`、`union_id`、`phone`（解密后的微信手机号）、`avatar_url`（微信头像）、`name`（微信昵称，可选）、`identity_status='注册用户'`、`profile_completed=false`、`status=0`（TINYINT，0=正常/1=软删除/2=封禁，与 PRD §9.2.1 一致） |
-| 2 | `user_session` | 新增 | 写入会话记录：`user_id`、`session_key`（加密）、`expires_at`、`refresh_token_hash` |
+| 2 | `user_session` | 新增 | 写入会话记录：`user_id`、`session_key_encrypted`（加密）、`expires_at`、`refresh_token_hash` |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/auth/wechat-login` | POST | 新增 | 接收微信 `code`，调用 `code2session`，查询/创建用户，签发 JWT |
+| 1 | `/api/user/auth/wechat-login` | POST | 新增 | 接收微信 `code`，调用 `code2session`，查询/创建用户，签发 JWT |
 
 ### 7.3 状态机影响
 
@@ -257,7 +270,7 @@ Then  前端引导用户重新进入登录页
 - [ ] US-017（游客购买体验课套餐 — 需先完成本 US 登录）
 - [ ] US-020（学员购买正价套餐 — 需先完成本 US 登录，且本 US 是身份状态机的起点）
 - [ ] US-042（管理员管理用户账号 — 管理员在后台查看、筛选、管理用户账号及详情）
-- [ ] US-051（教练微信授权登录并进入教练端 — 扩展本 US 的 `POST /api/v1/auth/wechat-login` 接口，新增 `app_type=coach` 分支）
+- [ ] US-051（教练微信授权登录并进入教练端 — 扩展教练端微信登录接口，新增 `app_type=coach` 分支）
 
 ---
 
@@ -268,7 +281,7 @@ Then  前端引导用户重新进入登录页
 - [x] **V**aluable（有价值）- 是用户进入交易流程的入口，所有受保护功能的前置条件
 - [x] **E**stimable（可估算）- 1 人天明确，微信 OAuth 标准流程
 - [x] **S**mall（足够小）- 1 个 API + 1 个小程序页面，单 Sprint 可完成
-- [x] **T**estable（可测试）- 业务级 Gherkin 7 个场景可客观验证
+- [x] **T**estable（可测试）- 业务级 Gherkin 8 个场景可客观验证
 
 ---
 
@@ -288,7 +301,7 @@ Then  前端引导用户重新进入登录页
 
 ### 11.3 验收标准
 
-- [x] 场景数量符合 US 等级 L2（7 个场景 = 3 正常 + 4 异常）
+- [x] 场景数量符合 US 等级 L2（8 个场景 = 4 正常 + 4 异常）
 - [x] 业务级 Gherkin，不绑死实现
 - [x] 用户可观察的结果可被验证
 
@@ -319,11 +332,11 @@ Then  前端引导用户重新进入登录页
 
 > 本节提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 微信授权登录页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 微信授权登录页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 3 | 补充资料引导跳转 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 微信授权登录页 | [U-wechat-auth-page.md](../../figma/page-spec/U-wechat-auth-page.md) | ✅ |
+| 2 | 登录页协议浮层 | [U-login-protocol-modal.md](../../figma/page-spec/U-login-protocol-modal.md) | ✅ |
+| 3 | 手机号登录页 | [U-phone-login-page.md](../../figma/page-spec/U-phone-login-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -331,7 +344,7 @@ Then  前端引导用户重新进入登录页
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
-| **微信授权登录页** | 🔲 | 🔲 | 🔲 | 🔲 | 错误态含"拒绝授权"、"微信服务不可用"、"凭证失效"3 种文案 |
+| **微信授权登录页** | 🔲 | 🔲 | 🔲 | 🔲 | 底部含「使用手机号登录」入口，点击跳转 US-006；错误态含"拒绝授权"、"微信服务不可用"、"凭证失效"3 种文案 |
 | **登录后跳转引导** | 🔲 | 🔲 | 🔲 | 🔲 | 成功态分"新用户跳补充资料"和"老用户跳首页"两种 |
 
 ---
@@ -354,7 +367,7 @@ Then  前端引导用户重新进入登录页
 
 - **背景**：登录时必须校验用户已勾选《用户须知》和《隐私协议》
 - **选项**：A. 前端校验即可；B. 前端 + 后端双重校验
-- **结论**：选 B。未勾选时前端直接提示并阻止调用 `wx.login`；后端 `POST /api/v1/auth/wechat-login` 同时校验 `terms_accepted=true` 且 `privacy_accepted=true`
+- **结论**：选 B。未勾选时前端直接提示并阻止调用 `wx.login`；后端 `POST /api/user/auth/wechat-login` 同时校验 `terms_accepted=true` 且 `privacy_accepted=true`
 - **影响范围**：微信授权登录页交互、后端登录接口
 
 ### 14.3 拒绝授权后的二次引导

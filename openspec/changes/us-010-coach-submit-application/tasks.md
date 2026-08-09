@@ -13,7 +13,7 @@
 > **前置依赖**：本 US 依赖 US-051 / US-054（教练端登录）与 US-009（隐私协议授权）；测试用例需假设教练已完成登录并同意隐私协议。
 
 - [ ] **RED:** Write 2 failing tests — 已登录教练提交完整资料返回 200，创建 `coach_application` pending 快照，`coach.status=0`；未登录返回 401
-- [ ] **GREEN:** Implement `POST /api/coach/application` controller skeleton with route and auth
+- [ ] **GREEN:** Implement `POST /api/coach/application/submit` controller skeleton with route and auth
 - [ ] **COMMIT:** `feat(coach): add application submission endpoint skeleton`
 
 ## Task 2: 字段完整性校验（含身份证、必填资质、图片数量） [P0]
@@ -76,7 +76,7 @@
 **Spec coverage:** REQ-001 Scenario "保存入驻资料草稿"
 
 - [ ] **RED:** Write 4 failing tests — status=-1 首次保存草稿返回 200 且 `coach.status=-1`；创建 `coach_application` status=draft；status=2 保存草稿后 coach.status 仍为 2；status=3 保存草稿后复用原记录
-- [ ] **GREEN:** Implement `PUT /api/coach/application/draft`（保存草稿写入 `coach_application` 快照，`status=draft`，不修改 `coach.status`）
+- [ ] **GREEN:** Implement `POST /api/coach/application/save-draft`（保存草稿写入 `coach_application` 快照，`status=draft`，不修改 `coach.status`）
 - [ ] **COMMIT:** `feat(coach): add application draft save as snapshot`
 
 ## Task 7: 已驳回 / 已离职教练重新提交 [P0]
@@ -101,8 +101,8 @@
 
 **Spec coverage:** REQ-003 Scenario "等待审核页查看已提交资料"
 
-- [ ] **RED:** Write 2 failing tests — GET /api/coach/application 返回最新 coach_application 快照完整资料含证书列表；手机号与身份证号脱敏展示
-- [ ] **GREEN:** Implement GET /api/coach/application with snapshot data and certificate list
+- [ ] **RED:** Write 2 failing tests — POST /api/coach/application/detail 返回最新 coach_application 快照完整资料含证书列表；手机号与身份证号脱敏展示
+- [ ] **GREEN:** Implement POST /api/coach/application/detail with snapshot data and certificate list
 - [ ] **COMMIT:** `feat(coach): add application detail query for pending page`
 
 ## Task 9: 教练小程序入驻资料页/等待审核页 [P1]

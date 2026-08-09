@@ -8,12 +8,12 @@ PRD [§11.2](../../../docs/prd/prd.md) 要求首次注册/登录需用户同意�
 
 ## What Changes
 
-- 新增 `GET /api/terms-policy/current` 接口（获取当前生效《用户须知》，对游客可见）
-- 新增 `GET /api/privacy-policy/current` 接口（获取当前生效《隐私协议》，对游客可见）
-- 新增 `GET /api/user/terms/status` 接口（查询用户/教练《用户须知》同意状态，必须登录）
-- 新增 `GET /api/user/privacy/status` 接口（查询用户/教练《隐私协议》同意状态，必须登录）
-- 新增 `POST /api/user/terms-consent` 接口（记录《用户须知》同意，必须登录）
-- 新增 `POST /api/user/privacy-consent` 接口（记录《隐私协议》同意，必须登录）
+- 新增 `POST /api/common/terms/current` 接口（获取当前生效《用户须知》，对游客可见）
+- 新增 `POST /api/common/privacy/current` 接口（获取当前生效《隐私协议》，对游客可见）
+- 新增 `POST /api/user/terms/status` 接口（查询用户/教练《用户须知》同意状态，必须登录）
+- 新增 `POST /api/user/privacy/status` 接口（查询用户/教练《隐私协议》同意状态，必须登录）
+- 新增 `POST /api/user/terms/consent` 接口（记录《用户须知》同意，必须登录）
+- 新增 `POST /api/user/privacy/consent` 接口（记录《隐私协议》同意，必须登录）
 - `terms_policy` 表（存储《用户须知》版本与内容，由 US-047 管理写入）
 - `privacy_policy` 表（存储《隐私协议》版本与内容，由 US-047 管理写入）
 - `user_terms_consent` 表（记录用户/教练同意的《用户须知》版本号与时间）
@@ -35,6 +35,7 @@ PRD [§11.2](../../../docs/prd/prd.md) 要求首次注册/登录需用户同意�
 - `wechat-auth-login` (US-004): 登录页需展示协议勾选区与浮层弹窗，登录成功后调用本 US 接口记录同意版本
 - `user-phone-code-login` (US-006): 登录页需展示协议勾选区与浮层弹窗，登录成功后调用本 US 接口记录同意版本
 - `coach-wechat-login` (US-051): 登录页需展示协议勾选区与浮层弹窗，登录成功后调用本 US 接口记录同意版本
+- `coach-phone-code-login` (US-054): 登录页需展示协议勾选区与浮层弹窗，登录成功后调用本 US 接口记录同意版本
 
 ## Impact
 
@@ -43,6 +44,6 @@ PRD [§11.2](../../../docs/prd/prd.md) 要求首次注册/登录需用户同意�
 - **缓存**：新增 Redis key `terms_policy:current`、`privacy_policy:current`（TTL 1h）、`user:terms:{user_id}`、`user:privacy:{user_id}`（TTL 30min）
 - **状态机**：仅存在「未同意 → 已同意」转换，无撤回状态
 - **前端**：新增登录页协议浮层弹窗；新增「我的 → 设置」中的用户须知/隐私协议查看页
-- **依赖**：依赖 US-004 / US-006 / US-051 登录身份
-- **被依赖**：US-051 教练端登录后需校验本 US 同意状态
+- **依赖**：依赖 US-004 / US-006 / US-051 / US-054 登录身份
+- **被依赖**：US-051 / US-054 教练端登录后需校验本 US 同意状态
 - **安全**：协议内容不可篡改；同意记录不可删除；游客态禁止提交授权变更

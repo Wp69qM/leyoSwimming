@@ -21,7 +21,7 @@ Then  页面跳转至教练端手机号验证码登录页
 
 ### Requirement: REQ-002 短信验证码发送
 
-系统 MUST 提供 `POST /api/v1/auth/coach/sms/code` 接口用于发送教练端登录验证码。系统 MUST 校验手机号格式，格式无效时返回 `PHONE_FORMAT_ERROR`。系统 MUST 对同一手机号实施 60 秒发送间隔限制，60 秒内重复请求返回 `SMS_RATE_LIMITED` 并提示"请 60 秒后再试"。系统 MUST 生成 6 位数字验证码并存储于 `sms_code` 表，设置 5 分钟 TTL。系统 MUST 通过短信服务商将验证码发送至教练手机。
+系统 MUST 提供 `POST /api/common/sms/send` 接口用于发送教练端登录验证码。系统 MUST 校验手机号格式，格式无效时返回 `INVALID_PHONE`。系统 MUST 对同一手机号实施 60 秒发送间隔限制，60 秒内重复请求返回 `RATE_LIMITED` 并提示"请 60 秒后再试"。系统 MUST 生成 6 位数字验证码并存储于 `sms_code` 表，设置 5 分钟 TTL。系统 MUST 通过短信服务商将验证码发送至教练手机。
 
 #### Scenario: 成功发送验证码
 
@@ -59,7 +59,7 @@ And   不重新生成验证码
 
 ### Requirement: REQ-003 手机号验证码登录与协议校验
 
-系统 MUST 提供 `POST /api/v1/auth/coach/login/phone` 接口。系统 MUST 校验《用户须知》和《隐私协议》勾选状态，未勾选时返回 `TERMS_NOT_ACCEPTED`。系统 MUST 校验手机号格式与验证码，验证码错误或过期时返回 `INVALID_SMS_CODE`。系统 MUST 在校验通过后按手机号查询 `coach` 表。
+系统 MUST 提供 `POST /api/coach/auth/phone-login` 接口。系统 MUST 校验《用户须知》和《隐私协议》勾选状态，未勾选时返回 `TERMS_NOT_ACCEPTED`。系统 MUST 校验手机号格式与验证码，验证码错误或过期时返回 `INVALID_SMS_CODE`。系统 MUST 在校验通过后按手机号查询 `coach` 表。
 
 #### Scenario: 未勾选协议被拦截
 
@@ -130,7 +130,8 @@ And   教练点击「登录」
 Then  系统复用已有 coach 记录
 And   is_new_coach = false
 And   coach_status = 4
-And   前端按 coach_status = 4 跳转到离职处理中页（US-039）
+And   前端按 coach_status = 4 跳转到教练首页
+And   「我的」页面提供「查看离职申请」入口，教练可主动进入离职处理中页（US-039），不强制跳转
 ```
 
 #### Scenario: 已离职教练手机号登录后进入重新入驻

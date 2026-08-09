@@ -45,13 +45,13 @@
 import request from 'supertest';
 import { app } from '../../../src/app';
 
-describe('POST /api/v1/auth/logout (coach)', () => {
+describe('POST /api/coach/auth/logout (coach)', () => {
   it('场景 1: 正常退出使当前 coach refresh_token 失效', async () => {
     const accessToken = 'valid_coach_access_token';
     const refreshToken = 'valid_coach_refresh_token';
 
     const res = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/coach/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
@@ -60,14 +60,14 @@ describe('POST /api/v1/auth/logout (coach)', () => {
 
     // 验证 refresh_token 已失效
     const refreshRes = await request(app)
-      .post('/api/v1/auth/refresh')
+      .post('/api/coach/auth/refresh')
       .send({ refreshToken });
     expect(refreshRes.status).toBe(401);
   });
 
   it('场景 3: coach access_token 无效时返回 401', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/coach/auth/logout')
       .set('Authorization', 'Bearer invalid_token')
       .send({ refreshToken: 'any' });
 
@@ -80,12 +80,12 @@ describe('POST /api/v1/auth/logout (coach)', () => {
     const refreshToken = 'valid_coach_refresh_token';
 
     const first = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/coach/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
     const second = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/coach/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
@@ -95,7 +95,7 @@ describe('POST /api/v1/auth/logout (coach)', () => {
 
   it('用户端 access_token 调用退出应拒绝', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/coach/auth/logout')
       .set('Authorization', 'Bearer valid_user_access_token')
       .send({ refreshToken: 'any' });
 
@@ -218,7 +218,7 @@ describe('Coach MinePage logout', () => {
     await waitFor(() => {
       expect(Taro.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining('/api/v1/auth/logout'),
+          url: expect.stringContaining('/api/coach/auth/logout'),
           method: 'POST',
         })
       );
@@ -304,7 +304,7 @@ export default function MinePage() {
     if (accessToken) {
       try {
         await Taro.request({
-          url: `${API_BASE}/api/v1/auth/logout`,
+          url: `${API_BASE}/api/coach/auth/logout`,
           method: 'POST',
           header: { Authorization: `Bearer ${accessToken}` },
           data: {

@@ -1,51 +1,117 @@
-## 1. Setup
+> **OpenSpec Tasks | 映射自 `docs/stories/US-042-管理员-管理用户账号/test-plan.md`**
+> 每个 Task 严格遵循 RED → GREEN → COMMIT 循环。
 
-- [ ] 1.1 Verify `user` table has `version` column
-- [ ] 1.2 Add `admin-users` route module in backend
-- [ ] 1.3 Add「用户账号」menu item in web-admin user management section
+## Task 1: 后端用户列表/详情接口 [P0]
 
-## 2. User List & Detail
+**Files:**
+- Create/Update: `backend/src/controllers/admin/user.ts`
+- Create/Update: `backend/src/routes/admin/user.ts`
+- Create/Update: `backend/src/services/admin/user.ts`
+- Test: `backend/tests/controllers/admin/user/list.test.ts`
+- Test: `backend/tests/controllers/admin/user/detail.test.ts`
 
-- [ ] 2.1 Implement `GET /api/admin/v1/users` with filtering and pagination — maps to REQ-001 / Scenario: List users with filters
-- [ ] 2.2 Implement `GET /api/admin/v1/users/{user_id}` returning user details and roles — maps to REQ-001
+**Spec coverage:** REQ-001
 
-## 3. Phone / Email Update
+- [ ] **RED:** Write failing tests — `POST /api/admin/user/list` 返回分页列表；`POST /api/admin/user/detail` 返回完整档案；无权限返回 403
+- [ ] **GREEN:** Implement `POST /api/admin/user/list` with filtering and pagination — maps to REQ-001 / Scenario: List users with filters
+- [ ] **GREEN:** Implement `POST /api/admin/user/detail` returning full profile — maps to REQ-001 / Scenario: View user details
+- [ ] **COMMIT:** `feat(us-042): add admin user list and detail APIs`
 
-- [ ] 3.1 Implement `PUT /api/admin/v1/users/{user_id}/phone` with uniqueness and version check — maps to REQ-002 / Scenario: Update phone successfully and REQ-004
-- [ ] 3.2 Implement `PUT /api/admin/v1/users/{user_id}/email` with uniqueness check
+## Task 2: 后端手动新建用户接口 [P0]
 
-## 4. Role Assignment
+**Files:**
+- Create/Update: `backend/src/controllers/admin/user.ts`
+- Create/Update: `backend/src/services/admin/user.ts`
+- Test: `backend/tests/controllers/admin/user/add.test.ts`
 
-- [ ] 4.1 Implement `PUT /api/admin/v1/users/{user_id}/roles`
-- [ ] 4.2 Validate role IDs exist
-- [ ] 4.3 Update `user_role` association table atomically
-- [ ] 4.4 Prevent `admin` from granting `super_admin` role
+**Spec coverage:** REQ-002
 
-## 5. Ban/Unban Account
+- [ ] **RED:** Write failing tests — 新建成功返回 201；手机号重复返回 409；未成年人缺监护人返回 400
+- [ ] **GREEN:** Implement `POST /api/admin/user/add` with phone uniqueness and guardian validation — maps to REQ-002 / Scenario: Create user successfully
+- [ ] **COMMIT:** `feat(us-042): add admin user creation API`
 
-- [ ] 5.1 Implement `POST /api/admin/v1/users/{user_id}/ban` — maps to REQ-005
-- [ ] 5.2 Implement `POST /api/admin/v1/users/{user_id}/unban` — maps to REQ-005
-- [ ] 5.3 Validate current status and record reason to audit_log
-- [ ] 5.4 Prevent `admin` from banning `super_admin`
+## Task 3: 后端编辑用户资料接口 [P0]
 
-## 6. Security & Audit
+**Files:**
+- Create/Update: `backend/src/controllers/admin/user.ts`
+- Create/Update: `backend/src/services/admin/user.ts`
+- Test: `backend/tests/controllers/admin/user/update.test.ts`
 
-- [ ] 6.1 Verify granular permissions (`USER:READ` / `USER:WRITE` / `USER:ROLE_ASSIGN` / `USER:BAN`) on endpoints — maps to REQ-003
-- [ ] 6.2 Prevent modification of super-admin critical fields
-- [ ] 6.3 Write audit_log for phone/email updates, role changes, and ban/unban
-- [ ] 6.4 Invalidate user detail and login caches after updates
+**Spec coverage:** REQ-003
 
-## 7. Frontend
+- [ ] **RED:** Write failing tests — 编辑成功；并发编辑返回 `USER_CONCURRENTLY_UPDATED`；目标不存在返回 404
+- [ ] **GREEN:** Implement `POST /api/admin/user/update` with optimistic lock — maps to REQ-003 / Scenario: Update user profile successfully
+- [ ] **COMMIT:** `feat(us-042): add admin user update API with optimistic lock`
 
-- [ ] 7.1 Build user account list page with filters
-- [ ] 7.2 Build user view modal (read-only profile with guardian info for minors)
-- [ ] 7.3 Build user edit modal (avatar, name, gender, age, swim profile, guardian info)
-- [ ] 7.4 Build role assignment multi-select component
-- [ ] 7.5 Build ban/unban confirmation modal with reason input
+## Task 4: 后端封禁/解封接口 [P0]
 
-## 8. Verification
+**Files:**
+- Create/Update: `backend/src/controllers/admin/user.ts`
+- Create/Update: `backend/src/services/admin/user.ts`
+- Test: `backend/tests/controllers/admin/user/ban.test.ts`
+- Test: `backend/tests/controllers/admin/user/unban.test.ts`
 
-- [ ] 8.1 Run unit tests for uniqueness validation
-- [ ] 8.2 Run integration tests for all 7 GWT scenarios
-- [ ] 8.3 Run concurrency tests for optimistic lock
-- [ ] 8.4 Run `openspec validate us-042-admin-manage-user-accounts --json` and fix issues
+**Spec coverage:** REQ-004
+
+- [ ] **RED:** Write failing tests — 封禁成功 status=2；解封成功 status=0；无权限返回 403
+- [ ] **GREEN:** Implement `POST /api/admin/user/ban` — maps to REQ-004 / Scenario: Ban user account successfully
+- [ ] **GREEN:** Implement `POST /api/admin/user/unban` — maps to REQ-004 / Scenario: Unban user account successfully
+- [ ] **COMMIT:** `feat(us-042): add admin user ban/unban APIs`
+
+## Task 5: 权限校验与审计日志 [P0]
+
+**Files:**
+- Create/Update: `backend/src/middleware/admin-rbac.ts`
+- Create/Update: `backend/src/services/admin/audit-log.ts`
+- Test: `backend/tests/middleware/admin-rbac.test.ts`
+
+**Spec coverage:** REQ-005
+
+- [ ] **GREEN:** Verify `USER:READ` / `USER:WRITE` / `USER:BAN` permissions on endpoints — maps to REQ-005 / Scenario: Admin without permission is denied
+- [ ] **GREEN:** Write `audit_log` entries for add/update/ban/unban operations
+- [ ] **COMMIT:** `feat(us-042): add RBAC and audit logging for user management`
+
+## Task 6: Web 用户账号列表页与查看弹窗 [P0]
+
+**Files:**
+- Create/Update: `web-admin/src/pages/user/account/index.tsx`
+- Create/Update: `web-admin/src/pages/user/account/ViewModal.tsx`
+- Test: `web-admin/src/pages/user/account/index.test.tsx`
+
+**Spec coverage:** REQ-001
+
+- [ ] **RED:** Write failing tests — 列表渲染、筛选、分页、点击查看弹窗
+- [ ] **GREEN:** Build user account list page with filters and view modal
+- [ ] **COMMIT:** `feat(web-admin): add user account list and view modal`
+
+## Task 7: Web 新建/编辑用户弹窗 [P0]
+
+**Files:**
+- Create/Update: `web-admin/src/pages/user/account/CreateModal.tsx`
+- Create/Update: `web-admin/src/pages/user/account/EditModal.tsx`
+- Test: `web-admin/src/pages/user/account/CreateModal.test.tsx`
+- Test: `web-admin/src/pages/user/account/EditModal.test.tsx`
+
+**Spec coverage:** REQ-002 / REQ-003
+
+- [ ] **RED:** Write failing tests — 新建/编辑表单提交、校验提示
+- [ ] **GREEN:** Build create and edit user modals with guardian validation
+- [ ] **COMMIT:** `feat(web-admin): add user create and edit modals`
+
+## Task 8: Web 封禁/解封交互 [P0]
+
+**Files:**
+- Create/Update: `web-admin/src/pages/user/account/index.tsx`
+- Create/Update: `web-admin/src/pages/user/account/BanModal.tsx`
+- Test: `web-admin/src/pages/user/account/BanModal.test.tsx`
+
+**Spec coverage:** REQ-004
+
+- [ ] **RED:** Write failing tests — 点击封禁/解封按钮弹出确认框、填写原因后调用 API
+- [ ] **GREEN:** Build ban/unban confirmation modal with reason input
+- [ ] **COMMIT:** `feat(web-admin): add user ban/unban modal`
+
+## Task 9: 验证
+
+- [ ] **9.1** Run integration tests for all 6 GWT scenarios
+- [ ] **9.2** Run `openspec validate us-042-admin-manage-user-accounts --json` and fix issues

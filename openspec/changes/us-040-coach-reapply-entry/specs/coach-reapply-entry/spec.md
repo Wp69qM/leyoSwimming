@@ -57,7 +57,7 @@ And   coach.status 保持 0，不产生新的待审核记录
 Given 教练 C 的 coach.status = 0（待审核）
 And   存在 coach_application.status = pending 且 previous_coach_status=3 的重新入驻申请
 And   该快照中姓名为"李教练（新）"、参考单价为 350.00 元
-When  管理员在后台调用 POST /api/admin/coach/applications/{application_id}/approve
+When  管理员在后台调用 POST /api/admin/coach/application/approve
 Then  coach_application.status 更新为 approved
 And   coach 表生效资料被覆盖为快照内容（姓名"李教练（新）"、参考单价 350.00 元）
 And   coach.status 更新为 1（已通过）
@@ -107,7 +107,7 @@ And   不创建新的申请记录
 Given 教练 C 的 coach.status = 0（待审核）
 And   存在 coach_application.status = pending 且 previous_coach_status=3 的重新入驻申请
 And   coach 表当前生效姓名为"李教练"、参考单价为 300.00 元
-When  管理员调用 POST /api/admin/coach/applications/{application_id}/reject 并填写原因="资料不完整"
+When  管理员调用 POST /api/admin/coach/application/reject 并填写原因="资料不完整"（请求体含 applicationId）
 Then  coach_application.status 更新为 rejected
 And   coach_application.rejection_reason = "资料不完整"
 And   coach.status 更新为 3（已离职）

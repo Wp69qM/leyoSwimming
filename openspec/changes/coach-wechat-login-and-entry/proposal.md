@@ -8,11 +8,11 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录；[§3.1 
 
 ## What Changes
 
-- 改造 `POST /api/v1/auth/wechat-login` 接口：新增请求参数 `app_type=coach`、`encryptedData`、`iv`、`terms_accepted`、`privacy_accepted`；响应新增 `is_new_coach`、`coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面。
+- 新增 `POST /api/coach/auth/wechat-login` 接口：请求参数 `code`、`encryptedData`、`iv`、`terms_accepted`、`privacy_accepted`、`app_type=coach`；响应 `access_token`、`refresh_token`、`expires_in`、`is_new_coach`、`coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面。
 - `app_type=coach` 时后端直接查询/写入 `coach` 表与 `coach_session` 表，不读、不写、不关联 `user` 表或 `user_session` 表。
 - 首次登录且 `coach` 表无记录时，新建 `coach` 记录，`status=-1`（未提交入驻资料），写入手机号、微信昵称（可选）。
 - 登录时必须校验 `terms_accepted` 与 `privacy_accepted` 均为 `true`，否则返回 `TERMS_NOT_ACCEPTED`。
-- 新增教练端入驻状态查询接口 `GET /api/v1/coach/me/status`（登录态兜底）。
+- 新增教练端入驻状态查询接口 `POST /api/coach/status/detail`（登录态兜底）。
 - 新增教练端微信授权登录页（与用户端视觉一致，底部固定「微信一键登录」按钮 + 协议勾选区）。
 - 新增登录后按 `coach.status` 跳转的路由守卫/状态分流逻辑。
 - 登录成功后前端在 `onShow` 检查 token：`access_token` 过期用 `refresh_token` 刷新，`refresh_token` 过期重新登录。
@@ -27,12 +27,12 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录；[§3.1 
 
 ### Modified Capabilities
 
-- `wechat-auth` (US-004): 扩展 `POST /api/v1/auth/wechat-login` 接口，新增 `app_type` 参数与教练端专属响应字段 `is_new_coach`/`coach_status`，使其同时服务于用户端和教练端，但两端的账号数据独立。
+- 无（本 US 为教练端独立新增登录 capability，不修改 US-004 用户端微信授权登录行为）。
 
 ## Impact
 
 - **数据表**：`coach` 表读取/新增，`coach_session` 表新增；教练端不再使用 `user` 表或 `user_session` 表。
-- **API**：改造 1 个端点 `POST /api/v1/auth/wechat-login`（新增可选参数与响应字段）；新增 1 个端点 `GET /api/v1/coach/me/status`（需登录鉴权）。
+- **API**：新增 2 个端点 `POST /api/coach/auth/wechat-login`、`POST /api/coach/status/detail`（需登录鉴权）；不改造用户端 `/api/user/auth/wechat-login`。
 - **缓存**：复用 US-004 的 Redis 幂等缓存策略（`auth:idempotent:wechat-login:{code}`）；`coach:session_key:{coach_id}` 可选缓存 TTL 7200s。
 - **状态机**：不触发用户身份状态机；本 US 仅初始化 `coach.status = -1`（首次登录无记录时），不触发其他教练状态机转换。
 - **前端**：新增教练端小程序 1 个页面（登录页）+ 登录态路由守卫 + token 刷新/重登逻辑。

@@ -21,51 +21,53 @@ US-009 实现《用户须知》与《隐私协议》的内容管理、登录页�
 ```sql
 CREATE INDEX idx_terms_policy_current ON terms_policy(is_current, effective_at);
 CREATE INDEX idx_privacy_policy_current ON privacy_policy(is_current, effective_at);
-CREATE INDEX idx_user_terms_consent_user_id ON user_terms_consent(user_id);
-CREATE INDEX idx_user_privacy_consent_user_id ON user_privacy_consent(user_id);
+CREATE UNIQUE INDEX idx_user_terms_user_version ON user_terms_consent(user_id, version);
+CREATE UNIQUE INDEX idx_user_privacy_user_version ON user_privacy_consent(user_id, version);
 ```
 
 ## API Design
 
-### GET /api/terms-policy/current
+### POST /api/common/terms/current
 
 - 鉴权：否（游客可见）
 - Response 200: `{ version: 'v2.0', content: string, effective_at: string }`
 - Response 404: `NO_CURRENT_TERMS_POLICY`
 
-### GET /api/privacy-policy/current
+### POST /api/common/privacy/current
 
 - 鉴权：否（游客可见）
 - Response 200: `{ version: 'v2.0', content: string, effective_at: string }`
 - Response 404: `NO_CURRENT_PRIVACY_POLICY`
 
-### GET /api/user/terms/status
+### POST /api/user/terms/status
 
 - 鉴权：是
-- Response 200: `{ agreed: boolean, version: string|null, required_version: string }`
+- Response 200: `{ status: 'agreed'|'none', version: string|null, required_version: string }`
 - Response 401: `UNAUTHORIZED`
 
-### GET /api/user/privacy/status
+### POST /api/user/privacy/status
 
 - 鉴权：是
-- Response 200: `{ agreed: boolean, version: string|null, required_version: string }`
+- Response 200: `{ status: 'agreed'|'none', version: string|null, required_version: string }`
 - Response 401: `UNAUTHORIZED`
 
-### POST /api/user/terms-consent
+### POST /api/user/terms/consent
 
 - 鉴权：是
 - Request: `{ version: string }`
-- Response 200: `{ agreed: true, version: string }`
+- Response 200: `{ status: 'agreed', version: string }`
 - Response 400: `VERSION_MISMATCH`（非当前版本）
+- Response 409: `ALREADY_AGREED`（重复同意当前版本，亦可幂等返回 200）
 
-### POST /api/user/privacy-consent
+### POST /api/user/privacy/consent
 
 - 鉴权：是
 - Request: `{ version: string }`
-- Response 200: `{ agreed: true, version: string }`
+- Response 200: `{ status: 'agreed', version: string }`
 - Response 400: `VERSION_MISMATCH`（非当前版本）
+- Response 409: `ALREADY_AGREED`（重复同意当前版本，亦可幂等返回 200）
 
-> **游客态拦截**：`GET /api/user/terms/status`、`GET /api/user/privacy/status`、`POST /api/user/terms-consent`、`POST /api/user/privacy-consent` 必须登录；未登录统一返回 `401 UNAUTHORIZED`。
+> **游客态拦截**：`POST /api/user/terms/status`、`POST /api/user/privacy/status`、`POST /api/user/terms/consent`、`POST /api/user/privacy/consent` 必须登录；未登录统一返回 `401 UNAUTHORIZED`。
 
 ## State Machine
 
@@ -115,6 +117,7 @@ CREATE INDEX idx_user_privacy_consent_user_id ON user_privacy_consent(user_id);
 | US-006 | 依赖 | 手机号验证码登录成功后需记录协议同意版本 |
 | US-047 | 依赖 | 《用户须知》与《隐私协议》版本内容由 US-047 后台管理 |
 | US-051 | 依赖/被依赖 | 教练端登录成功后需校验并记录协议同意版本 |
+| US-054 | 依赖/被依赖 | 教练手机号验证码登录成功后需校验并记录协议同意版本 |
 | US-052 | 相邻 | 用户退出登录后重新登录需再次勾选协议 |
 
 ## Mapping to Source Documents

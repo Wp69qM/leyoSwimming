@@ -27,7 +27,7 @@
 
 **Spec coverage:** REQ-001 Scenario "已离职教练登录后自动进入 US-010 重新入驻"
 
-- [ ] **RED:** Write 2 failing tests — status=3 教练调用 `POST /api/coach/application` 创建 `previous_coach_status=3` 的 pending 快照；status=3 教练保存草稿后 coach.status 仍为 3
+- [ ] **RED:** Write 2 failing tests — status=3 教练调用 `POST /api/coach/application/submit` 创建 `previous_coach_status=3` 的 pending 快照；status=3 教练调用 `POST /api/coach/application/save-draft` 保存草稿后 coach.status 仍为 3
 - [ ] **GREEN:** Reuse US-010 submission/draft endpoints for reapply (no new endpoint)
 - [ ] **COMMIT:** `feat(coach): reapply submission via US-010 application endpoint`
 
@@ -39,7 +39,7 @@
 
 **Spec coverage:** REQ-002 Scenario "管理员通过重新入驻", REQ-005 Scenario "重新入驻审核被拒绝"
 
-- [ ] **RED:** Write 3 failing tests — `POST /api/admin/coach/applications/{id}/approve` 对 `previous_coach_status=3` 的申请通过后 coach.status=1；`POST /api/admin/coach/applications/{id}/reject` 对 `previous_coach_status=3` 的申请拒绝后 coach.status=3；coach 表生效资料在拒绝前后保持不变
+- [ ] **RED:** Write 3 failing tests — `POST /api/admin/coach/application/approve`（请求体含 applicationId）对 `previous_coach_status=3` 的申请通过后 coach.status=1；`POST /api/admin/coach/application/reject`（请求体含 applicationId、reason）对 `previous_coach_status=3` 的申请拒绝后 coach.status=3；coach 表生效资料在拒绝前后保持不变
 - [ ] **GREEN:** Reuse US-011 review endpoints for reapply approval/rejection
 - [ ] **COMMIT:** `feat(admin): reapply review via US-011 audit endpoints`
 

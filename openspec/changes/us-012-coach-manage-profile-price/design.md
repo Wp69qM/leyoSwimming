@@ -12,8 +12,8 @@ US-012 让通过入驻审核的教练维护个人主页信息与参考单价。�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `coach` | UPDATE | `bio`、`teaching_years`、`phone`、`qr_code_url`、`reference_price`、`price_changed_at`、`price_change_count_today` |
-| `coach_certificate` | INSERT/UPDATE/DELETE | `certificate_id`、`coach_id`、`image_url`、`sort_order`、`created_at` |
+| `coach` | UPDATE | `name`、`gender`、`age`、`email`、`wechat_qr_url`、`teaching_years`、`teaching_strokes`、`bio`、`reference_price`、`price_changed_at`、`price_change_count_today` |
+| `coach_certificate` | INSERT/UPDATE/DELETE | `cert_id`、`coach_id`、`image_url`、`sort_order`、`created_at` |
 | `coach_update_log` | INSERT | `log_id`、`coach_id`、`field_name`、`old_value`、`new_value`、`created_at` |
 
 ### 索引
@@ -28,24 +28,24 @@ CREATE INDEX idx_coach_update_log_coach_id ON coach_update_log(coach_id);
 
 ## API Design
 
-### GET /api/coach/profile
+### POST /api/coach/profile/detail
 
 - 鉴权：是（需教练登录态且 `coach.status = 1`）
-- Request: 无
-- Response 200: `{ coach_id, bio, teaching_years, phone, qr_code_url, reference_price, certificates: [...] }`
+- Request: 空 JSON body（`{}`）
+- Response 200: `{ coach_id, name, gender, age, email, phone, wechat_qr_url, teaching_years, teaching_strokes, bio, reference_price, portrait_url, certificates: [...] }`
 - Response 403: `COACH_STATUS_NOT_ALLOWED`（教练未通过审核）
 
-### PUT /api/coach/profile
+### POST /api/coach/profile/update
 
 - 鉴权：是（需教练登录态且 `coach.status = 1`）
-- Request: `{ bio?: string, teaching_years?: number, phone?: string, qr_code_url?: string, certificates?: [{ image_url, sort_order }] }`
-- Response 200: `{ coach_id, bio, teaching_years, phone, qr_code_url, certificates }`
+- Request: `{ name?: string, gender?: number, age?: number, email?: string, wechat_qr_url?: string, portrait_url?: string, teaching_years?: number, teaching_strokes?: string[], bio?: string, certificates?: [{ image_url, sort_order }] }`
+- Response 200: `{ coach_id, name, gender, age, email, wechat_qr_url, portrait_url, teaching_years, teaching_strokes, bio, certificates }`
 - Response 400: `SENSITIVE_CONTENT`（简介含敏感词）
 - Response 400: `IMAGE_TOO_LARGE`（证书图片超过 5MB）
 - Response 400: `INVALID_IMAGE_FORMAT`（图片格式非 JPG/PNG）
 - Response 403: `COACH_STATUS_NOT_ALLOWED`（教练状态异常）
 
-### PUT /api/coach/reference-price
+### POST /api/coach/reference-price/update
 
 - 鉴权：是（需教练登录态且 `coach.status = 1`）
 - Request: `{ reference_price: number }`
@@ -86,7 +86,7 @@ coach.status = 1（已通过） ──[本 US 读写资料/单价]──→ coac
 
 ## Security
 
-- `PUT /api/coach/profile` 与 `PUT /api/coach/reference-price` 必须教练登录鉴权
+- `POST /api/coach/profile/update` 与 `POST /api/coach/reference-price/update` 必须教练登录鉴权
 - 后端强校验 `coach.status = 1`，防止状态异常教练修改资料
 - 个人简介敏感词过滤，防止违规内容展示
 - 参考单价后端校验 50-2000 元范围，禁止前端绕过

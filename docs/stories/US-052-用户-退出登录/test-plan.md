@@ -45,13 +45,13 @@
 import request from 'supertest';
 import { app } from '../../src/app';
 
-describe('POST /api/v1/auth/logout', () => {
+describe('POST /api/user/auth/logout', () => {
   it('场景 1: 正常退出使当前 refresh_token 失效', async () => {
     const accessToken = 'valid_access_token';
     const refreshToken = 'valid_refresh_token';
 
     const res = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/user/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
@@ -60,14 +60,14 @@ describe('POST /api/v1/auth/logout', () => {
 
     // 验证 refresh_token 已失效
     const refreshRes = await request(app)
-      .post('/api/v1/auth/refresh')
+      .post('/api/user/auth/refresh')
       .send({ refreshToken });
     expect(refreshRes.status).toBe(401);
   });
 
   it('场景 3: access_token 无效时返回 401', async () => {
     const res = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/user/auth/logout')
       .set('Authorization', 'Bearer invalid_token')
       .send({ refreshToken: 'any' });
 
@@ -80,12 +80,12 @@ describe('POST /api/v1/auth/logout', () => {
     const refreshToken = 'valid_refresh_token';
 
     const first = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/user/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
     const second = await request(app)
-      .post('/api/v1/auth/logout')
+      .post('/api/user/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
@@ -139,10 +139,11 @@ export async function logout(ctx) {
     await sessionService.revoke(refreshToken);
   }
 
-  ctx.body = { message: '退出登录成功' };
+  ctx.body = { code: 0, message: '退出登录成功', data: null };
 }
 
 // backend/src/routes/auth.ts
+const router = new Router({ prefix: '/api/user/auth' });
 router.post('/logout', logout);
 ```
 
@@ -155,7 +156,7 @@ Expected: PASS（3 个测试全过）
 
 ```bash
 git add backend/src/controllers/auth.ts backend/src/routes/auth.ts backend/src/services/session.ts backend/tests/controllers/logout.test.ts
-git commit -m "feat(auth): add POST /auth/logout endpoint to revoke session"
+git commit -m "feat(user): add POST /api/user/auth/logout endpoint to revoke session"
 ```
 
 ---
@@ -201,7 +202,7 @@ describe('MinePage logout', () => {
     await waitFor(() => {
       expect(Taro.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining('/api/v1/auth/logout'),
+          url: expect.stringContaining('/api/user/auth/logout'),
           method: 'POST',
         })
       );
@@ -287,7 +288,7 @@ export default function MinePage() {
     if (accessToken) {
       try {
         await Taro.request({
-          url: `${API_BASE}/api/v1/auth/logout`,
+          url: `${API_BASE}/api/user/auth/logout`,
           method: 'POST',
           header: { Authorization: `Bearer ${accessToken}` },
           data: {

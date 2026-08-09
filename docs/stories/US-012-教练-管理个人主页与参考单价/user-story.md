@@ -1,10 +1,10 @@
 # US-012 教练管理个人主页与参考单价
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[§13](#13-figma-链接)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -178,10 +178,10 @@ And   页面展示更新时间或"刚刚更新"标识
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/coach/profile | GET | 新增 | 获取教练个人主页完整资料，包含基础信息、实名与资质（只读）、教学履历、服务设置 |
-| 2 | /api/coach/profile | PUT | 新增 | 更新个人主页可编辑字段：`name`、`gender`、`age`、`email`、`wechat_qr_url`、个人形象照 URL、`teaching_years`、`teaching_strokes`、`bio` |
-| 3 | /api/coach/reference-price | PUT | 新增 | 更新参考单价，范围 50-2000 元/节 |
-| 4 | /api/upload/image | POST | 新增 | 上传个人形象照/微信二维码图片（JPG/PNG，≤5MB）|
+| 1 | /api/coach/profile/detail | POST | 新增 | 获取教练个人主页完整资料，包含基础信息、实名与资质（只读）、教学履历、服务设置 |
+| 2 | /api/coach/profile/update | POST | 新增 | 更新个人主页可编辑字段：`name`、`gender`、`age`、`email`、`wechat_qr_url`、个人形象照 URL、`teaching_years`、`teaching_strokes`、`bio` |
+| 3 | /api/coach/reference-price/update | POST | 新增 | 更新参考单价，范围 50-2000 元/节 |
+| 4 | /api/common/file/upload | POST | 新增 | 上传个人形象照/微信二维码图片（JPG/PNG，≤5MB）|
 
 ### 7.3 状态机影响
 
@@ -277,11 +277,11 @@ And   页面展示更新时间或"刚刚更新"标识
 
 ## 13. Figma 链接
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 个人主页编辑页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 参考单价设置页 frame node-id | 🔲 待设计填写 | 🔲 |
-| 3 | 学员端教练详情页 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 个人主页编辑页 | [C-profile-edit-page.md](../../figma/page-spec/C-profile-edit-page.md) | ✅ |
+| 2 | 参考单价设置页 | [C-reference-price-page.md](../../figma/page-spec/C-reference-price-page.md) | ✅ |
+| 3 | 学员端教练详情页（共享） | [U-coach-detail-page.md](../../figma/page-spec/U-coach-detail-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

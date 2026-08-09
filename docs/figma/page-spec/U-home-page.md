@@ -23,6 +23,14 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 游客版 | U-首页-游客版-v5 2 | https://www.calicat.cn/design/2083742072257646592?node-id=11a13dac-ea24-4b1f-bc90-502ebf0f4294 |
+| 学员版 | U-首页-学员版-v5 | https://www.calicat.cn/design/2083742072257646592?node-id=209a9a06-91dd-41ae-b6ca-984a15d08b93 |
+
+---
 ## 2. 用户身份与页面分区
 
 ### 2.1 三种身份（PRD §3.1）

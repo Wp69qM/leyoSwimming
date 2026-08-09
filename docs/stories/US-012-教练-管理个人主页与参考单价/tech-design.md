@@ -10,7 +10,7 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `coach` | 修改 | bio、reference_price、teaching_years、phone、qr_code_url |
+| `coach` | 修改 | bio、reference_price、teaching_years、phone、wechat_qr_url |
 | `coach_certificate` | 新增/修改/删除 | 证书图片 |
 | `coach_update_log` | 新增 | 变更历史 |
 
@@ -24,7 +24,7 @@
 | `bio` | TEXT | 可空 | 个人简介 |
 | `teaching_years` | INT | 非空 | 任教年限 |
 | `phone` | VARCHAR(16) | 可空 | 手机号 |
-| `qr_code_url` | VARCHAR(512) | 可空 | 微信二维码 |
+| `wechat_qr_url` | VARCHAR(512) | 可空 | 微信二维码 |
 | `reference_price` | DECIMAL(10,2) | 非空 | 参考单价 |
 | `price_changed_at` | DATETIME | 可空 | 上次改价时间 |
 | `price_change_count_today` | INT | 默认 0 | 今日改价次数 |
@@ -46,12 +46,22 @@
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
-| `/api/coach/profile` | GET | 获取个人主页 |
-| `/api/coach/profile` | PUT | 更新个人主页 |
-| `/api/coach/reference-price` | PUT | 更新参考单价 |
-| `/api/upload/image` | POST | 上传图片 |
+| `/api/coach/profile/detail` | POST | 获取个人主页 |
+| `/api/coach/profile/update` | POST | 更新个人主页 |
+| `/api/coach/reference-price/update` | POST | 更新参考单价 |
+| `/api/common/file/upload` | POST | 上传图片 |
 
-### 2.1 PUT /api/coach/reference-price
+### 2.1 POST /api/coach/profile/update
+
+- **请求体**：`{ "name", "gender", "age", "email", "wechat_qr_url", "portrait_url", "teaching_years", "teaching_strokes", "bio" }`（允许部分字段）
+- **响应体**：`{ "code": 0, "data": { ...更新后的 coach 字段 } }`
+- **错误码**：
+  - `INVALID_IMAGE_FORMAT`（400406）
+  - `IMAGE_TOO_LARGE`（400405）
+  - `SENSITIVE_CONTENT`（400407）
+  - `COACH_STATUS_NOT_ALLOWED`（403）
+
+### 2.2 POST /api/coach/reference-price/update
 
 - **请求体**：
   ```json

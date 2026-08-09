@@ -8,7 +8,7 @@
 
 ### Requirement: REQ-001 手机号验证码登录
 
-系统 MUST 提供 `POST /api/auth/login/phone` 接口，供用户使用手机号和短信验证码登录。系统 MUST 校验手机号格式、`termsAccepted=true` 且 `privacyAccepted=true`、验证码是否存在且未过期、验证码未被使用过。系统 MUST 在登录成功后签发 JWT `access_token` + `refresh_token`，返回 `expires_in`、`is_new_user`、`profile_completed`、`user_id`；前端 MUST 将 token 存储到本地并在后续请求中通过 `Authorization: Bearer {access_token}` 携带；后端 MUST 校验 token 有效后方可访问受保护接口。系统 MUST 更新 `user.last_login_at`、记录 `user_login_log`。系统 MUST 在未勾选协议时返回 `TERMS_NOT_ACCEPTED`。系统 MUST 在验证码错误或过期时返回 `INVALID_SMS_CODE`。系统 MUST 在手机号未注册或手机号存在但 `status=1`（已注销）且验证码正确时，按 PRD §5.2.1 第 4 条重新创建用户记录，`identity_status='注册用户'`，`profile_completed=false`，且不绑定原账号数据。
+系统 MUST 提供 `POST /api/user/auth/phone-login` 接口，供用户使用手机号和短信验证码登录。系统 MUST 校验手机号格式、`terms_accepted=true` 且 `privacy_accepted=true`、验证码是否存在且未过期、验证码未被使用过。系统 MUST 在登录成功后签发 JWT `accessToken` + `refreshToken`，返回 `expiresIn`、`isNewUser`、`profileCompleted`、`userId`；前端 MUST 将 token 存储到本地并在后续请求中通过 `Authorization: Bearer {accessToken}` 携带；后端 MUST 校验 token 有效后方可访问受保护接口。系统 MUST 更新 `user.last_login_at`、记录 `user_login_log`。系统 MUST 在未勾选协议时返回 `TERMS_NOT_ACCEPTED`。系统 MUST 在验证码错误或过期时返回 `INVALID_SMS_CODE`。系统 MUST 在手机号未注册或手机号存在但 `status=1`（已注销）且验证码正确时，按 PRD §5.2.1 第 4 条重新创建用户记录，`identity_status='注册用户'`，`profile_completed=false`，且不绑定原账号数据。
 
 #### Scenario: 已注册手机号验证码登录成功
 - **GIVEN** 用户已注册且手机号 13800138000 状态正常
@@ -70,27 +70,28 @@
 - **AND** 原注销账号数据不被新账号访问或绑定
 
 #### Scenario: 登录成功后存储 token 并用其维持登录态
+
 - **GIVEN** 用户已完成手机号验证码登录
-- **AND** 后端返回 `access_token`、`refresh_token` 和 `expires_in = 7200`
+- **AND** 后端返回 `accessToken`、`refreshToken` 和 `expiresIn = 7200`
 - **WHEN** 前端收到登录响应
-- **THEN** 前端将 `access_token` 和 `refresh_token` 写入本地存储
-- **AND** 前端记录 `access_token` 过期时间
+- **THEN** 前端将 `accessToken` 和 `refreshToken` 写入本地存储
+- **AND** 前端记录 `accessToken` 过期时间
 - **WHEN** 用户访问受登录态保护的接口（如「我的」页面）
-- **THEN** 前端在 Authorization Header 中携带 `Bearer {access_token}`
+- **THEN** 前端在 Authorization Header 中携带 `Bearer {accessToken}`
 - **AND** 后端校验 token 有效后返回用户数据
-- **WHEN** `access_token` 过期但 `refresh_token` 未过期
-- **THEN** 前端调用刷新接口换取新的 `access_token`
-- **AND** 后续请求使用新的 `access_token`
-- **WHEN** 本地 token 不存在或 `refresh_token` 已过期
+- **WHEN** `accessToken` 过期但 `refreshToken` 未过期
+- **THEN** 前端调用刷新接口换取新的 `accessToken`
+- **AND** 后续请求使用新的 `accessToken`
+- **WHEN** 本地 token 不存在或 `refreshToken` 已过期
 - **THEN** 前端引导用户重新进入登录页
 
 ### Requirement: REQ-002 登录验证码发送
 
-系统 MUST 提供 `POST /api/auth/sms/code` 接口发送登录验证码。系统 MUST 校验手机号格式。系统 MUST 将 6 位数字验证码、TTL 5 分钟写入 `sms_code` 表。系统 MUST 对同一手机号 60 秒内只能发送 1 条验证码。
+系统 MUST 提供 `POST /api/common/sms/send` 接口发送登录验证码。系统 MUST 校验手机号格式。系统 MUST 将 6 位数字验证码、TTL 5 分钟写入 `sms_code` 表（手机号以 `phone_hash` 形式存储）。系统 MUST 对同一手机号 60 秒内只能发送 1 条验证码。
 
 #### Scenario: 成功发送登录验证码
 - **GIVEN** 用户手机号 13800138000
-- **WHEN** 用户调用 `POST /api/auth/sms/code`
+- **WHEN** 用户调用 `POST /api/common/sms/send`
 - **THEN** 返回 HTTP 200
 - **AND** `sms_code` 表新增一条记录，code 为 6 位数字
 - **AND** `expires_at` 为当前时间 + 5 分钟

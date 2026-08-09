@@ -61,8 +61,8 @@ And   系统不生成 token
 Given 管理员已成功登录后台管理系统
 When  管理员点击右上角管理员名字
 And   点击下拉菜单中的「退出登录」
-Then  系统调用 POST /api/v1/admin/auth/logout
+Then  系统调用 POST /api/admin/auth/logout
 And   当前 admin_session 被标记为失效
-And   前端清除 admin_access_token、admin_refresh_token 及 admin_user
+And   前端清除 admin_token 及 admin_user
 And   页面跳转回管理员登录页
 ```

@@ -1,10 +1,10 @@
 # US-040 教练重新入驻
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[§13](#13-figma-链接)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -159,10 +159,10 @@ And   表单回显 coach_application 快照内容，教练可再次编辑提交
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | （无新增教练端入口 API） | — | — | 重新入驻入口由 US-051 / US-054 登录状态分流提供；实际资料填写与提交复用 US-010 的 `POST /api/coach/application` 与 `PUT /api/coach/application/draft`；审核复用 US-011 的 `POST /api/admin/coach/applications/{application_id}/approve` / `/reject` |
-| 2 | `/api/coach/v1/reapply/status` | GET | 可选 | 查询重新入驻审核状态；如复用 US-011 审核接口，可删除 |
-| 3 | `/api/admin/coach/applications/{application_id}/approve` | POST | 复用 US-011 | 管理员通过重新入驻；coach_application 快照覆盖 coach 表，coach.status: 0 → 1 |
-| 4 | `/api/admin/coach/applications/{application_id}/reject` | POST | 复用 US-011 | 管理员拒绝重新入驻；coach.status: 0 → 3，coach_application 标记 rejected |
+| 1 | （无新增教练端入口 API） | — | — | 重新入驻入口由 US-051 / US-054 登录状态分流提供；实际资料填写与提交复用 US-010 的 `POST /api/coach/application/submit` 与 `POST /api/coach/application/save-draft`；审核复用 US-011 的 `POST /api/admin/coach/application/approve` / `/reject` |
+| 2 | `/api/coach/reapply/detail` | POST | 可选 | 查询重新入驻审核状态；如复用 US-011 审核接口，可删除 |
+| 3 | `/api/admin/coach/application/approve` | POST | 复用 US-011 | 管理员通过重新入驻；请求体含 `applicationId`；coach_application 快照覆盖 coach 表，coach.status: 0 → 1 |
+| 4 | `/api/admin/coach/application/reject` | POST | 复用 US-011 | 管理员拒绝重新入驻；请求体含 `applicationId`、`reason`；coach.status: 0 → 3，coach_application 标记 rejected |
 
 ### 7.3 状态机影响
 
@@ -264,10 +264,11 @@ And   表单回显 coach_application 快照内容，教练可再次编辑提交
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | C-入驻资料填写页（status=3 重新入驻说明条状态）Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
-| 2 | 管理员后台重新入驻审核列表/详情页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 入驻资料填写页（重新入驻状态） | [C-coach-onboarding-page.md](../../figma/page-spec/C-coach-onboarding-page.md) | ✅ |
+| 2 | 教练入驻审核队列页 | [A-coach-audit-queue-page.md](../../figma/page-spec/A-coach-audit-queue-page.md) | ✅ |
+| 3 | 教练入驻审核详情页 | [A-coach-audit-detail-page.md](../../figma/page-spec/A-coach-audit-detail-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

@@ -1,7 +1,7 @@
 # Tasks: coach-phone-login
 
 ## Task 1: 发送短信验证码接口 RED
-- 编写失败测试：`POST /api/v1/auth/coach/sms/code` 在手机号格式错误时返回 400。
+- 编写失败测试：`POST /api/common/sms/send` 在手机号格式错误时返回 400。
 - 运行测试确认失败。
 
 ## Task 2: 发送短信验证码接口 GREEN

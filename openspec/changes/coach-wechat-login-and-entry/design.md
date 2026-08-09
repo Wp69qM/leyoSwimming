@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-051 是教练端小程序的入口 US。核心是为 `POST /api/v1/auth/wechat-login` 增加 `app_type=coach` 分支，此时后端直接查询/写入 `coach` 表与 `coach_session` 表，不再读/写 `user` 表或 `user_session` 表；登录成功后返回 `coach.status`，由前端映射跳转目标页，实现入驻状态分流。教练端没有游客身份，也没有 `profile_completed` 概念。
+US-051 是教练端小程序的入口 US。核心是新增 `POST /api/coach/auth/wechat-login` 接口，后端直接查询/写入 `coach` 表与 `coach_session` 表，不读/写 `user` 表或 `user_session` 表；登录成功后返回 `coach.status`，由前端映射跳转目标页，实现入驻状态分流。教练端没有游客身份，也没有 `profile_completed` 概念。
 
 ## Data Model
 
@@ -22,9 +22,9 @@ US-051 是教练端小程序的入口 US。核心是为 `POST /api/v1/auth/wecha
 | `-1` | 未提交入驻资料 | 入驻资料页 |
 | `0` | 待审核 | 等待审核页 |
 | `1` | 已通过 | 教练首页 |
-| `2` | 已驳回 | 重新提交入驻页 |
-| `3` | 已离职 | 重新入驻页 |
-| `4` | 申请离职中 | 离职处理中页 |
+| `2` | 已驳回 | 入驻资料填写页（US-010，顶部展示驳回原因条） |
+| `3` | 已离职 | 入驻资料填写页（US-010，顶部展示重新入驻说明条） |
+| `4` | 申请离职中 | 教练首页；「我的」页面提供「查看离职申请」入口，教练可主动进入离职处理中页（US-039），不强制跳转 |
 
 ### 索引
 
@@ -44,11 +44,11 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 
 ## API Design
 
-### 改造：POST /api/v1/auth/wechat-login
+### POST /api/coach/auth/wechat-login
 
 - 鉴权：否（登录入口）
 - 幂等：是（以 `code` 为键，5 分钟内有效）
-- Request (`app_type=coach`):
+- Request:
   ```json
   {
     "code": "string",
@@ -59,7 +59,7 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
     "app_type": "coach"
   }
   ```
-- Response 200 (`app_type=coach`):
+- Response 200:
   ```json
   {
     "access_token": "string",
@@ -69,17 +69,16 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
     "coach_status": -1
   }
   ```
-- Response 200 (`app_type=user`）：与 US-004 保持一致，不含 `is_new_coach`/`coach_status`
 - Response 400: `VALIDATION_ERROR`（缺少字段或非法 app_type）
 - Response 400: `TERMS_NOT_ACCEPTED`（协议未勾选）
 - Response 401: `WECHAT_CODE_INVALID`
 - Response 502: `WECHAT_API_ERROR`
 - Response 504: `WECHAT_API_TIMEOUT`
 
-### 新增：GET /api/v1/coach/me/status
+### POST /api/coach/status/detail
 
 - 鉴权：是（需有效 access_token）
-- Request: 无
+- Request: `{}`
 - Response 200:
   ```json
   {
@@ -94,12 +93,12 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 前端在本地维护 `coach_status` 到目标页面的映射，后端不再返回 `redirect_page`：
 
 ```
-coach_status: -1 → 入驻资料页
+coach_status: -1 → 入驻资料页（US-010）
              0 → 等待审核页
              1 → 教练首页
-             2 → 重新提交入驻页
-             3 → 重新入驻页
-             4 → 离职处理中页
+             2 → 入驻资料填写页（US-010，顶部展示驳回原因条）
+             3 → 入驻资料填写页（US-010，顶部展示重新入驻说明条）
+             4 → 教练首页；「我的」页面提供「查看离职申请」入口，教练可主动进入离职处理中页（US-039），不强制跳转
 ```
 
 ## State Machine
@@ -119,7 +118,7 @@ coach_status: -1 → 入驻资料页
 ```
 教练端小程序 → 勾选协议 → wx.login() → code
            → wx.getPhoneNumber() → encryptedData + iv
-           → POST /auth/wechat-login { code, encryptedData, iv, terms_accepted, privacy_accepted, app_type='coach' }
+           → POST /api/coach/auth/wechat-login { code, encryptedData, iv, terms_accepted, privacy_accepted, app_type='coach' }
 后端 → 校验协议勾选
    → 校验 app_type='coach'
    → code2session(code) → openid + union_id + session_key
@@ -158,7 +157,7 @@ coach_status: -1 → 入驻资料页
 
 - `app_type` 白名单校验，非法值返回 400。
 - `session_key` 绝不返回前端。
-- `GET /api/v1/coach/me/status` 必须登录鉴权。
+- `POST /api/coach/status/detail` 必须登录鉴权。
 - 协议勾选后端二次校验。
 - 防刷：同一 IP 1 分钟 > 30 次 → 429。
 

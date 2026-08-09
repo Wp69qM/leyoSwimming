@@ -134,12 +134,12 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
-| `/api/coach/application` | POST | 提交入驻资料 |
-| `/api/coach/application/draft` | PUT | 保存草稿 |
-| `/api/coach/application` | GET | 查询当前入驻资料（完整字段 + 证书列表）|
-| `/api/upload/image` | POST | 通用图片上传 |
+| `/api/coach/application/submit` | POST | 提交入驻资料 |
+| `/api/coach/application/save-draft` | POST | 保存草稿 |
+| `/api/coach/application/detail` | POST | 查询当前入驻资料（完整字段 + 证书列表）|
+| `/api/common/file/upload` | POST | 通用图片上传 |
 
-### 2.2 POST /api/coach/application
+### 2.2 POST /api/coach/application/submit
 
 - **鉴权**：教练端登录态（需 US-051/US-054 登录态）
 - **请求体**：
@@ -192,10 +192,10 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
   - 更新 `coach.status = 0`、`coach.submitted_at = now`；coach 表生效资料此时**不更新**，等待 US-011 审核通过后再覆盖。
   - 写入 `coach_audit_log`：`action='submit'`、`from_status=previous_coach_status`、`to_status=0`。
 
-### 2.3 PUT /api/coach/application/draft
+### 2.3 POST /api/coach/application/save-draft
 
 - **鉴权**：教练端登录态
-- **请求体**：同 POST /api/coach/application（允许部分字段）
+- **请求体**：同 POST /api/coach/application/submit（允许部分字段）
 - **响应体 200**：
   ```json
   {
@@ -214,7 +214,7 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
   - `coach.status = -1/2/3` 的教练保存草稿时，coach.status 均保持不变；草稿数据仅写入 coach_application 快照。
   - `coach.status = 3` 的教练重新入驻时复用原 coach 记录，历史数据不回滚、不隔离。
 
-### 2.4 GET /api/coach/application
+### 2.4 POST /api/coach/application/detail
 
 - **鉴权**：教练端登录态
 - **响应体 200**：
@@ -258,7 +258,7 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
   - `entry_type` 枚举：`draft`（status=draft）、`first`（status=pending 且 previous_coach_status=-1）、`rejected`（coach.status=2，最新 application 为 rejected）、`reapply`（coach.status=3，最新 application 为 rejected 或 pending previous_coach_status=3）。
   - `prompt_message`：coach.status=2 时返回最新 rejected application 的 `rejection_reason`；coach.status=3 时返回固定重新入驻说明文案；其他状态返回 `null`。
 
-### 2.5 POST /api/upload/image
+### 2.5 POST /api/common/file/upload
 
 - **鉴权**：教练端登录态
 - **请求体**：`multipart/form-data`，字段名 `file`
@@ -359,5 +359,5 @@ pending 待审核 ──[管理员驳回]──→ rejected 已驳回
 |------|------|------|
 | v1.0 | 2026-07-30 | 初版 |
 | v1.1 | 2026-07-31 | 新增 `submitted_at` 字段，区分草稿与已提交 |
-| v2.1 | 2026-08-05 | 已离职教练（status=3）重新入驻与 US-010 合并；GET /api/coach/application 响应新增 `entry_type` 与 `prompt_message`；状态机增加 3 → 0 转换；明确历史数据不复用隔离 |
+| v2.1 | 2026-08-05 | 已离职教练（status=3）重新入驻与 US-010 合并；POST /api/coach/application/detail 响应新增 `entry_type` 与 `prompt_message`；状态机增加 3 → 0 转换；明确历史数据不复用隔离 |
 | v2.0 | 2026-08-05 | 按字段设计补全 coach/coach_certificate 全部字段；新增身份证、图片、参考单价等错误码；明确 GET 接口返回完整资料；新增 `cert_type` 枚举与状态机 -1 初始态 |

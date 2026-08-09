@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 教练获取与更新个人主页
 
-系统 MUST 提供 `GET /api/coach/profile` 接口，供已登录且 `coach.status = 1` 的教练查询个人主页信息。系统 MUST 提供 `PUT /api/coach/profile` 接口，供已登录且 `coach.status = 1` 的教练更新个人主页字段，包括 `bio`、`teaching_years`、`phone`、`qr_code_url` 与证书图片列表。系统 MUST 校验个人简介不含敏感词，证书图片大小不超过 5MB 且格式为 JPG/PNG。系统 MUST 在更新成功后立即失效教练详情缓存与教练列表缓存，并写入 `coach_update_log` 记录变更前后值。系统 MUST 拒绝 `coach.status ≠ 1` 的教练调用，返回 `COACH_STATUS_NOT_ALLOWED`。
+系统 MUST 提供 `POST /api/coach/profile/detail` 接口，供已登录且 `coach.status = 1` 的教练查询个人主页信息。系统 MUST 提供 `POST /api/coach/profile/update` 接口，供已登录且 `coach.status = 1` 的教练更新个人主页字段，包括 `name`、`gender`、`age`、`email`、`wechat_qr_url`、`portrait_url`、`teaching_years`、`teaching_strokes`、`bio` 与证书图片列表。系统 MUST 校验个人简介不含敏感词，证书图片大小不超过 5MB 且格式为 JPG/PNG。系统 MUST 在更新成功后立即失效教练详情缓存与教练列表缓存，并写入 `coach_update_log` 记录变更前后值。系统 MUST 拒绝 `coach.status ≠ 1` 的教练调用，返回 `COACH_STATUS_NOT_ALLOWED`。
 
 #### Scenario: 正常更新个人主页
 
@@ -57,7 +57,7 @@ And   coach.bio 保持不变
 
 ### Requirement: REQ-002 教练更新参考单价
 
-系统 MUST 提供 `PUT /api/coach/reference-price` 接口，供已登录且 `coach.status = 1` 的教练更新一节课的参考单价。系统 MUST 校验参考单价在 50-2000 元之间（含边界）。系统 MUST 限制每位教练每天最多修改 3 次参考单价，超过次数返回 `PRICE_CHANGE_LIMIT`。系统 MUST 在更新成功后更新 `coach.reference_price`、`price_changed_at` 与 `price_change_count_today`，立即失效教练详情缓存与教练列表缓存。系统 MUST 保证参考单价变更不影响已购套餐价格，仅影响新购套餐的价格基准。
+系统 MUST 提供 `POST /api/coach/reference-price/update` 接口，供已登录且 `coach.status = 1` 的教练更新一节课的参考单价。系统 MUST 校验参考单价在 50-2000 元之间（含边界）。系统 MUST 限制每位教练每天最多修改 3 次参考单价，超过次数返回 `PRICE_CHANGE_LIMIT`。系统 MUST 在更新成功后更新 `coach.reference_price`、`price_changed_at` 与 `price_change_count_today`，立即失效教练详情缓存与教练列表缓存。系统 MUST 保证参考单价变更不影响已购套餐价格，仅影响新购套餐的价格基准。
 
 #### Scenario: 正常更新参考单价
 

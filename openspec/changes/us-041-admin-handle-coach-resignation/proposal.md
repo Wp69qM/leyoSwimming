@@ -29,7 +29,7 @@
 
 ## Impact
 
-- 后端：新增 `/api/admin/v1/resignation-tickets/*` 系列接口、checklist 校验服务、批量更新事务与审计日志
+- 后端：新增 `POST /api/admin/coach/resignation-ticket/list`、`POST /api/admin/coach/resignation-ticket/detail`、`POST /api/admin/coach/resignation-ticket/approve`、`POST /api/admin/coach/resignation-ticket/reject` 系列接口、checklist 校验服务、批量更新事务与审计日志
 - 管理端 Web：新增离职审批队列页、工单详情页、审批确认弹窗
 - 依赖：US-039（教练申请离职）、US-014（教练管理可约时段）
 - 输出：US-040（教练重新入驻）、US-027/US-028（frozen package 退款）

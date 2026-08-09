@@ -2,7 +2,7 @@
 
 ### Requirement: REQ-001 Admin shall view pending resignation tickets
 
-The system MUST provide an admin interface to list and view details of resignation tickets awaiting audit.
+The system MUST provide `POST /api/admin/coach/resignation-ticket/list` and `POST /api/admin/coach/resignation-ticket/detail` (request body `{ ticketId }`) interfaces to list and view details of resignation tickets awaiting audit.
 
 #### Scenario: List pending audit queue
 

@@ -6,9 +6,10 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求入驻资质需管理员审核；[
 
 ## What Changes
 
-- 新增 `GET /api/admin/coach/applications` 接口（待审核列表，仅返回 `coach_application.status = pending` 的快照记录，避免草稿进入审核队列）
-- 新增 `POST /api/admin/coach/applications/{application_id}/approve` 接口（审核通过；将 `coach_application` 快照字段覆盖写入 `coach` 表，将 `coach_certificate_application` 快照覆盖写入 `coach_certificate` 表）
-- 新增 `POST /api/admin/coach/applications/{application_id}/reject` 接口（审核驳回；`coach.status` 恢复为 `coach_application.previous_coach_status`：-1→2，2→2，3→3）
+- 新增 `POST /api/admin/coach/application/list` 接口（待审核列表，仅返回 `coach_application.status = pending` 的快照记录，避免草稿进入审核队列）
+- 新增 `POST /api/admin/coach/application/detail` 接口（审核详情；请求体 `{ applicationId }`）
+- 新增 `POST /api/admin/coach/application/approve` 接口（审核通过；将 `coach_application` 快照字段覆盖写入 `coach` 表，将 `coach_certificate_application` 快照覆盖写入 `coach_certificate` 表）
+- 新增 `POST /api/admin/coach/application/reject` 接口（审核驳回；`coach.status` 恢复为 `coach_application.previous_coach_status`：-1→2，2→2，3→3）
 - 修改 `coach` 表：`status`、`approved_at`；**不在 `coach` 表存储 `rejection_reason`**
 - 修改 `coach_application` 表：`status` pending → approved/rejected，`approved_at`、`approved_by`、`rejection_reason`
 - 新增 `coach_audit_log` 表记录审核结果
@@ -31,7 +32,7 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求入驻资质需管理员审核；[
 ## Impact
 
 - **数据表**：修改 `coach_application` 与 `coach`；新增 `coach_audit_log`；新增 `notification`；读取 `coach_certificate_application` 快照并覆盖写入 `coach_certificate`
-- **API**：新增 3 个端点（待审核列表、通过、驳回）
+- **API**：新增 4 个端点（待审核列表、审核详情、通过、驳回）
 - **缓存**：新增 Redis key `admin:coach:applications`（TTL 1min）；审核后清除 `coach:{coach_id}`
 - **状态机**：触发教练状态机 `待审核(0) → 已通过(1)` 或 `待审核(0) → previous_coach_status`；`coach_application` 状态机 `pending → approved/rejected`
 - **前端**：新增 Web 管理后台"教练审核列表页"、"审核详情页"

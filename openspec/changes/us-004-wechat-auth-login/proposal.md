@@ -6,7 +6,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录，首次�
 
 ## What Changes
 
-- 新增 `POST /api/v1/auth/wechat-login` 接口（接收微信 `code`，调用 `code2session`，查询/创建用户，签发 JWT）
+- 新增 `POST /api/user/auth/wechat-login` 接口（接收微信 `code`，调用 `code2session`，查询/创建用户，签发 JWT）
 - 接口接收 `app_type` 字段以区分用户端/教练端登录；用户端小程序必须显式提交 `app_type='user'`，后端按该字段路由到 `user` 表
 - 接口接收并校验 `terms_accepted` 和 `privacy_accepted` 标志，均为 `true` 才允许继续登录流程
 - 新增 `user` 表写入：首次登录时创建用户记录（`openid`、`union_id`、`identity_status='注册用户'`、`profile_completed=false`、`status=0`）
@@ -32,7 +32,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求支持微信授权登录，首次�
 ## Impact
 
 - **数据表**：新增写入 `user`（首次登录时 INSERT）、新增写入 `user_session`（每次登录 INSERT）
-- **API**：新增 1 个写入端点 `POST /api/v1/auth/wechat-login`（无需登录鉴权）
+- **API**：新增 1 个写入端点 `POST /api/user/auth/wechat-login`（无需登录鉴权）
 - **缓存**：新增 Redis key `wechat:session_key:{user_id}`（TTL 7200s）、`auth:idempotent:wechat-login:{code}`（TTL 300s）
 - **状态机**：触发用户身份状态机 `游客 → 注册用户`（本 US 是该状态机的起点）
 - **前端**：新增小程序 1 个页面（`login/index`）

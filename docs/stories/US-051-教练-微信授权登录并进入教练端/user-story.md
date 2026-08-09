@@ -1,10 +1,10 @@
 # US-051 教练微信授权登录并进入教练端
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-08-05
-> **配套文档**：Figma：[待补充]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[§13](#13-figma-链接)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -15,7 +15,7 @@
 | **编号** | US-051 |
 | **标题** | 教练微信授权登录并进入教练端 |
 | **角色（Actor）** | 教练（主）、系统（辅） |
-| **业务价值（Why）** | 教练端小程序的入口：教练完成微信授权登录后，系统根据其入驻状态自动分流到「入驻资料页 / 入驻提交成功页 / 等待审核页 / 教练首页 / 重新提交页 / 离职处理中页」，是教练端所有功能的前提 |
+| **业务价值（Why）** | 教练端小程序的入口：教练完成微信授权登录后，系统根据其入驻状态自动分流到「入驻资料页 / 入驻提交成功页 / 等待审核页 / 教练首页 / 重新提交页」；`coach.status = 4`（申请离职中）不自动跳转离职处理中页，登录后进入教练首页，由教练在「我的」页面主动查看离职申请 |
 | **优先级** | [MVP] |
 | **估时** | 1 人天 |
 | **配套文档** | Figma / 技术设计 / 测试计划（链接见上方） |
@@ -50,7 +50,7 @@
 2. 教练勾选「我已阅读并同意《用户须知》和《隐私协议》」
 3. 小程序调用 `wx.login()` 获取临时登录凭证 `code`
 4. 小程序调用 `wx.getPhoneNumber` 获取加密手机号数据 `encryptedData` + `iv`
-5. 小程序将 `code`、`encryptedData`、`iv` 以及 `terms_accepted=true`、`privacy_accepted=true`、`app_type=coach` 提交到后端 `POST /api/v1/auth/wechat-login`
+5. 小程序将 `code`、`encryptedData`、`iv` 以及 `terms_accepted=true`、`privacy_accepted=true`、`app_type=coach` 提交到后端 `POST /api/coach/auth/wechat-login`
 6. 后端校验 `terms_accepted` 与 `privacy_accepted` 均为 true
 7. 后端调用微信 `code2session` 接口，用 `code` 换取 `openid`、`union_id`、`session_key`
 8. 后端使用 `session_key` 解密手机号，得到教练手机号 `phone`
@@ -64,9 +64,9 @@
     - `-1`（未提交入驻资料） → 跳转「入驻资料填写页」（US-010）
     - `0`（待审核） → 跳转「等待审核页」
     - `1`（已通过） → 跳转「教练首页」（US-012 起）
-    - `2`（已驳回） → 跳转「入驻资料填写页」（US-010，顶部展示驳回原因条）
-    - `3`（已离职） → 跳转「入驻资料填写页」（US-010，顶部展示重新入驻说明条）
-    - `4`（申请离职中） → 跳转「离职处理中页」
+    - `2`（已驳回） → 跳转「入驻资料填写页」（US-010，顶部红色驳回原因条回显最新 rejected `coach_application` 的 `rejection_reason`）
+    - `3`（已离职） → 跳转「入驻资料填写页」（US-010，顶部重新入驻说明条文案为「你的账号已离职，请重新提交入驻资料，审核通过后即可恢复接单。」）
+    - `4`（申请离职中） → 跳转「教练首页」；「我的」页面提供「查看离职申请」入口，教练可主动进入「离职处理中页」（US-039），不强制跳转
 14. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
 15. 前端在 app 启动或依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导教练重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
 
@@ -213,15 +213,15 @@ Then  前端引导教练重新进入登录页
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `coach` | 新增/读取 | 首次登录教练端且 coach 表无记录时插入：`openid`、`union_id`、`phone`（解密后的微信手机号）、`name`（微信昵称，可选）、`status=-1`、`created_at` |
+| 1 | `coach` | 新增/读取 | 首次登录教练端且 coach 表无记录时插入：`openid`、`union_id`、`phone`（解密后的微信手机号）、`name`（微信昵称，可选）、`status=-1`、`rejection_reason`（status=2 时非空）、`created_at` |
 | 2 | `coach_session` | 新增 | 写入教练会话记录：`coach_id`、`session_key`（加密）、`expires_at`、`refresh_token_hash` |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/auth/wechat-login` | POST | 修改 | 新增请求参数 `app_type=coach`；响应新增 `coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面 |
-| 2 | `/api/v1/coach/me/status` | GET | 新增 | 登录后查询当前教练入驻状态（兜底，登录态有效期内可调用） |
+| 1 | `/api/coach/auth/wechat-login` | POST | 新增 | 教练端微信授权登录，请求参数包含 `app_type=coach`；响应新增 `coach_status`（-1/0/1/2/3/4），由前端根据状态映射跳转页面 |
+| 2 | `/api/coach/status/detail` | POST | 新增 | 登录后查询当前教练入驻状态（兜底，登录态有效期内可调用） |
 
 ### 7.3 状态机影响
 
@@ -325,13 +325,12 @@ Then  前端引导教练重新进入登录页
 
 > 本节提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 教练端微信授权登录页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 教练端微信授权登录页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 3 | 等待审核页 frame node-id | 🔲 待设计填写 | 🔲 |
-| 4 | 离职处理中页 frame node-id | 🔲 待设计填写 | 🔲 |
-| 5 | 入驻提交成功页 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 教练端微信授权登录页 | [C-wechat-auth-page.md](../../figma/page-spec/C-wechat-auth-page.md) | ✅ |
+| 2 | 等待审核页 | [C-coach-pending-page.md](../../figma/page-spec/C-coach-pending-page.md) | ✅ |
+| 3 | 离职处理中页 | [C-coach-resigning-page.md](../../figma/page-spec/C-coach-resigning-page.md) | ✅ |
+| 4 | 入驻提交成功页 | [C-coach-onboarding-success-page.md](../../figma/page-spec/C-coach-onboarding-success-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

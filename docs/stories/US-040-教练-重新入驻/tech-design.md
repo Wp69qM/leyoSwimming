@@ -57,17 +57,18 @@
 
 > 教练端不新增重新入驻入口 API。已离职教练的入口由 US-051 / US-054 登录响应中的 `coach_status = 3` 自动分流提供；实际资料填写、校验与提交复用 US-010 的接口。
 
-### 4.1 `POST /api/admin/coach/applications/{application_id}/approve`
+### 4.1 `POST /api/admin/coach/application/approve`
 
 - **鉴权**：管理员 JWT
+- **请求体**：`{ "applicationId": 10002 }`
 - **功能**：复用 US-011；通过重新入驻，`coach_application` 快照覆盖 coach 表，`coach.status: 0 → 1`
 - **响应 200**：`{ "coach_id": 20001, "application_id": 10002, "status": 1, "approved_at": "..." }`
 - **错误码**：`APPLICATION_NOT_PENDING`（409）
 
-### 4.2 `POST /api/admin/coach/applications/{application_id}/reject`
+### 4.2 `POST /api/admin/coach/application/reject`
 
 - **鉴权**：管理员 JWT
-- **请求体**：`{ "reason": "资料不完整" }`
+- **请求体**：`{ "applicationId": 10002, "reason": "资料不完整" }`
 - **功能**：复用 US-011；拒绝重新入驻，`coach_application.status = rejected`，`coach.status: 0 → 3`
 - **响应 200**：`{ "coach_id": 20001, "application_id": 10002, "status": 3, "rejection_reason": "资料不完整" }`
 

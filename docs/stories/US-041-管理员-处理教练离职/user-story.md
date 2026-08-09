@@ -1,10 +1,10 @@
 # US-041 管理员处理教练离职
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-resignation-approval-queue-page.md](../../figma/page-spec/A-resignation-approval-queue-page.md) / [A-resignation-ticket-detail-page.md](../../figma/page-spec/A-resignation-ticket-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -43,9 +43,9 @@
 ### 4.1 主路径
 
 1. 管理员进入「教练离职审批队列」
-2. 系统列出所有 `pending_audit` 的离职工单
+2. 系统列出所有 `pending_audit` 的离职工单，列表字段包括：工单号、教练姓名、手机号、在职时长、当前学员数、离职原因、申请时间、处理进度、状态、操作（详情见 [A-离职审批队列页 §3.4](../../figma/page-spec/A-resignation-approval-queue-page.md)）
 3. 管理员点击目标工单进入详情
-4. 系统展示：教练基本信息、工单进度、每份 active 套餐的处理结果
+4. 系统展示：教练基本信息（[A-离职工单详情页 §3.2](../../figma/page-spec/A-resignation-ticket-detail-page.md)）、工单进度/审批记录（[§3.5](../../figma/page-spec/A-resignation-ticket-detail-page.md)）、每份 active 套餐的处理结果（[§3.3 学员处理清单](../../figma/page-spec/A-resignation-ticket-detail-page.md)）
 5. 管理员逐项检查 checklist（后端强制校验，缺一不可）：
    - ① active 学员数 = 0；
    - ② 若 active 学员数 > 0，所有 active 学员处理结果已登记（转新教练 / 全额退款 / 继续上完，PRD §5.4.7 三选一）；
@@ -162,21 +162,22 @@ And   coach.status 保持 4
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
 | 1 | `coach` | 修改 | `status` 4 → 3 或 4 → 1 |
-| 2 | `coach_resignation_ticket` | 修改 | status 更新为 approved / rejected |
-| 3 | `refund_record` | 新增 | 未消耗剩余课时 100% 退款记录：`refund_amount = 单价 × 剩余课时` |
-| 4 | `booking` | 批量修改 | 未来课程取消 |
-| 5 | `package` | 批量修改 | reserved→available，active→frozen |
-| 6 | `schedule_slot` | 批量修改 | 未来时段 hidden |
-| 7 | `audit_log` | 新增 | 记录审批操作与批量变更 |
+| 2 | `coach_resignation_ticket` | 修改 | status 更新为 approved / rejected；拒绝时记录 `reason` |
+| 3 | `coach_resignation_action` | 读取 | 读取工单登记的学员处理结果（transfer/refund/continue） |
+| 4 | `refund_record` | 新增 | 未消耗剩余课时 100% 退款记录：`refund_id`、`package_id`、`ticket_id`、`refund_amount = 单价 × 剩余课时`、`status`（pending 等）、`created_at`、`updated_at` |
+| 5 | `booking` | 批量修改 | 未来课程取消 |
+| 6 | `package` | 批量修改 | reserved→available，active→frozen |
+| 7 | `schedule_slot` | 批量修改 | 未来时段 hidden |
+| 8 | `audit_log` | 新增 | 记录审批操作与批量变更 |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/admin/v1/resignation-tickets` | GET | 新增 | 查询 pending_audit 离职审批队列 |
-| 2 | `/api/admin/v1/resignation-tickets/{id}` | GET | 新增 | 查看工单详情 |
-| 3 | `/api/admin/v1/resignation-tickets/{id}/approve` | POST | 新增 | 通过审批 |
-| 4 | `/api/admin/v1/resignation-tickets/{id}/reject` | POST | 新增 | 拒绝审批 |
+| 1 | `/api/admin/coach/resignation-ticket/list` | POST | 新增 | 查询 pending_audit 离职审批队列；请求体 `{ page, pageSize, status }` |
+| 2 | `/api/admin/coach/resignation-ticket/detail` | POST | 新增 | 查看工单详情；请求体 `{ ticketId }` |
+| 3 | `/api/admin/coach/resignation-ticket/approve` | POST | 新增 | 通过审批；请求体 `{ ticketId }` |
+| 4 | `/api/admin/coach/resignation-ticket/reject` | POST | 新增 | 拒绝审批；请求体 `{ ticketId, reason }` |
 
 ### 7.3 状态机影响
 
@@ -246,7 +247,7 @@ And   coach.status 保持 4
 
 - [x] 15 个章节全部填写
 - [x] 无"待定"/"TBD"占位符（除 Figma 链接状态待设计填写）
-- [x] 错误码明确（CHECKLIST_NOT_PASSED / SCHEDULE_NOT_CLEARED / TICKET_NOT_PENDING_AUDIT）
+- [x] 错误码明确（CHECKLIST_NOT_PASSED / SCHEDULE_NOT_CLEARED / TICKET_NOT_PENDING_AUDIT / TICKET_ALREADY_PROCESSED）
 
 ### 11.2 业务规则
 
@@ -280,13 +281,15 @@ And   coach.status 保持 4
 
 ## 13. Figma 链接
 
-> Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
+> Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
+> 页面规格详见：
+> - [A-离职审批队列页](../../figma/page-spec/A-resignation-approval-queue-page.md)
+> - [A-离职工单详情页](../../figma/page-spec/A-resignation-ticket-detail-page.md)
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 离职审批队列页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
-| 2 | 离职工单详情页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
-| 3 | 审批通过/拒绝确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 离职审批队列页 | [A-resignation-approval-queue-page.md](../../figma/page-spec/A-resignation-approval-queue-page.md) | ✅ |
+| 2 | 离职工单详情页 | [A-resignation-ticket-detail-page.md](../../figma/page-spec/A-resignation-ticket-detail-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

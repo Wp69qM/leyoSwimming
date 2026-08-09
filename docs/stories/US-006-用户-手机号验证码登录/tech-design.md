@@ -67,7 +67,7 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 
 ## 3. API 设计
 
-### 3.1 POST /api/auth/sms/code
+### 3.1 POST /api/common/sms/send
 
 发送登录验证码。
 
@@ -85,7 +85,7 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 - **Response 429**: `SMS_RATE_LIMIT`
 - **Response 502**: `SMS_SERVICE_ERROR`
 
-### 3.2 POST /api/auth/login/phone
+### 3.2 POST /api/user/auth/phone-login
 
 手机号验证码登录。
 
@@ -93,14 +93,27 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 - **幂等**：是（以 `phone+code` 为键，5 分钟内有效）
 - **Request**:
   ```json
-  { "phone": "13800138000", "code": "123456" }
+  {
+    "phone": "13800138000",
+    "code": "123456",
+    "terms_accepted": true,
+    "privacy_accepted": true
+  }
   ```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `phone` | string | 是 | 手机号 |
+| `code` | string | 是 | 短信验证码 |
+| `terms_accepted` | boolean | 是 | 是否已勾选《用户须知》，必须为 `true` |
+| `privacy_accepted` | boolean | 是 | 是否已勾选《隐私协议》，必须为 `true` |
+
 - **Response 200（已注册且资料完善）**:
   ```json
   {
     "accessToken": "...",
     "refreshToken": "...",
-    "expiresIn": 2592000,
+    "expiresIn": 7200,
     "isNewUser": false,
     "profileCompleted": true,
     "userId": 1001
@@ -111,14 +124,14 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
   {
     "accessToken": "...",
     "refreshToken": "...",
-    "expiresIn": 2592000,
+    "expiresIn": 7200,
     "isNewUser": true,
     "profileCompleted": false,
     "userId": 1002
   }
   ```
 - **Response 400**: `INVALID_SMS_CODE`
-- **Response 401**: `ACCOUNT_DELETED`
+- **Response 400**: `TERMS_NOT_ACCEPTED`（`terms_accepted` 或 `privacy_accepted` 未勾选）
 - **Response 429**: `SMS_VERIFY_LIMIT`
 
 ---
@@ -136,6 +149,7 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 | 转换 | 触发条件 | 字段变更 |
 |------|---------|---------|
 | 游客 → 注册用户 | 未注册手机号首次验证码登录成功 | 新建 user 记录，`identity_status='注册用户'`，`profile_completed=false`，`phone=输入手机号` |
+| 已注销 → 注册用户 | 已注销手机号（`status=1`）验证码登录成功 | 按 PRD §5.2.1 第 4 条新建 user 记录，`identity_status='注册用户'`，`profile_completed=false`，`phone=输入手机号`；新记录 `user_id` 与原注销账号不同 |
 | 无 | 已注册用户验证码登录成功 | 仅更新 `last_login_at`、`login_ip` |
 
 ---
@@ -146,8 +160,8 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 |----|-----|-----|------|---------|
 | Redis | `sms:limit:{phone_hash}` | 60s | 验证码发送限流 | 自然过期 |
 | Redis | `sms:verify:limit:{phone_hash}` | 300s | 验证码校验失败次数限流 | 自然过期 |
-| Redis | `auth:idempotent:phone-login:{phone}:{code}` | 300s | 登录幂等键 | 自然过期 |
-| Redis | `session:{token}` | 30 天 | 登录态 | 注销时删除 |
+| Redis | `auth:idempotent:phone-login:{phone}:{code}` | 300s | 手机号验证码登录幂等键 | 自然过期 |
+| Redis | `session:{refreshTokenHash}` | 7 天 | refreshToken 会话 | 注销时删除 |
 
 ---
 
@@ -163,7 +177,7 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 
 ## 7. 安全
 
-- `POST /api/auth/login/phone` 无需登录鉴权
+- `POST /api/user/auth/phone-login` 无需登录鉴权
 - 验证码 6 位数字，TTL 5 分钟
 - 同一手机号 60 秒内只能发送 1 条验证码
 - 同一手机号连续 5 次验证码错误 → 锁定 30 分钟
@@ -180,7 +194,7 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 | US-004 | 共享 | 微信授权登录：共享 user 表、JWT 签发逻辑 |
 | US-009 | 依赖 | 隐私协议与用户须知授权：本 US 需校验用户已勾选《用户须知》和《隐私协议》 |
 | US-005 | 被依赖 | 用户完善个人资料：本 US 首次登录后置 `profile_completed=false`，US-005 完成后置 true |
-| US-008 | 被依赖 | 账号安全设置：依赖本 US 产生的登录态 |
+| US-052 | 被依赖 | 用户退出登录：依赖本 US 产生的登录态 |
 
 ---
 
@@ -188,13 +202,14 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 
 | 场景 | 处理 |
 |------|------|
+| 未勾选《用户须知》或《隐私协议》 | 返回 400 `TERMS_NOT_ACCEPTED` |
 | 手机号未注册 | 验证码正确后自动创建账号 |
 | 验证码错误 | 返回 `INVALID_SMS_CODE` |
 | 验证码过期 | 返回 `INVALID_SMS_CODE` |
 | 60s 内重复获取验证码 | 返回 `SMS_RATE_LIMIT` |
 | 连续 5 次验证码错误 | 锁定 30 分钟 |
 | 短信服务不可用 | 返回 `SMS_SERVICE_ERROR` |
-| 账号已注销（status=1） | 返回 `ACCOUNT_DELETED` |
+| 账号已注销（status=1） | 按 PRD §5.2.1 第 4 条重新创建新 user 记录并登录成功，新记录 `user_id` 与原注销账号不同 |
 | 同一 code 重复提交 | 返回首次结果（幂等） |
 
 ---
@@ -205,3 +220,4 @@ CREATE INDEX idx_sms_code_phone_scene ON sms_code(phone_hash, scene);
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：含账号密码登录 |
 | v2.0 | 2026-08-04 | Dev | 重大修订：移除账号密码登录；改为手机号验证码登录兼注册；新增未注册手机号自动创建账号逻辑 |
+| v2.1 | 2026-08-08 | PM | 按 user-story 口径统一已注销手机号处理：删除 `ACCOUNT_DELETED` 响应码，改为重新创建新 user 记录并登录成功；同步状态机与异常边界说明 |

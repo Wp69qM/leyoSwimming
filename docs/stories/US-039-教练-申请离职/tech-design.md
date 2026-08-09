@@ -38,7 +38,7 @@
 | ticket_id | BIGINT PK | | |
 | coach_id | BIGINT FK | IDX | |
 | reason | VARCHAR(500) | | 离职原因 |
-| status | TINYINT | IDX | 0=processing, 1=pending_audit, 2=approved, 3=rejected；MVP 不支持教练自行撤销，无 cancelled 状态 |
+| status | ENUM | IDX | processing / pending_audit / approved / rejected；MVP 不支持教练自行撤销，无 cancelled 状态 |
 | total_packages | INT | | 待处理 active 套餐数 |
 | handled_packages | INT | | 已登记数 |
 | created_at | DATETIME | | |
@@ -51,9 +51,9 @@
 | action_id | BIGINT PK | | |
 | ticket_id | BIGINT FK | IDX | |
 | package_id | BIGINT FK | IDX | |
-| action | TINYINT | | 1=refund（全额退款），2=transfer（转新教练），3=continue（继续上完）；PRD §5.4.7 三选一 |
-| target_coach_id | BIGINT FK | nullable | action=2(transfer) 时必填，指向新教练 |
-| status | TINYINT | | 0=registered, 1=approved, 2=rejected |
+| action | ENUM | | refund（全额退款）/ transfer（转新教练）/ continue（继续上完）；PRD §5.4.7 三选一 |
+| target_coach_id | BIGINT FK | nullable | action='transfer' 时必填，指向新教练 |
+| status | ENUM | | registered / approved / rejected |
 | created_at | DATETIME | | |
 | updated_at | DATETIME | | |
 
@@ -73,38 +73,39 @@
 
 - `package`：读取 coach 名下 active 套餐生成工单清单
 - `user`：读取学员姓名用于展示
-- `audit_log`：记录操作
+- `coach_audit_log`：记录 coach status 变更与工单操作
 
 ---
 
 ## 4. API 设计
 
-### 4.1 `POST /api/coach/v1/resignation/apply`
+### 4.1 `POST /api/coach/resignation/apply`
 
 - **鉴权**：教练 JWT，`coach.status = 1`
 - **请求体**：`{ "reason": "个人发展", "idempotency_key": "..." }`
 - **响应 200**：工单概要
 - **错误码**：`COACH_STATUS_NOT_ALLOWED`（403）、`RESIGNATION_ALREADY_PENDING`（409）
 
-### 4.2 `GET /api/coach/v1/resignation/ticket`
+### 4.2 `POST /api/coach/resignation/detail`
 
 - **鉴权**：教练 JWT
 - **功能**：返回当前教练的活跃工单详情与学员套餐清单
 - **响应 200**：ticket + packages + actions
 
-### 4.3 `PUT /api/coach/v1/resignation/tickets/{ticket_id}/packages/{package_id}/refund`
+### 4.3 `POST /api/coach/resignation/package/refund`
 
 - **鉴权**：教练 JWT，且 package 属于当前 coach
-- **请求体**：`{ "confirmed": true }`
+- **请求体**：`{ "ticketId": 10001, "packageId": 20001, "confirmed": true }`
 - **响应 200**：更新后的 action
 - **业务规则**：
   - 固定生成 `coach_resignation_action`（action='refund'）与 `refund_record`，`refund_amount = 套餐单价 × 剩余课时`（已消耗不退）；
   - 工单提交至管理员时，未确认退款的 active 套餐默认按 `refund` 生成待退款记录。
 - **错误码**：`NOT_OWN_PACKAGE`（403）、`TICKET_NOT_PROCESSING`（409）
 
-### 4.4 `POST /api/coach/v1/resignation/tickets/{ticket_id}/submit`
+### 4.4 `POST /api/coach/resignation/submit`
 
 - **鉴权**：教练 JWT
+- **请求体**：`{ "ticketId": 10001 }`
 - **功能**：将工单从 processing 推进到 pending_audit
 - **响应 200**：提交成功
 - **错误码**：`TICKET_NOT_PROCESSING`（409）
@@ -126,7 +127,6 @@
 ### 5.3 退款记录状态
 
 - `pending` → `approved` / `rejected` / `completed`（US-041 管理员审批或 US-028 处理退款）
-- 教练主动离职时，所有 active package 未消耗剩余课时强制 100% 退款
 
 ---
 
@@ -139,9 +139,10 @@
 
 ## 7. 性能指标
 
-- `POST /api/coach/v1/resignation/apply` P99 < 300ms
-- `GET /api/coach/v1/resignation/ticket` P99 < 200ms
-- `PUT action` P99 < 200ms
+- `POST /api/coach/resignation/apply` P99 < 300ms
+- `POST /api/coach/resignation/detail` P99 < 200ms
+- `POST /api/coach/resignation/package/refund` P99 < 200ms
+- `POST /api/coach/resignation/submit` P99 < 200ms
 
 ---
 
@@ -151,7 +152,7 @@
 - 仅允许修改 status=processing 的工单
 - `action` 字段支持 `refund` / `transfer` / `continue` 三选一（PRD §5.4.7）；其中 `transfer` 必须填写 `target_coach_id`，`refund` 生成 `refund_record`（金额 = 单价 × 剩余课时，已消耗不退），`continue` 不生成退款记录
 - 每个 active package 在工单提交至管理员时必须登记一种 action；未确认的套餐默认按 `refund` 生成待退款记录
-- 操作记录审计日志
+- 操作记录 `coach_audit_log`
 
 ---
 

@@ -1,10 +1,10 @@
 # US-005 用户完善个人资料
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-04
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-phone-complete-page.md](../../figma/page-spec/U-phone-complete-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -39,7 +39,7 @@
 
 - [x] 用户已完成登录（微信授权登录依赖 US-004，手机号验证码登录依赖 US-006）
 - [x] 用户已勾选《用户须知》和《隐私协议》（依赖 US-009）
-- [x] 当前用户资料状态为不完整（`profile_completed = false`）或用户主动编辑资料（`profile_completed = true`）
+- [x] 当前用户资料状态为不完整（`profileCompleted = false`）或用户主动编辑资料（`profileCompleted = true`）
 - [x] 系统已存在当前登录用户的 `user` 记录
 
 ---
@@ -50,14 +50,14 @@
 
 ### 4.1 主路径（首次完善）
 
-1. 用户登录成功，系统判断 `profile_completed = false`
+1. 用户登录成功，系统判断 `profileCompleted = false`
 2. 系统展示个人资料完善页，默认带入已获取的头像、手机号（微信登录带入微信头像与授权手机号；手机号登录带入手机号）
 3. 用户填写/确认必填项：头像、姓名、手机号、年龄、性别
 4. 若用户填写的年龄 < 18 周岁，系统动态展示监护人信息填写区，用户必须填写监护人姓名、监护人手机号
 5. 用户选填：有无游泳基础、会什么泳姿（有基础时显示）、游泳年限（有基础时显示）、个人描述
 6. 用户点击「保存」
 7. 系统校验必填项、字段格式、手机号唯一性、姓名敏感词、监护人手机号格式（未成年人时）
-8. 系统保存资料，设置 `user.profile_completed = true`
+8. 系统保存资料，设置 `user.profileCompleted = true`
 9. 系统返回首页或「我的」页面（首次完善跳转首页，编辑资料返回「我的」）
 
 ### 4.2 主路径（从「我的」编辑资料）
@@ -66,7 +66,7 @@
 2. 系统展示个人资料页，回显当前已填写内容
 3. 用户修改任意字段
 4. 用户点击「保存」
-5. 系统校验并保存，`profile_completed` 保持 `true`
+5. 系统校验并保存，`profileCompleted` 保持 `true`
 6. 系统返回「我的」页面
 
 ### 4.3 异常分支
@@ -100,15 +100,15 @@
 ### 6.1 场景 1：成年人首次登录后正常完善个人资料
 
 ```gherkin
-Given 用户已完成微信授权登录，identity_status = '注册用户' 且 profile_completed = false
+Given 用户已完成微信授权登录，identityStatus = '注册用户' 且 profileCompleted = false
 And   系统未存在手机号 13800138000 的其他注册用户
 And   用户已同意隐私协议 v2.0
 When  用户上传头像、填写姓名 张 swimmer、确认手机号 13800138000、选择年龄 25、性别 男
 And   用户填写有游泳基础，选择泳姿 蛙泳/自由泳，游泳年限 3 年，个人描述 "想提高自由泳"
 And   用户点击「保存」
 Then  系统保存成功
-And   user.profile_completed = true
-And   user.identity_status 保持 '注册用户' 不变
+And   user.profileCompleted = true
+And   user.identityStatus 保持 '注册用户' 不变
 And   user.status = 0（正常）
 And   user.phone = 13800138000
 And   user.name = 张 swimmer
@@ -120,7 +120,7 @@ And   页面跳转至首页
 ### 6.2 场景 2：未成年人首次登录后完善个人资料并填写监护人信息
 
 ```gherkin
-Given 用户已完成微信授权登录，identity_status = '注册用户' 且 profile_completed = false
+Given 用户已完成微信授权登录，identityStatus = '注册用户' 且 profileCompleted = false
 And   系统未存在手机号 13900139000 的其他注册用户
 And   用户已同意隐私协议 v2.0
 When  用户上传头像、填写姓名 李小小、确认手机号 13900139000、选择年龄 12、性别 女
@@ -129,23 +129,23 @@ And   用户填写监护人姓名 "李大伟"、监护人手机号 13800138000
 And   用户选择无游泳基础
 And   用户点击「保存」
 Then  系统保存成功
-And   user.profile_completed = true
+And   user.profileCompleted = true
 And   user.age = 12
-And   user.guardian_name = "李大伟"
-And   user.guardian_phone = 13800138000
+And   user.guardianName = "李大伟"
+And   user.guardianPhone = 13800138000
 And   页面跳转至首页
 ```
 
 ### 6.3 场景 3：从「我的」编辑个人资料
 
 ```gherkin
-Given 用户已完善个人资料，profile_completed = true
+Given 用户已完善个人资料，profileCompleted = true
 When  用户在「我的」页面点击「编辑资料」
 And   用户将姓名从 "张 swimmer" 修改为 "张教练"
 And   用户点击「保存」
 Then  系统保存成功
 And   user.name = "张教练"
-And   user.profile_completed 保持 true
+And   user.profileCompleted 保持 true
 And   页面返回「我的」页面
 ```
 
@@ -173,7 +173,7 @@ And   后端未收到请求
 
 ```gherkin
 Given 用户已完成登录
-When  用户填写姓名 "习近平" 并提交
+When  用户填写姓名 "测试敏感姓名" 并提交
 Then  返回错误码 SENSITIVE_NAME
 And   前端提示"姓名包含敏感内容，请重新输入"
 And   user.name 未被保存
@@ -207,15 +207,14 @@ And   后端未收到请求
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/user/profile | PUT | 修改 | 完善/更新个人资料 |
-| 2 | /api/user/phone/exists | GET | 新增 | 校验手机号是否已被其他账号绑定 |
-| 3 | /api/upload/avatar | POST | 新增 | 上传头像，返回 avatar_url |
+| 1 | /api/user/profile/update | POST | 修改 | 完善/更新个人资料（含手机号唯一性校验） |
+| 2 | /api/common/file/upload | POST | 新增 | 通用图片上传（头像等），返回可访问 URL |
 
 ### 7.3 状态机影响
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | user.profile_completed | false → true | 首次资料完善完成 | 用户资料完成状态转换；identity_status 保持 '注册用户' 不变 |
+| 1 | user.profileCompleted | false → true | 首次资料完善完成 | 用户资料完成状态转换；identityStatus 保持 '注册用户' 不变 |
 
 ---
 
@@ -256,7 +255,7 @@ And   后端未收到请求
 ### 8.6 边界场景 6：用户将年龄从未成年人修改为成年人
 
 - **触发条件**：用户在编辑资料页将年龄从 12 修改为 25
-- **预期行为**：系统隐藏监护人信息填写区，已保存的 guardian_name/guardian_phone 保留但不再展示和校验必填
+- **预期行为**：系统隐藏监护人信息填写区，已保存的 guardianName/guardianPhone 保留但不再展示和校验必填
 - **用户可见反馈**：监护人信息区折叠或消失
 
 ---
@@ -303,7 +302,7 @@ And   后端未收到请求
 ### 11.2 业务规则
 
 - [x] 引用 §5.2.1 / §5.6.1 / §11.2
-- [x] 与状态机一致（profile_completed: false → true；identity_status 保持 '注册用户'）
+- [x] 与状态机一致（profileCompleted: false → true；identityStatus 保持 '注册用户'）
 - [x] 与数据模型一致
 
 ### 11.3 验收标准
@@ -324,7 +323,7 @@ And   后端未收到请求
 
 > 其他补充说明、参考资料、相关讨论链接
 
-- **幂等键设计**：`Idempotency-Key: {user_id}:{timestamp}`
+- **幂等键设计**：请求体携带 `idempotencyKey: "{user_id}:{timestamp}"`，TTL 300 秒
 - **事务边界**：用户资料更新与相关缓存失效在同一事务
 - **性能要求**：补充资料接口 P99 < 300ms
 - **安全要求**：手机号 AES-256 加密存储；姓名敏感词过滤；头像限制格式（jpg/png）与大小（≤2MB）
@@ -336,10 +335,9 @@ And   后端未收到请求
 
 > Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 完善个人资料页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 完善个人资料页关键 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 完善个人资料页 | [U-phone-complete-page.md](../../figma/page-spec/U-phone-complete-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -388,7 +386,7 @@ And   后端未收到请求
 - **背景**：未成年人（< 18 周岁）需额外维护监护人姓名与手机号，满足合规要求
 - **选项**：A. 所有用户都展示监护人字段；B. 仅当年龄 < 18 时动态展示并校验必填
 - **结论**：选择 B，根据用户填写的年龄实时判断，未成年人时监护人姓名/手机号为必填，成年人时隐藏
-- **影响范围**：表单交互、数据模型增加 guardian_name / guardian_phone、前端校验逻辑、后端必填校验
+- **影响范围**：表单交互、数据模型增加 guardianName / guardianPhone、前端校验逻辑、后端必填校验
 
 ---
 
@@ -399,7 +397,7 @@ And   后端未收到请求
 | 日期 | 评审人 | 反馈 | 处置 |
 |------|--------|------|------|
 | 2026-08-04 | PM | 原设计把补充手机号页做成账号凭证页，与登录流程重复 | 修订为「完善个人资料页」，字段改为学员档案类 |
-| 2026-08-05 | PM | 未成年人游泳需维护监护人姓名和手机号 | 新增未成年人监护人信息联动：年龄 < 18 时必填 guardian_name / guardian_phone；新增对应 GWT 场景、异常分支、边界场景与设计决策 |
+| 2026-08-05 | PM | 未成年人游泳需维护监护人姓名和手机号 | 新增未成年人监护人信息联动：年龄 < 18 时必填 guardianName / guardianPhone；新增对应 GWT 场景、异常分支、边界场景与设计决策 |
 
 ---
 
@@ -409,7 +407,7 @@ And   后端未收到请求
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版：标题为「用户补充注册资料」，字段为手机号/用户名/密码/邮箱 |
 | v2.0 | 2026-08-04 | PM | 重大修订：标题改为「用户完善个人资料」；字段改为头像/姓名/手机号/年龄/性别/游泳基础/泳姿/年限/个人描述；新增「我的 → 编辑资料」入口；删除用户名/密码/邮箱字段 |
-| v2.1 | 2026-08-05 | PM | 新增未成年人监护人信息： guardian_name / guardian_phone，年龄 < 18 时必填；补充 GWT 场景、异常分支、边界场景、设计决策 |
+| v2.1 | 2026-08-05 | PM | 新增未成年人监护人信息： guardianName / guardianPhone，年龄 < 18 时必填；补充 GWT 场景、异常分支、边界场景、设计决策 |
 
 ---
 

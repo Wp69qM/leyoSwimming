@@ -11,7 +11,7 @@
 - 未注册手机号首次验证码登录自动注册
 - 登录成功后按 `profile_completed` 分流
 - 登录时校验《用户须知》和《隐私协议》勾选状态
-- 登录态管理：前端存储 `access_token`/`refresh_token`，请求携带 `Authorization: Bearer {access_token}`，后端校验 token 有效性
+- 登录态管理：前端存储 `accessToken`/`refreshToken`，请求携带 `Authorization: Bearer {accessToken}`，后端校验 token 有效性
 
 ## 关键决策
 

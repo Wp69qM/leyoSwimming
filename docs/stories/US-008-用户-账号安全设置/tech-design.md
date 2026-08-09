@@ -10,7 +10,7 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `user` | 修改 | phone、password_hash、email |
+| `user` | 修改 | phone、password_hash |
 | `user_session` | 修改/删除 | 下线设备 |
 | `audit_log` | 新增 | 敏感操作审计 |
 
@@ -23,7 +23,6 @@
 | `id` | BIGINT | PK | 用户 ID（与 US-004 统一，原 `user_id` 为笔误） |
 | `phone` | VARCHAR(16) | 唯一索引 | 手机号 |
 | `password_hash` | VARCHAR(128) | 可空 | bcrypt 哈希（US-004 微信登录新用户无密码，可空；US-008 设置密码后写入） |
-| `email` | VARCHAR(128) | 可空 | 邮箱 |
 | `phone_changed_at` | DATETIME | 可空 | 上次换绑时间 |
 
 **user_session 表**（与 US-004 共享，完整字段定义见 [US-004 tech-design §1.1](../US-004-游客-微信授权登录/tech-design.md)）
@@ -49,7 +48,6 @@
 |------|------|------|------|
 | `/api/user/security/phone` | PUT | 换绑手机号 | 是 |
 | `/api/user/security/password` | PUT | 修改/首次设置密码 | 是 |
-| `/api/user/security/email` | PUT | 绑定/换绑邮箱 | 是 |
 | `/api/user/security/devices` | GET | 设备列表 | 是 |
 | `/api/user/security/devices/{id}` | DELETE | 下线设备 | 是 |
 
@@ -106,29 +104,7 @@
   - `NEW_PASSWORD_SAME_AS_OLD` (400307)
 - **会话策略**：修改密码后，**仅保留当前设备会话**，其他设备 token 立即失效（MVP 默认策略）。
 
-### 2.4 PUT /api/user/security/email
-
-- **请求体**：
-  ```json
-  {
-    "email": "a@b.com",
-    "verify_code": "123456"
-  }
-  ```
-- **响应体**：
-  ```json
-  {
-    "code": 0,
-    "data": {
-      "email": "a@b.com"
-    }
-  }
-  ```
-- **错误码**：
-  - `INVALID_EMAIL` (400308)
-  - `CODE_INVALID` (400309)
-
-### 2.5 GET /api/user/security/devices
+### 2.4 GET /api/user/security/devices
 
 - **响应体**：
   ```json
@@ -148,14 +124,14 @@
   }
   ```
 
-### 2.6 DELETE /api/user/security/devices/{id}
+### 2.5 DELETE /api/user/security/devices/{id}
 
 - **响应体**：204 No Content
 - **错误码**：
   - `DEVICE_NOT_FOUND` (400310)
   - `CANNOT_REVOKE_CURRENT` (400311)（MVP 默认允许下线当前设备，被下线端重新登录即可）
 
-### 2.7 幂等性设计
+### 2.6 幂等性设计
 
 所有写接口使用 `Idempotency-Key` 请求头，Redis 缓存 TTL 300s。相同幂等键 + 相同请求体重复提交返回首次结果；请求体不一致返回 409 `IDEMPOTENCY_REUSED`。
 

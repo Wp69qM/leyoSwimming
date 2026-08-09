@@ -1,98 +1,92 @@
+> **OpenSpec Spec | 映射自 `docs/stories/US-042-管理员-管理用户账号/user-story.md` §6**
+
+## Capability
+
+管理员管理小程序 C 端用户账号
+
 ## ADDED Requirements
 
-### Requirement: REQ-001 Admin shall list and view user accounts
+### Requirement: REQ-001 用户列表与详情查询
 
-The system MUST provide an admin interface to list and view user accounts with filtering by identity and registration time.
+系统 MUST 提供管理后台用户列表与详情查询能力。列表 MUST 支持分页、按身份筛选、按账号状态筛选（正常/注销/封禁）、按资料完善状态筛选、按注册时间范围筛选、按关键字搜索。管理员只能看到其 RBAC 权限范围内的用户数据。用户详情 MUST 展示完整档案信息，未成年人（`age < 18`）的监护人信息 MUST 脱敏展示。
 
-#### Scenario: List users with filters
+#### Scenario: 管理员查看用户列表
+- **GIVEN** 管理员 M 已登录且具有 `USER:READ` 权限
+- **WHEN** 管理员 M 进入「用户管理 → 用户账号」
+- **THEN** 系统返回用户列表
+- **AND** 列表包含用户 ID、头像、姓名、手机号（脱敏）、身份状态、账号状态、注册时间
 
-- **GIVEN** admin M is logged in with `MANAGE_USER_ACCOUNT` permission
-- **WHEN** admin M opens the user account list with identity filter "学员"
-- **THEN** the system returns paginated users matching the filter
-- **AND** each item shows user ID, phone, identity, and registration time
+#### Scenario: 管理员查看用户详情
+- **GIVEN** 管理员 M 已登录且具有 `USER:READ` 权限
+- **AND** 用户 U 存在且 userId=1001
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/detail` 并传入 `{ "userId": 1001 }`
+- **THEN** 系统返回用户 U 的完整档案
 
-### Requirement: REQ-002 Admin shall update user phone
+### Requirement: REQ-002 管理员手动新建用户
 
-The system MUST allow an admin to update a user's phone number after verifying uniqueness and ownership. Ownership MUST be verified by an SMS code sent to the original phone number; if verification is not possible, the admin MUST select "force change" and record the reason in `audit_log.remark`.
+系统 MUST 允许具有 `USER:WRITE` 权限的管理员手动新建用户。新建用户 MUST 校验手机号唯一性，未成年人 MUST 填写监护人信息。创建成功后 MUST 设置 `source='ADMIN_CREATED'` 并记录审计日志。
 
-#### Scenario: Update phone with ownership verification
+#### Scenario: 管理员手动新建用户
+- **GIVEN** 管理员 M 已登录且具有 `USER:WRITE` 权限
+- **AND** 手机号 "13800138000" 未被占用
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/add` 传入完整用户资料
+- **THEN** `user` 表新增 1 条记录
+- **AND** 新记录 `source='ADMIN_CREATED'`、`status=0`、`profile_completed=true`
+- **AND** `audit_log` 新增 1 条 `action='ADMIN_CREATE_USER'` 记录
 
-- **GIVEN** admin M has user management permission
-- **AND** user U has phone "13800138000"
-- **AND** phone "13900139000" is not used by any other user
-- **AND** admin M has verified ownership via SMS code sent to "13800138000"
-- **WHEN** admin M updates user U's phone to "13900139000"
-- **THEN** `user.phone` is updated to "13900139000"
-- **AND** one `audit_log` entry with `action = 'ADMIN_UPDATE_PHONE'` is created
-- **AND** the API returns HTTP 200 with message "手机号已更新"
+### Requirement: REQ-003 管理员编辑用户资料
 
-#### Scenario: Force update phone when original phone is unreachable
+系统 MUST 允许具有 `USER:WRITE` 权限的管理员编辑用户资料。编辑 MUST 使用乐观锁防止并发覆盖，手机号不可通过本接口修改。
 
-- **GIVEN** admin M has user management permission
-- **AND** user U has phone "13800138000" but the original SMS cannot be delivered
-- **AND** phone "13900139000" is not used by any other user
-- **WHEN** admin M selects "force change" and enters reason "原手机号已停机"
-- **THEN** `user.phone` is updated to "13900139000"
-- **AND** one `audit_log` entry with `action = 'ADMIN_UPDATE_PHONE'` and `remark = "原手机号已停机（强制变更）"` is created
-- **AND** the API returns HTTP 200 with message "手机号已强制更新"
+#### Scenario: 管理员编辑用户资料成功
+- **GIVEN** 管理员 M 已登录且具有 `USER:WRITE` 权限
+- **AND** 用户 U 存在且当前 version=1
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/update` 传入 `{ "userId": 1001, "profile": { ... }, "version": 1 }`
+- **THEN** `user` 表对应记录更新
+- **AND** `audit_log` 新增 1 条 `action='ADMIN_UPDATE_PROFILE'` 记录
 
-### Requirement: REQ-003 System shall enforce admin permission
+#### Scenario: 并发编辑导致乐观锁冲突
+- **GIVEN** 两个管理员同时编辑用户 U，均使用 version=1
+- **WHEN** 第一个请求提交成功后第二个请求再提交
+- **THEN** 第二个请求返回 `USER_CONCURRENTLY_UPDATED`
 
-The system MUST reject user management operations from admins without the required permission. The system MUST also prevent `admin` roles from modifying `super_admin` accounts or granting the `super_admin` role.
+### Requirement: REQ-004 管理员封禁/解封用户账号
 
-#### Scenario: Admin without permission is denied
+系统 MUST 允许具有 `USER:BAN` 权限的管理员封禁或解封用户账号。操作 MUST 填写原因并记录审计日志。封禁后 `user.status = 2`，解封后 `user.status = 0`。
 
-- **GIVEN** admin M2 is logged in with role `admin` but does not have `USER:WRITE` permission
-- **WHEN** admin M2 calls the update-phone API
-- **THEN** the API returns HTTP 403 with error code `ADMIN_PERMISSION_DENIED`
-- **AND** no user data is modified
+#### Scenario: 管理员封禁用户账号
+- **GIVEN** 管理员 M 已登录且具有 `USER:BAN` 权限
+- **AND** 用户 U 当前状态为"正常"，`user_id=1001`
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/ban` 并传入 `{ "userId": 1001, "reason": "涉嫌违规" }`
+- **THEN** `user.status` 更新为 2（封禁）
+- **AND** `audit_log` 新增 1 条 `action='ADMIN_BAN_USER'` 记录，remark="涉嫌违规"
+- **AND** 返回 HTTP 200 与提示"账号已封禁"
 
-#### Scenario: Admin cannot modify super_admin account
+#### Scenario: 管理员解封用户账号
+- **GIVEN** 管理员 M 已登录且具有 `USER:BAN` 权限
+- **AND** 用户 U 当前状态为 2（封禁）
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/unban` 并传入 `{ "userId": 1001, "reason": "申诉通过" }`
+- **THEN** `user.status` 更新为 0（正常）
+- **AND** `audit_log` 新增 1 条 `action='ADMIN_UNBAN_USER'` 记录，remark="申诉通过"
+- **AND** 返回 HTTP 200 与提示"账号已解封"
 
-- **GIVEN** admin M2 is logged in with role `admin`
-- **AND** user S is a `super_admin`
-- **WHEN** admin M2 calls the ban API for user S
-- **THEN** the API returns HTTP 403 with error code `ADMIN_PERMISSION_DENIED`
-- **AND** user S.status remains unchanged
+### Requirement: REQ-005 系统权限与数据校验
 
-### Requirement: REQ-004 System shall validate target user existence and phone uniqueness
+系统 MUST 拒绝无权限管理员的写操作，并 MUST 在目标用户不存在或手机号重复时返回明确错误码。
 
-The system MUST return clear errors when the target user does not exist or the new phone is already taken.
+#### Scenario: 无权限管理员操作失败
+- **GIVEN** 管理员 M2 已登录但无 `USER:WRITE` 权限
+- **WHEN** 管理员 M2 调用 `POST /api/admin/user/update`
+- **THEN** 系统返回 HTTP 403，错误码 `ADMIN_PERMISSION_DENIED`
 
-#### Scenario: User not found
+#### Scenario: 目标用户不存在
+- **GIVEN** 管理员 M 具有 `USER:WRITE` 权限
+- **AND** 用户 ID 999999 不存在
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/detail` 传入 `{ "userId": 999999 }`
+- **THEN** 系统返回 HTTP 404，错误码 `USER_NOT_FOUND`
 
-- **GIVEN** admin M has user management permission
-- **AND** user ID 999999 does not exist
-- **WHEN** admin M queries or updates that user
-- **THEN** the API returns HTTP 404 with error code `USER_NOT_FOUND`
-
-#### Scenario: Phone already exists
-
-- **GIVEN** admin M has user management permission
-- **AND** user U has phone "13800138000"
-- **AND** phone "13900139000" is already used by user U2
-- **WHEN** admin M updates user U's phone to "13900139000"
-- **THEN** the API returns HTTP 409 with error code `PHONE_ALREADY_EXISTS`
-- **AND** `user.phone` remains "13800138000"
-
-### Requirement: REQ-005 Admin shall ban and unban user accounts
-
-The system MUST allow an admin with `USER:BAN` permission to ban or unban a user account. The system MUST record the reason in `audit_log.remark`.
-
-#### Scenario: Ban user account successfully
-
-- **GIVEN** admin M has role `admin` and permission `USER:BAN`
-- **AND** user U has status "正常" (0)
-- **WHEN** admin M bans user U with reason "涉嫌违规"
-- **THEN** `user.status` is updated to 2 (封禁)
-- **AND** one `audit_log` entry with `action = 'ADMIN_BAN_USER'` and `remark = "涉嫌违规"` is created
-- **AND** the API returns HTTP 200 with message "账号已封禁"
-
-#### Scenario: Unban user account successfully
-
-- **GIVEN** admin M has role `admin` and permission `USER:BAN`
-- **AND** user U has status 2 (封禁)
-- **WHEN** admin M unbans user U with reason "申诉通过"
-- **THEN** `user.status` is updated to 0 (正常)
-- **AND** one `audit_log` entry with `action = 'ADMIN_UNBAN_USER'` and `remark = "申诉通过"` is created
-- **AND** the API returns HTTP 200 with message "账号已解封"
+#### Scenario: 新建用户时手机号已存在
+- **GIVEN** 管理员 M 具有 `USER:WRITE` 权限
+- **AND** 手机号 "13800138000" 已被其他用户占用
+- **WHEN** 管理员 M 调用 `POST /api/admin/user/add` 传入该手机号
+- **THEN** 系统返回 HTTP 409，错误码 `PHONE_ALREADY_EXISTS`

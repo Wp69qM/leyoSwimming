@@ -21,26 +21,23 @@
 
 ## API
 
-### PUT /api/user/profile
+### POST /api/user/profile/update
 完善/更新个人资料。需要登录鉴权，幂等。
 
-### GET /api/user/phone/exists
-校验手机号是否被其他账号绑定。
-
-### POST /api/upload/avatar
+### POST /api/common/file/upload
 上传头像，限制格式 jpg/png/webp，大小 ≤2MB。
 
 ## 状态机
 
 ```
-profile_completed=false ──(US-005 资料完善完成)──→ profile_completed=true
+profileCompleted=false ──(US-005 资料完善完成)──→ profileCompleted=true
 ```
 
-`identity_status` 保持「注册用户」不变。
+`identityStatus` 保持「注册用户」不变。
 
 ## 缓存
 
-- `phone:exists:{phone_hash}` TTL 300s
+- `phone:unique:{phone_hash}` TTL 300s
 - `user:{user_id}` TTL 1800s，资料更新时失效
 - `idempotency:{key}` TTL 300s
 

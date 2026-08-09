@@ -23,6 +23,17 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 主页面（条件满足） | U-注销账号页-条件满足 | https://www.calicat.cn/design/2083742072257646592?node-id=ff8c90a8-721e-45c4-858f-6326a631cdbe |
+| 相关 frame | （17a36d48-f1cc-4bc5-8dd0-0cb7d5f697d1） | https://www.calicat.cn/design/2083742072257646592?node-id=17a36d48-f1cc-4bc5-8dd0-0cb7d5f697d1 |
+| 相关 frame | （0e8d7f43-0a7e-48fc-ae79-d898f8682b88） | https://www.calicat.cn/design/2083742072257646592?node-id=0e8d7f43-0a7e-48fc-ae79-d898f8682b88 |
+| 相关 frame | （c8a36814-59b3-4130-a8c1-b9343f152530） | https://www.calicat.cn/design/2083742072257646592?node-id=c8a36814-59b3-4130-a8c1-b9343f152530 |
+
+---
+
 ## 2. 用户身份与业务状态维度
 
 ### 2.1 适用身份

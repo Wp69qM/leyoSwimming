@@ -1,10 +1,10 @@
 # US-007 用户账号注销
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-account-cancel-page.md](../../figma/page-spec/U-account-cancel-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -156,16 +156,16 @@ And   user.status 保持 0（正常）
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | user | 修改 | status = 1（软删除）, deleted_at = now() |
-| 2 | user_identity_log | 新增 | 记录注销事件 |
-| 3 | user_session | 删除 | 清除所有登录态 |
+| 1 | user | 修改 | status = 1（软删除）, deleted_at = now(), anonymous_after = now() + 90 天 |
+| 2 | audit_log | 新增 | 记录注销审计日志 |
+| 3 | user_session | 删除记录 | 清除所有登录态 |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
 | 1 | /api/user/account/cancel | POST | 新增 | 提交注销申请（MVP 仅弹窗二次确认，无需验证码） |
-| 2 | /api/user/account/cancel/check | GET | 新增 | 查询是否满足注销条件 |
+| 2 | /api/user/account/cancel-check | POST | 新增 | 查询是否满足注销条件 |
 
 ### 7.3 状态机影响
 
@@ -261,10 +261,9 @@ And   user.status 保持 0（正常）
 
 ## 13. Figma 链接
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 注销确认页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 注销确认页关键 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 注销账号页 | [U-account-cancel-page.md](../../figma/page-spec/U-account-cancel-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -272,7 +271,7 @@ And   user.status 保持 0（正常）
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
-| **注销确认页** | 🔲 | 🔲 | 🔲 | 🔲 | 需展示风险提示 |
+| **注销确认页** | `U-注销账号页-empty` | `U-注销账号页-loading` | `U-注销账号页-error` | `U-注销账号页-success` | 需展示风险提示 |
 
 ---
 

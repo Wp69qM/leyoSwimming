@@ -11,7 +11,7 @@
 **Spec coverage:** REQ-003 Scenario "查询待审核列表"
 
 - [ ] **RED:** Write 2 failing tests — 有权限管理员返回 coach_application.status=pending 列表；无权限返回 403
-- [ ] **GREEN:** Implement `GET /api/admin/coach/applications` with RBAC and status filter
+- [ ] **GREEN:** Implement `POST /api/admin/coach/application/list` with RBAC and status filter
 - [ ] **COMMIT:** `feat(admin): add pending coach applications list`
 
 ## Task 2: 审核通过 [P0]

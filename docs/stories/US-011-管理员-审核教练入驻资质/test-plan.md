@@ -68,15 +68,27 @@ def test_coach_audit_resubmitted_application():
 # backend/tests/integration/test_coach_audit_api.py
 
 def test_api_coach_approve_200():
-    """POST /api/admin/coach/applications/{id}/approve 成功，快照覆盖生效资料"""
+    """POST /api/admin/coach/application/approve 成功，快照覆盖生效资料"""
     pass
 
 def test_api_coach_reject_200():
-    """POST /api/admin/coach/applications/{id}/reject 成功，status 恢复 previous_coach_status"""
+    """POST /api/admin/coach/application/reject 成功，status 恢复 previous_coach_status"""
     pass
 
 def test_api_coach_applications_list_200():
-    """GET /api/admin/coach/applications 仅返回 pending 快照列表"""
+    """POST /api/admin/coach/application/list 仅返回 pending 快照列表"""
+    pass
+
+def test_api_coach_application_detail_200():
+    """POST /api/admin/coach/application/detail 返回快照完整资料与申请历史"""
+    pass
+
+def test_api_coach_approve_not_pending_400():
+    """POST /api/admin/coach/application/approve 对非 pending 申请返回 NOT_PENDING/ALREADY_REVIEWED"""
+    pass
+
+def test_api_coach_reject_no_permission_403():
+    """POST /api/admin/coach/application/reject 无权限返回 403 FORBIDDEN"""
     pass
 ```
 
@@ -96,12 +108,16 @@ def test_e2e_coach_audit():
 
 | GWT 场景 | 测试方法 |
 |----------|----------|
-| 审核通过 | test_coach_approve_success / test_coach_approve_snapshot_overwrites_coach / test_coach_approve_snapshot_certificates_overwrite / test_api_coach_approve_200 |
+| 审核列表直接通过 | test_coach_approve_from_list / test_coach_approve_success / test_coach_approve_snapshot_overwrites_coach / test_coach_approve_snapshot_certificates_overwrite / test_api_coach_approve_200 |
+| 审核详情页通过 | test_coach_approve_from_detail / test_coach_approve_success / test_coach_approve_snapshot_overwrites_coach / test_coach_approve_snapshot_certificates_overwrite / test_api_coach_approve_200 |
 | 审核驳回 | test_coach_reject_success / test_api_coach_reject_200 |
 | 无权限审核 | test_coach_reject_no_permission |
 | 已离职重新入驻申请被驳回 | test_coach_reject_resignation_reapply |
 | 重复审核 | test_coach_audit_already_reviewed |
 | 待审核列表查询 | test_api_coach_applications_list_200 |
+| 审核详情查询 | test_api_coach_application_detail_200 |
+| 非 pending 状态审核 | test_api_coach_approve_not_pending_400 |
+| 无权限驳回 | test_api_coach_reject_no_permission_403 |
 
 ---
 
@@ -111,3 +127,4 @@ def test_e2e_coach_audit():
 |------|------|------|
 | v1.0 | 2026-07-30 | 初版 |
 | v2.0 | 2026-08-05 | 重构为快照表设计：审核目标改为 coach_application；通过时快照覆盖 coach 与 coach_certificate；驳回时恢复 previous_coach_status；新增已离职重新入驻驳回测试用例 |
+| v2.1 | 2026-08-08 | 验收标准映射拆分为「审核列表直接通过」与「审核详情页通过」 |

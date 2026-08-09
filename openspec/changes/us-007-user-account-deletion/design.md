@@ -4,7 +4,7 @@
 
 ## Overview
 
-US-007 实现用户主动注销账号功能，采用软删除策略保留历史数据 90 天后匿名化。核心是 1 个查询 API + 1 个写入 API + 条件校验 + 二次验证 + 会话清除。
+US-007 实现用户主动注销账号功能，采用软删除策略保留历史数据 90 天后匿名化。核心是 1 个查询 API + 1 个写入 API + 条件校验 + 会话清除。
 
 ## Data Model
 
@@ -12,8 +12,8 @@ US-007 实现用户主动注销账号功能，采用软删除策略保留历史�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `user` | UPDATE | `status=2`, `deleted_at` |
-| `user_session` | DELETE | 清除该用户所有会话 |
+| `user` | UPDATE | `status=1`, `deleted_at` |
+| `user_session` | DELETE | 清除所有登录态 |
 | `audit_log` | INSERT | `action='account_cancel'`, `user_id`, `ip`, `device`, `created_at` |
 
 ### 索引
@@ -25,21 +25,22 @@ CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 
 ## API Design
 
-### GET /api/user/account/cancel/check
+### POST /api/user/account/cancel-check
 
 - 鉴权：是
-- Response 200: `{ can_cancel: boolean, active_package_count: number, pending_order_count: number }`
+- Request: `{}`
+- Response 200: `{ can_cancel: boolean, checks: { no_active_package: boolean, no_pending_order: boolean, no_ongoing_booking: boolean } }`
 - Response 401: `UNAUTHORIZED`（未登录）
 
 ### POST /api/user/account/cancel
 
 - 鉴权：是
 - 幂等：是（`cancel:{user_id}:{timestamp}`，TTL 300s）
-- Request: `{ verify_code: string, agreement_version: 'v1.0' }`
-- Response 200: `{ cancelled: true }`
+- Request: `{}`（MVP 仅前端弹窗二次确认）
+- Response 200: `{ cancelled: true, anonymous_after: '2026-10-28T12:00:00Z' }`
 - Response 400: `ACTIVE_PACKAGE_EXISTS`（存在 active 套餐）
 - Response 400: `PENDING_ORDER_EXISTS`（存在未完成订单）
-- Response 401: `INVALID_CREDENTIALS`（二次验证失败）
+- Response 400: `ONGOING_BOOKING_EXISTS`（存在进行中或待上课预约）
 - Response 409: `ALREADY_CANCELLED`（账号已注销）
 
 ## State Machine
@@ -47,14 +48,14 @@ CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 ### 用户账号状态机
 
 ```
-正常(1) ──(用户确认注销)──→ 已注销(2)
+正常(0) ──(用户确认注销)──→ 软删除(1)
 ```
 
 本 US 触发的转换：
 
 | 转换 | 触发条件 | 字段变更 |
 |------|---------|---------|
-| 正常 → 已注销 | 用户确认注销 | `user.status` 从 `1` 更新为 `2`，`deleted_at` 赋值 |
+| 正常 → 软删除 | 用户确认注销 | `user.status` 从 `0` 更新为 `1`，`deleted_at` 赋值 |
 
 ## Caching
 
@@ -76,8 +77,8 @@ CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
 ## Security
 
 - `POST /api/user/account/cancel` 必须登录鉴权
-- 必须二次验证（密码或验证码）
-- 注销前校验无 active 套餐、无未完成订单
+- MVP 阶段二次确认采用弹窗确认/取消，无需密码或验证码
+- 注销前校验无 active 套餐、无未完成订单、无进行中或待上课预约
 - 记录审计日志（操作人、时间、IP、设备）
 - 注销后执行数据保留策略：订单/套餐历史保留 90 天后匿名化（PRD §3.7、§5.2.1、附录 D45）
 - 注销后所有 token 立即失效

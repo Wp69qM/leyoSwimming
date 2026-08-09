@@ -6,10 +6,10 @@ PRD [§5.4.1](../../../docs/prd/prd.md) 要求首次注册需上传证书、任�
 
 ## What Changes
 
-- 新增 `POST /api/coach/application` 接口（提交入驻资料，请求体含全部字段及 `certificates: [{cert_type, image_url}]`）
-- 新增 `PUT /api/coach/application/draft` 接口（保存草稿，数据写入 `coach_application` 快照，`status = draft`，`coach.status` 保持 `-1/2/3` 不变）
-- 新增 `GET /api/coach/application` 接口（查询当前最新 `coach_application` 快照完整字段 + 证书列表，返回 `entry_type` 与 `prompt_message`）
-- 新增 `POST /api/upload/image` 接口（通用图片上传，JPG/PNG，≤5MB）
+- 新增 `POST /api/coach/application/submit` 接口（提交入驻资料，请求体含全部字段及 `certificates: [{cert_type, image_url}]`）
+- 新增 `POST /api/coach/application/save-draft` 接口（保存草稿，数据写入 `coach_application` 快照，`status = draft`，`coach.status` 保持 `-1/2/3` 不变）
+- 新增 `POST /api/coach/application/detail` 接口（查询当前最新 `coach_application` 快照完整字段 + 证书列表，返回 `entry_type` 与 `prompt_message`）
+- 新增 `POST /api/common/file/upload` 接口（通用图片上传，JPG/PNG，≤5MB）
 - 新增 `coach_application` 快照表（与 `coach` 资料字段同构，含 `status` draft/pending/approved/rejected、`previous_coach_status`）
 - 新增 `coach_certificate_application` 快照证书记录表
 - 新增 `coach_audit_log` 表记录（submit/approve/reject/draft_save）

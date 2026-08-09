@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 微信授权登录
 
-系统 MUST 提供 `POST /api/v1/auth/wechat-login` 接口，接收微信小程序 `wx.login()` 返回的 `code`、`wx.getPhoneNumber` 返回的加密手机号数据、`terms_accepted` 和 `privacy_accepted` 标志，以及 `app_type` 字段。用户端小程序 MUST 显式提交 `app_type='user'`，后端按该字段将请求路由到 `user` 表。登录入口 MUST 支持两种触发路径：游客首次访问受登录限制功能时由系统引导跳转；或游客在「我的」页面发现未登录态（默认头像与「请登录」按钮）并主动点击「请登录」按钮跳转。系统 MUST 首先校验 `terms_accepted=true` 且 `privacy_accepted=true`，否则拒绝登录。校验通过后调用微信 `code2session` 接口获取 `openid`/`union_id`/`session_key`，使用 `session_key` 解密手机号，按 `union_id` 查询或创建用户记录，并签发 JWT `access_token` 与 `refresh_token`。系统 MUST 在首次登录时将用户 `identity_status` 置为 `注册用户`（触发游客→注册用户状态转换），`profile_completed` 置为 `false`，写入手机号与微信头像。系统 MUST 以 `code` 为幂等键，5 分钟内重复提交返回首次结果。系统 MUST NOT 将 `session_key` 返回给前端。
+系统 MUST 提供 `POST /api/user/auth/wechat-login` 接口，接收微信小程序 `wx.login()` 返回的 `code`、`wx.getPhoneNumber` 返回的加密手机号数据、`terms_accepted` 和 `privacy_accepted` 标志，以及 `app_type` 字段。用户端小程序 MUST 显式提交 `app_type='user'`，后端按该字段将请求路由到 `user` 表。登录入口 MUST 支持两种触发路径：游客首次访问受登录限制功能时由系统引导跳转；或游客在「我的」页面发现未登录态（默认头像与「请登录」按钮）并主动点击「请登录」按钮跳转。系统 MUST 首先校验 `terms_accepted=true` 且 `privacy_accepted=true`，否则拒绝登录。校验通过后调用微信 `code2session` 接口获取 `openid`/`union_id`/`session_key`，使用 `session_key` 解密手机号，按 `union_id` 查询或创建用户记录，并签发 JWT `access_token` 与 `refresh_token`。系统 MUST 在首次登录时将用户 `identity_status` 置为 `注册用户`（触发游客→注册用户状态转换），`profile_completed` 置为 `false`，写入手机号与微信头像。系统 MUST 以 `code` 为幂等键，5 分钟内重复提交返回首次结果。系统 MUST NOT 将 `session_key` 返回给前端。
 
 #### Scenario: 首次微信授权登录成功，跳转完善个人资料页
 

@@ -7,7 +7,7 @@
 | 层级 | 占比 | 工具 | 说明 |
 |------|------|------|------|
 | 单元测试 | 40% | Jest | 状态机转换、工单字段校验、幂等键生成 |
-| 集成测试 | 45% | Jest + Supertest | 申请、登记 action、提交、撤销 API 端到端 |
+| 集成测试 | 45% | Jest + Supertest | 申请、登记 action、提交 API 端到端 |
 | E2E 测试 | 10% | 微信小程序自动化 | 教练端离职入口与工单页交互 |
 | 性能测试 | 5% | k6 | 提交接口并发与幂等 |
 
@@ -19,27 +19,27 @@
 
 - [ ] **1.1 RED**：编写 `coach_resignation_ticket` / `coach_resignation_action` 模型缺失测试（字段、索引、外键）
 - [ ] **1.2 GREEN**：创建 Knex migration 与模型
-- [ ] **1.3 RED**：编写 coach 状态机 `1 → 4` 与 `4 → 1` 单元测试
+- [ ] **1.3 RED**：编写 coach 状态机 `1 → 4` 单元测试
 - [ ] **1.4 GREEN**：实现状态转换校验函数
 - [ ] **1.5 REFACTOR**：抽取 resignation state machine 公共模块
 - [ ] **1.6 COMMIT**：`feat(us-039): add resignation ticket tables and state machine`
 
-**对应**：user-story.md 场景 1、3、4、边界场景 1 / tech-design §3、§5
+**对应**：user-story.md 场景 1、3、4 / tech-design §3、§5
 
 ### Task 2：提交离职申请接口
 
-- [ ] **2.1 RED**：编写 `POST /api/coach/v1/resignation/apply` 成功生成工单测试
+- [ ] **2.1 RED**：编写 `POST /api/coach/resignation/apply` 成功生成工单测试
 - [ ] **2.2 RED**：编写 status ≠ 1 时返回 403 的测试
 - [ ] **2.3 RED**：编写重复提交返回 409 的测试
 - [ ] **2.4 GREEN**：实现申请接口、幂等键去重、工单创建
 - [ ] **2.5 REFACTOR**：封装 resignation apply service
 - [ ] **2.6 COMMIT**：`feat(us-039): coach resignation apply endpoint`
 
-**对应**：user-story.md 场景 1、3、4、边界场景 3 / tech-design §4.1
+**对应**：user-story.md 场景 1、3、4 / tech-design §4.1
 
 ### Task 3：工单详情与套餐清单
 
-- [ ] **3.1 RED**：编写 `GET /api/coach/v1/resignation/ticket` 返回工单 + active 套餐清单测试
+- [ ] **3.1 RED**：编写 `POST /api/coach/resignation/detail` 返回工单 + active 套餐清单测试
 - [ ] **3.2 RED**：编写无 active 套餐时返回空清单测试
 - [ ] **3.3 GREEN**：实现工单查询与 package 聚合
 - [ ] **3.4 REFACTOR**：统一套餐清单 DTO
@@ -73,16 +73,17 @@
 ### Task 6：离职处理中页
 
 - [ ] **6.1 RED**：编写提交成功后跳转 C-离职处理中页的 E2E 测试
-- [ ] **6.2 RED**：编写 coach.status=4 时登录跳转 C-离职处理中页的 E2E 测试
-- [ ] **6.3 RED**：编写 C-离职处理中页展示工单号、进度、客服入口的测试
-- [ ] **6.4 GREEN**：实现离职处理中页数据查询与前端跳转
-- [ ] **6.5 COMMIT**：`feat(us-039): coach resignation processing page`
+- [ ] **6.2 RED**：编写 coach.status=4 时「我的」页面展示「查看离职申请」入口的 E2E 测试
+- [ ] **6.3 RED**：编写教练主动点击「查看离职申请」进入 C-离职处理中页的 E2E 测试
+- [ ] **6.4 RED**：编写 C-离职处理中页展示工单号、进度、客服入口的测试
+- [ ] **6.5 GREEN**：实现离职处理中页数据查询与前端入口
+- [ ] **6.6 COMMIT**：`feat(us-039): coach resignation processing page`
 
 **对应**：user-story.md 场景 6、7
 
 ### Task 7：审计与缓存失效
 
-- [ ] **7.1 RED**：编写 audit_log 写入测试（status 变更、action 登记）
+- [ ] **7.1 RED**：编写 coach_audit_log 写入测试（status 变更、action 登记）
 - [ ] **7.2 RED**：编写 coach.status 缓存失效测试
 - [ ] **7.3 GREEN**：实现审计日志与缓存失效
 - [ ] **7.4 COMMIT**：`feat(us-039): audit log and cache invalidation`
@@ -101,7 +102,7 @@
 | 4 | 重复提交离职申请 | 6.4 | `test_apply_resignation_duplicate` | HTTP 409，不生成新工单 |
 | 5 | 登记非自己名下套餐 | 6.5 | `test_register_action_not_own_package` | HTTP 403，错误码 NOT_OWN_PACKAGE |
 | 6 | 提交后跳转离职处理中页 | 6.6 | `test_resignation_processing_page_after_apply` | 展示标题、工单号、进度、客服入口 |
-| 7 | status=4 登录跳转离职处理中页 | 6.7 | `test_login_redirect_to_resigning_page` | 返回 redirect_page=coach_resigning，跳转处理中页 |
+| 7 | status=4 时主动查看离职申请 | 6.7 | `test_view_resignation_processing_page` | 「我的」页面显示入口，点击进入处理中页，不拦截正常流程 |
 | 8 | 教练名下无 active 套餐 | 8.2 | `test_apply_resignation_no_active_packages` | 允许提交，工单清单为空 |
 | 9 | 并发提交幂等 | 8.3 | `test_apply_resignation_idempotent` | 仅 1 条工单 |
 | 10 | 未登记套餐默认全额退款 | 6.2 / §12 | `test_submit_default_refund_record` | 自动生成 refund_record，金额 = 单价 × 剩余课时 |
@@ -114,7 +115,7 @@
 - [ ] 集成测试全部通过
 - [ ] 所有 GWT 场景均有对应自动化测试
 - [ ] 状态机转换 100% 覆盖（1→4、processing→pending_audit）
-- [ ] 离职处理中页跳转与展示覆盖（提交后跳转、status=4 登录跳转）
+- [ ] 离职处理中页入口与展示覆盖（提交后跳转、「我的」页面入口、主动点击查看）
 - [ ] 无 TBD/TODO 遗留
 
 ---

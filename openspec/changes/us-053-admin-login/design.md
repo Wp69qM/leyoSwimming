@@ -12,7 +12,7 @@ US-053 是一个 L1 级 US，为 Web 后台管理系统提供独立的账号密�
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `admin_user` | CREATE | `id`, `username`, `password_hash`, `name`, `role`, `status`, `created_at`, `updated_at` |
+| `admin_user` | CREATE | `id`, `username`, `password_hash`, `name`, `role`, `status`, `last_login_at`, `created_at`, `updated_at` |
 | `admin_session` | CREATE | `id`, `admin_user_id`, `token_hash`, `expires_at`, `revoked_at`, `created_at` |
 | `admin_login_log` | CREATE | `id`, `admin_user_id`, `username`, `ip`, `user_agent`, `status`, `reason`, `created_at` |
 
@@ -26,7 +26,7 @@ CREATE INDEX idx_admin_session_admin_user_id ON admin_session(admin_user_id);
 
 ## API Design
 
-### POST /api/v1/admin/auth/login
+### POST /api/admin/auth/login
 
 - 鉴权：否
 - 幂等：否
@@ -35,7 +35,7 @@ CREATE INDEX idx_admin_session_admin_user_id ON admin_session(admin_user_id);
 - Response 401: `ADMIN_CREDENTIALS_INVALID` 或 token 过期
 - Response 403: `ADMIN_DISABLED`
 
-### POST /api/v1/admin/auth/logout
+### POST /api/admin/auth/logout
 
 - 鉴权：是
 - 幂等：是
@@ -69,14 +69,14 @@ CREATE INDEX idx_admin_session_admin_user_id ON admin_session(admin_user_id);
 
 ```
 访问后台系统 → 未登录 → 展示登录页
-  → 输入用户名/密码 → POST /admin/auth/login
+  → 输入用户名/密码 → POST /api/admin/auth/login
     → 成功 → 存储 token + userInfo 到 localStorage → 跳转后台首页
     → 失败 → 展示错误提示
 
 后台任意页面 → token 过期/无效 → 后端返回 401 → 前端跳转登录页并提示"登录信息已过期，请重新登录"
 
 后台任意页面 → 点击右上角管理员名字 → 展开下拉菜单
-  → 点击退出登录 → POST /admin/auth/logout → 清除 localStorage 中的 token + userInfo → 跳转登录页
+  → 点击退出登录 → POST /api/admin/auth/logout → 清除 localStorage 中的 token + userInfo → 跳转登录页
 ```
 
 ## Security

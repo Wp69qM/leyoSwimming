@@ -3,14 +3,14 @@
 ## Task 1: 手机号验证码登录接口 [P0]
 
 - RED: 测试已注册手机号 + 正确验证码返回 200 与 token；未注册手机号首次登录自动创建账号并返回 token；已注销手机号（status=1）登录按 PRD §5.2.1 第 4 条重新创建账号并返回 token
-- GREEN: 实现 `POST /api/auth/login/phone`，包含手机号格式校验、验证码校验、`termsAccepted`/`privacyAccepted` 校验、自动注册/注销后重新注册、JWT 签发
+- GREEN: 实现 `POST /api/user/auth/phone-login`，包含手机号格式校验、验证码校验、`termsAccepted`/`privacyAccepted` 校验、自动注册/注销后重新注册、JWT 签发
 - COMMIT: `feat(auth): add phone code login endpoint with terms/privacy validation, auto-register and re-register after deletion`
 
 ## Task 2: 验证码发送与校验 [P0]
 
 - RED: 测试发送成功写入 sms_code；60 秒内重复发送被拒绝；验证码错误返回 INVALID_SMS_CODE
-- GREEN: 实现 `POST /api/auth/sms/code` 与验证码校验服务
-- COMMIT: `feat(auth): add SMS code send and verify service`
+- GREEN: 实现 `POST /api/common/sms/send` 与验证码校验服务
+- COMMIT: `feat(common): add send login sms code endpoint`
 
 ## Task 3: 注销后重新注册隔离 [P1]
 
@@ -20,7 +20,7 @@
 
 ## Task 4: 登录态生成、存储与校验 [P0]
 
-- RED: 测试登录成功后返回 `access_token`/`refresh_token`/`expires_in`；前端将 token 写入本地存储；后续请求携带 `Authorization: Bearer {access_token}`；后端校验 token 有效；token 过期后可用 refresh_token 换发
+- RED: 测试登录成功后返回 `accessToken`/`refreshToken`/`expiresIn`；前端将 token 写入本地存储；后续请求携带 `Authorization: Bearer {accessToken}`；后端校验 token 有效；token 过期后可用 refreshToken 换发
 - GREEN: 实现 JWT/session 服务并复用 US-004，实现前端 token 存储与请求拦截器，实现 token 刷新逻辑
 - COMMIT: `feat(auth): add session/token storage, request interceptor and refresh for phone login`
 

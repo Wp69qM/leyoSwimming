@@ -24,7 +24,7 @@
 
 ## Impact
 
-- 后端：新增 `coach_resignation_ticket`、`coach_resignation_action`、`refund_record` 表，新增 `/api/coach/v1/resignation/*` 系列接口、幂等键去重与审计日志
+- 后端：新增 `coach_resignation_ticket`、`coach_resignation_action`、`refund_record` 表，新增 `/api/coach/resignation/*` 系列接口、幂等键去重与审计日志
 - 教练端小程序：新增「申请离职」入口、离职工单处理页
 - 管理端：US-041 可读取本 US 生成的 pending_audit 工单与待退款记录
 - 依赖：US-012（教练主页管理）、US-020（学员购买正价套餐）

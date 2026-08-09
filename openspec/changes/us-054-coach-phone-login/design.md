@@ -13,15 +13,15 @@
 
 ## API
 
-- `POST /api/v1/auth/coach/sms/code`
-  - 请求：`{ phone, app_type: "coach" }`
-  - 响应：`{ success: true }` 或错误码
+- `POST /api/common/sms/send`
+  - 请求：`{ phone, app_type: "coach", scene: "login" }`
+  - 响应：`{ code: 0, data: { expire_seconds: 300 } }` 或错误码
   - 限流：同一手机号 60 秒 1 条，24 小时上限 10 条。
 
-- `POST /api/v1/auth/coach/login/phone`
-  - 请求：`{ phone, code, terms_accepted, privacy_accepted }`
+- `POST /api/coach/auth/phone-login`
+  - 请求：`{ phone, sms_code, terms_accepted, privacy_accepted, app_type: "coach" }`
   - 响应：`{ access_token, refresh_token, expires_in, is_new_coach, coach_status }`
-  - 错误码：`TERMS_NOT_ACCEPTED`、`INVALID_SMS_CODE`、`PHONE_FORMAT_ERROR`、`SMS_SEND_FAILED`、`NETWORK_ERROR`。
+  - 错误码：`TERMS_NOT_ACCEPTED`、`INVALID_SMS_CODE`、`SMS_CODE_EXPIRED`、`RATE_LIMITED`、`INVALID_PHONE`。
 
 ## 状态机
 

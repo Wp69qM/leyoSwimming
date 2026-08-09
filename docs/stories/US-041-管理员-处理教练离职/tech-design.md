@@ -14,8 +14,8 @@
 - 管理员可查看 pending_audit 离职审批队列
 - 管理员可通过或拒绝离职申请
 - 通过时按 checklist 校验并执行批量同步变更
-- 通过时对所有 active package 自动生成 100% 待退款记录
-- 拒绝时恢复 coach.status=1，不回滚已确认退款记录
+- 通过时按工单登记的 action 类型分流处理：transfer（换教练）、refund（生成 100% 待退款记录并冻结套餐）、continue（保持 active 继续上完）
+- 拒绝时恢复 coach.status=1，不回滚已确认的学员处理结果
 
 **非目标：**
 - 不实现教练费实际结算（仅记录待结算）
@@ -61,28 +61,31 @@
 
 ## 4. API 设计
 
-### 4.1 `GET /api/admin/v1/resignation-tickets`
+### 4.1 `POST /api/admin/coach/resignation-ticket/list`
 
 - **鉴权**：管理员 JWT，`MANAGE_COACH_RESIGNATION`
-- **查询参数**：`status=pending_audit`（默认）、`page`、`page_size`
+- **请求体**：`{ "status": "pending_audit", "page": 1, "pageSize": 20 }`
 - **响应 200**：工单列表摘要
 
-### 4.2 `GET /api/admin/v1/resignation-tickets/{ticket_id}`
+### 4.2 `POST /api/admin/coach/resignation-ticket/detail`
 
 - **鉴权**：管理员 JWT
+- **请求体**：`{ "ticketId": 10001 }`
 - **响应 200**：工单详情 + coach 信息 + 套餐清单 + actions + checklist 状态
 
-### 4.3 `POST /api/admin/v1/resignation-tickets/{ticket_id}/approve`
+### 4.3 `POST /api/admin/coach/resignation-ticket/approve`
 
 - **鉴权**：管理员 JWT
+- **请求体**：`{ "ticketId": 10001 }`
 - **功能**：通过审批，触发批量变更
 - **执行顺序**：
-  1. 对所有 active package（含未确认退款的套餐），生成 `refund_record`：`refund_amount = 单价 × 剩余课时`（已消耗不退）；
-  2. 取消未来 booking；
-  3. 释放 package.reserved；
-  4. active package → frozen；
-  5. 未来 schedule_slot → hidden；
-  6. coach.status 4 → 3。
+  1. 按 `coach_resignation_action` 中登记的 action 类型，逐份处理 active package：
+     - **transfer**：`package.coach_id` 更新为新教练，不生成退款记录，不冻结；
+     - **refund**：生成 `refund_record`：`refund_amount = 单价 × 剩余课时`（已消耗不退），`package.status → frozen`（`frozen_reason='coach_resigned'`）；
+     - **continue**：package 保持 active，不生成退款记录，不冻结；
+  2. 取消该教练所有未来 booking（`start_time > NOW()` 且 status ∈ 已预约/待上课），`cancel_reason = 2`；
+  3. 将未来 `schedule_slot`（`start_time > NOW()`）更新为 hidden；
+  4. `coach.status 4 → 3`。
 - **响应 200**：`{ "message": "审批通过" }`
 - **错误码**：
   - `CHECKLIST_NOT_PASSED`（400）
@@ -90,12 +93,16 @@
   - `TICKET_NOT_PENDING_AUDIT`（409）
   - `TICKET_ALREADY_PROCESSED`（409）
 
-### 4.4 `POST /api/admin/v1/resignation-tickets/{ticket_id}/reject`
+### 4.4 `POST /api/admin/coach/resignation-ticket/reject`
 
 - **鉴权**：管理员 JWT
-- **请求体**：`{ "reason": "..." }`
+- **请求体**：`{ "ticketId": 10001, "reason": "..." }`
 - **功能**：拒绝审批，`coach.status: 4 → 1`
-- **响应 200**：`{ "message": "已拒绝" }`
+- **响应 200**：`{ "message": "已拒绝，教练可继续教学" }`
+- **业务逻辑**：
+  1. 校验 ticket 存在且 `status = pending_audit`
+  2. 更新 `coach_resignation_ticket.status = rejected`、`reason = reason`（如提供）
+  3. 恢复 `coach.status = 1`
 
 ---
 
@@ -140,9 +147,9 @@
 
 ## 7. 性能指标
 
-- `GET /api/admin/v1/resignation-tickets` P99 < 200ms
-- `GET /api/admin/v1/resignation-tickets/{id}` P99 < 200ms
-- `POST approve` P99 < 1s（100 份 package 以内）
+- `POST /api/admin/coach/resignation-ticket/list` P99 < 200ms
+- `POST /api/admin/coach/resignation-ticket/detail` P99 < 200ms
+- `POST /api/admin/coach/resignation-ticket/approve` P99 < 1s（100 份 package 以内）
 
 ---
 

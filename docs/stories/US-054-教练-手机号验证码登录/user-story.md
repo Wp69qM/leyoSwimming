@@ -1,10 +1,10 @@
 # US-054 教练手机号验证码登录
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-05
-> **配套文档**：Figma：[待补充]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[§13](#13-figma-链接)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -62,7 +62,7 @@
     - `1`（已通过） → 跳转「教练首页」（US-012 起）
     - `2`（已驳回） → 跳转「入驻资料填写页」（US-010，顶部展示驳回原因条）
     - `3`（已离职） → 跳转「入驻资料填写页」（US-010，顶部展示重新入驻说明条）
-    - `4`（申请离职中） → 跳转「离职处理中页」
+    - `4`（申请离职中） → 跳转「教练首页」；「我的」页面提供「查看离职申请」入口，教练可主动进入「离职处理中页」（US-039），不强制跳转
 12. 后续访问受登录态保护的接口时，前端在 HTTP Header `Authorization: Bearer {access_token}` 中携带 token；后端校验 token 有效后方可访问
 13. 前端在 app 启动或依赖登录态的页面 `onShow` 时检查本地 token：若不存在或已过期，引导教练重新登录；`access_token` 过期但 `refresh_token` 有效时，前端调用刷新接口换发新的 `access_token`
 
@@ -218,9 +218,9 @@ And   coach.last_login_at 不更新
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/auth/coach/login/phone` | POST | 新增 | 教练手机号验证码登录 |
-| 2 | `/api/v1/auth/coach/sms/code` | POST | 新增 | 发送教练端登录验证码 |
-| 3 | `/api/v1/auth/wechat-login` | POST | 修改 | 可选：在 US-051 已有的 `app_type=coach` 分支基础上，本 US 新增手机号登录分支，复用 `coach` 表与 `coach_session` 会话管理 |
+| 1 | `/api/coach/auth/phone-login` | POST | 新增 | 教练手机号验证码登录 |
+| 2 | `/api/common/sms/send` | POST | 新增 | 发送教练端登录验证码 |
+| 3 | `/api/coach/auth/wechat-login` | POST | 复用 | 复用 US-051 教练端微信授权登录接口，用于一键登录跳转 |
 
 ### 7.3 状态机影响
 
@@ -322,7 +322,7 @@ And   coach.last_login_at 不更新
 - **登录限流**：同一手机号 60 秒内只能发送 1 条验证码
 - **会话有效期**：小程序登录态 30 天
 - **自动注册**：未注册手机号首次验证码登录即视为注册，需后续在 US-010 中提交入驻资料
-- **已离职账号隔离**：`status=3` 的教练手机号登录时，系统必须创建全新 `coach` 记录，新记录 `id` 与原记录不同，原记录数据不可被新账号访问
+- **已离职账号处理**：`status=3` 的教练手机号登录时，系统复用原 `coach` 记录并登录，返回 `coach_status=3`，登录后按 US-040 跳转 US-010 重新入驻资料填写页，原账号历史数据保留
 - **手机号加密**：`coach.phone` 字段需加密存储，日志中脱敏展示
 - **设计相关**：见 §13-15 Figma 相关章节
 - **技术相关**：见 [./tech-design.md](./tech-design.md)
@@ -334,11 +334,10 @@ And   coach.last_login_at 不更新
 
 > 本节提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 教练端手机号登录页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 教练端手机号登录页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 3 | 教练端登录页-手机号/微信切换入口 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 教练端手机号登录页 | [C-phone-login-page.md](../../figma/page-spec/C-phone-login-page.md) | ✅ |
+| 2 | 教练端微信授权登录页 | [C-wechat-auth-page.md](../../figma/page-spec/C-wechat-auth-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -346,7 +345,7 @@ And   coach.last_login_at 不更新
 
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
-| **教练端手机号登录页** | 🔲 | 🔲 | 🔲 | 🔲 | 含手机号输入、验证码输入、协议勾选 |
+| **教练端手机号登录页** | `C-手机号登录页-empty` | `C-手机号登录页-loading` | `C-手机号登录页-error` | `C-手机号登录页-success` | 含手机号输入、验证码输入、协议勾选 |
 | **登录页-手机号/微信切换入口** | 🔲 | 🔲 | 🔲 | 🔲 | 参考 US-006 用户端登录页入口 |
 
 ---
@@ -373,7 +372,7 @@ And   coach.last_login_at 不更新
 
 - **背景**：登录时必须校验教练已勾选《用户须知》和《隐私协议》
 - **选项**：A. 前端校验即可；B. 前端 + 后端双重校验
-- **结论**：选 B，前端点击登录时立即提示，后端 `POST /api/v1/auth/coach/login/phone` 同时校验 `terms_accepted=true` 且 `privacy_accepted=true`
+- **结论**：选 B，前端点击登录时立即提示，后端 `POST /api/coach/auth/phone-login` 同时校验 `terms_accepted=true` 且 `privacy_accepted=true`
 - **影响范围**：手机号登录页交互、后端登录接口
 
 ### 14.4 登录成功后分流策略

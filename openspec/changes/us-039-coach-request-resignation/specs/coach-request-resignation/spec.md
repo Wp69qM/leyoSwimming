@@ -83,7 +83,7 @@ The system MUST reject any attempt to register an action for a package that does
 
 ### Requirement: REQ-006 System shall display the coach resignation processing page
 
-The system MUST redirect the coach to the "C-教练端离职处理中页" after a successful resignation application. The system MUST display the current ticket status, ticket number, progress message, estimated processing time, and provide entry points to view the resignation ticket and contact customer service. The system MUST redirect a coach with `coach.status = 4` to the processing page upon login via US-051/US-054 with `redirect_page = "coach_resigning"`.
+The system MUST redirect the coach to the "C-教练端离职处理中页" after a successful resignation application. The system MUST display the current ticket status, ticket number, progress message, estimated processing time, and provide entry points to view the resignation ticket and contact customer service. When a coach has `coach.status = 4`, the system MUST show a "查看离职申请" entry on the "我的" page; tapping it enters the processing page. The system MUST NOT block normal login, homepage, or schedule access for status=4 coaches.
 
 #### Scenario: Coach enters resignation processing page after application
 
@@ -99,11 +99,12 @@ The system MUST redirect the coach to the "C-教练端离职处理中页" after 
 - **AND** the page provides "查看离职工单" primary button
 - **AND** the page provides "联系客服 / 帮助" text entry
 
-#### Scenario: Coach with status=4 logs in and redirects to resignation processing page
+#### Scenario: Coach with status=4 actively views resignation processing page
 
 - **GIVEN** coach C has coach.status = 4
 - **AND** there is an existing resignation ticket with status = "processing"
-- **WHEN** coach C logs in via US-051/US-054
-- **THEN** the system returns coach_status = 4 and redirect_page = "coach_resigning"
-- **AND** the frontend redirects to C-教练端离职处理中页
+- **WHEN** coach C is logged in and taps "查看离职申请" on the "我的" page
+- **THEN** the system returns the current ticket details
+- **AND** the frontend enters C-教练端离职处理中页
 - **AND** the page displays current ticket progress per the previous scenario
+- **AND** coach C can still use other coach mini-app features normally

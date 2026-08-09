@@ -12,7 +12,9 @@
 | 2 | 正常注销流程 | 写失败测试 | 最小实现 | commit |
 | 3 | active 套餐拦截 | 写失败测试 | 最小实现 | commit |
 | 4 | 未完成订单拦截 | 写失败测试 | 最小实现 | commit |
-| 5 | 注销后登录态失效 | 写失败测试 | 最小实现 | commit |
+| 5 | 进行中预约拦截 | 写失败测试 | 最小实现 | commit |
+| 6 | 二次确认弹窗取消 | 写失败测试 | 最小实现 | commit |
+| 7 | 注销后登录态失效 | 写失败测试 | 最小实现 | commit |
 
 ---
 
@@ -46,7 +48,7 @@ def test_cancel_account_idempotent():
 # backend/tests/integration/test_user_cancel_api.py
 
 def test_api_cancel_check_200():
-    """GET /api/user/account/cancel/check 返回条件状态"""
+    """POST /api/user/account/cancel-check 返回条件状态"""
     pass
 
 def test_api_cancel_200():
@@ -73,3 +75,5 @@ def test_e2e_cancel_account():
 | 正常注销账号 | test_cancel_account_success / test_api_cancel_200 |
 | 存在 active 套餐时注销 | test_cancel_account_active_package_blocked |
 | 存在未完成订单时注销 | test_cancel_account_pending_order_blocked |
+| 存在进行中预约时注销 | test_cancel_account_ongoing_booking_blocked |
+| 二次确认弹窗中取消 | test_cancel_account_popup_cancelled |

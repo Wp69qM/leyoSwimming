@@ -27,6 +27,19 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 主页面（成年人空状态） | U-完善个人资料页-首次完善-成年人-空状态 | https://www.calicat.cn/design/2083742072257646592?node-id=7d740853-a39f-4ec2-be61-81dad8b39ac3 |
+| 相关 frame | （8774704a-e7b2-4bc1-bcc4-dfd606c40005） | https://www.calicat.cn/design/2083742072257646592?node-id=8774704a-e7b2-4bc1-bcc4-dfd606c40005 |
+| 相关 frame | （9ca89c86-6538-48ec-9a92-ff038b357221） | https://www.calicat.cn/design/2083742072257646592?node-id=9ca89c86-6538-48ec-9a92-ff038b357221 |
+| 相关 frame | （2afc16a7-e91a-4d44-a342-a087cf5aec3c） | https://www.calicat.cn/design/2083742072257646592?node-id=2afc16a7-e91a-4d44-a342-a087cf5aec3c |
+| 相关 frame | （a070760a-d6f2-43e6-8220-626625c28c9f） | https://www.calicat.cn/design/2083742072257646592?node-id=a070760a-d6f2-43e6-8220-626625c28c9f |
+| 相关 frame | （d720cfeb-cc05-4511-b2ca-c87af2074759） | https://www.calicat.cn/design/2083742072257646592?node-id=d720cfeb-cc05-4511-b2ca-c87af2074759 |
+
+---
+
 ## 2. 用户身份与业务状态维度
 
 ### 2.1 适用身份

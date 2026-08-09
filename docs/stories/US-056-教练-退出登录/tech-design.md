@@ -21,7 +21,7 @@
 
 ### 1.1 修改的表
 
-> 仅列出与 US-056 直接相关的字段；完整字段定义见 US-051 / US-054。
+> 仅列出与 US-056 直接相关的字段；完整字段定义见 US-010 / US-051 / US-054。
 
 | 表名 | 操作 | 字段 | 说明 |
 |------|------|------|------|
@@ -43,11 +43,11 @@ CREATE INDEX idx_coach_session_coach_id ON coach_session(coach_id);
 
 ## 2. API 设计
 
-### 2.1 POST /api/v1/auth/logout
+### 2.1 POST /api/coach/auth/logout
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `POST /api/v1/auth/logout` |
+| 路径 | `POST /api/coach/auth/logout` |
 | 鉴权 | 是（需携带有效 access_token） |
 | 幂等 | 是（同一 token 重复调用视为已退出） |
 
@@ -123,7 +123,7 @@ Authorization: Bearer {access_token}
    │ 1. 点击「退出登录」             │
    │ 2. 弹出确认弹窗                 │
    │ 3. 教练点击「确定」             │
-   ├──── POST /auth/logout ────────→│
+   ├──── POST /api/coach/auth/logout ────────→│
    │   Authorization: Bearer        │
    │                                │
    │ 4. 校验 access_token           │
@@ -148,7 +148,7 @@ Authorization: Bearer {access_token}
 
 ## 5. 安全 / 鉴权
 
-- `POST /api/v1/auth/logout` 必须登录鉴权
+- `POST /api/coach/auth/logout` 必须登录鉴权
 - 必须校验请求中的 `access_token` 属于当前登录教练（`app_type='coach'`）
 - 退出后 `refresh_token` 必须失效，禁止用其换发新的 `access_token`
 - 清除前端存储时需同时清除内存与持久化 storage

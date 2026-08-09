@@ -1,10 +1,10 @@
 # US-053 管理员账号密码登录
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-05
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-admin-login-page.md](../../figma/page-spec/A-admin-login-page.md) / [A-dashboard-page.md](../../figma/page-spec/A-dashboard-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -155,7 +155,7 @@ Given 管理员 M 已登录且 localStorage 中存在有效的 admin_token 和 a
 And   管理员 M 位于后台管理系统任意页面
 When  管理员 M 点击全局导航栏右上角的管理员名字
 And   在下拉菜单中点击「退出登录」
-Then  系统调用后端 POST /api/v1/admin/auth/logout 接口
+Then  系统调用后端 POST /api/admin/auth/logout 接口
 And   后端将当前 admin_session token 标记为失效
 And   前端清除 localStorage 中的 admin_token 和 admin_user
 And   页面跳转回管理员登录页
@@ -190,8 +190,8 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/admin/auth/login` | POST | 新增 | 管理员账号密码登录 |
-| 2 | `/api/v1/admin/auth/logout` | POST | 新增 | 管理员退出登录（右上角下拉菜单）|
+| 1 | `/api/admin/auth/login` | POST | 新增 | 管理员账号密码登录 |
+| 2 | `/api/admin/auth/logout` | POST | 新增 | 管理员退出登录（右上角下拉菜单）|
 
 ### 7.3 状态机影响
 
@@ -241,6 +241,7 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 - [ ] US-047（管理员配置场馆、公告、闭馆换水、《用户须知》与《隐私协议》）
 - [ ] US-048（管理员配置首页运营内容）
 - [ ] US-049（管理员查看数据看板与处理客服工单）
+- [ ] US-057（管理员管理管理员账号）
 
 ---
 
@@ -292,9 +293,9 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 - **安全要求**：
   - 密码必须加密存储（bcrypt/scrypt 等），禁止明文存储
   - 登录接口需限流，防止暴力破解
-  - token 使用 HTTP-only cookie 或安全 storage
+  - token 存储在 localStorage（Web 后台管理场景下 XSS 风险可控，且便于页面展示 userInfo）
   - 传输层必须使用 HTTPS
-- **权限说明**：本 US 仅负责登录认证，管理员权限配置由 US-054（管理员账号管理）负责
+- **权限说明**：本 US 仅负责登录认证；管理员账号的创建、编辑、禁用/启用、删除、重置密码等维护功能见 [US-057](../US-057-管理员-管理管理员账号/user-story.md)
 - **幂等性**：同一用户名密码重复登录应生成新的 session 记录
 - **设计相关**：见 §13-15 Figma 相关章节
 - **技术相关**：见 [./tech-design.md](./tech-design.md)
@@ -306,12 +307,10 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 
 > 提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 管理员登录页 page-spec | [A-admin-login-page.md](../../../docs/figma/page-spec/A-admin-login-page.md) | ✅ |
-| 2 | 管理员登录页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 3 | 管理员登录页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 4 | 右上角管理员信息/退出下拉菜单 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 管理员登录页 | [A-admin-login-page.md](../../figma/page-spec/A-admin-login-page.md) | ✅ |
+| 2 | 后台首页 | [A-dashboard-page.md](../../figma/page-spec/A-dashboard-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -375,6 +374,7 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 |------|------|------|------|
 | v1.0 | 2026-08-05 | PM | 初版：定义管理员账号密码登录流程 |
 | v1.1 | 2026-08-07 | PM | 补充管理员退出登录的用户故事描述、业务流程、验收标准（场景 4-5）与触发条件 |
+| v1.2 | 2026-08-08 | PM | 补充 US-057 依赖引用，管理员账号维护功能已独立成 US |
 
 ---
 

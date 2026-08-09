@@ -25,7 +25,7 @@
 
 | 表名 | 操作 | 字段 | 说明 |
 |------|------|------|------|
-| `admin_user` | 读取 | `id`, `username`, `password_hash`, `name`, `role`, `status`, `created_at`, `updated_at` | 管理员账号表，登录时校验用户名、密码、状态 |
+| `admin_user` | 读取/更新 | `id`, `username`, `password_hash`, `name`, `role`, `status`, `last_login_at`, `created_at`, `updated_at` | 管理员账号表，登录时校验用户名、密码、状态；登录成功后更新 `last_login_at` |
 | `admin_session` | 新增 | `id`, `admin_user_id`, `token_hash`, `expires_at`, `revoked_at`, `created_at` | 管理员会话表（单一 token，有效期 24 小时） |
 | `admin_login_log` | 新增 | `id`, `admin_user_id`, `username`, `ip`, `user_agent`, `status` (success/fail), `reason`, `created_at` | 管理员登录日志 |
 
@@ -46,11 +46,11 @@ CREATE INDEX idx_admin_session_admin_user_id ON admin_session(admin_user_id);
 
 ## 2. API 设计
 
-### 2.1 POST /api/v1/admin/auth/login
+### 2.1 POST /api/admin/auth/login
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `POST /api/v1/admin/auth/login` |
+| 路径 | `POST /api/admin/auth/login` |
 | 鉴权 | 否（登录前无需鉴权） |
 | 幂等 | 否（每次调用生成新 session） |
 
@@ -108,14 +108,15 @@ CREATE INDEX idx_admin_session_admin_user_id ON admin_session(admin_user_id);
 - 校验 `status = 0`（启用），否则返回 403
 - 校验通过后生成单一 `token`（24h）
 - 将 token hash 写入 `admin_session`
+- 更新 `admin_user.last_login_at` 为当前时间
 - 记录登录成功日志到 `admin_login_log`
 - 失败时记录失败日志（不泄露是用户名错还是密码错）
 
-### 2.2 POST /api/v1/admin/auth/logout
+### 2.2 POST /api/admin/auth/logout
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `POST /api/v1/admin/auth/logout` |
+| 路径 | `POST /api/admin/auth/logout` |
 | 鉴权 | 是（需携带有效 token） |
 | 幂等 | 是（同一 token 重复调用视为已退出） |
 
@@ -169,7 +170,7 @@ Authorization: Bearer {token}
   │ 2. 未登录，展示登录页   │
   │ 3. 输入用户名、密码     │
   │ 4. 点击登录             │
-  ├─ POST /admin/auth/login →│
+  ├─ POST /api/admin/auth/login →│
   │                        │
   │ 5. 校验用户名/密码      │
   │ 6. 校验账号状态         │
@@ -212,7 +213,7 @@ Authorization: Bearer {token}
 | US | 依赖方向 | 说明 |
 |----|---------|------|
 | US-041 ~ US-049 | 被本 US 依赖（反向：后续 US 依赖本 US）| 所有管理后台 US 均依赖本 US 提供的管理员认证能力 |
-| US-054（待创建）| 相邻 | 管理员账号管理：创建/编辑/禁用管理员账号，与本 US 共用 `admin_user` 表 |
+| [US-057 管理员管理管理员账号](../US-057-管理员-管理管理员账号/user-story.md) | 相邻 | 创建/编辑/禁用/删除/重置密码管理员账号，与本 US 共用 `admin_user` 表 |
 
 ---
 
@@ -232,8 +233,8 @@ Authorization: Bearer {token}
 
 | tech-design 章节 | 对应 test-plan Task |
 |------------------|---------------------|
-| §2.1 POST /admin/auth/login | Task 1（后端登录接口） |
-| §2.2 POST /admin/auth/logout | Task 2（后端退出接口） |
+| §2.1 POST /api/admin/auth/login | Task 1（后端登录接口） |
+| §2.2 POST /api/admin/auth/logout | Task 2（后端退出接口） |
 | §4 前端流程 | Task 3（Web 登录页 + 路由守卫） |
 | §4.3 路由守卫 | Task 4（全局导航栏退出菜单） |
 

@@ -27,6 +27,20 @@
 
 ***
 
+
+---
+
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 空状态 | A-管理员登录页-空状态 | https://www.calicat.cn/design/2083742072257646592?node-id=fcc37e45-5558-46f7-9f60-fe42c4a1f74d |
+| 加载中 | A-管理员登录页-加载中 | https://www.calicat.cn/design/2083742072257646592?node-id=81333567-2808-4906-bef8-eb018f8ca544 |
+| 错误状态 | A-管理员登录页-错误状态 | https://www.calicat.cn/design/2083742072257646592?node-id=124cba20-d435-4820-9104-15f06656368e |
+| 账号禁用 | A-管理员登录页-账号禁用 | https://www.calicat.cn/design/2083742072257646592?node-id=068b1c9a-39c0-4078-8d40-7003373f48ab |
+| token过期 | A-管理员登录页-token过期 | https://www.calicat.cn/design/2083742072257646592?node-id=7cd276ee-0af1-4418-bfbe-f9684e46764e |
+
+---
 ## 2. 状态维度
 
 | 维度 | 状态枚举 | 页面影响 |

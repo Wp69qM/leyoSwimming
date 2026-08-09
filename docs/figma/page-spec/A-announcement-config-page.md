@@ -26,6 +26,18 @@
 
 ***
 
+
+---
+
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 主页面 | A-公告运营页 | https://www.calicat.cn/design/2083742072257646592?node-id=804dd808-aee0-4ed0-8953-a8a6212179d3 |
+| 公告通知Tab | A-公告运营页-公告通知Tab | https://www.calicat.cn/design/2083742072257646592?node-id=9c37cafa-7963-4ad6-b4c4-54b43c936e6c |
+| 运营卡片Tab | A-公告运营页-运营卡片Tab | https://www.calicat.cn/design/2083742072257646592?node-id=6cb64275-45d2-4578-b98c-f9d567244636 |
+
+---
 ## 2. 状态维度
 
 | 维度 | 状态枚举 | 页面影响 |

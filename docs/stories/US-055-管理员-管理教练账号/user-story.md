@@ -1,10 +1,10 @@
 # US-055 管理员管理教练账号
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-08-07
-> **配套文档**：Figma：[A-coach-management-page.md](../../figma/page-spec/A-coach-management-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-coach-management-page.md](../../figma/page-spec/A-coach-management-page.md) / [A-coach-detail-page.md](../../figma/page-spec/A-coach-detail-page.md) / [A-coach-edit-modal.md](../../figma/page-spec/A-coach-edit-modal.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -86,8 +86,10 @@ Given 管理员 M 已登录且具有教练管理读权限
 And   系统中存在 3 位已通过教练
 When  管理员 M 进入「用户管理 → 教练管理」
 Then  系统返回教练列表
-And   列表每行展示教练 ID、姓名、性别、年龄、教学年限、擅长泳姿、创建时间、在职状态、实时状态
+And   列表每行展示教练 ID、姓名、性别、年龄、教学年限、擅长泳姿、创建时间、在职时长、在职状态、当前学员数、实时状态
 And   默认按创建时间降序排列
+And   在职时长基于 coach.approved_at 计算
+And   当前学员数为该教练名下 status=active 套餐的去重学员数
 And   返回 HTTP 200
 ```
 
@@ -182,6 +184,7 @@ And   HTTP 状态码 404
 | 2 | `coach_certificate` | 读取/新增/修改 | 编辑/新建时维护教练资质证书 |
 | 3 | `coach_audit_log` | 新增 | 记录新建、编辑、取消入驻等敏感操作 |
 | 4 | `coach_application` | 读取 | 详情页展示该教练历史申请记录 |
+| 5 | `package` | 读取 | 列表页统计该教练名下 active 套餐的去重学员数 |
 
 ### 7.2 API 影响
 
@@ -294,14 +297,11 @@ And   HTTP 状态码 404
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 教练管理列表页 page-spec | [A-coach-management-page.md](../../figma/page-spec/A-coach-management-page.md) | ✅ |
-| 2 | 教练详情页 page-spec | [A-coach-detail-page.md](../../figma/page-spec/A-coach-detail-page.md) | ✅ |
-| 3 | 教练新建/编辑弹窗 page-spec | [A-coach-edit-modal.md](../../figma/page-spec/A-coach-edit-modal.md) | ✅ |
-| 4 | 教练管理列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 5 | 教练详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 6 | 教练新建/编辑弹窗 Figma file URL | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 教练管理列表页 | [A-coach-management-page.md](../../figma/page-spec/A-coach-management-page.md) | ✅ |
+| 2 | 教练详情页 | [A-coach-detail-page.md](../../figma/page-spec/A-coach-detail-page.md) | ✅ |
+| 3 | 教练新建/编辑弹窗 | [A-coach-edit-modal.md](../../figma/page-spec/A-coach-edit-modal.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -320,7 +320,7 @@ And   HTTP 状态码 404
 ### 14.1 列表页字段设计
 
 - **背景**：教练管理与教练审核列表类似，但关注在职状态而非审核状态
-- **结论**：列表展示教练 ID、姓名、性别、年龄、教学年限、擅长泳姿、创建时间、在职状态、实时状态；不展示头像，保持表格紧凑
+- **结论**：列表展示教练 ID、姓名、性别、年龄、教学年限、擅长泳姿、创建时间、在职时长、在职状态、当前学员数、实时状态；不展示头像，保持表格紧凑。其中「在职时长」基于 approved_at 计算，「当前学员数」为该教练名下 active 套餐去重学员数
 - **影响范围**：A-coach-management-page.md 表格列
 
 ### 14.2 编辑资料范围

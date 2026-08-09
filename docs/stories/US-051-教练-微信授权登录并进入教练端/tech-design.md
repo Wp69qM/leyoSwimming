@@ -13,7 +13,7 @@
 - 教练端账号体系完全独立于用户端：`app_type=coach` 时后端只操作 `coach` 表与 `coach_session` 表，不读、不写、不关联 `user` 表或 `user_session` 表。
 - 登录流程复用微信 OAuth 协议层：`wx.login()` 取 `code`，`wx.getPhoneNumber` 取加密手机号 `encryptedData` + `iv`，协议勾选校验与用户端一致。
 - 教练端没有「游客」身份，也没有 `profile_completed` 概念；登录成功后返回 `coach.status`，由前端映射到对应页面。
-- 新增 `GET /api/v1/coach/me/status` 供前端在登录态有效期内兜底查询入驻状态。
+- 新增 `POST /api/coach/status/detail` 供前端在登录态有效期内兜底查询入驻状态。
 - 登录成功后前端在 `onShow` 检查 token，过期用 `refresh_token` 刷新，`refresh_token` 过期则重新登录。
 
 ---
@@ -70,7 +70,7 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 
 ## 3. API 设计
 
-### 3.1 改造接口：`POST /api/v1/auth/wechat-login`
+### 3.1 新增接口：`POST /api/coach/auth/wechat-login`
 
 #### 请求参数
 
@@ -121,7 +121,7 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 | 504 | `WECHAT_API_TIMEOUT` | 微信接口调用超时（>3s） |
 | 429 | `RATE_LIMITED` | 同 IP 1 分钟内超过 30 次 |
 
-### 3.2 新增接口：`GET /api/v1/coach/me/status`
+### 3.2 新增接口：`POST /api/coach/status/detail`
 
 #### 响应字段
 
@@ -152,11 +152,12 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
 | -1 | 入驻资料页（US-010） |
 | 0 | 等待审核页 |
 | 1 | 教练首页（US-012） |
-| 2 | 重新提交入驻页（US-040） |
-| 3 | 重新入驻页（US-040） |
-| 4 | 离职处理中页 |
+| 2 | 入驻资料填写页（US-010，顶部展示驳回原因条） |
+| 3 | 入驻资料填写页（US-010，顶部展示重新入驻说明条） |
+| 4 | 教练首页；「我的」页面提供「查看离职申请」入口，教练主动进入离职处理中页（US-039） |
 
 > `coach_onboarding_success`（入驻提交成功页）由 US-010 控制，本 US 不直接返回；前端在 `coach.status=-1` 且提交入驻资料成功后由 US-010 自行跳转到该页。
+> `coach.status = 4`（申请离职中）不自动跳转离职处理中页，登录后进入教练首页，由教练在「我的」页面主动查看离职申请。
 
 ---
 
@@ -168,7 +169,7 @@ CREATE UNIQUE INDEX idx_coach_session_refresh_hash ON coach_session(refresh_toke
   ├─ 教练勾选后点击「微信一键登录」
   ├─ wx.login() → code
   ├─ wx.getPhoneNumber() → encryptedData + iv
-  └─ POST /api/v1/auth/wechat-login
+  └─ POST /api/coach/auth/wechat-login
         { code, encryptedData, iv, terms_accepted, privacy_accepted, app_type: 'coach' }
 
 后端

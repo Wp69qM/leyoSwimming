@@ -4,13 +4,13 @@
 
 ### Requirement: REQ-001 提交与保存入驻资料
 
-系统 MUST 提供 `POST /api/coach/application` 接口，供教练提交入驻资料。系统 MUST 校验必填基础信息（头像、姓名、手机号、性别、年龄、邮箱、微信二维码），其中性别选项为男/女/其他，年龄为 18-80 整数，邮箱为有效格式且长度 ≤128 字符；校验必填实名与履历字段（身份证号、任教年限、总学员数、总课时数、个人简介、参考单价）与必填资质（身份证正面照、身份证反面照、至少一张教练资格证、健康证、个人形象照）。系统 MUST 校验身份证号为 18 位中国大陆身份证号。系统 MUST 校验参考单价在 50-2000 元/节范围内。系统 MUST 校验上传图片为 JPG/PNG 且单张 ≤5MB。系统 MUST 在提交成功后创建 `coach_application` 快照，`status = pending`，记录 `previous_coach_status`（提交前 coach.status：-1/2/3）与 `submitted_at`；同时 `coach.status` 变为 `0`（待审核），`coach.submitted_at` 写入当前时间，并记录 `coach_audit_log`。系统 MUST 提供 `PUT /api/coach/application/draft` 接口保存草稿，保存后创建或更新 `coach_application` 快照，`status = draft`，`coach.status` 保持不变（仍为 -1/2/3），`submitted_at` 为 NULL。系统 MUST 防止同一教练重复正式提交（已存在 `coach_application.status = pending` 记录时返回 `COACH_APPLICATION_PENDING`）。已驳回（`coach.status=2`）或已离职（`coach.status=3`）教练重新提交时，系统 MUST 创建新的 `coach_application` pending 快照，`coach.status` 重置为 `0`；`status=3` 时不隔离、不回滚历史数据。历史驳回原因保留在 `coach_application.rejection_reason` 与 `coach_audit_log`，不在 `coach` 表冗余存储。头像回填规则与 US-051/US-054 一致：微信授权登录默认回填微信头像且可编辑，手机号登录需手动上传。
+系统 MUST 提供 `POST /api/coach/application/submit` 接口，供教练提交入驻资料。系统 MUST 校验必填基础信息（姓名、手机号、性别、年龄、邮箱、微信二维码），其中性别选项为男/女，年龄为 18-80 整数，邮箱为有效格式且长度 ≤128 字符；校验必填实名与履历字段（身份证号、任教年限、总学员数、总课时数、个人简介、参考单价）与必填资质（身份证正面照、身份证反面照、至少一张教练资格证、健康证、个人形象照）。系统 MUST 校验身份证号为 18 位中国大陆身份证号。系统 MUST 校验参考单价在 50-2000 元/节范围内。系统 MUST 校验上传图片为 JPG/PNG 且单张 ≤5MB。系统 MUST 在提交成功后创建 `coach_application` 快照，`status = pending`，记录 `previous_coach_status`（提交前 coach.status：-1/2/3）与 `submitted_at`；同时 `coach.status` 变为 `0`（待审核），`coach.submitted_at` 写入当前时间，并记录 `coach_audit_log`。系统 MUST 提供 `POST /api/coach/application/save-draft` 接口保存草稿，保存后创建或更新 `coach_application` 快照，`status = draft`，`coach.status` 保持不变（仍为 -1/2/3），`submitted_at` 为 NULL。系统 MUST 防止同一教练重复正式提交（已存在 `coach_application.status = pending` 记录时返回 `COACH_APPLICATION_PENDING`）。已驳回（`coach.status=2`）或已离职（`coach.status=3`）教练重新提交时，系统 MUST 创建新的 `coach_application` pending 快照，`coach.status` 重置为 `0`；`status=3` 时不隔离、不回滚历史数据。历史驳回原因保留在 `coach_application.rejection_reason` 与 `coach_audit_log`，不在 `coach` 表冗余存储。头像回填规则与 US-051/US-054 一致：微信授权登录默认回填微信头像且可编辑，手机号登录需手动上传。
 
 #### Scenario: 正常提交入驻资料
 
 ```gherkin
 Given 教练已完成登录，coach.status = -1（未提交入驻资料）
-And   头像、姓名、手机号已带入
+And   姓名、手机号已带入
 When  教练选择性别 "男"
 And   教练填写年龄 30 岁、邮箱 "coach@example.com"
 And   教练上传微信二维码 1 张
@@ -50,7 +50,7 @@ And   US-011 审核列表不出现该草稿
 
 ```gherkin
 Given 教练进入入驻资料页
-When  教练未上传头像、未选择性别、未填写年龄、未填写邮箱、未上传微信二维码、未填写身份证号、未上传身份证正面照、未填写任教年限即点击「提交审核」
+When  教练未上传个人形象照、未选择性别、未填写年龄、未填写邮箱、未上传微信二维码、未填写身份证号、未上传身份证正面照、未填写任教年限即点击「提交审核」
 Then  前端阻止提交
 And   缺失字段下方提示"此项为必填"
 And   后端未收到提交请求
@@ -160,7 +160,7 @@ And   未创建或修改 coach_application 为 pending 状态
 
 ### Requirement: REQ-003 等待审核页查看已提交资料
 
-系统 MUST 提供 `GET /api/coach/application` 接口，供已登录教练查询当前最新 `coach_application` 快照资料。系统 MUST 返回完整字段（含证书列表），身份证号脱敏展示。系统 MUST 在响应中返回 `entry_type`（枚举：`draft`/`first`/`rejected`/`reapply`）与 `prompt_message`（coach.status=2 时返回最新 rejected `coach_application` 的 `rejection_reason`；coach.status=3 时返回重新入驻说明文案；其他状态返回 `null`）。系统 MUST 在 coach 记录不存在时返回 404 `NO_APPLICATION`。
+系统 MUST 提供 `POST /api/coach/application/detail` 接口，供已登录教练查询当前最新 `coach_application` 快照资料。系统 MUST 返回完整字段（含证书列表），身份证号脱敏展示。系统 MUST 在响应中返回 `entry_type`（枚举：`draft`/`first`/`rejected`/`reapply`）与 `prompt_message`（coach.status=2 时返回最新 rejected `coach_application` 的 `rejection_reason`；coach.status=3 时返回重新入驻说明文案；其他状态返回 `null`）。系统 MUST 在 coach 记录不存在时返回 404 `NO_APPLICATION`。
 
 #### Scenario: 等待审核页查看已提交资料
 
@@ -185,7 +185,7 @@ Then  页面展示 120×120 成功插画
 And   主标题为"提交成功"（首次提交/驳回后重新提交）或"重新入驻申请已提交"（已离职后重新入驻）
 And   副标题为"提交成功，等待审核"
 And   展示"2 秒后自动跳转等待审核页"提示
-And   展示已提交资料摘要卡（头像、姓名、手机号、参考单价、审核中标签）
+And   展示已提交资料摘要卡（个人形象照、姓名、手机号、参考单价、审核中标签）
 And   展示"查看审核进度"主按钮
 And   2 秒后自动跳转 C-等待审核页
 When  教练点击"查看审核进度"按钮
@@ -208,7 +208,7 @@ And   页面按"等待审核页查看已提交资料"场景展示审核中状态
 ```gherkin
 Given 教练已登录且 coach.status = -1（未提交）
 And   存在 status = draft 的 coach_application
-When  教练端调用 GET /api/coach/application
+When  教练端调用 POST /api/coach/application/detail
 Then  返回 coach_application 已保存的草稿字段
 And   返回 entry_type = "draft"
 And   返回 prompt_message = null
@@ -220,7 +220,7 @@ And   返回 HTTP 200
 ```gherkin
 Given 教练已存在 coach.status = 3（已离职）
 And   不存在 pending 或 rejected 的 coach_application
-When  教练端调用 GET /api/coach/application
+When  教练端调用 POST /api/coach/application/detail
 Then  返回 coach 表历史生效资料
 And   返回 certificates 列表（来自 coach_certificate 生效证书）
 And   返回 entry_type = "reapply"
@@ -232,13 +232,13 @@ And   返回 HTTP 200
 
 ```gherkin
 Given 教练已登录但 coach 表无记录
-When  教练端调用 GET /api/coach/application
+When  教练端调用 POST /api/coach/application/detail
 Then  返回 HTTP 404 + 错误码 NO_APPLICATION
 ```
 
 ### Requirement: REQ-004 通用图片上传
 
-系统 MUST 提供 `POST /api/upload/image` 接口，供教练端上传头像、证书、微信二维码等图片。系统 MUST 校验文件大小 ≤5MB，格式为 JPG/PNG。系统 MUST 对不合规图片返回 `IMAGE_TOO_LARGE` 或 `INVALID_IMAGE_FORMAT`。
+系统 MUST 提供 `POST /api/common/file/upload` 接口，供教练端上传证书、微信二维码、个人形象照等图片。系统 MUST 校验文件大小 ≤5MB，格式为 JPG/PNG。系统 MUST 对不合规图片返回 `IMAGE_TOO_LARGE` 或 `INVALID_IMAGE_FORMAT`。
 
 #### Scenario: 上传合规图片
 

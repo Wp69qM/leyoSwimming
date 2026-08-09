@@ -33,13 +33,13 @@
 - Modify: `backend/src/routes/auth.ts`
 - Test: `backend/tests/controllers/auth.test.ts`
 
-**Spec coverage:** REQ-001 All Scenarios; REQ-003 Scenario "用户端登录保持原行为"
+**Spec coverage:** REQ-001 All Scenarios
 
-- [ ] **RED:** Write failing tests — `app_type=coach` 未入驻返回 200 + `coach_status=-1`、`is_new_coach=true`; `app_type=coach` 已通过返回 200 + `coach_status=1`、`is_new_coach=false`; `app_type=coach` 缺失手机号加密数据返回 400; `app_type=coach` 未勾选协议返回 400 + TERMS_NOT_ACCEPTED; `app_type=user` 保持 US-004 响应格式；非法 `app_type` 返回 400；幂等返回首次结果；拒绝授权/微信错误按 US-004 处理。
-- [ ] **GREEN:** Update controller to accept `encryptedData`, `iv`, `terms_accepted`, `privacy_accepted`, `app_type` body params, pass to service, conditionally include coach-specific fields in response。
-- [ ] **COMMIT:** `feat(api): extend POST /auth/wechat-login with coach login fields`
+- [ ] **RED:** Write failing tests — `app_type=coach` 未入驻返回 200 + `coach_status=-1`、`is_new_coach=true`; `app_type=coach` 已通过返回 200 + `coach_status=1`、`is_new_coach=false`; `app_type=coach` 缺失手机号加密数据返回 400; `app_type=coach` 未勾选协议返回 400 + TERMS_NOT_ACCEPTED; 非法 `app_type` 返回 400；幂等返回首次结果；拒绝授权/微信错误按 US-004 处理。
+- [ ] **GREEN:** Implement `POST /api/coach/auth/wechat-login` controller — accept `code`, `encryptedData`, `iv`, `terms_accepted`, `privacy_accepted`, `app_type` body params, pass to service, return coach-specific fields。
+- [ ] **COMMIT:** `feat(api): add POST /api/coach/auth/wechat-login for coach login`
 
-## Task 4: 新增 GET /api/v1/coach/me/status 端点 [P0]
+## Task 4: 新增 POST /api/coach/status/detail 端点 [P0]
 
 **Files:**
 - Create: `backend/src/controllers/coach.ts`（或扩展已有 coach controller）
@@ -49,8 +49,8 @@
 **Spec coverage:** REQ-002 Scenarios "已通过教练查询状态", "无 coach 记录时查询状态", "已驳回教练查询状态"
 
 - [ ] **RED:** Write failing tests — 已登录已通过教练返回 coach_status=1、rejection_reason=null; 已登录无 coach 记录返回 coach_status=-1; 已登录已驳回教练返回 rejection_reason; 未登录返回 401。
-- [ ] **GREEN:** Implement `GET /api/v1/coach/me/status` with auth middleware (coach_id from JWT), query coach by coach_id, return coach_status and rejection_reason。
-- [ ] **COMMIT:** `feat(api): add GET /api/v1/coach/me/status`
+- [ ] **GREEN:** Implement `POST /api/coach/status/detail` with auth middleware (coach_id from JWT), query coach by coach_id, return coach_status and rejection_reason。
+- [ ] **COMMIT:** `feat(api): add POST /api/coach/status/detail`
 
 ## Task 5: 教练端登录页与路由守卫 [P1]
 
@@ -62,7 +62,7 @@
 **Spec coverage:** REQ-001 Scenarios "教练拒绝微信授权", "未入驻教练首次授权登录"; REQ-002 登录态兜底
 
 - [ ] **RED:** Write failing tests — 未勾选协议前端拦截不调用 wx.login(); 拒绝授权展示提示文案; 首次登录跳转入驻资料页; 已通过跳转教练首页; 已登录且 token 有效时打开小程序直接调用状态接口并跳转; token 过期调用刷新; refresh_token 过期重新登录。
-- [ ] **GREEN:** Implement `CoachLoginPage` — check terms/privacy → call `Taro.login()` → `wx.getPhoneNumber()` → POST `/auth/wechat-login` with `app_type=coach` → save tokens → redirect by `coach_status`; implement route guard to call `/coach/me/status` when token exists and handle refresh/relogin。
+- [ ] **GREEN:** Implement `CoachLoginPage` — check terms/privacy → call `Taro.login()` → `wx.getPhoneNumber()` → POST `/api/coach/auth/wechat-login` with `app_type=coach` → save tokens → redirect by `coach_status`; implement route guard to call `POST /api/coach/status/detail` when token exists and handle refresh/relogin。
 - [ ] **COMMIT:** `feat(coach-miniapp): add login page and coach status route guard`
 
 ---
@@ -73,7 +73,6 @@
 - 每 Task = 1 commit
 - 禁止 placeholder（TBD / TODO / "实现 later"）
 - P0 必做（Task 1-4），P1 选做（Task 5）
-- **用户端兼容性**：Task 3 必须断言 `app_type=user` 时响应与 US-004 完全一致
 - **教练端独立性**：Task 2 必须断言 `app_type=coach` 时不调用 user repo、不创建 user 记录、响应不含 `is_new_user`/`profile_completed`
 - **协议校验**：Task 2/3 必须断言未勾选协议时返回 `TERMS_NOT_ACCEPTED`
 

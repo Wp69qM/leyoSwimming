@@ -14,8 +14,8 @@
 **Spec coverage:** REQ-001 Scenarios "用户正常退出登录", "本地 token 已过期或不存在"; REQ-002 Scenario "退出登录后端会话失效"
 
 - [ ] **RED:** Write 3 failing tests — 正常退出使 refresh_token 失效；access_token 无效返回 401；重复调用幂等返回 200
-- [ ] **GREEN:** Implement `POST /api/v1/auth/logout` — 校验 access_token，按 refresh_token hash 标记 session 失效
-- [ ] **COMMIT:** `feat(auth): add POST /auth/logout endpoint to revoke session`
+- [ ] **GREEN:** Implement `POST /api/user/auth/logout` — 校验 access_token，按 refresh_token hash 标记 session 失效
+- [ ] **COMMIT:** `feat(auth): add POST /api/user/auth/logout endpoint to revoke session`
 
 ## Task 2: 小程序「我的」页面退出登录逻辑 [P0]
 

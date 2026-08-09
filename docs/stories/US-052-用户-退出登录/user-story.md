@@ -1,10 +1,10 @@
 # US-052 用户退出登录
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.2 人天
 > **作者**：PM　|　**最后更新**：2026-08-05
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-profile-center-page.md](../../figma/page-spec/U-profile-center-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -128,7 +128,7 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/auth/logout` | POST | 新增 | 接收当前 access_token/refresh_token，使服务端会话失效 |
+| 1 | `/api/user/auth/logout` | POST | 新增 | 接收当前 access_token/refresh_token，使服务端会话失效 |
 
 ### 7.3 状态机影响
 
@@ -234,12 +234,11 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 ## 13. Figma 链接
 
 > 提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
-> **说明**：US-052 不单独产出 page-spec。退出登录按钮在「我的」页面设计稿中标注；二次确认弹窗复用全局弹窗/Modal 组件，无需独立页面规格文档。
+> **说明**：US-052 不单独产出独立页面。退出登录按钮在「我的」页面设计稿中标注；二次确认弹窗复用全局弹窗/Modal 组件，无需独立页面规格文档。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 「我的」页面 Figma file URL（含底部退出登录按钮标注） | 🔲 待设计填写 | 🔲 |
-| 2 | 全局弹窗/Modal 组件 node-id（复用二次确认弹窗） | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 个人中心页 | [U-profile-center-page.md](../../figma/page-spec/U-profile-center-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

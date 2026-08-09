@@ -26,6 +26,20 @@
 
 ***
 
+
+---
+
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 在职-基本信息Tab | C-教练详情页-在职-基本信息Tab | https://www.calicat.cn/design/2083742072257646592?node-id=6475c58b-576b-43c5-b2f3-a54449430ccb |
+| 在职-学员列表Tab | C-教练详情页-在职-学员列表Tab 2 | https://www.calicat.cn/design/2083742072257646592?node-id=419ab471-acd6-423b-9f25-f45cbf334152 |
+| 在职-排班Tab | C-教练详情页-在职-排班Tab 2 | https://www.calicat.cn/design/2083742072257646592?node-id=a8a1decf-29a0-4694-b8c7-e3929f290ba2 |
+| 在职-上课记录Tab | C-教练详情页-在职-上课记录Tab 2 | https://www.calicat.cn/design/2083742072257646592?node-id=27b9219a-7b4c-40a5-9e52-56eeb3b4c20a |
+| 在职-操作日志Tab | C-教练详情页-在职-操作日志Tab 2 | https://www.calicat.cn/design/2083742072257646592?node-id=fd381ebb-1fe5-4b9f-97f8-d92718b6e2bf |
+
+---
 ## 2. 状态维度
 
 | 维度 | 状态枚举 | 页面影响 |

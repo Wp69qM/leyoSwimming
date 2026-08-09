@@ -1,10 +1,10 @@
 # US-056 教练退出登录
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.2 人天
 > **作者**：PM　|　**最后更新**：2026-08-07
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[§13](#13-figma-链接)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -128,7 +128,7 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/v1/auth/logout` | POST | 新增/复用 | 接收当前 access_token/refresh_token，使服务端教练会话失效；与用户端复用同一端点，按 token 中 app_type 区分 |
+| 1 | `/api/coach/auth/logout` | POST | 新增 | 接收当前 access_token/refresh_token，使服务端教练会话失效；与用户端 `/api/user/auth/logout` 对应，按 token 中 app_type 区分 |
 
 ### 7.3 状态机影响
 
@@ -236,10 +236,10 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 > 提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 > **说明**：US-056 不单独产出 page-spec。退出登录按钮在教练端「我的」页面设计稿中标注；二次确认弹窗复用全局弹窗/Modal 组件，无需独立页面规格文档。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 教练端「我的」页面 Figma file URL（含底部退出登录按钮标注） | 🔲 待设计填写 | 🔲 |
-| 2 | 全局弹窗/Modal 组件 node-id（复用二次确认弹窗） | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 教练端「我的」页面 | [C-coach-center-page.md](../../figma/page-spec/C-coach-center-page.md) | ✅ |
+| 2 | 全局弹窗/Modal 组件规范 | [docs/figma/README.md](../../figma/README.md) | ✅ |
 
 ### 13.1 状态截图清单
 

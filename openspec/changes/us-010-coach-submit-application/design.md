@@ -52,7 +52,7 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 
 ## API Design
 
-### POST /api/coach/application
+### POST /api/coach/application/submit
 
 - 鉴权：是（教练端登录态）
 - Request: `{ name, gender, age, email, wechat_qr_url, id_card_no, teaching_years, total_students, total_hours, teaching_strokes, bio, reference_price, certificates: [{cert_type, image_url}] }`
@@ -64,20 +64,21 @@ CREATE INDEX idx_coach_certificate_coach_id_type ON coach_certificate(coach_id, 
 - Response 400: `IMAGE_TOO_LARGE` / `INVALID_IMAGE_FORMAT`（图片不合规）
 - 说明：校验通过后创建 `coach_application` 快照，`status = pending`，记录 `previous_coach_status` 与 `submitted_at`；更新 `coach.status = 0`、`coach.submitted_at = now`；coach 表生效资料此时**不更新**，等待 US-011 审核通过后再覆盖；写入 `coach_audit_log`：`action='submit'`、`from_status=previous_coach_status`、`to_status=0`。
 
-### PUT /api/coach/application/draft
+### POST /api/coach/application/save-draft
 
 - 鉴权：是
 - Request: 同提交接口（允许部分字段）
 - Response 200: `{ coach_id, application_id, status: "draft", submitted_at: null }`
 - 说明：保存草稿仅创建或更新 `coach_application` 快照，`status = draft`，不修改 `coach.status`；`submitted_at = NULL` 表示草稿；US-011 审核列表仅查询 `coach_application.status = pending` 的记录，避免草稿进入审核队列；`status = 3` 的教练重新入驻时复用原 coach 记录，历史数据不回滚、不隔离。
 
-### GET /api/coach/application
+### POST /api/coach/application/detail
 
 - 鉴权：是
+- Request: 空 JSON body（`{}`）
 - Response 200: 返回**最新 coach_application 快照**（draft/pending/rejected）完整资料含 `certificates` 列表；若不存在任何 application 快照且 coach.status=3，则回显 coach 表历史生效资料；身份证号脱敏展示；额外返回派生字段 `entry_type`（draft/first/rejected/reapply，由 coach.status 与 coach_application.status 推导）与 `prompt_message`（来自 `rejection_reason` 或固定文案）
 - Response 404: `NO_APPLICATION`（coach 记录不存在）
 
-### POST /api/upload/image
+### POST /api/common/file/upload
 
 - 鉴权：是
 - Request: multipart/form-data，字段名 `file`

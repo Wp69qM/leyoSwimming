@@ -28,6 +28,22 @@ def test_coach_profile_update_success():
     """正常更新个人主页"""
     pass
 
+def test_coach_profile_update_status_not_allowed():
+    """教练状态非已通过时拒绝更新"""
+    pass
+
+def test_coach_profile_field_validation():
+    """字段校验失败阻止保存（姓名、年龄、邮箱、个人简介）"""
+    pass
+
+def test_coach_profile_image_format_error():
+    """微信二维码/个人形象照格式非法"""
+    pass
+
+def test_coach_profile_image_too_large():
+    """微信二维码/个人形象照超过 5MB"""
+    pass
+
 def test_coach_reference_price_update_success():
     """正常更新参考单价"""
     pass
@@ -51,11 +67,11 @@ def test_coach_price_change_limit():
 # backend/tests/integration/test_coach_profile_api.py
 
 def test_api_coach_profile_update_200():
-    """PUT /api/coach/profile 正常返回"""
+    """POST /api/coach/profile/update 正常返回"""
     pass
 
 def test_api_coach_reference_price_200():
-    """PUT /api/coach/reference-price 正常返回"""
+    """POST /api/coach/reference-price/update 正常返回"""
     pass
 ```
 
@@ -78,5 +94,6 @@ def test_e2e_coach_update_profile():
 | 正常更新个人主页 | test_coach_profile_update_success |
 | 正常更新参考单价 | test_coach_reference_price_update_success |
 | 参考单价超出范围 | test_coach_reference_price_out_of_range |
+| 字段校验失败阻止保存 | test_coach_profile_field_validation / test_coach_profile_image_format_error / test_coach_profile_image_too_large |
 | 个人简介含敏感词 | test_coach_bio_sensitive_content |
 | 更新后学员端可见 | test_e2e_coach_update_profile |

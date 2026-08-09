@@ -6,7 +6,7 @@
 
 ### Requirement: REQ-001 教练退出登录
 
-系统 MUST 在教练端「我的」TabBar 页面底部展示「退出登录」按钮。教练点击后 MUST 弹出二次确认弹窗，含「确定」和「取消」两个按钮。教练点击「确定」后，系统 MUST 调用后端 `POST /api/v1/auth/logout` 接口，携带当前 coach `access_token` 与 `refresh_token`。后端 MUST 校验 `access_token` 有效且 JWT payload 中 `app_type='coach'`，并将当前 `refresh_token` 对应的 `coach_session` 记录标记为失效。前端在收到成功响应后 MUST 清除本地 `access_token`、`refresh_token`、`expires_in`、`token_expire_at`，并跳转回教练登录页（pages/login/index）。教练点击「取消」后 MUST 关闭弹窗并保持当前登录态。
+系统 MUST 在教练端「我的」TabBar 页面底部展示「退出登录」按钮。教练点击后 MUST 弹出二次确认弹窗，含「确定」和「取消」两个按钮。教练点击「确定」后，系统 MUST 调用后端 `POST /api/coach/auth/logout` 接口，携带当前 coach `access_token` 与 `refresh_token`。后端 MUST 校验 `access_token` 有效且 JWT payload 中 `app_type='coach'`，并将当前 `refresh_token` 对应的 `coach_session` 记录标记为失效。前端在收到成功响应后 MUST 清除本地 `access_token`、`refresh_token`、`expires_in`、`token_expire_at`，并跳转回教练登录页（pages/login/index）。教练点击「取消」后 MUST 关闭弹窗并保持当前登录态。
 
 #### Scenario: 教练正常退出登录
 
@@ -49,7 +49,7 @@ And   后端不执行任何 token 失效操作（无可失效 token）
 
 ### Requirement: REQ-002 退出登录后端教练会话失效
 
-系统 MUST 确保教练退出登录后，当前会话的 `refresh_token` 无法继续用于换发新的 `access_token`。后端 `POST /api/v1/auth/logout` 必须登录鉴权且 MUST 校验 `app_type='coach'`，并 MUST 支持幂等调用（同一 token 重复退出仍返回成功）。
+系统 MUST 确保教练退出登录后，当前会话的 `refresh_token` 无法继续用于换发新的 `access_token`。后端 `POST /api/coach/auth/logout` 必须登录鉴权且 MUST 校验 `app_type='coach'`，并 MUST 支持幂等调用（同一 token 重复退出仍返回成功）。
 
 #### Scenario: 退出后 coach refresh_token 失效
 
@@ -73,7 +73,7 @@ And   当前 coach_session 处于失效状态
 
 ```gherkin
 Given 用户已登录且持有有效的 user access_token
-When  用户使用用户端 token 调用 POST /api/v1/auth/logout
+When  用户使用用户端 token 调用 POST /api/coach/auth/logout
 Then  接口返回 401 TOKEN_INVALID
 And   任何教练端会话均不受影响
 ```

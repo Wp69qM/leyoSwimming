@@ -1,10 +1,10 @@
 # US-009 用户/教练隐私协议与用户须知授权
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-05
-> **配套文档**：Figma：[待补充]　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-login-protocol-modal.md](../../figma/page-spec/U-login-protocol-modal.md) / [U-terms-page.md](../../figma/page-spec/U-terms-page.md) / [U-privacy-page.md](../../figma/page-spec/U-privacy-page.md) / [U-settings-page.md](../../figma/page-spec/U-settings-page.md)　·　技术设计：[tech-design.md](./tech-design.md)　·　测试计划：[test-plan.md](./test-plan.md)
 
 ---
 
@@ -26,11 +26,11 @@
 
 - **触发方**：用户/教练
 - **触发动作**：
-  1. 在用户端/教练端登录页（US-004 微信授权登录、US-006 手机号验证码登录、US-051 教练微信授权登录）点击登录前，需勾选「我已阅读并同意《用户须知》和《隐私协议》」
+  1. 在用户端/教练端登录页（US-004 微信授权登录、US-006 手机号验证码登录、US-051 教练微信授权登录、US-054 教练手机号验证码登录）点击登录前，需勾选「我已阅读并同意《用户须知》和《隐私协议》」
   2. 登录后进入「我的 → 设置 → 用户须知」或「我的 → 设置 → 隐私协议」查看内容
 - **触发时机**：登录前协议确认、登录后协议查看
 
-> **说明**：本 US 不涉及游客态；登录页协议勾选由 US-004 / US-006 / US-051 承载交互，本 US 定义协议内容、同意记录与查看能力。
+> **说明**：本 US 不涉及游客态；登录页协议勾选由 US-004 / US-006 / US-051 / US-054 承载交互，本 US 定义协议内容、同意记录与查看能力。
 
 ---
 
@@ -38,7 +38,7 @@
 
 - [x] 系统已配置当前生效的《用户须知》版本与《隐私协议》版本（由 US-047 后台管理）
 - [x] 用户端登录页已实现协议勾选区（US-004 / US-006）
-- [x] 教练端登录页已实现协议勾选区（US-051）
+- [x] 教练端登录页已实现协议勾选区（US-051 / US-054）
 - [x] 用户/教练已处于登录态时，方可进入「我的 → 设置 → 用户须知/隐私协议」查看
 
 ---
@@ -180,17 +180,18 @@ And   登录页勾选框状态保持唤起浮层前的状态
 | 2 | user_privacy_consent | 新增 | 记录用户/教练同意的《隐私协议》版本号和同意时间 |
 | 3 | terms_policy | 新增 | 存储《用户须知》版本与内容 |
 | 4 | privacy_policy | 新增 | 存储《隐私协议》版本与内容 |
+| 5 | audit_log | 新增 | 记录用户/教练同意协议的操作审计日志 |
 
 ### 7.2 API 影响
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/terms-policy/current | GET | 新增 | 获取当前生效《用户须知》 |
-| 2 | /api/privacy-policy/current | GET | 新增 | 获取当前生效《隐私协议》 |
-| 3 | /api/user/terms-consent | POST | 新增 | 记录用户/教练同意《用户须知》（登录成功后调用） |
-| 4 | /api/user/privacy-consent | POST | 新增 | 记录用户/教练同意《隐私协议》（登录成功后调用） |
-| 5 | /api/user/terms-consent/status | GET | 新增 | 查询用户/教练当前同意版本 |
-| 6 | /api/user/privacy-consent/status | GET | 新增 | 查询用户/教练当前同意版本 |
+| 1 | /api/common/terms/current | POST | 新增 | 获取当前生效《用户须知》 |
+| 2 | /api/common/privacy/current | POST | 新增 | 获取当前生效《隐私协议》 |
+| 3 | /api/user/terms/status | POST | 新增 | 查询用户/教练当前同意版本 |
+| 4 | /api/user/privacy/status | POST | 新增 | 查询用户/教练当前同意版本 |
+| 5 | /api/user/terms/consent | POST | 新增 | 记录用户/教练同意《用户须知》（登录成功后调用） |
+| 6 | /api/user/privacy/consent | POST | 新增 | 记录用户/教练同意《隐私协议》（登录成功后调用） |
 
 ### 7.3 状态机影响
 
@@ -231,6 +232,7 @@ And   登录页勾选框状态保持唤起浮层前的状态
 - [x] US-006（用户手机号验证码登录）
 - [x] US-047（管理员配置场馆、公告、闭馆换水、《用户须知》与《隐私协议》—— 本 US 依赖其提供协议版本内容）
 - [x] US-051（教练微信授权登录并进入教练端）
+- [x] US-054（教练手机号验证码登录）
 
 ### 9.2 后续 US（依赖本故事）
 
@@ -289,12 +291,12 @@ And   登录页勾选框状态保持唤起浮层前的状态
 
 ## 13. Figma 链接
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 登录页协议浮层弹窗 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 登录页协议勾选区 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 3 | 「我的 → 设置 → 用户须知」页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 「我的 → 设置 → 隐私协议」页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 登录页协议浮层 | [U-login-protocol-modal.md](../../figma/page-spec/U-login-protocol-modal.md) | ✅ |
+| 2 | 用户须知页 | [U-terms-page.md](../../figma/page-spec/U-terms-page.md) | ✅ |
+| 3 | 隐私协议页 | [U-privacy-page.md](../../figma/page-spec/U-privacy-page.md) | ✅ |
+| 4 | 设置页 | [U-settings-page.md](../../figma/page-spec/U-settings-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

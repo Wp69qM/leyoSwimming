@@ -6,7 +6,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求教练可通过「我的」页面�
 
 ## What Changes
 
-- 复用/扩展 `POST /api/v1/auth/logout` 接口，接收当前教练 `access_token` 与 `refresh_token`，使服务端当前教练会话失效
+- 复用/扩展 `POST /api/coach/auth/logout` 接口，接收当前教练 `access_token` 与 `refresh_token`，使服务端当前教练会话失效
 - 修改 `coach_session` 表：退出登录时将当前会话标记为失效（写入 `revoked_at`）或删除记录
 - 后端通过 JWT payload 中 `app_type='coach'` 校验，确保只操作教练会话
 - 在教练端小程序「我的」TabBar 页面底部新增「退出登录」按钮
@@ -29,7 +29,7 @@ PRD [§5.2.1](../../../docs/prd/prd.md) 要求教练可通过「我的」页面�
 ## Impact
 
 - **数据表**：修改 `coach_session`（标记当前 session 失效）
-- **API**：复用/扩展 1 个写入端点 `POST /api/v1/auth/logout`（需登录鉴权，按 `app_type` 区分会话表）
+- **API**：复用/扩展 1 个写入端点 `POST /api/coach/auth/logout`（需登录鉴权，按 `app_type` 区分会话表）
 - **状态机**：触发教练登录态状态机 `已登录 → 未登录`（仅会话层，不修改账号生命周期字段）
 - **前端**：教练端小程序「我的」页面新增退出登录按钮与确认弹窗
 - **依赖**：前置 US-051（教练微信授权登录）、US-054（教练手机号验证码登录）；无后续 US

@@ -28,8 +28,8 @@
 
 ### Task 2：US-010 处理重新入驻提交
 
-- [ ] **2.1 RED**：编写 status=3 教练调用 `POST /api/coach/application` 创建 `previous_coach_status=3` 的 pending 快照测试
-- [ ] **2.2 RED**：编写 status=3 教练保存草稿后 coach.status 仍为 3 测试
+- [ ] **2.1 RED**：编写 status=3 教练调用 `POST /api/coach/application/submit` 创建 `previous_coach_status=3` 的 pending 快照测试
+- [ ] **2.2 RED**：编写 status=3 教练调用 `POST /api/coach/application/save-draft` 保存草稿后 coach.status 仍为 3 测试
 - [ ] **2.3 GREEN**：复用 US-010 提交/草稿接口处理重新入驻（无需新建接口）
 - [ ] **2.4 COMMIT**：`feat(coach): reapply submission via US-010 application endpoint`
 
@@ -37,8 +37,8 @@
 
 ### Task 3：US-011 审核重新入驻
 
-- [ ] **3.1 RED**：编写 `POST /api/admin/coach/applications/{id}/approve` 对 `previous_coach_status=3` 的申请通过后 coach.status=1 测试
-- [ ] **3.2 RED**：编写 `POST /api/admin/coach/applications/{id}/reject` 对 `previous_coach_status=3` 的申请拒绝后 coach.status=3 测试
+- [ ] **3.1 RED**：编写 `POST /api/admin/coach/application/approve` 对 `previous_coach_status=3` 的申请通过后 coach.status=1 测试
+- [ ] **3.2 RED**：编写 `POST /api/admin/coach/application/reject` 对 `previous_coach_status=3` 的申请拒绝后 coach.status=3 测试
 - [ ] **3.3 RED**：编写 coach 表生效资料在拒绝前后保持不变测试
 - [ ] **3.4 GREEN**：复用 US-011 审核接口（无需新建管理员接口）
 - [ ] **3.5 COMMIT**：`feat(admin): reapply review via US-011 audit endpoints`

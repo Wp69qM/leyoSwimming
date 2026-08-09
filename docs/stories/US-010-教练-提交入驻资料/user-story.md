@@ -1,6 +1,6 @@
 # US-010 教练提交入驻资料
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已确认）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-08-05
@@ -301,10 +301,10 @@ And   页面按场景 10 展示审核中状态与资料摘要
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | /api/coach/application | POST | 新增/修改 | 提交入驻资料；请求体含 coach 资料同构字段（`name`/`gender`/`age`/`email`/`wechat_qr_url`/`id_card_no`/`teaching_years`/`total_students`/`total_hours`/`teaching_strokes`/`bio`/`reference_price`）及 `certificates: [{cert_type, image_url}]`；创建 coach_application 快照为 pending，coach.status 变为 0 |
-| 2 | /api/coach/application/draft | PUT | 新增/修改 | 保存草稿；请求体同提交接口；创建或更新 coach_application 快照为 draft，coach.status 保持不变 |
-| 3 | /api/coach/application | GET | 新增 | 返回 coach_application 快照完整资料（含证书列表）；额外返回派生字段 `entry_type`（draft/first/rejected/reapply，由 coach.status 与 coach_application.status 推导）与 `prompt_message`（驳回原因或重新入驻说明，来自 `rejection_reason` 或固定文案），用于填写页与等待审核页 |
-| 4 | /api/upload/image | POST | 新增 | 通用图片上传（JPG/PNG，≤5MB）|
+| 1 | /api/coach/application/submit | POST | 新增/修改 | 提交入驻资料；请求体含 coach 资料同构字段（`name`/`gender`/`age`/`email`/`wechat_qr_url`/`id_card_no`/`teaching_years`/`total_students`/`total_hours`/`teaching_strokes`/`bio`/`reference_price`）及 `certificates: [{cert_type, image_url}]`；创建 coach_application 快照为 pending，coach.status 变为 0 |
+| 2 | /api/coach/application/save-draft | POST | 新增/修改 | 保存草稿；请求体同提交接口；创建或更新 coach_application 快照为 draft，coach.status 保持不变 |
+| 3 | /api/coach/application/detail | POST | 新增 | 返回 coach_application 快照完整资料（含证书列表）；额外返回派生字段 `entry_type`（draft/first/rejected/reapply，由 coach.status 与 coach_application.status 推导）与 `prompt_message`（驳回原因或重新入驻说明，来自 `rejection_reason` 或固定文案），用于填写页与等待审核页 |
+| 4 | /api/common/file/upload | POST | 新增 | 通用图片上传（JPG/PNG，≤5MB）|
 
 ### 7.3 状态机影响
 
@@ -431,14 +431,11 @@ And   页面按场景 10 展示审核中状态与资料摘要
 > - [C-入驻提交成功页](../../figma/page-spec/C-coach-onboarding-success-page.md)
 > - [C-等待审核页](../../figma/page-spec/C-coach-pending-page.md)
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | C-入驻资料填写页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | C-入驻资料填写页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 3 | C-入驻提交成功页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | C-入驻提交成功页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 5 | C-等待审核页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 6 | C-等待审核页关键 frame node-id | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | C-入驻资料填写页 page-spec | [C-coach-onboarding-page.md](../../figma/page-spec/C-coach-onboarding-page.md) | ✅ |
+| 2 | C-入驻提交成功页 page-spec | [C-coach-onboarding-success-page.md](../../figma/page-spec/C-coach-onboarding-success-page.md) | ✅ |
+| 3 | C-等待审核页 page-spec | [C-coach-pending-page.md](../../figma/page-spec/C-coach-pending-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 
@@ -467,7 +464,7 @@ And   页面按场景 10 展示审核中状态与资料摘要
 ### 14.3 驳回原因展示
 
 - **背景**：已驳回教练需要明确知道修改方向。
-- **结论**：status = 2 时，页面顶部固定展示红色驳回原因条，文案来自 `coach_audit_log` 中该教练最新一条 `action='reject'` 记录的 `reason`；表单自动回显上次提交内容，可编辑，提交按钮文案改为「重新提交」。 coach 表不冗余存储 rejection_reason。
+- **结论**：status = 2 时，页面顶部固定展示红色驳回原因条，文案来自该教练最新一条 `status = rejected` 的 `coach_application` 记录的 `rejection_reason`；表单自动回显上次提交内容，可编辑，提交按钮文案改为「重新提交」。 coach 表不冗余存储 rejection_reason。
 - **影响范围**：C-入驻资料填写页状态提示区、按钮文案、表单默认值。
 
 ### 14.4 已离职教练重新入驻与首次/驳回提交共用同一页面
@@ -475,7 +472,7 @@ And   页面按场景 10 展示审核中状态与资料摘要
 - **背景**：status = 3 的教练需要重新入驻，为避免维护多个资料填写页，希望与首次提交、驳回重新提交共用同一页面。
 - **选项**：A. 独立重新入驻资料页；B. 与 US-010 的入驻资料填写页合并
 - **结论**：选 B，status = 3 时直接进入 C-入驻资料填写页，顶部展示前端硬编码的重新入驻说明条，表单自动回显 coach 表历史内容，提交后 status 从 3 重置为 0。
-- **影响范围**：US-040 流程、US-051 登录分流、C-入驻资料填写页 UI、后端 `GET /api/coach/application` 响应。
+- **影响范围**：US-040 流程、US-051 登录分流、C-入驻资料填写页 UI、后端 `POST /api/coach/application/detail` 响应。
 
 ### 14.5 参考单价输入方式
 
