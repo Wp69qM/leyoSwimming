@@ -2,6 +2,7 @@
 
 > **适用范围**：`miniapp-coach/` 目录下所有代码。  
 > **上级规范**：[AGENTS.md](../AGENTS.md)（根目录硬约束优先）。  
+> **前端规范**：[docs/tech/frontend-development-standards.md](../docs/tech/frontend-development-standards.md)（必读）。  
 > **技术方案**：[docs/tech/frontend-backend-setup-guide.md](../docs/tech/frontend-backend-setup-guide.md)。  
 > **多 Agent 规范**：[docs/tech/multi-agent-dev-guide.md](../docs/tech/multi-agent-dev-guide.md)。
 

@@ -38,6 +38,7 @@
 | 环境 | Java JDK 21 | 已验证可用 | 否 | [environment-setup-checklist.md §2.2](./environment-setup-checklist.md) |
 | 环境 | Maven 3.9+ | 已验证可用 | 否 | [environment-setup-checklist.md §2.3](./environment-setup-checklist.md) |
 | 环境 | Docker Desktop | 因奇安信拦截，开发期暂不使用 | 否 | [environment-setup-checklist.md §2.4](./environment-setup-checklist.md) |
+| 环境 | MySQL 8 | 已安装并创建 leyo_dev 数据库 | 否 | — |
 | 环境 | Redis 5+ | 已验证可用 | 否 | — |
 | 环境 | 微信开发者工具 | 用户称已安装 | 否 | [environment-setup-checklist.md §2.5](./environment-setup-checklist.md) |
 | 账号 | 用户端小程序 AppID / AppSecret | 已申请，已写入 `deploy/.env` | 否 | [environment-setup-checklist.md §3.1](./environment-setup-checklist.md) |
@@ -56,6 +57,10 @@
 **结论**：还不能直接进编码。当前最大缺口是：
 1. 四个代码目录（`backend/`、`miniapp-user/`、`miniapp-coach/`、`web-admin/`）只有空目录 + `AGENT.md`，需要初始化实际脚手架。
 2. OpenAPI 初稿需按 api-convention 修正后冻结。
+
+**开发规范**：
+- 前端：[frontend-development-standards.md](./frontend-development-standards.md)，适用于 `miniapp-user/`、`miniapp-coach/`、`web-admin/`。
+- 后端：[backend-development-standards.md](./backend-development-standards.md)，适用于 `backend/`。
 
 ---
 

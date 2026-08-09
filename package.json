@@ -1,0 +1,44 @@
+{
+  "name": "leyo-swimming",
+  "version": "0.1.0",
+  "private": true,
+  "description": "leyoSwimming 游泳私教预约平台 - Monorepo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leyo/leyo-swimming.git"
+  },
+  "license": "UNLICENSED",
+  "workspaces": [
+    "miniapp-user",
+    "miniapp-coach",
+    "web-admin",
+    "shared"
+  ],
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "scripts": {
+    "dev:shared": "yarn workspace @leyo/shared dev",
+    "dev:user": "yarn workspace @leyo/miniapp-user dev",
+    "dev:coach": "yarn workspace @leyo/miniapp-coach dev",
+    "dev:admin": "yarn workspace @leyo/web-admin dev",
+    "dev": "yarn dev:admin & yarn dev:user & yarn dev:coach",
+    "build:user": "yarn workspace @leyo/miniapp-user build",
+    "build:coach": "yarn workspace @leyo/miniapp-coach build",
+    "build:admin": "yarn workspace @leyo/web-admin build",
+    "build:shared": "yarn workspace @leyo/shared build",
+    "build": "yarn build:shared && yarn build:admin && yarn build:user && yarn build:coach",
+    "lint:user": "yarn workspace @leyo/miniapp-user lint",
+    "lint:coach": "yarn workspace @leyo/miniapp-coach lint",
+    "lint:admin": "yarn workspace @leyo/web-admin lint",
+    "lint:shared": "yarn workspace @leyo/shared lint",
+    "lint": "yarn lint:shared && yarn lint:admin && yarn lint:user && yarn lint:coach",
+    "test:user": "yarn workspace @leyo/miniapp-user test",
+    "test:coach": "yarn workspace @leyo/miniapp-coach test",
+    "test:admin": "yarn workspace @leyo/web-admin test",
+    "test:shared": "yarn workspace @leyo/shared test",
+    "test": "yarn test:shared && yarn test:admin && yarn test:user && yarn test:coach"
+  }
+}

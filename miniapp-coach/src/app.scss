@@ -1,0 +1,8 @@
+@import './styles/variables.scss';
+
+page,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+  color: $text-color-primary;
+  background-color: $bg-color;
+}

@@ -1,0 +1,23 @@
+@import '../../styles/variables.scss';
+
+.index {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+  box-sizing: border-box;
+
+  &__title {
+    font-size: 48px;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 24px;
+  }
+
+  &__subtitle {
+    font-size: 28px;
+    color: $text-color-secondary;
+  }
+}
