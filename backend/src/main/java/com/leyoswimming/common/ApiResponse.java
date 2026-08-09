@@ -1,29 +1,18 @@
 package com.leyoswimming.common;
 
-import lombok.Getter;
+public record ApiResponse<T>(int code, String message, T data) {
 
-@Getter
-public class ApiResponse<T> {
-
-  private final boolean success;
-  private final T data;
-  private final String error;
-
-  private ApiResponse(boolean success, T data, String error) {
-    this.success = success;
-    this.data = data;
-    this.error = error;
-  }
+  public static final int SUCCESS_CODE = 0;
 
   public static <T> ApiResponse<T> ok(T data) {
-    return new ApiResponse<>(true, data, null);
+    return new ApiResponse<>(SUCCESS_CODE, "success", data);
   }
 
   public static <T> ApiResponse<T> ok() {
-    return new ApiResponse<>(true, null, null);
+    return new ApiResponse<>(SUCCESS_CODE, "success", null);
   }
 
-  public static <T> ApiResponse<T> error(String message) {
-    return new ApiResponse<>(false, null, message);
+  public static <T> ApiResponse<T> error(int code, String message) {
+    return new ApiResponse<>(code, message, null);
   }
 }

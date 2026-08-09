@@ -44,19 +44,17 @@
 | 账号 | 用户端小程序 AppID / AppSecret | 已申请，已写入 `deploy/.env` | 否 | [environment-setup-checklist.md §3.1](./environment-setup-checklist.md) |
 | 账号 | 教练端小程序 AppID / AppSecret | 已申请，已写入 `deploy/.env` | 否 | [environment-setup-checklist.md §3.1](./environment-setup-checklist.md) |
 | 账号 | 短信服务（验证码） | **开发期用 mock，暂不接入真实短信** | 否 | 见 §2.1 短信 mock 方案 |
-| 工程 | `miniapp-user/` 目录及脚手架 | 目录存在，但仅含 `AGENT.md`，无实际脚手架 | **是** | [frontend-backend-setup-guide.md §4](./frontend-backend-setup-guide.md) |
-| 工程 | `miniapp-coach/` 目录及脚手架 | 目录存在，但仅含 `AGENT.md`，无实际脚手架 | **是** | [frontend-backend-setup-guide.md §4](./frontend-backend-setup-guide.md) |
-| 工程 | `web-admin/` 目录及脚手架 | 目录存在，但仅含 `AGENT.md`，无实际脚手架 | **是** | [frontend-backend-setup-guide.md §5](./frontend-backend-setup-guide.md) |
-| 工程 | `backend/` 目录及脚手架 | 目录存在，但仅含 `AGENT.md`，无实际脚手架 | **是** | [frontend-backend-setup-guide.md §6](./frontend-backend-setup-guide.md) |
+| 工程 | `miniapp-user/` 目录及脚手架 | 已初始化 Taro 4 + React 18 + TypeScript 脚手架 | 否 | [frontend-backend-setup-guide.md §4](./frontend-backend-setup-guide.md) |
+| 工程 | `miniapp-coach/` 目录及脚手架 | 已初始化 Taro 4 + React 18 + TypeScript 脚手架 | 否 | [frontend-backend-setup-guide.md §4](./frontend-backend-setup-guide.md) |
+| 工程 | `web-admin/` 目录及脚手架 | 已初始化 Vue 3 + Vite 5 + Element Plus 脚手架 | 否 | [frontend-backend-setup-guide.md §5](./frontend-backend-setup-guide.md) |
+| 工程 | `backend/` 目录及脚手架 | 已初始化 Spring Boot 3.2 + Java 21 + Maven 脚手架 | 否 | [frontend-backend-setup-guide.md §6](./frontend-backend-setup-guide.md) |
 | 工程 | `shared/` 目录及类型定义 | 目录存在，已有 `openapi/leyo-swimming-v1.yaml` 初稿 | 否 | [frontend-backend-setup-guide.md §7](./frontend-backend-setup-guide.md) |
 | 工程 | `deploy/` Docker Compose | 已存在 `docker-compose.yml`、`.env.example`、`nginx.conf` | 否 | [frontend-backend-setup-guide.md §8](./frontend-backend-setup-guide.md) |
 | 工程 | `tools/` 脚本 | 目录存在，已有若干 Calicat 上传脚本 | 否 | — |
 | 工程 | 各目录 `AGENT.md` | 已存在 | 否 | [frontend-backend-setup-guide.md §9](./frontend-backend-setup-guide.md) |
-| 契约 | OpenAPI v1.0.0 | 已存在初稿，但部分路径/方法不符合 [api-convention.md](./api-convention.md)，需评审修正 | 是 | [multi-agent-dev-guide.md §2.1](./multi-agent-dev-guide.md) |
+| 契约 | OpenAPI v1.0.0 | 已按 [api-convention.md](./api-convention.md) 评审修正并冻结 | 否 | [multi-agent-dev-guide.md §2.1](./multi-agent-dev-guide.md) |
 
-**结论**：还不能直接进编码。当前最大缺口是：
-1. 四个代码目录（`backend/`、`miniapp-user/`、`miniapp-coach/`、`web-admin/`）只有空目录 + `AGENT.md`，需要初始化实际脚手架。
-2. OpenAPI 初稿需按 api-convention 修正后冻结。
+**结论**：Phase 0（环境/工具/工程初始化）与 Phase 1（API 契约冻结）已完成，可以进入 Phase 2 后端骨架 + 第一个 US 实现。
 
 **开发规范**：
 - 前端：[frontend-development-standards.md](./frontend-development-standards.md)，适用于 `miniapp-user/`、`miniapp-coach/`、`web-admin/`。
@@ -152,17 +150,17 @@
 
 ## 5. 开发前最终确认清单
 
-- [ ] yarn / JDK 21 / Maven / Docker Desktop 安装并验证版本
-- [ ] 微信开发者工具安装
-- [ ] 用户端、教练端小程序注册并获取 AppID / AppSecret
-- [ ] 短信 mock 开关已配置（`SMS_MOCK_ENABLED=true`，开发期不需要真实短信账号）
-- [ ] 7 个代码目录已创建并初始化最小脚手架
-- [ ] 每个代码目录已创建 `AGENT.md`
+- [x] yarn / JDK 21 / Maven 安装并验证版本（Docker Desktop 因奇安信拦截暂不使用）
+- [x] 微信开发者工具安装
+- [x] 用户端、教练端小程序注册并获取 AppID / AppSecret
+- [x] 短信 mock 开关已配置（`SMS_MOCK_ENABLED=true`，开发期不需要真实短信账号）
+- [x] 7 个代码目录已创建并初始化最小脚手架
+- [x] 每个代码目录已创建 `AGENT.md`
 - [ ] `deploy/.env` 已配置（复制自 `.env.example`）
-- [ ] `docker-compose up -d` 可正常启动 MySQL + Redis
-- [ ] 后端骨架可运行，统一响应、JWT、异常处理已就位
-- [ ] 前端脚手架可运行，设计 token 已与 Figma 对齐
-- [ ] `shared/openapi/leyo-swimming-v1.yaml` 已创建并冻结 v1.0.0
+- [ ] `docker-compose up -d` 可正常启动 MySQL + Redis（开发期改用本地 MySQL/Redis）
+- [x] 后端骨架可运行，统一响应、JWT、异常处理已就位
+- [x] 前端脚手架可运行，设计 token 已与 Figma 对齐
+- [x] `shared/openapi/leyo-swimming-v1.yaml` 已创建并冻结 v1.0.0
 - [ ] 第一个 US 的后端 + 前端已走通 TDD 全流程
 
 ---
