@@ -24,7 +24,7 @@ watch(
   (expired) => {
     tokenExpiredVisible.value = expired === '1';
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 function clearErrors() {
@@ -74,7 +74,12 @@ async function handleLogin() {
   <div class="login-page">
     <div class="login-card">
       <div v-if="tokenExpiredVisible" class="token-expired-tip">
-        <svg class="tip-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          class="tip-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm1-4h-2V7h2v6z"
             fill="currentColor"
@@ -85,7 +90,12 @@ async function handleLogin() {
 
       <div class="card-header">
         <div class="logo">
-          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
               fill="currentColor"
@@ -102,10 +112,16 @@ async function handleLogin() {
           <div
             class="input-wrapper"
             :class="{
-              'is-error': (serverError || fieldErrors.username) && !authStore.isLoggingIn,
+              'is-error':
+                (serverError || fieldErrors.username) && !authStore.isLoggingIn,
             }"
           >
-            <svg class="input-prefix" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              class="input-prefix"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
                 fill="currentColor"
@@ -120,7 +136,9 @@ async function handleLogin() {
               @input="clearErrors"
             />
           </div>
-          <div v-if="fieldErrors.username" class="field-error">{{ fieldErrors.username }}</div>
+          <div v-if="fieldErrors.username" class="field-error">
+            {{ fieldErrors.username }}
+          </div>
         </div>
 
         <div class="form-field">
@@ -128,10 +146,16 @@ async function handleLogin() {
           <div
             class="input-wrapper"
             :class="{
-              'is-error': (serverError || fieldErrors.password) && !authStore.isLoggingIn,
+              'is-error':
+                (serverError || fieldErrors.password) && !authStore.isLoggingIn,
             }"
           >
-            <svg class="input-prefix" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              class="input-prefix"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
                 fill="currentColor"
@@ -145,18 +169,30 @@ async function handleLogin() {
               :disabled="isDisabled"
               @input="clearErrors"
             />
-            <svg class="input-suffix" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              class="input-suffix"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
                 fill="currentColor"
               />
             </svg>
           </div>
-          <div v-if="fieldErrors.password" class="field-error">{{ fieldErrors.password }}</div>
+          <div v-if="fieldErrors.password" class="field-error">
+            {{ fieldErrors.password }}
+          </div>
         </div>
 
         <div v-if="serverError" class="error-message">
-          <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            class="error-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
               d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
               fill="currentColor"

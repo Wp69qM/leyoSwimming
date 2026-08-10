@@ -35,7 +35,7 @@ request.interceptors.response.use(
   (error: AxiosError<ApiResponse<unknown>>) => {
     const message = error.response?.data?.message || '网络异常，请稍后重试';
     return Promise.reject(new Error(message));
-  },
+  }
 );
 
 export default request;

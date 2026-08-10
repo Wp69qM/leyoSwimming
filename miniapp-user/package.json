@@ -31,18 +31,23 @@
     "@leyo/shared": "0.1.0",
     "@tarojs/components": "^4.0.7",
     "@tarojs/helper": "^4.0.7",
+    "@tarojs/plugin-framework-react": "^4.0.7",
     "@tarojs/plugin-platform-weapp": "^4.0.7",
     "@tarojs/react": "^4.0.7",
     "@tarojs/runtime": "^4.0.7",
     "@tarojs/taro": "^4.0.7",
     "@tarojs/webpack5-runner": "^4.0.7",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/preset-react": "^7.23.3",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
+    "@tarojs/test-utils-react": "^0.1.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/webpack-env": "^1.18.4",
@@ -67,7 +72,6 @@
     "stylelint-config-standard-scss": "^13.0.0",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3",
-    "webpack": "^5.90.3",
-    "@tarojs/test-utils-react": "^0.1.1"
+    "webpack": "^5.90.3"
   }
 }

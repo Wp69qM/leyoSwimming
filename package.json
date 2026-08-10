@@ -19,6 +19,9 @@
     "node": ">=20.0.0",
     "yarn": ">=1.22.0"
   },
+  "resolutions": {
+    "webpack": "5.91.0"
+  },
   "scripts": {
     "dev:shared": "yarn workspace @leyo/shared dev",
     "dev:user": "yarn workspace @leyo/miniapp-user dev",

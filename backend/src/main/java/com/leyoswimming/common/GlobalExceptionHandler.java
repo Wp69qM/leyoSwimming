@@ -22,7 +22,6 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ApiResponse<Void> handleValidation(Exception ex) {
     String message = "请求参数校验失败";
     if (ex instanceof MethodArgumentNotValidException e) {
@@ -35,7 +34,7 @@ public class GlobalExceptionHandler {
       message = e.getConstraintViolations().stream().findFirst().map(Object::toString).orElse(message);
     }
     log.warn("Validation failed: {}", message);
-    return ApiResponse.error(ErrorCode.BAD_REQUEST.getCode(), message);
+    return ApiResponse.error(ErrorCode.VALIDATION_ERROR.getCode(), message);
   }
 
   @ExceptionHandler({IllegalArgumentException.class, HttpMessageNotReadableException.class})

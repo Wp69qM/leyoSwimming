@@ -1,5 +1,12 @@
 export default defineAppConfig({
-  pages: ['pages/index/index'],
+  pages: [
+    'pages/index/index',
+    'pages/login/wechat/index',
+    'pages/login/phone/index',
+    'pages/resignation/apply/index',
+    'pages/resignation/ticket/index',
+    'pages/resignation/processing/index'
+  ],
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',

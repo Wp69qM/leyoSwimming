@@ -24,7 +24,9 @@ module.exports = {
     'no-console': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn'
+    'react-hooks/exhaustive-deps': 'warn',
+    'react/react-in-jsx-scope': 'off',
+    'jsx-quotes': 'off'
   },
   settings: {
     react: {

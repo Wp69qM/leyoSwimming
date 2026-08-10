@@ -9,7 +9,8 @@ const pushMock = vi.fn();
 const queryMock = { redirect: '/' };
 
 vi.mock('vue-router', async () => {
-  const actual = await vi.importActual<typeof import('vue-router')>('vue-router');
+  const actual =
+    await vi.importActual<typeof import('vue-router')>('vue-router');
   return {
     ...actual,
     useRouter: () => ({ push: pushMock }),
@@ -23,10 +24,10 @@ function flushPromises() {
 
 beforeEach(() => {
   vi.spyOn(ElMessage, 'success').mockImplementation(
-    () => undefined as unknown as ReturnType<typeof ElMessage.success>,
+    () => undefined as unknown as ReturnType<typeof ElMessage.success>
   );
   vi.spyOn(ElMessage, 'error').mockImplementation(
-    () => undefined as unknown as ReturnType<typeof ElMessage.error>,
+    () => undefined as unknown as ReturnType<typeof ElMessage.error>
   );
 });
 
@@ -49,12 +50,17 @@ describe('LoginView', () => {
     const store = useAdminAuthStore();
     store.login = vi.fn().mockResolvedValue({ success: true });
 
-    await wrapper.find('input[placeholder="请输入管理员账号"]').setValue('admin');
+    await wrapper
+      .find('input[placeholder="请输入管理员账号"]')
+      .setValue('admin');
     await wrapper.find('input[placeholder="请输入密码"]').setValue('admin123');
     await wrapper.find('button[type="submit"]').trigger('submit');
     await flushPromises();
 
-    expect(store.login).toHaveBeenCalledWith({ username: 'admin', password: 'admin123' });
+    expect(store.login).toHaveBeenCalledWith({
+      username: 'admin',
+      password: 'admin123',
+    });
     expect(pushMock).toHaveBeenCalledWith('/');
     expect(ElMessage.success).toHaveBeenCalledWith('登录成功');
   });
@@ -62,9 +68,13 @@ describe('LoginView', () => {
   it('登录失败时显示错误提示', async () => {
     const wrapper = mountLoginView();
     const store = useAdminAuthStore();
-    store.login = vi.fn().mockResolvedValue({ success: false, message: '用户名或密码错误' });
+    store.login = vi
+      .fn()
+      .mockResolvedValue({ success: false, message: '用户名或密码错误' });
 
-    await wrapper.find('input[placeholder="请输入管理员账号"]').setValue('admin');
+    await wrapper
+      .find('input[placeholder="请输入管理员账号"]')
+      .setValue('admin');
     await wrapper.find('input[placeholder="请输入密码"]').setValue('wrong');
     await wrapper.find('button[type="submit"]').trigger('submit');
     await flushPromises();

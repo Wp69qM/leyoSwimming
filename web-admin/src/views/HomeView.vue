@@ -6,7 +6,9 @@ const authStore = useAdminAuthStore();
 
 <template>
   <div class="home-page">
-    <h1 class="welcome-title">欢迎回来，{{ authStore.admin?.name || '管理员' }}！</h1>
+    <h1 class="welcome-title">
+      欢迎回来，{{ authStore.admin?.name || '管理员' }}！
+    </h1>
     <p class="welcome-desc">这是 leyoSwimming 管理后台首页。</p>
   </div>
 </template>

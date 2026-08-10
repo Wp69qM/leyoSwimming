@@ -10,8 +10,25 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: leyo1234
+      database: 1
+
+mybatis-plus:
+  global-config:
+    db-config:
+      table-format: "`%s`"
 
 leyo:
   jwt:
     secret: bG9jYWwtZGV2LXNlY3JldC1tdXN0LWJlLW92ZXJyaWRkZW4taW4tcHJvZHVjdGlvbi1hdC1sZWFzdC0zMi1ieXRlcw==
     access-token-expiration: 86400000
+    refresh-token-expiration: 604800000
+  phone-encryption:
+    key: local-test-phone-encryption-key-32bytes!
+  wechat:
+    appid: wx_test_appid
+    secret: wx_test_secret

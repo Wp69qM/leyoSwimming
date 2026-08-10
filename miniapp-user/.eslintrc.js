@@ -13,6 +13,8 @@ module.exports = {
   rules: {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
+    'react/react-in-jsx-scope': 'off',
+    'jsx-quotes': ['error', 'prefer-single'],
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': [
       'warn',

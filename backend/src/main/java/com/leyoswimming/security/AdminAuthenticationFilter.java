@@ -9,10 +9,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,6 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AdminAuthenticationFilter extends OncePerRequestFilter {
 
   private final AdminAuthService adminAuthService;
+  private final JwtTokenProvider jwtTokenProvider;
   private final ObjectMapper objectMapper;
 
   @Override
@@ -36,9 +39,14 @@ public class AdminAuthenticationFilter extends OncePerRequestFilter {
     }
 
     String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
-    if (token != null && adminAuthService.isTokenActive(token)) {
+    if (token != null
+        && jwtTokenProvider.isTokenValid(token)
+        && "admin".equals(jwtTokenProvider.getTokenType(token))
+        && adminAuthService.isTokenActive(token)) {
+      Long adminId = jwtTokenProvider.getAdminUserId(token);
       UsernamePasswordAuthenticationToken authentication =
-          new UsernamePasswordAuthenticationToken(token, null, null);
+          new UsernamePasswordAuthenticationToken(
+              adminId, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
       SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 

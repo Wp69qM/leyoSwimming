@@ -3,6 +3,8 @@ import { useAdminAuthStore } from '@/stores/adminAuth';
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
+import ResignationApprovalQueueView from '@/views/resignation/ResignationApprovalQueueView.vue';
+import ResignationTicketDetailView from '@/views/resignation/ResignationTicketDetailView.vue';
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,6 +18,16 @@ export const router = createRouter({
           path: '',
           name: 'home',
           component: HomeView,
+        },
+        {
+          path: 'resignation/approval-queue',
+          name: 'resignation-approval-queue',
+          component: ResignationApprovalQueueView,
+        },
+        {
+          path: 'resignation/ticket-detail/:ticketId',
+          name: 'resignation-ticket-detail',
+          component: ResignationTicketDetailView,
         },
       ],
     },

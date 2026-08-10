@@ -28,7 +28,12 @@ async function handleLogout() {
       <div class="sidebar-header">
         <div class="brand">
           <div class="brand-logo">
-            <svg class="brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              class="brand-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
                 fill="currentColor"
@@ -39,7 +44,19 @@ async function handleLogout() {
         </div>
       </div>
       <nav class="sidebar-nav">
-        <router-link to="/" class="nav-item" active-class="active"> 首页 </router-link>
+        <router-link to="/" class="nav-item" active-class="active">
+          首页
+        </router-link>
+        <div class="nav-group">
+          <div class="nav-group-title">用户管理</div>
+          <router-link
+            to="/resignation/approval-queue"
+            class="nav-item"
+            active-class="active"
+          >
+            教练离职审批
+          </router-link>
+        </div>
       </nav>
     </aside>
 
@@ -57,9 +74,15 @@ async function handleLogout() {
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item disabled>
-                  角色：{{ authStore.admin.role === 'super_admin' ? '超级管理员' : '管理员' }}
+                  角色：{{
+                    authStore.admin.role === 'super_admin'
+                      ? '超级管理员'
+                      : '管理员'
+                  }}
                 </el-dropdown-item>
-                <el-dropdown-item divided @click="handleLogout"> 退出登录 </el-dropdown-item>
+                <el-dropdown-item divided @click="handleLogout">
+                  退出登录
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -131,6 +154,16 @@ async function handleLogout() {
   flex: 1;
   padding: 12px 8px;
   overflow-y: auto;
+}
+
+.nav-group {
+  margin-top: 8px;
+}
+
+.nav-group-title {
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #8c8c8c;
 }
 
 .nav-item {

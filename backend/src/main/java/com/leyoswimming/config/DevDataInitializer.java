@@ -37,7 +37,7 @@ public class DevDataInitializer implements CommandLineRunner {
     admin.setUsername(username);
     admin.setPasswordHash(passwordEncoder.encode("admin123"));
     admin.setName("系统管理员");
-    admin.setRole("super_admin");
+    admin.setRole("SUPER_ADMIN");
     admin.setStatus(0);
     adminUserMapper.insert(admin);
     log.info("Seeded default admin user: {}", username);
