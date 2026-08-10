@@ -1,0 +1,335 @@
+.resignation-ticket {
+  min-height: 100vh;
+  background: #F5F7FA;
+  padding: 24rpx 32rpx calc(128rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+
+  &__progress {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    background: #FFFFFF;
+    border-radius: 24rpx;
+    padding: 32rpx 24rpx;
+    margin-bottom: 32rpx;
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  }
+
+  &__progress-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  &__progress-dot {
+    width: 40rpx;
+    height: 40rpx;
+    border-radius: 50%;
+    background: #F5F5F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12rpx;
+
+    &--active {
+      background: #1890FF;
+    }
+  }
+
+  &__progress-number {
+    font-size: 22rpx;
+    color: #BFBFBF;
+  }
+
+  &__progress-check {
+    font-size: 22rpx;
+    color: #FFFFFF;
+  }
+
+  &__progress-label {
+    font-size: 22rpx;
+    color: #8C8C8C;
+    text-align: center;
+    white-space: nowrap;
+
+    &--active {
+      color: #1890FF;
+      font-weight: 500;
+    }
+  }
+
+  &__progress-line {
+    position: absolute;
+    top: 20rpx;
+    right: -50%;
+    width: 100%;
+    height: 2rpx;
+    background: #E8E8E8;
+
+    &--active {
+      background: #1890FF;
+    }
+  }
+
+  &__section-title {
+    display: block;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 24rpx;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 24rpx;
+  }
+
+  &__card {
+    background: #FFFFFF;
+    border-radius: 24rpx;
+    padding: 32rpx;
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12rpx;
+  }
+
+  &__student-name {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  &__status-tag {
+    padding: 4rpx 16rpx;
+    border-radius: 999rpx;
+
+    &--active {
+      background: #F6FFED;
+    }
+
+    &--frozen {
+      background: #FFF1F0;
+    }
+  }
+
+  &__status-text {
+    font-size: 22rpx;
+
+    &--active {
+      color: #52C41A;
+    }
+
+    &--frozen {
+      color: #FF4D4F;
+    }
+  }
+
+  &__package-info {
+    display: block;
+    font-size: 28rpx;
+    color: #8C8C8C;
+    margin-bottom: 24rpx;
+  }
+
+  &__selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 96rpx;
+    padding: 0 24rpx;
+    border: 2rpx solid #E8E8E8;
+    border-radius: 16rpx;
+
+    &--selected {
+      border-color: #1890FF;
+    }
+
+    &--readonly {
+      background: #F5F5F5;
+    }
+  }
+
+  &__selector-text {
+    font-size: 28rpx;
+    color: #262626;
+
+    &--placeholder {
+      color: #BFBFBF;
+    }
+  }
+
+  &__selector-arrow {
+    font-size: 24rpx;
+    color: #BFBFBF;
+  }
+
+  &__transfer {
+    display: flex;
+    align-items: center;
+    margin-top: 24rpx;
+    padding: 16rpx;
+    background: #F5F7FA;
+    border-radius: 16rpx;
+  }
+
+  &__transfer-label {
+    font-size: 28rpx;
+    font-weight: 500;
+    color: #262626;
+    margin-right: 16rpx;
+    flex-shrink: 0;
+  }
+
+  &__transfer-input {
+    flex: 1;
+    height: 72rpx;
+    background: #FFFFFF;
+    border: 2rpx solid #E8E8E8;
+    border-radius: 16rpx;
+    padding: 0 24rpx;
+    font-size: 28rpx;
+    color: #262626;
+
+    &::placeholder {
+      color: #BFBFBF;
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 120rpx;
+    background: #FFFFFF;
+    border-radius: 24rpx;
+    padding: 64rpx 32rpx;
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  }
+
+  &__empty-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 12rpx;
+  }
+
+  &__empty-desc {
+    font-size: 28rpx;
+    color: #8C8C8C;
+    margin-bottom: 32rpx;
+  }
+
+  &__empty-btn {
+    width: 240rpx;
+    height: 72rpx;
+    line-height: 72rpx;
+    background: #1890FF;
+    color: #FFFFFF;
+    font-size: 28rpx;
+    border-radius: 16rpx;
+
+    &::after {
+      border: none;
+    }
+  }
+
+  &__loading,
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+  }
+
+  &__loading-text,
+  &__error-text {
+    font-size: 28rpx;
+    color: #8C8C8C;
+    margin-bottom: 24rpx;
+  }
+
+  &__error-btn {
+    width: 240rpx;
+    height: 72rpx;
+    line-height: 72rpx;
+    background: #1890FF;
+    color: #FFFFFF;
+    font-size: 28rpx;
+    border-radius: 16rpx;
+
+    &::after {
+      border: none;
+    }
+  }
+
+  &__error-tip {
+    background: #FFF1F0;
+    border-radius: 16rpx;
+    padding: 24rpx 32rpx;
+    margin-top: 24rpx;
+  }
+
+  &__error-tip-text {
+    font-size: 28rpx;
+    color: #FF4D4F;
+  }
+
+  &__footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 112rpx;
+    padding: 0 32rpx calc(0rpx + env(safe-area-inset-bottom));
+    background: #FFFFFF;
+    box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.08);
+  }
+
+  &__footer-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__footer-count {
+    font-size: 28rpx;
+    color: #262626;
+  }
+
+  &__submit {
+    width: 240rpx;
+    height: 88rpx;
+    line-height: 88rpx;
+    background: linear-gradient(135deg, #FF4D4F 0%, #CF1322 100%);
+    color: #FFFFFF;
+    font-size: 28rpx;
+    font-weight: 500;
+    border-radius: 16rpx;
+
+    &--disabled {
+      background: #F5F5F5;
+      color: #BFBFBF;
+    }
+
+    &[disabled] {
+      background: #F5F5F5;
+      color: #BFBFBF;
+    }
+
+    &::after {
+      border: none;
+    }
+  }
+}
