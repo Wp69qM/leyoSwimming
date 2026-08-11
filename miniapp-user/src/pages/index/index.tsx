@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { useAuthStore } from '@/stores/authStore';
 import { APP_NAME, APP_SLOGAN } from '@/constants';
+import logoRibbon from '@/assets/logo-ribbon.svg';
 import './index.scss';
 
 export default function Index() {
@@ -50,14 +51,11 @@ export default function Index() {
     <View className='splash'>
       <View className='splash__content'>
         <View className='splash__logo'>
-          <View className='splash__logo-ring splash__logo-ring--outer' />
-          <View className='splash__logo-ring splash__logo-ring--inner' />
-          <View className='splash__logo-dot' />
-          <View className='splash__logo-stars'>
-            <View className='splash__logo-star splash__logo-star--1' />
-            <View className='splash__logo-star splash__logo-star--2' />
-            <View className='splash__logo-star splash__logo-star--3' />
-          </View>
+          <Image
+            className='splash__logo-icon'
+            src={logoRibbon}
+            mode='aspectFit'
+          />
         </View>
 
         <Text className='splash__brand'>{APP_NAME}</Text>
@@ -72,7 +70,7 @@ export default function Index() {
           </View>
         ) : (
           <View className='splash__loading'>
-            <View className='splash__spinner' />
+            <View className='splash__loading-dot' />
             <Text className='splash__loading-text'>加载中…</Text>
           </View>
         )}

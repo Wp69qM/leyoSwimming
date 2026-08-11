@@ -220,10 +220,6 @@ async function handleReject() {
   }
 }
 
-function openResultDialog() {
-  ElMessage.info('学员处理结果由教练在教练端登记');
-}
-
 watch(
   () => route.params.ticketId,
   () => {
@@ -369,17 +365,6 @@ onMounted(() => {
         <el-table-column label="处理时间" align="center" width="180">
           <template #default="{ row }">
             <span class="text-muted">{{ row.handledAt ? formatDateTime(row.handledAt) : '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column
-          v-if="detail.status === 'pending_audit'"
-          label="操作"
-          align="center"
-          min-width="100"
-          fixed="right"
-        >
-          <template #default>
-            <el-button link type="primary" @click="openResultDialog()">登记</el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -26,68 +26,9 @@
     justify-content: center;
   }
 
-  &__logo-ring {
-    position: absolute;
-    border-radius: 50%;
-    border-style: solid;
-
-    &--outer {
-      width: 128rpx;
-      height: 128rpx;
-      border-width: 3rpx;
-      border-color: rgba(255, 255, 255, 0.18);
-    }
-
-    &--inner {
-      width: 96rpx;
-      height: 96rpx;
-      border-width: 2rpx;
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-  }
-
-  &__logo-dot {
-    position: absolute;
-    width: 20rpx;
-    height: 20rpx;
-    background: #ff6b35;
-    border-radius: 50%;
-    top: 48rpx;
-    right: 44rpx;
-  }
-
-  &__logo-stars {
-    position: absolute;
-    top: 28rpx;
-    left: 44rpx;
-  }
-
-  &__logo-star {
-    position: absolute;
-    background: #ffffff;
-    border-radius: 50%;
-
-    &--1 {
-      width: 8rpx;
-      height: 8rpx;
-      opacity: 0.8;
-    }
-
-    &--2 {
-      width: 5rpx;
-      height: 5rpx;
-      top: 24rpx;
-      left: -12rpx;
-      opacity: 0.5;
-    }
-
-    &--3 {
-      width: 6rpx;
-      height: 6rpx;
-      top: 28rpx;
-      left: 24rpx;
-      opacity: 0.6;
-    }
+  &__logo-icon {
+    width: 128rpx;
+    height: 128rpx;
   }
 
   &__brand {
@@ -107,20 +48,19 @@
   }
 
   &__loading {
-    margin-top: 80rpx;
+    margin-top: 96rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16rpx;
   }
 
-  &__spinner {
-    width: 48rpx;
+  &__loading-dot {
+    width: 50rpx;
     height: 48rpx;
-    border: 4rpx solid rgba(255, 255, 255, 0.3);
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: splash-spin 1s linear infinite;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2rpx solid rgba(255, 255, 255, 0.5);
+    border-radius: 24rpx;
   }
 
   &__loading-text {
@@ -131,7 +71,7 @@
   }
 
   &__error {
-    margin-top: 80rpx;
+    margin-top: 96rpx;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -155,14 +95,5 @@
     font-weight: 500;
     color: #1890ff;
     line-height: 40rpx;
-  }
-}
-
-@keyframes splash-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }

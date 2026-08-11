@@ -165,8 +165,64 @@
 
 ---
 
-## 6. 变更日志
+## 6. Calicat 设计稿还原偏差根因分析
+
+> **背景**：第一批次开发完成后，管理端教练离职审批页、用户端小程序启动页与 Calicat 设计稿存在明显差异；虽已反复强调"Calicat 为视觉最高优先级"，但实现仍出现偏差。本章节复盘根因并制定预防措施。
+
+### 6.1 直接原因
+
+| # | 偏差表现 | 实际设计稿要求 | 实现时问题 |
+|---|---------|---------------|-----------|
+| 1 | 管理端离职审批队列页摘要条变成 4 张独立统计卡片 | 单一蓝底待办摘要条（`#E6F7FF` 背景，文字"待审批：N 条 · 超 3 工作日未处理：K 条"） | 直接套用 Element Plus 的统计卡片组件，未按 Calicat 图层结构还原 |
+| 2 | 管理端详情页多出「登记」按钮 | 审批记录时间轴 + 检查清单，底部固定审批操作栏，无「登记」按钮 | 把业务动作与审批动作混淆，按 Element Plus 默认表单布局实现 |
+| 3 | 用户端启动页 originally 只显示标题 | 全屏 `gradient-water` 渐变、居中 96×96 半透明 Logo、加载指示器、自动跳转 | 未读取 Calicat 图层数据，仅用占位文本实现 |
+| 4 | 颜色/间距/字号与稿不符 | 严格使用全局 Token（`gradient-water`、`color-primary`、`space-md` 等） | 依赖组件库默认主题，未做主题覆盖或 token 映射 |
+
+### 6.2 根因分析
+
+1. **规范优先级理解错误**
+   - 虽然项目规则写明"Calicat 设计稿为视觉最高优先级，page-spec 仅作交互与业务规则参考"，但开发时 Sub-Agent 仍把 page-spec 中的尺寸/颜色描述当作视觉来源。
+   - page-spec 中的数值是文字描述，无法精确还原图层间距、透明度、阴影等细节；而 Calicat 图层数据包含真实像素级信息。
+
+2. **开发顺序颠倒：先写代码，后补设计稿**
+   - 多 Agent 并行开发时，Sub-Agent 为追求进度，先基于 Element Plus / NutUI 默认样式搭建页面，完成后再"对照"设计稿微调。
+   - 这种"先实现后还原"的方式导致大量样式债务，返工成本远高于"先拉图层数据再实现"。
+
+3. **组件库默认样式的惯性依赖**
+   - 管理端使用 Element Plus，小程序端使用 NutUI-React-Taro，组件默认主题与 Calicat 设计系统存在差异。
+   - 开发时未先建立"Token 映射 + 组件覆盖"层，导致按钮、卡片、表格、表单项直接使用库默认样式。
+
+4. **缺少视觉还原检查点**
+   - 原流程只有代码审查（code-reviewer），没有视觉还原审查（visual-review）环节。
+   - 没有将"逐图层对比 Calicat"作为 PR 合并前的强制检查项。
+
+5. **设计资产导出流程缺失**
+   - Logo、图标、插画等视觉元素未按规则从 Calicat 导出为 PNG/SVG/WebP，而是临时用 CSS 绘制或占位符替代。
+
+### 6.3 预防措施
+
+| # | 措施 | 责任方 | 检查点 |
+|---|------|--------|--------|
+| 1 | 每个前端页面开发前，必须先用 Calicat MCP 拉取对应 Frame 的图层数据并输出 `design-tokens.json` | 前端 Sub-Agent | 开工前提交图层数据摘要 |
+| 2 | 建立 `web-admin/src/styles/calicat-overrides.scss` 与 `miniapp-user/src/styles/calicat-overrides.scss`，将颜色、字号、间距、圆角、阴影映射到全局 Token | 主 Agent / 前端 Lead | 代码审查时检查是否使用 Token |
+| 3 | 页面开发完成后，必须导出 Calicat 截图与本地实现截图并排对比，差异项登记为 issue | 前端 Sub-Agent | PR 描述必须包含对比图 |
+| 4 | 新增 `visual-review` Agent，专门检查 UI 还原度（颜色误差 ≤1%、间距误差 ≤2px、字体字号一致） | 主 Agent | 合并前必须通过 |
+| 5 | Logo、图标、插画必须从 Calicat 导出，禁止 CSS 重绘；导出文件统一放到 `src/assets/calicat/` | 前端 Sub-Agent | 审查时检查 asset 来源 |
+| 6 | page-spec 仅用于交互流程、业务规则、状态机；任何视觉尺寸以 Calicat 图层为准 | 全员 | 发现用 page-spec 当视觉来源时立即纠正 |
+
+### 6.4 本次已修复内容
+
+- 管理端 `ResignationApprovalQueueView.vue`：按 Calicat 调整摘要条、表格列、状态标签、进度条、分页布局。
+- 管理端 `ResignationTicketDetailView.vue`：按 Calicat 调整审批记录时间轴、检查清单、审批操作区，移除多余的「登记」按钮。
+- 用户端 `miniapp-user/src/pages/index/index.tsx` + `index.scss`：按 Calicat 实现全屏渐变、Logo、Slogan、加载指示器、错误态、自动跳转逻辑。
+- 新增 `miniapp-user/src/assets/logo-ribbon.svg`：从 Calicat 设计稿导出 Logo 图形。
+- 修复 `authStore` 最小化用户信息持久化，避免本地存储 PII，并补充测试覆盖。
+
+---
+
+## 7. 变更日志
 
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-08-06 | AI Agent | 初版：第一批次 19 个 US 开发规划、前置准备清单、执行顺序、关键决策点 |
+| v1.1 | 2026-08-11 | AI Agent | 新增 §6 Calicat 设计稿还原偏差根因分析，总结偏差表现、根因、预防措施与已修复内容 |
