@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   REFRESH_TOKEN: 'refresh_token',
   TOKEN_EXPIRES_AT: 'token_expires_at',
+  USER_INFO: 'user_info',
 } as const;
 
 export function getStorageItem<T>(key: string): T | null {

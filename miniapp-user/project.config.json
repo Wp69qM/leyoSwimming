@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "leyo-miniapp-user",
   "description": "leyoSwimming user miniapp",
-  "appid": "touristappid",
+  "appid": "wx3242f228ebef1582",
   "setting": {
     "urlCheck": true,
     "es6": true,

@@ -7,7 +7,11 @@ export const STORAGE_KEYS = {
   COACH_INFO: 'leyo_coach_info'
 } as const
 
-export const API_BASE_URL = process.env.TARO_APP_API_BASE_URL || '/api'
+export const API_BASE_URL =
+  (typeof process !== 'undefined' &&
+    process.env &&
+    process.env.TARO_APP_API_BASE_URL) ||
+  '/api'
 
 export const COACH_STATUS = {
   PENDING_ONBOARDING: -1,

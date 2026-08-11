@@ -1,0 +1,12 @@
+.login-protocol {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+
+  &__text {
+    font-size: 32rpx;
+    color: #666;
+  }
+}

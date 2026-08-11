@@ -1,10 +1,69 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useAdminAuthStore } from '@/stores/adminAuth';
 
+const route = useRoute();
 const router = useRouter();
 const authStore = useAdminAuthStore();
+
+interface MenuItem {
+  title: string;
+  path?: string;
+  disabled?: boolean;
+}
+
+interface MenuGroup {
+  title: string;
+  children: MenuItem[];
+}
+
+const menuGroups: MenuGroup[] = [
+  {
+    title: '用户管理',
+    children: [
+      { title: '用户列表', path: '/user-management', disabled: true },
+      { title: '教练入驻审核', path: '/coach-audit', disabled: true },
+      { title: '教练管理', path: '/coach-management', disabled: true },
+      { title: '教练离职审批', path: '/resignation/approval-queue' },
+    ],
+  },
+  {
+    title: '课程预约',
+    children: [
+      { title: '排班管理', path: '/schedule-management', disabled: true },
+      { title: '请假审批', path: '/leave-approval', disabled: true },
+      { title: '预约释放配置', path: '/release-config', disabled: true },
+    ],
+  },
+  {
+    title: '套餐订单',
+    children: [
+      { title: '套餐管理', path: '/package-management', disabled: true },
+      { title: '订单管理', path: '/order-management', disabled: true },
+      { title: '退款审批', path: '/refund-approval', disabled: true },
+    ],
+  },
+  {
+    title: '场馆运营',
+    children: [
+      { title: '场馆配置', path: '/venue-config', disabled: true },
+      { title: '公告/Banner/卡片', path: '/announcement-config', disabled: true },
+      { title: '用户须知', path: '/user-agreement-config', disabled: true },
+      { title: '闭馆/换水设置', path: '/closure-config', disabled: true },
+    ],
+  },
+  {
+    title: '客服工单',
+    children: [
+      { title: '工单列表', path: '/ticket-management', disabled: true },
+    ],
+  },
+];
+
+function isMenuActive(path: string): boolean {
+  return route.path === path || route.path.startsWith(`${path}/`);
+}
 
 async function handleLogout() {
   try {
@@ -25,37 +84,38 @@ async function handleLogout() {
 <template>
   <div class="admin-layout">
     <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <div class="brand-logo">
-            <svg
-              class="brand-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <span class="brand-name">leyoSwimming</span>
-        </div>
-      </div>
       <nav class="sidebar-nav">
-        <router-link to="/" class="nav-item" active-class="active">
+        <router-link
+          to="/"
+          class="nav-item nav-item--primary"
+          exact-active-class="active"
+        >
           首页
         </router-link>
-        <div class="nav-group">
-          <div class="nav-group-title">用户管理</div>
-          <router-link
-            to="/resignation/approval-queue"
-            class="nav-item"
-            active-class="active"
-          >
-            教练离职审批
-          </router-link>
+
+        <div
+          v-for="group in menuGroups"
+          :key="group.title"
+          class="nav-group"
+        >
+          <div class="nav-group-title">{{ group.title }}</div>
+          <template v-for="item in group.children" :key="item.title">
+            <router-link
+              v-if="!item.disabled && item.path"
+              :to="item.path"
+              class="nav-item nav-item--secondary"
+              :class="{ active: item.path && isMenuActive(item.path) }"
+            >
+              {{ item.title }}
+            </router-link>
+            <div
+              v-else
+              class="nav-item nav-item--secondary nav-item--disabled"
+              :title="`${item.title}（暂未开放）`"
+            >
+              {{ item.title }}
+            </div>
+          </template>
         </div>
       </nav>
     </aside>
@@ -63,11 +123,27 @@ async function handleLogout() {
     <main class="main">
       <header class="header">
         <div class="header-left">
-          <h2 class="page-title">管理后台</h2>
+          <div class="brand">
+            <div class="brand-logo">
+              <svg
+                class="brand-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <span class="brand-name">leyoSwimming 管理后台</span>
+          </div>
         </div>
         <div class="header-right">
           <el-dropdown v-if="authStore.admin" trigger="click">
             <span class="user-info">
+              <span class="user-avatar">{{ authStore.admin.name?.charAt(0) }}</span>
               <span class="user-name">{{ authStore.admin.name }}</span>
               <span class="dropdown-icon">▼</span>
             </span>
@@ -101,58 +177,21 @@ async function handleLogout() {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f5f7fa;
+  background: #f0f2f5;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  width: 200px;
+  width: 220px;
   height: 100%;
-  background: #ffffff;
-  border-right: 1px solid #e4e7ed;
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  height: 64px;
-  padding: 0 16px;
-  border-bottom: 1px solid #e4e7ed;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #1890ff 0%, #0050b3 100%);
-  border-radius: 8px;
-}
-
-.brand-icon {
-  width: 22px;
-  height: 22px;
-}
-
-.brand-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #262626;
+  background: #001529;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 12px 8px;
+  padding: 16px 0;
   overflow-y: auto;
 }
 
@@ -161,29 +200,51 @@ async function handleLogout() {
 }
 
 .nav-group-title {
-  padding: 8px 16px;
-  font-size: 12px;
-  color: #8c8c8c;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
 }
 
 .nav-item {
-  display: block;
-  padding: 12px 16px;
-  font-size: 14px;
-  line-height: 1.43;
-  color: #595959;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 24px;
   text-decoration: none;
-  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 
-  &:hover {
-    color: #1890ff;
-    background: #f0f7ff;
+  &--primary {
+    height: 48px;
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+  }
+
+  &--secondary {
+    padding-left: 56px;
+    font-size: 14px;
+    color: #bfbfbf;
+  }
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &:hover:not(.active):not(.nav-item--disabled) {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
   }
 
   &.active {
-    font-weight: 500;
-    color: #1890ff;
-    background: #e6f7ff;
+    color: #ffffff;
+    background: #1890ff;
   }
 }
 
@@ -207,9 +268,30 @@ async function handleLogout() {
   border-bottom: 1px solid #e4e7ed;
 }
 
-.page-title {
-  margin: 0;
-  font-size: 18px;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1890ff 0%, #0050b3 100%);
+  border-radius: 8px;
+}
+
+.brand-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.brand-name {
+  font-size: 16px;
   font-weight: 500;
   color: #262626;
 }
@@ -217,7 +299,7 @@ async function handleLogout() {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 6px 12px;
   cursor: pointer;
   border-radius: 8px;
@@ -228,9 +310,21 @@ async function handleLogout() {
   }
 }
 
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  color: #ffffff;
+  background: #1890ff;
+  border-radius: 50%;
+}
+
 .user-name {
   font-size: 14px;
-  color: #606266;
+  color: #262626;
 }
 
 .dropdown-icon {

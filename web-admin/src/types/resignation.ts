@@ -26,6 +26,7 @@ export interface ResignationTicketListData {
 
 export interface ResignationPackageItem {
   packageId: string;
+  packageNo?: string;
   userId: string;
   userName: string;
   totalHours: number;
@@ -35,9 +36,12 @@ export interface ResignationPackageItem {
   action: StudentHandleResult;
   targetCoachId: string | null;
   refundAmount: number | null;
+  handlerName?: string | null;
+  handledAt?: string | null;
 }
 
 export interface ResignationChecklist {
+  activeStudentsCleared: boolean;
   allActionsRegistered: boolean;
   scheduleCleared: boolean;
   settlementCompleted: boolean;
@@ -49,6 +53,7 @@ export interface ResignationCoachInfo {
   phone: string;
   status: number;
   submittedAt: string;
+  joinedAt?: string;
 }
 
 export interface ResignationTicketDetail {

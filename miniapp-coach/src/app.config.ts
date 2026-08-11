@@ -3,6 +3,7 @@ export default defineAppConfig({
     'pages/index/index',
     'pages/login/wechat/index',
     'pages/login/phone/index',
+    'pages/login/protocol/index',
     'pages/resignation/apply/index',
     'pages/resignation/ticket/index',
     'pages/resignation/processing/index'

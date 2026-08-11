@@ -14,7 +14,6 @@ const router = useRouter();
 
 const statusOptions = [
   { label: '全部', value: '' },
-  { label: '处理中', value: 'processing' },
   { label: '待审批', value: 'pending_audit' },
   { label: '已通过', value: 'approved' },
   { label: '已驳回', value: 'rejected' },
@@ -37,18 +36,25 @@ const total = ref(0);
 const pendingCount = computed(
   () => tableData.value.filter((item) => item.status === 'pending_audit').length
 );
-const overdueCount = computed(
+const approvedTodayCount = computed(
   () =>
-    tableData.value.filter(
-      (item) => item.status === 'pending_audit' && isOverdue(item.submittedAt)
-    ).length
+    tableData.value.filter((item) => {
+      if (item.status !== 'approved' || !item.submittedAt) return false;
+      const submitDate = new Date(item.submittedAt).toDateString();
+      return submitDate === new Date().toDateString();
+    }).length
 );
-
-function isOverdue(submittedAt: string): boolean {
-  if (!submittedAt) return false;
-  const submitTime = new Date(submittedAt).getTime();
-  return Date.now() - submitTime > 3 * 24 * 60 * 60 * 1000;
-}
+const rejectedTodayCount = computed(
+  () =>
+    tableData.value.filter((item) => {
+      if (item.status !== 'rejected' || !item.submittedAt) return false;
+      const submitDate = new Date(item.submittedAt).toDateString();
+      return submitDate === new Date().toDateString();
+    }).length
+);
+const totalResignedCount = computed(
+  () => tableData.value.filter((item) => item.status === 'approved').length
+);
 
 function calculateProgress(total: number, handled: number): number {
   if (total <= 0) return 100;
@@ -57,12 +63,12 @@ function calculateProgress(total: number, handled: number): number {
 
 const statusMap: Record<
   ResignationStatus,
-  { label: string; type: 'primary' | 'success' | 'danger' | 'warning' }
+  { label: string; color: string; bgColor: string }
 > = {
-  processing: { label: '处理中', type: 'warning' },
-  pending_audit: { label: '待审批', type: 'primary' },
-  approved: { label: '已通过', type: 'success' },
-  rejected: { label: '已驳回', type: 'danger' },
+  pending_audit: { label: '待审批', color: '#1890FF', bgColor: '#E6F7FF' },
+  approved: { label: '已通过', color: '#52C41A', bgColor: '#F6FFED' },
+  rejected: { label: '已驳回', color: '#FF4D4F', bgColor: '#FFF1F0' },
+  processing: { label: '处理中', color: '#FAAD14', bgColor: '#FFFBE6' },
 };
 
 async function fetchList() {
@@ -109,12 +115,6 @@ function handleReset() {
 
 function handlePageChange(current: number) {
   page.value = current;
-  fetchList();
-}
-
-function handleSizeChange(size: number) {
-  pageSize.value = size;
-  page.value = 1;
   fetchList();
 }
 
@@ -166,12 +166,6 @@ async function handleReject(row: ResignationTicket) {
   }
 }
 
-function getRowClass({ row }: { row: ResignationTicket }) {
-  return row.status === 'pending_audit' && isOverdue(row.submittedAt)
-    ? 'overdue-row'
-    : '';
-}
-
 onMounted(() => {
   fetchList();
 });
@@ -187,8 +181,45 @@ onMounted(() => {
       </el-breadcrumb>
     </div>
 
+    <div class="page-title">教练离职审批</div>
+
     <div class="summary-bar">
-      待审批：{{ pendingCount }} 条 · 超 3 工作日未处理：{{ overdueCount }} 条
+      <div class="summary-card summary-card--pending">
+        <div class="summary-icon">
+          <i class="ri-time-line" />
+        </div>
+        <div class="summary-info">
+          <div class="summary-value">{{ pendingCount }}</div>
+          <div class="summary-label">待审批</div>
+        </div>
+      </div>
+      <div class="summary-card summary-card--approved">
+        <div class="summary-icon">
+          <i class="ri-check-double-line" />
+        </div>
+        <div class="summary-info">
+          <div class="summary-value">{{ approvedTodayCount }}</div>
+          <div class="summary-label">今日通过</div>
+        </div>
+      </div>
+      <div class="summary-card summary-card--rejected">
+        <div class="summary-icon">
+          <i class="ri-close-circle-line" />
+        </div>
+        <div class="summary-info">
+          <div class="summary-value">{{ rejectedTodayCount }}</div>
+          <div class="summary-label">今日拒绝</div>
+        </div>
+      </div>
+      <div class="summary-card summary-card--total">
+        <div class="summary-icon">
+          <i class="ri-user-unfollow-line" />
+        </div>
+        <div class="summary-info">
+          <div class="summary-value">{{ totalResignedCount }}</div>
+          <div class="summary-label">累计离职</div>
+        </div>
+      </div>
     </div>
 
     <div class="filter-card">
@@ -196,8 +227,9 @@ onMounted(() => {
         <el-form-item label="审批状态">
           <el-select
             v-model="queryForm.status"
-            placeholder="请选择"
+            placeholder="全部状态"
             style="width: 160px"
+            clearable
           >
             <el-option
               v-for="option in statusOptions"
@@ -251,91 +283,102 @@ onMounted(() => {
           <el-button type="primary" @click="fetchList">刷新</el-button>
         </el-empty>
       </template>
-      <el-table
-        v-else
-        :data="tableData"
-        :row-class-name="getRowClass"
-        stripe
-        style="width: 100%"
-      >
-        <el-table-column prop="ticketNo" label="工单号" min-width="100" />
-        <el-table-column label="教练姓名" min-width="100">
+      <el-table v-else :data="tableData" stripe header-row-class-name="table-header" style="width: 100%">
+        <el-table-column label="工单号" width="100">
           <template #default="{ row }">
-            <el-button link type="primary" @click="goDetail(row.ticketId)">
-              {{ row.coachName }}
-            </el-button>
+            <span class="ticket-no">{{ row.ticketNo }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="手机号" min-width="120">
+        <el-table-column label="教练姓名" width="100">
+          <template #default="{ row }">
+            <span class="coach-name">{{ row.coachName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="手机号" width="120">
           <template #default="{ row }">
             {{ maskPhone(row.coachPhone) }}
           </template>
         </el-table-column>
-        <el-table-column label="当前学员数" align="center" min-width="100">
-          <template #default="{ row }">
-            {{ row.totalPackages }}
+        <el-table-column label="在职时长" align="center" width="100">
+          <template #default>
+            <span class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column label="离职原因" min-width="140" show-overflow-tooltip>
+        <el-table-column label="当前学员数" align="center" width="100">
           <template #default="{ row }">
-            <el-tooltip :content="row.reason" placement="top" :show-after="300">
-              <span class="reason-text">{{ row.reason }}</span>
-            </el-tooltip>
+            <span :class="row.totalPackages > 0 ? 'text-danger' : ''">
+              {{ row.totalPackages }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="申请时间" min-width="160">
+        <el-table-column label="离职原因" width="140" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="reason-text">{{ row.reason || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="申请时间" width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.submittedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="处理进度" align="center" min-width="180">
+        <el-table-column label="处理进度" align="center" width="180">
           <template #default="{ row }">
-            <el-progress
-              :percentage="
-                calculateProgress(row.totalPackages, row.handledPackages)
-              "
-              :stroke-width="8"
-              style="width: 120px"
-            />
+            <div class="progress-cell">
+              <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  :style="{
+                    width: `${calculateProgress(row.totalPackages, row.handledPackages)}%`,
+                  }"
+                />
+              </div>
+              <span class="progress-text">
+                {{ calculateProgress(row.totalPackages, row.handledPackages) }}%
+              </span>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" align="center" min-width="100">
+        <el-table-column label="状态" align="center" width="100">
           <template #default="{ row }">
-            <el-tag :type="statusMap[row.status].type" effect="light" round>
-              {{ statusMap[row.status].label }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column
-          label="操作"
-          align="center"
-          min-width="160"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <el-button link type="primary" @click="goDetail(row.ticketId)"
-              >查看</el-button
+            <span
+              class="status-tag"
+              :style="{
+                color: statusMap[row.status].color,
+                backgroundColor: statusMap[row.status].bgColor,
+              }"
             >
+              {{ statusMap[row.status].label }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="160" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="goDetail(row.ticketId)">
+              查看
+            </el-button>
             <template v-if="row.status === 'pending_audit'">
-              <el-button link type="primary" @click="handleApprove(row)"
-                >通过</el-button
-              >
-              <el-button link type="danger" @click="handleReject(row)"
-                >驳回</el-button
-              >
+              <el-button link type="primary" @click="handleApprove(row)">
+                通过
+              </el-button>
+              <el-button link type="danger" @click="handleReject(row)">
+                驳回
+              </el-button>
             </template>
           </template>
         </el-table-column>
       </el-table>
 
       <div v-if="tableData.length > 0" class="pagination-wrap">
+        <div class="pagination-info">
+          共 <strong>{{ total }}</strong> 条待审批
+        </div>
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
+          layout="sizes, prev, pager, next"
+          @size-change="fetchList"
           @current-change="handlePageChange"
         />
       </div>
@@ -355,13 +398,93 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.summary-bar {
-  padding: 16px;
+.page-title {
   margin-bottom: 16px;
-  font-size: 14px;
-  color: #262626;
-  background: #e6f7ff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  color: #1d2129;
+}
+
+.summary-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #ffffff;
   border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 22px;
+}
+
+.summary-card--pending .summary-icon {
+  color: #faad14;
+  background: rgba(250, 173, 20, 0.1);
+}
+
+.summary-card--approved .summary-icon {
+  color: #52c41a;
+  background: rgba(82, 196, 26, 0.1);
+}
+
+.summary-card--rejected .summary-icon {
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.1);
+}
+
+.summary-card--total .summary-icon {
+  color: #8c8c8c;
+  background: rgba(140, 140, 140, 0.1);
+}
+
+.summary-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 29px;
+}
+
+.summary-card--pending .summary-value {
+  color: #faad14;
+}
+
+.summary-card--approved .summary-value {
+  color: #52c41a;
+}
+
+.summary-card--rejected .summary-value {
+  color: #ff4d4f;
+}
+
+.summary-card--total .summary-value {
+  color: #8c8c8c;
+}
+
+.summary-label {
+  font-size: 13px;
+  line-height: 16px;
+  color: #86909c;
 }
 
 .filter-card {
@@ -369,6 +492,7 @@ onMounted(() => {
   margin-bottom: 16px;
   background: #ffffff;
   border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .date-separator {
@@ -382,6 +506,17 @@ onMounted(() => {
   padding: 16px;
   background: #ffffff;
   border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ticket-no {
+  font-size: 13px;
+  color: #1890ff;
+}
+
+.coach-name {
+  font-weight: 500;
+  color: #1d2129;
 }
 
 .reason-text {
@@ -392,13 +527,71 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.pagination-wrap {
+.progress-cell {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding-top: 16px;
+  gap: 8px;
 }
 
-:deep(.overdue-row) {
-  background-color: #fffbe6;
+.progress-track {
+  width: 100px;
+  height: 6px;
+  background: #f0f2f5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #1890ff;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #86909c;
+  white-space: nowrap;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 12px;
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+.text-muted {
+  color: #86909c;
+}
+
+.pagination-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 8px 0;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #86909c;
+
+  strong {
+    color: #1d2129;
+  }
+}
+
+:deep(.table-header) {
+  th {
+    background: #f5f7fa;
+  }
 }
 </style>

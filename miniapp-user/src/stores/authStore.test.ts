@@ -32,8 +32,12 @@ describe('authStore', () => {
   });
 
   describe('login', () => {
-    test('updates state and persists tokens to storage', () => {
-      const userInfo = { userId: 'u1', profileCompleted: false };
+    test('updates state and persists tokens and minimal userInfo to storage', () => {
+      const userInfo = {
+        userId: 'u1',
+        phone: '13800138000',
+        profileCompleted: false,
+      };
       useAuthStore.getState().login('access', 'refresh', 7200, userInfo);
 
       const state = useAuthStore.getState();
@@ -55,6 +59,10 @@ describe('authStore', () => {
         'token_expires_at',
         expect.any(Number)
       );
+      expect(Taro.setStorageSync).toHaveBeenCalledWith('user_info', {
+        userId: 'u1',
+        profileCompleted: false,
+      });
     });
   });
 
@@ -70,10 +78,24 @@ describe('authStore', () => {
   });
 
   describe('setUserInfo', () => {
-    test('updates userInfo field', () => {
-      const userInfo = { userId: 'u2', profileCompleted: true };
+    test('updates userInfo field and persists minimal fields', () => {
+      const userInfo = {
+        userId: 'u2',
+        phone: '13900139000',
+        profileCompleted: true,
+      };
       useAuthStore.getState().setUserInfo(userInfo);
       expect(useAuthStore.getState().userInfo).toEqual(userInfo);
+      expect(Taro.setStorageSync).toHaveBeenCalledWith('user_info', {
+        userId: 'u2',
+        profileCompleted: true,
+      });
+    });
+
+    test('removes persisted userInfo when set to null', () => {
+      useAuthStore.getState().setUserInfo(null);
+      expect(useAuthStore.getState().userInfo).toBeNull();
+      expect(Taro.removeStorageSync).toHaveBeenCalledWith('user_info');
     });
   });
 
@@ -94,6 +116,7 @@ describe('authStore', () => {
       expect(Taro.removeStorageSync).toHaveBeenCalledWith('access_token');
       expect(Taro.removeStorageSync).toHaveBeenCalledWith('refresh_token');
       expect(Taro.removeStorageSync).toHaveBeenCalledWith('token_expires_at');
+      expect(Taro.removeStorageSync).toHaveBeenCalledWith('user_info');
     });
   });
 
@@ -107,6 +130,8 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.isLoggedIn).toBe(false);
       expect(state.accessToken).toBeNull();
+      expect(state.userInfo).toBeNull();
+      expect(Taro.removeStorageSync).toHaveBeenCalledWith('user_info');
     });
   });
 
@@ -116,6 +141,7 @@ describe('authStore', () => {
         if (key === 'access_token') return 'stored_access';
         if (key === 'refresh_token') return 'stored_refresh';
         if (key === 'token_expires_at') return Date.now() + 100000;
+        if (key === 'user_info') return { userId: 'u1', profileCompleted: true };
         return null;
       });
 
@@ -124,6 +150,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.accessToken).toBe('stored_access');
       expect(state.refreshToken).toBe('stored_refresh');
+      expect(state.userInfo).toEqual({ userId: 'u1', profileCompleted: true });
       expect(state.isLoggedIn).toBe(true);
     });
 

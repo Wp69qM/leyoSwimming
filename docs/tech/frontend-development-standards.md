@@ -267,6 +267,68 @@ layouts/
 - 每个页面只负责 `MainContainer` 内部的内容组件。
 - 菜单、用户信息、面包屑由布局组件统一提供。
 
+### 9.1 页面内容区间距规范
+
+为兼顾 1280px ~ 1920px 屏幕的显示效率，内容区采用紧凑但不拥挤的间距体系：
+
+| 元素 | 规范 | 说明 |
+|------|------|------|
+| 内容区内边距 | `padding: 16px 20px` | 四边统一，避免左右留白过大 |
+| 面包屑高度 | `height: 32px` | 仅容纳一行文字，不再额外加 padding |
+| 面包屑下边距 | `margin-bottom: 12px` | 与下方标题保持紧凑 |
+| 页面标题字号 | `font-size: 18px` | 页面级标题统一 18px，加粗 |
+| 页面标题下边距 | `margin-bottom: 16px` | 标题与搜索区/卡片间距 |
+| 搜索表单下边距 | `margin-bottom: 12px` | 一行或两行表单均统一 |
+| 卡片内边距 | `padding: 16px` | 列表、表单卡片统一 |
+| 卡片间距 | `gap: 12px` | 多个卡片/模块之间间距 |
+| 表格行高 | `height: 44px` | 保证操作按钮区域可用性 |
+
+### 9.2 页面内容区标准结构
+
+每个后台页面按以下顺序组装：
+
+```vue
+<template>
+  <div class="page-wrapper">
+    <!-- 面包屑 -->
+    <Breadcrumb />
+
+    <!-- 页面标题 -->
+    <h1 class="page-title">页面标题</h1>
+
+    <!-- 搜索/筛选区 -->
+    <SearchCard>
+      <SearchForm />
+    </SearchCard>
+
+    <!-- 数据/操作区 -->
+    <DataCard>
+      <Toolbar />
+      <DataTable />
+    </DataCard>
+  </div>
+</template>
+```
+
+### 9.3 间距实现方式
+
+- 所有间距必须引用 `styles/variables.scss` 中的设计 token，禁止在组件里写死。
+- 推荐 token 命名：
+  ```scss
+  $space-xs: 4px;
+  $space-sm: 8px;
+  $space-md: 12px;
+  $space-lg: 16px;
+  $space-xl: 20px;
+  $space-xxl: 24px;
+
+  $breadcrumb-height: 32px;
+  $page-title-size: 18px;
+  $card-padding: 16px;
+  $table-row-height: 44px;
+  ```
+- 搜索表单一行时，不需要为了「撑满」而额外增加下边距，统一使用 `$space-md`（12px）。
+
 ---
 
 ## 10. 小程序开发专项规范

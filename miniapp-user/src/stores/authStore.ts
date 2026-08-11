@@ -14,6 +14,9 @@ export interface UserInfo {
   profileCompleted: boolean;
 }
 
+/** 仅持久化启动/路由判定所需的最小字段，避免在本地存放 PII。 */
+type PersistedUserInfo = Pick<UserInfo, 'userId' | 'profileCompleted'>;
+
 export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
@@ -57,14 +60,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setUserInfo: (userInfo) => {
+    if (userInfo) {
+      const persisted: PersistedUserInfo = {
+        userId: userInfo.userId,
+        profileCompleted: userInfo.profileCompleted,
+      };
+      setStorageItem(STORAGE_KEYS.USER_INFO, persisted);
+    } else {
+      removeStorageItem(STORAGE_KEYS.USER_INFO);
+    }
     set({ userInfo });
   },
 
   login: (accessToken, refreshToken, expiresIn, userInfo) => {
     const tokenExpiresAt = calculateExpiresAt(expiresIn);
+    const persisted: PersistedUserInfo = {
+      userId: userInfo.userId,
+      profileCompleted: userInfo.profileCompleted,
+    };
     setStorageItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
     setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
     setStorageItem(STORAGE_KEYS.TOKEN_EXPIRES_AT, tokenExpiresAt);
+    setStorageItem(STORAGE_KEYS.USER_INFO, persisted);
     set({
       accessToken,
       refreshToken,
@@ -78,6 +95,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     removeStorageItem(STORAGE_KEYS.ACCESS_TOKEN);
     removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
     removeStorageItem(STORAGE_KEYS.TOKEN_EXPIRES_AT);
+    removeStorageItem(STORAGE_KEYS.USER_INFO);
     set({
       accessToken: null,
       refreshToken: null,
@@ -91,6 +109,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     removeStorageItem(STORAGE_KEYS.ACCESS_TOKEN);
     removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
     removeStorageItem(STORAGE_KEYS.TOKEN_EXPIRES_AT);
+    removeStorageItem(STORAGE_KEYS.USER_INFO);
     set({
       accessToken: null,
       refreshToken: null,
@@ -106,9 +125,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     const tokenExpiresAt = getStorageItem<number>(
       STORAGE_KEYS.TOKEN_EXPIRES_AT
     );
+    const userInfo = getStorageItem<PersistedUserInfo>(STORAGE_KEYS.USER_INFO);
     const isLoggedIn = Boolean(
       accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt
     );
-    set({ accessToken, refreshToken, tokenExpiresAt, isLoggedIn });
+    set({ accessToken, refreshToken, tokenExpiresAt, userInfo, isLoggedIn });
   },
 }));

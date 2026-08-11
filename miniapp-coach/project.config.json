@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "leyo-miniapp-coach",
   "description": "leyoSwimming 教练端小程序",
-  "appid": "touristappid",
+  "appid": "wxf816ed66bcb1b52f",
   "setting": {
     "urlCheck": false,
     "es6": true,
@@ -39,10 +39,22 @@
     "disableUseStrict": false,
     "minifyWXML": true,
     "showES6CompileOption": false,
-    "useCompilerPlugins": ["sass"]
+    "useCompilerPlugins": [
+      "sass"
+    ],
+    "compileWorklet": false,
+    "localPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
-  "condition": {}
+  "condition": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
 }
