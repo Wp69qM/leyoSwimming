@@ -7,6 +7,7 @@ import com.leyoswimming.dto.response.UserLoginResponse;
 import com.leyoswimming.entity.User;
 import com.leyoswimming.entity.UserLoginLog;
 import com.leyoswimming.entity.UserSession;
+import com.leyoswimming.enums.ActorType;
 import com.leyoswimming.enums.AppType;
 import com.leyoswimming.enums.UserStatus;
 import com.leyoswimming.exception.BusinessException;
@@ -17,11 +18,7 @@ import com.leyoswimming.security.JwtTokenProvider;
 import com.leyoswimming.service.wechat.WechatClient;
 import com.leyoswimming.service.wechat.WechatSession;
 import com.leyoswimming.util.PhoneEncryptor;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +40,7 @@ public class UserAuthService {
   private final SmsCodeService smsCodeService;
   private final JwtTokenProvider jwtTokenProvider;
   private final PhoneEncryptor phoneEncryptor;
+  private final PolicyService policyService;
 
   @Transactional
   public UserLoginResponse wechatLogin(
@@ -53,6 +51,7 @@ public class UserAuthService {
         wechatClient.decryptPhone(
             session.sessionKey(), request.phoneEncryptedData(), request.phoneIv());
     String encryptedPhone = encryptPhone(phone);
+    String phoneHash = hashPhone(phone);
     User user = userMapper.findActiveByUnionId(session.unionId());
     boolean isNewUser = false;
     if (user == null) {
@@ -61,10 +60,12 @@ public class UserAuthService {
               session.openid(),
               session.unionId(),
               encryptedPhone,
+              phoneHash,
               request.avatarUrl(),
               request.nickName());
       isNewUser = true;
     }
+    recordLoginConsent(user.getId(), request.termsVersion(), request.privacyVersion());
     return buildLoginResponse(user, isNewUser, session.sessionKey(), ip, userAgent);
   }
 
@@ -74,21 +75,24 @@ public class UserAuthService {
     validateTerms(request.termsAccepted(), request.privacyAccepted());
     smsCodeService.verify(request.phone(), request.code(), "login", AppType.user);
     String encryptedPhone = encryptPhone(request.phone());
-    User user = userMapper.findActiveByPhone(encryptedPhone);
+    String phoneHash = hashPhone(request.phone());
+    User user = userMapper.findActiveByPhone(phoneHash);
     boolean isNewUser = false;
     if (user == null) {
-      user = createUserFromPhone(request.phone(), encryptedPhone);
+      user = createUserFromPhone(request.phone(), encryptedPhone, phoneHash);
       isNewUser = true;
     }
+    recordLoginConsent(user.getId(), request.termsVersion(), request.privacyVersion());
     return buildLoginResponse(user, isNewUser, "phone_session_" + request.phone(), ip, userAgent);
   }
 
   private User createUser(
-      String openid, String unionId, String encryptedPhone, String avatarUrl, String nickName) {
+      String openid, String unionId, String encryptedPhone, String phoneHash, String avatarUrl, String nickName) {
     User user = new User();
     user.setOpenid(openid);
     user.setUnionId(unionId);
     user.setPhone(encryptedPhone);
+    user.setPhoneHash(phoneHash);
     user.setAvatarUrl(avatarUrl);
     user.setName(nickName);
     user.setIdentityStatus("注册用户");
@@ -98,10 +102,11 @@ public class UserAuthService {
     return user;
   }
 
-  private User createUserFromPhone(String phone, String encryptedPhone) {
+  private User createUserFromPhone(String phone, String encryptedPhone, String phoneHash) {
     User user = new User();
     user.setOpenid("phone_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
     user.setPhone(encryptedPhone);
+    user.setPhoneHash(phoneHash);
     user.setIdentityStatus("注册用户");
     user.setProfileCompleted(false);
     user.setStatus(UserStatus.ACTIVE.getValue());
@@ -161,12 +166,14 @@ public class UserAuthService {
 
   private String hashPhone(String phone) {
     try {
-      return Base64.getEncoder()
-          .encodeToString(
-              MessageDigest.getInstance("SHA-256").digest(phone.getBytes(StandardCharsets.UTF_8)));
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 algorithm not available", e);
+      return phoneEncryptor.hash(phone);
+    } catch (Exception e) {
+      throw new BusinessException(ErrorCode.INTERNAL_ERROR, "手机号哈希失败", e);
     }
+  }
+
+  private void recordLoginConsent(Long userId, String termsVersion, String privacyVersion) {
+    policyService.recordConsent(ActorType.user, userId, termsVersion, privacyVersion);
   }
 
   private void validateTerms(boolean termsAccepted, boolean privacyAccepted) {

@@ -12,6 +12,6 @@ public interface UserMapper extends BaseMapper<User> {
   @Select("SELECT * FROM `user` WHERE union_id = #{unionId} AND status = 0 LIMIT 1")
   User findActiveByUnionId(@Param("unionId") String unionId);
 
-  @Select("SELECT * FROM `user` WHERE phone = #{phone} AND status = 0 LIMIT 1")
-  User findActiveByPhone(@Param("phone") String phone);
+  @Select("SELECT * FROM `user` WHERE phone_hash = #{phoneHash} AND status = 0 LIMIT 1")
+  User findActiveByPhone(@Param("phoneHash") String phoneHash);
 }

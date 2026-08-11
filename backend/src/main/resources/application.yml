@@ -26,6 +26,11 @@ management:
     health:
       show-details: when-authorized
 
+app:
+  file:
+    upload-dir: uploads
+    base-url: /uploads/
+
 logging:
   level:
     root: INFO

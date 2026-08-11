@@ -7,6 +7,7 @@ import com.leyoswimming.dto.response.CoachLoginResponse;
 import com.leyoswimming.entity.Coach;
 import com.leyoswimming.entity.CoachLoginLog;
 import com.leyoswimming.entity.CoachSession;
+import com.leyoswimming.enums.ActorType;
 import com.leyoswimming.enums.AppType;
 import com.leyoswimming.enums.CoachStatus;
 import com.leyoswimming.exception.BusinessException;
@@ -38,6 +39,7 @@ public class CoachAuthService {
   private final SmsCodeService smsCodeService;
   private final JwtTokenProvider jwtTokenProvider;
   private final PhoneEncryptor phoneEncryptor;
+  private final PolicyService policyService;
 
   @Transactional
   public CoachLoginResponse wechatLogin(
@@ -48,6 +50,7 @@ public class CoachAuthService {
         wechatClient.decryptPhone(
             session.sessionKey(), request.phoneEncryptedData(), request.phoneIv());
     String encryptedPhone = encryptPhone(phone);
+    String phoneHash = hashPhone(phone);
     Coach coach = coachMapper.findActiveByUnionId(session.unionId());
     boolean isNewCoach = false;
     if (coach == null) {
@@ -56,10 +59,12 @@ public class CoachAuthService {
               session.openid(),
               session.unionId(),
               encryptedPhone,
+              phoneHash,
               request.avatarUrl(),
               request.nickName());
       isNewCoach = true;
     }
+    recordLoginConsent(coach.getId(), request.termsVersion(), request.privacyVersion());
     return buildLoginResponse(coach, isNewCoach, session.sessionKey(), ip, userAgent);
   }
 
@@ -69,22 +74,25 @@ public class CoachAuthService {
     validateTerms(request.termsAccepted(), request.privacyAccepted());
     smsCodeService.verify(request.phone(), request.code(), "login", AppType.coach);
     String encryptedPhone = encryptPhone(request.phone());
-    Coach coach = coachMapper.findActiveByPhone(encryptedPhone);
+    String phoneHash = hashPhone(request.phone());
+    Coach coach = coachMapper.findActiveByPhone(phoneHash);
     boolean isNewCoach = false;
     if (coach == null) {
-      coach = createCoachFromPhone(request.phone(), encryptedPhone);
+      coach = createCoachFromPhone(request.phone(), encryptedPhone, phoneHash);
       isNewCoach = true;
     }
+    recordLoginConsent(coach.getId(), request.termsVersion(), request.privacyVersion());
     return buildLoginResponse(
         coach, isNewCoach, "phone_session_" + request.phone(), ip, userAgent);
   }
 
   private Coach createCoach(
-      String openid, String unionId, String encryptedPhone, String avatarUrl, String nickName) {
+      String openid, String unionId, String encryptedPhone, String phoneHash, String avatarUrl, String nickName) {
     Coach coach = new Coach();
     coach.setOpenid(openid);
     coach.setUnionId(unionId);
     coach.setPhone(encryptedPhone);
+    coach.setPhoneHash(phoneHash);
     coach.setAvatarUrl(avatarUrl);
     coach.setName(nickName);
     coach.setStatus(CoachStatus.NOT_SUBMITTED.getValue());
@@ -92,10 +100,11 @@ public class CoachAuthService {
     return coach;
   }
 
-  private Coach createCoachFromPhone(String phone, String encryptedPhone) {
+  private Coach createCoachFromPhone(String phone, String encryptedPhone, String phoneHash) {
     Coach coach = new Coach();
     coach.setOpenid("phone_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
     coach.setPhone(encryptedPhone);
+    coach.setPhoneHash(phoneHash);
     coach.setStatus(CoachStatus.NOT_SUBMITTED.getValue());
     coachMapper.insert(coach);
     return coach;
@@ -128,7 +137,8 @@ public class CoachAuthService {
         jwtTokenProvider.getExpirationSeconds(),
         isNewCoach,
         coach.getStatus(),
-        coach.getId());
+        coach.getId(),
+        Boolean.TRUE.equals(coach.getProfileCompleted()));
   }
 
   private CoachLoginLog buildLog(
@@ -148,6 +158,18 @@ public class CoachAuthService {
     } catch (Exception e) {
       throw new BusinessException(ErrorCode.INTERNAL_ERROR, "手机号加密失败");
     }
+  }
+
+  private String hashPhone(String phone) {
+    try {
+      return phoneEncryptor.hash(phone);
+    } catch (Exception e) {
+      throw new BusinessException(ErrorCode.INTERNAL_ERROR, "手机号哈希失败", e);
+    }
+  }
+
+  private void recordLoginConsent(Long coachId, String termsVersion, String privacyVersion) {
+    policyService.recordConsent(ActorType.coach, coachId, termsVersion, privacyVersion);
   }
 
   private void validateTerms(boolean termsAccepted, boolean privacyAccepted) {

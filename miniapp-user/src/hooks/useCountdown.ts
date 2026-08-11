@@ -7,6 +7,7 @@ export interface UseCountdownOptions {
 export interface UseCountdownReturn {
   seconds: number;
   isRunning: boolean;
+  canSend: boolean;
   start: () => void;
   reset: () => void;
 }
@@ -55,5 +56,5 @@ export function useCountdown(
     };
   }, [clearTimer]);
 
-  return { seconds, isRunning, start, reset };
+  return { seconds, isRunning, canSend: !isRunning, start, reset };
 }

@@ -9,4 +9,6 @@ public record CoachPhoneLoginRequest(
     @NotBlank @Pattern(regexp = "^1[3-9]\\d{9}$") String phone,
     @NotBlank @Size(min = 6, max = 6) String code,
     @NotNull Boolean termsAccepted,
-    @NotNull Boolean privacyAccepted) {}
+    @NotNull Boolean privacyAccepted,
+    @NotBlank String termsVersion,
+    @NotBlank String privacyVersion) {}

@@ -12,6 +12,6 @@ public interface CoachMapper extends BaseMapper<Coach> {
   @Select("SELECT * FROM coach WHERE union_id = #{unionId} AND status != 3 LIMIT 1")
   Coach findActiveByUnionId(@Param("unionId") String unionId);
 
-  @Select("SELECT * FROM coach WHERE phone = #{phone} AND status != 3 LIMIT 1")
-  Coach findActiveByPhone(@Param("phone") String phone);
+  @Select("SELECT * FROM coach WHERE phone_hash = #{phoneHash} AND status != 3 LIMIT 1")
+  Coach findActiveByPhone(@Param("phoneHash") String phoneHash);
 }

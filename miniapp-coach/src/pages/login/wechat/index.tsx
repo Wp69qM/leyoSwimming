@@ -5,6 +5,7 @@ import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox'
 import { wechatLogin } from '@/api/auth'
 import { handleBusinessError, getErrorCode, ApiError } from '@/api/request'
 import { useAuthStore, getRedirectPageByStatus } from '@/stores/authStore'
+import { usePolicyVersions } from '@/hooks/usePolicy'
 import { APP_NAME } from '@/constants'
 import './index.scss'
 
@@ -21,6 +22,8 @@ export default function WechatLoginPage() {
   const [errorTip, setErrorTip] = useState('')
   const [showReauth, setShowReauth] = useState(false)
   const login = useAuthStore((state) => state.login)
+  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
+    usePolicyVersions()
 
   function validateProtocol(): boolean {
     if (!protocolChecked) {
@@ -41,6 +44,16 @@ export default function WechatLoginPage() {
   async function handleLogin(phoneEncryptedData?: string, phoneIv?: string) {
     if (!validateProtocol()) return
 
+    if (policyLoading || !termsVersion || !privacyVersion) {
+      Taro.showToast({ title: '协议加载中，请稍候', icon: 'none' })
+      return
+    }
+
+    if (policyError) {
+      Taro.showToast({ title: policyError, icon: 'none' })
+      return
+    }
+
     setLoading(true)
     setErrorTip('')
     setShowReauth(false)
@@ -53,6 +66,8 @@ export default function WechatLoginPage() {
         phoneIv: phoneIv || '',
         termsAccepted: true,
         privacyAccepted: true,
+        termsVersion,
+        privacyVersion,
         appType: 'coach'
       })
 
@@ -62,6 +77,11 @@ export default function WechatLoginPage() {
         result.expiresInSeconds,
         { id: result.coachId, status: result.coachStatus }
       )
+
+      if (!result.profileCompleted) {
+        Taro.redirectTo({ url: '/pages/profile/complete/index' })
+        return
+      }
 
       const redirectUrl = getRedirectPageByStatus(result.coachStatus)
       if (result.coachStatus === 1 || result.coachStatus === 4) {

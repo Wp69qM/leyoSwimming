@@ -39,6 +39,7 @@ class UserAuthServiceTest {
   @Mock private UserLoginLogMapper userLoginLogMapper;
   @Mock private WechatClient wechatClient;
   @Mock private SmsCodeService smsCodeService;
+  @Mock private PolicyService policyService;
   private JwtTokenProvider jwtTokenProvider;
   private PhoneEncryptor phoneEncryptor;
   private UserAuthService userAuthService;
@@ -58,7 +59,8 @@ class UserAuthServiceTest {
             wechatClient,
             smsCodeService,
             jwtTokenProvider,
-            phoneEncryptor);
+            phoneEncryptor,
+            policyService);
   }
 
   @Test
@@ -74,7 +76,7 @@ class UserAuthServiceTest {
     UserLoginResponse response =
         userAuthService.wechatLogin(
             new UserWechatLoginRequest(
-                "wx_code", "encrypted_data", "iv", true, true, "avatar.jpg", "Nick"),
+                "wx_code", "encrypted_data", "iv", true, true, "v1.0", "v1.0", "avatar.jpg", "Nick"),
             "127.0.0.1",
             "JUnit");
 
@@ -104,7 +106,7 @@ class UserAuthServiceTest {
     UserLoginResponse response =
         userAuthService.wechatLogin(
             new UserWechatLoginRequest(
-                "wx_code_new", "encrypted_data", "iv", true, true, "avatar.jpg", "Nick"),
+                "wx_code_new", "encrypted_data", "iv", true, true, "v1.0", "v1.0", "avatar.jpg", "Nick"),
             "127.0.0.1",
             "JUnit");
 
@@ -122,7 +124,7 @@ class UserAuthServiceTest {
             () ->
                 userAuthService.wechatLogin(
                     new UserWechatLoginRequest(
-                        "wx_code", "encrypted_data", "iv", false, true, null, null),
+                        "wx_code", "encrypted_data", "iv", false, true, "v1.0", "v1.0", null, null),
                     "127.0.0.1",
                     "JUnit"))
         .isInstanceOf(BusinessException.class)
@@ -149,7 +151,7 @@ class UserAuthServiceTest {
             () ->
                 userAuthService.wechatLogin(
                     new UserWechatLoginRequest(
-                        "wx_code_banned", "encrypted_data", "iv", true, true, null, null),
+                        "wx_code_banned", "encrypted_data", "iv", true, true, "v1.0", "v1.0", null, null),
                     "127.0.0.1",
                     "JUnit"))
         .isInstanceOf(BusinessException.class)
@@ -167,7 +169,7 @@ class UserAuthServiceTest {
 
     UserLoginResponse response =
         userAuthService.phoneLogin(
-            new UserPhoneLoginRequest("13800138003", "123456", true, true),
+            new UserPhoneLoginRequest("13800138003", "123456", true, true, "v1.0", "v1.0"),
             "127.0.0.1",
             "JUnit");
 
@@ -190,7 +192,7 @@ class UserAuthServiceTest {
 
     UserLoginResponse response =
         userAuthService.phoneLogin(
-            new UserPhoneLoginRequest("13800138004", "123456", true, true),
+            new UserPhoneLoginRequest("13800138004", "123456", true, true, "v1.0", "v1.0"),
             "127.0.0.1",
             "JUnit");
 

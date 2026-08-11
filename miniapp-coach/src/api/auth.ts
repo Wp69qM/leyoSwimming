@@ -7,6 +7,8 @@ export interface WechatLoginRequest {
   phoneIv: string
   termsAccepted: boolean
   privacyAccepted: boolean
+  termsVersion: string
+  privacyVersion: string
   appType: 'coach'
 }
 
@@ -15,6 +17,8 @@ export interface PhoneLoginRequest {
   code: string
   termsAccepted: boolean
   privacyAccepted: boolean
+  termsVersion: string
+  privacyVersion: string
   appType: 'coach'
 }
 

@@ -12,6 +12,7 @@ public enum ErrorCode {
   MISSING_REQUIRED_PARAM(100003, "必填参数缺失"),
   RESOURCE_NOT_FOUND(100004, "资源不存在"),
   VALIDATION_ERROR(100005, "参数校验失败"),
+  IDEMPOTENCY_DUPLICATE(100006, "请求正在处理中，请勿重复提交"),
 
   // 认证授权 200xxx
   UNAUTHORIZED(200001, "未登录或 Token 无效"),
@@ -55,6 +56,16 @@ public enum ErrorCode {
 
   // 协议 440xxx
   TERMS_NOT_ACCEPTED(440001, "请阅读并同意《用户须知》和《隐私协议》"),
+  POLICY_NOT_FOUND(440002, "当前协议版本不存在或已下线"),
+  CONSENT_VERSION_MISMATCH(440003, "协议版本已更新，请重新同意"),
+  PROFILE_INCOMPLETE(440004, "请先完善个人资料"),
+  NICKNAME_SENSITIVE(440005, "昵称包含敏感词，请修改后重试"),
+  INVALID_FILE_TYPE(440006, "仅支持 JPG/PNG/WebP 图片格式"),
+  FILE_TOO_LARGE(440007, "图片大小不能超过 5MB"),
+  PHONE_ALREADY_BOUND(440008, "该手机号已被其他账号绑定"),
+  INVALID_GENDER(440009, "性别参数错误"),
+  INVALID_AGE(440010, "年龄需在 3-99 岁之间"),
+  INVALID_SWIM_STROKE(440011, "泳姿参数错误"),
 
   // 教练入驻申请 500xxx
   COACH_APPLICATION_PENDING(500001, "已有待审核申请"),

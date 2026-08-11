@@ -3,16 +3,17 @@ import Taro from '@tarojs/taro';
 import { View, Text, Button } from '@tarojs/components';
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox';
 import { wechatLogin } from '@/api/auth';
-import { handleBusinessError } from '@/api/request';
+import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
+import { usePolicyVersions } from '@/hooks/usePolicy';
 import { APP_NAME } from '@/constants';
 import './index.scss';
 
-const ERROR_MESSAGES: Record<string, string> = {
-  TERMS_NOT_ACCEPTED: '请阅读并同意《用户须知》和《隐私协议》',
-  WECHAT_API_ERROR: '微信服务暂时不可用，请稍后重试',
-  WECHAT_CODE_INVALID: '登录凭证已失效，请重新点击登录',
-  WECHAT_API_TIMEOUT: '网络异常，请重试',
+const ERROR_MESSAGES: Record<number, string> = {
+  440001: '请阅读并同意《用户须知》和《隐私协议》',
+  430002: '微信服务暂时不可用，请稍后重试',
+  430001: '登录凭证已失效，请重新点击登录',
+  430003: '网络异常，请重试',
 };
 
 export default function WechatLoginPage() {
@@ -21,6 +22,8 @@ export default function WechatLoginPage() {
   const [errorTip, setErrorTip] = useState('');
   const [showReauth, setShowReauth] = useState(false);
   const login = useAuthStore((state) => state.login);
+  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
+    usePolicyVersions();
 
   function validateProtocol(): boolean {
     if (!protocolChecked) {
@@ -29,6 +32,14 @@ export default function WechatLoginPage() {
         icon: 'none',
       });
       setErrorTip('请阅读并同意《用户须知》和《隐私协议》');
+      return false;
+    }
+    if (policyLoading || !termsVersion || !privacyVersion) {
+      Taro.showToast({ title: '协议加载中，请稍候', icon: 'none' });
+      return false;
+    }
+    if (policyError) {
+      Taro.showToast({ title: policyError, icon: 'none' });
       return false;
     }
     return true;
@@ -49,6 +60,8 @@ export default function WechatLoginPage() {
         phoneIv,
         termsAccepted: true,
         privacyAccepted: true,
+        termsVersion,
+        privacyVersion,
         appType: 'user',
       });
 
@@ -63,9 +76,9 @@ export default function WechatLoginPage() {
       }
     } catch (error) {
       const message = handleBusinessError(error);
-      const code = (error as { code?: string }).code;
-      setErrorTip(ERROR_MESSAGES[code || ''] || message);
-      if (code === 'WECHAT_AUTH_DENIED') {
+      const code = getErrorCode(error);
+      setErrorTip(ERROR_MESSAGES[code ?? 0] || message);
+      if (code === 430001) {
         setShowReauth(true);
       }
     } finally {

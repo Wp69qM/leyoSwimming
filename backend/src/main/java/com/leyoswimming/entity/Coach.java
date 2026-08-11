@@ -1,9 +1,13 @@
 package com.leyoswimming.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Data;
 
 @Data
@@ -15,8 +19,15 @@ public class Coach {
 
   private String openid;
   private String unionId;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phone;
+
+  private String phoneHash;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String avatarUrl;
+
   private String name;
   private Integer status;
   private String rejectionReason;
@@ -25,4 +36,27 @@ public class Coach {
   private String loginIp;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private Integer age;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String gender;
+
+  private Boolean profileCompleted;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String personalDesc;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private Integer teachingYears;
+
+  @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
+  private List<CoachCertificate> certificates;
+
+  @Data
+  public static class CoachCertificate {
+    private String name;
+    private String url;
+  }
 }

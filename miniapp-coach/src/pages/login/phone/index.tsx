@@ -7,6 +7,7 @@ import { sendSmsCode } from '@/api/common'
 import { handleBusinessError, getErrorCode } from '@/api/request'
 import { useAuthStore, getRedirectPageByStatus } from '@/stores/authStore'
 import { useCountdown } from '@/hooks/useCountdown'
+import { usePolicyVersions } from '@/hooks/usePolicy'
 import { formatPhoneInput, sanitizeCodeInput, isValidPhone } from '@/utils/phone'
 import './index.scss'
 
@@ -28,6 +29,8 @@ export default function PhoneLoginPage() {
   const [codeError, setCodeError] = useState(false)
   const login = useAuthStore((state) => state.login)
   const { seconds, isRunning, start } = useCountdown({ initialSeconds: 60 })
+  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
+    usePolicyVersions()
 
   const canSend = isValidPhone(phone) && !isRunning && !sending
   const canSubmit = isValidPhone(phone) && code.length === 6
@@ -83,6 +86,16 @@ export default function PhoneLoginPage() {
       return
     }
 
+    if (policyLoading || !termsVersion || !privacyVersion) {
+      Taro.showToast({ title: '协议加载中，请稍候', icon: 'none' })
+      return
+    }
+
+    if (policyError) {
+      Taro.showToast({ title: policyError, icon: 'none' })
+      return
+    }
+
     if (!isValidPhone(phone)) {
       setPhoneError(true)
       setErrorTip('请输入正确的手机号')
@@ -103,6 +116,8 @@ export default function PhoneLoginPage() {
         code,
         termsAccepted: true,
         privacyAccepted: true,
+        termsVersion,
+        privacyVersion,
         appType: 'coach'
       })
 
@@ -112,6 +127,11 @@ export default function PhoneLoginPage() {
         result.expiresInSeconds,
         { id: result.coachId, status: result.coachStatus }
       )
+
+      if (!result.profileCompleted) {
+        Taro.redirectTo({ url: '/pages/profile/complete/index' })
+        return
+      }
 
       const redirectUrl = getRedirectPageByStatus(result.coachStatus)
       if (result.coachStatus === 1 || result.coachStatus === 4) {

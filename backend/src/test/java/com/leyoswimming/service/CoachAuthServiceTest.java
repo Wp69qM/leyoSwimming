@@ -39,6 +39,7 @@ class CoachAuthServiceTest {
   @Mock private CoachLoginLogMapper coachLoginLogMapper;
   @Mock private WechatClient wechatClient;
   @Mock private SmsCodeService smsCodeService;
+  @Mock private PolicyService policyService;
   private JwtTokenProvider jwtTokenProvider;
   private PhoneEncryptor phoneEncryptor;
   private CoachAuthService coachAuthService;
@@ -58,7 +59,8 @@ class CoachAuthServiceTest {
             wechatClient,
             smsCodeService,
             jwtTokenProvider,
-            phoneEncryptor);
+            phoneEncryptor,
+            policyService);
   }
 
   @Test
@@ -74,7 +76,7 @@ class CoachAuthServiceTest {
     CoachLoginResponse response =
         coachAuthService.wechatLogin(
             new CoachWechatLoginRequest(
-                "coach_wx_code", "encrypted_data", "iv", true, true, "avatar.jpg", "Coach"),
+                "coach_wx_code", "encrypted_data", "iv", true, true, "v1.0", "v1.0", "avatar.jpg", "Coach"),
             "127.0.0.1",
             "JUnit");
 
@@ -104,7 +106,7 @@ class CoachAuthServiceTest {
     CoachLoginResponse response =
         coachAuthService.wechatLogin(
             new CoachWechatLoginRequest(
-                "coach_wx_code_new", "encrypted_data", "iv", true, true, "avatar.jpg", "Coach"),
+                "coach_wx_code_new", "encrypted_data", "iv", true, true, "v1.0", "v1.0", "avatar.jpg", "Coach"),
             "127.0.0.1",
             "JUnit");
 
@@ -123,7 +125,7 @@ class CoachAuthServiceTest {
             () ->
                 coachAuthService.wechatLogin(
                     new CoachWechatLoginRequest(
-                        "coach_wx_code", "encrypted_data", "iv", true, false, null, null),
+                        "coach_wx_code", "encrypted_data", "iv", true, false, "v1.0", "v1.0", null, null),
                     "127.0.0.1",
                     "JUnit"))
         .isInstanceOf(BusinessException.class)
@@ -149,7 +151,7 @@ class CoachAuthServiceTest {
             () ->
                 coachAuthService.wechatLogin(
                     new CoachWechatLoginRequest(
-                        "coach_wx_code_resigned", "encrypted_data", "iv", true, true, null, null),
+                        "coach_wx_code_resigned", "encrypted_data", "iv", true, true, "v1.0", "v1.0", null, null),
                     "127.0.0.1",
                     "JUnit"))
         .isInstanceOf(BusinessException.class)
@@ -167,7 +169,7 @@ class CoachAuthServiceTest {
 
     CoachLoginResponse response =
         coachAuthService.phoneLogin(
-            new CoachPhoneLoginRequest("13800138003", "123456", true, true),
+            new CoachPhoneLoginRequest("13800138003", "123456", true, true, "v1.0", "v1.0"),
             "127.0.0.1",
             "JUnit");
 
@@ -192,7 +194,7 @@ class CoachAuthServiceTest {
 
     CoachLoginResponse response =
         coachAuthService.phoneLogin(
-            new CoachPhoneLoginRequest("13800138004", "123456", true, true),
+            new CoachPhoneLoginRequest("13800138004", "123456", true, true, "v1.0", "v1.0"),
             "127.0.0.1",
             "JUnit");
 

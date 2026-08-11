@@ -9,5 +9,7 @@ public record UserWechatLoginRequest(
     @NotBlank String phoneIv,
     @NotNull Boolean termsAccepted,
     @NotNull Boolean privacyAccepted,
+    @NotBlank String termsVersion,
+    @NotBlank String privacyVersion,
     String avatarUrl,
     String nickName) {}

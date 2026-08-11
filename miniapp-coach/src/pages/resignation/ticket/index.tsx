@@ -9,7 +9,7 @@ import {
 import { handleBusinessError } from '@/api/request'
 import { useAuthStore } from '@/stores/authStore'
 import { COACH_STATUS } from '@/constants'
-import type { CoachPackage, PackageAction, ResignationTicket } from '@/types/resignation'
+import type { CoachPackage, PackageAction, ResignationTicket, ResignationTicketStatus } from '@/types/resignation'
 import './index.scss'
 
 const ACTION_OPTIONS: { value: PackageAction; label: string }[] = [

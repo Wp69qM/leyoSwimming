@@ -6,4 +6,5 @@ public record CoachLoginResponse(
     long expiresInSeconds,
     boolean isNewCoach,
     int coachStatus,
-    Long coachId) {}
+    Long coachId,
+    boolean profileCompleted) {}

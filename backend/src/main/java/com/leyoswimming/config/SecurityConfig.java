@@ -38,6 +38,8 @@ public class SecurityConfig {
                         "/api/user/auth/**",
                         "/api/coach/auth/**",
                         "/api/common/sms/**",
+                        "/api/common/policy/**",
+                        "/uploads/**",
                         "/health",
                         "/error")
                     .permitAll()

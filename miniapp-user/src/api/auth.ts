@@ -17,6 +17,8 @@ export interface WechatLoginParams {
   nickName?: string;
   termsAccepted: boolean;
   privacyAccepted: boolean;
+  termsVersion: string;
+  privacyVersion: string;
   appType: 'user';
 }
 
@@ -25,6 +27,8 @@ export interface PhoneLoginParams {
   smsCode: string;
   termsAccepted: boolean;
   privacyAccepted: boolean;
+  termsVersion: string;
+  privacyVersion: string;
 }
 
 export function wechatLogin(params: WechatLoginParams) {

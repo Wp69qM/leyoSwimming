@@ -4,18 +4,19 @@ import { View, Text, Input, Button } from '@tarojs/components';
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox';
 import { phoneLogin } from '@/api/auth';
 import { sendSmsCode } from '@/api/common';
-import { handleBusinessError } from '@/api/request';
+import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
 import { useCountdown } from '@/hooks/useCountdown';
+import { usePolicyVersions } from '@/hooks/usePolicy';
 import { formatPhoneInput, isValidPhone } from '@/utils/phone';
 import './index.scss';
 
-const ERROR_MESSAGES: Record<string, string> = {
-  TERMS_NOT_ACCEPTED: '请阅读并同意《用户须知》和《隐私协议》',
-  INVALID_PHONE: '请输入正确的手机号',
-  INVALID_SMS_CODE: '验证码错误或已过期',
-  SMS_RATE_LIMIT: '请 60 秒后再试',
-  SMS_SEND_FAILED: '验证码发送失败，请稍后重试',
+const ERROR_MESSAGES: Record<number, string> = {
+  440001: '请阅读并同意《用户须知》和《隐私协议》',
+  100003: '请输入正确的手机号',
+  420001: '验证码错误或已过期',
+  420002: '请 60 秒后再试',
+  420003: '验证码发送失败，请稍后重试',
 };
 
 export default function PhoneLoginPage() {
@@ -29,6 +30,8 @@ export default function PhoneLoginPage() {
   const [codeError, setCodeError] = useState(false);
   const login = useAuthStore((state) => state.login);
   const { seconds, isRunning, start } = useCountdown({ initialSeconds: 60 });
+  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
+    usePolicyVersions();
 
   const canSend = isValidPhone(phone) && !isRunning && !sending;
   const canSubmit = isValidPhone(phone) && code.length === 6;
@@ -37,14 +40,14 @@ export default function PhoneLoginPage() {
     const formatted = formatPhoneInput(value);
     setPhone(formatted);
     if (phoneError) setPhoneError(false);
-    if (errorTip === ERROR_MESSAGES.INVALID_PHONE) setErrorTip('');
+    if (errorTip === ERROR_MESSAGES[100003]) setErrorTip('');
   }
 
   function handleCodeChange(value: string) {
     const formatted = value.replace(/\D/g, '').slice(0, 6);
     setCode(formatted);
     if (codeError) setCodeError(false);
-    if (errorTip === ERROR_MESSAGES.INVALID_SMS_CODE) setErrorTip('');
+    if (errorTip === ERROR_MESSAGES[420001]) setErrorTip('');
   }
 
   async function handleSendCode() {
@@ -58,9 +61,9 @@ export default function PhoneLoginPage() {
       await sendSmsCode({ phone, scene: 'login' });
       start();
     } catch (error) {
-      const errCode = (error as { code?: string }).code;
+      const errCode = getErrorCode(error);
       setErrorTip(
-        ERROR_MESSAGES[errCode || ''] || '验证码发送失败，请稍后重试'
+        ERROR_MESSAGES[errCode ?? 0] || '验证码发送失败，请稍后重试'
       );
     } finally {
       setSending(false);
@@ -78,6 +81,16 @@ export default function PhoneLoginPage() {
         icon: 'none',
       });
       setErrorTip(ERROR_MESSAGES.TERMS_NOT_ACCEPTED);
+      return;
+    }
+
+    if (policyLoading || !termsVersion || !privacyVersion) {
+      Taro.showToast({ title: '协议加载中，请稍候', icon: 'none' });
+      return;
+    }
+
+    if (policyError) {
+      Taro.showToast({ title: policyError, icon: 'none' });
       return;
     }
 
@@ -101,6 +114,8 @@ export default function PhoneLoginPage() {
         smsCode: code,
         termsAccepted: true,
         privacyAccepted: true,
+        termsVersion,
+        privacyVersion,
       });
 
       const { accessToken, refreshToken, expiresIn, profileCompleted, userId } =
@@ -118,10 +133,10 @@ export default function PhoneLoginPage() {
       }
     } catch (error) {
       const message = handleBusinessError(error);
-      const errCode = (error as { code?: string }).code;
-      const tip = ERROR_MESSAGES[errCode || ''] || message;
+      const errCode = getErrorCode(error);
+      const tip = ERROR_MESSAGES[errCode ?? 0] || message;
       setErrorTip(tip);
-      if (errCode === 'INVALID_SMS_CODE') setCodeError(true);
+      if (errCode === 420001) setCodeError(true);
     } finally {
       setLoading(false);
     }

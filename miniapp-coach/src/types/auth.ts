@@ -15,4 +15,5 @@ export interface LoginResult {
   isNewCoach: boolean
   coachStatus: CoachStatus
   coachId: number
+  profileCompleted: boolean
 }
