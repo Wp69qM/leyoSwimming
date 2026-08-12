@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,10 +32,15 @@ public class User {
 
   private String name;
   private String identityStatus;
+  private Integer identity;
+  private String source;
   private Boolean profileCompleted;
   private Integer status;
   private Integer age;
   private String gender;
+
+  @Version
+  private Integer version;
 
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String guardianName;

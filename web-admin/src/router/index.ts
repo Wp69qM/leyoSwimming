@@ -7,6 +7,10 @@ import ResignationApprovalQueueView from '@/views/resignation/ResignationApprova
 import ResignationTicketDetailView from '@/views/resignation/ResignationTicketDetailView.vue';
 import CoachAuditQueueView from '@/views/coach-audit/CoachAuditQueueView.vue';
 import CoachAuditDetailView from '@/views/coach-audit/CoachAuditDetailView.vue';
+import UserManagementView from '@/views/user-management/UserManagementView.vue';
+import CoachManagementView from '@/views/coach-management/CoachManagementView.vue';
+import CoachDetailView from '@/views/coach-management/CoachDetailView.vue';
+import AdminAccountManagementView from '@/views/admin-account/AdminAccountManagementView.vue';
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +44,26 @@ export const router = createRouter({
           path: 'coach-audit/detail/:applicationId',
           name: 'coach-audit-detail',
           component: CoachAuditDetailView,
+        },
+        {
+          path: 'user-management',
+          name: 'user-management',
+          component: UserManagementView,
+        },
+        {
+          path: 'coach-management',
+          name: 'coach-management',
+          component: CoachManagementView,
+        },
+        {
+          path: 'coach-management/detail/:coachId',
+          name: 'coach-management-detail',
+          component: CoachDetailView,
+        },
+        {
+          path: 'admin-account-management',
+          name: 'admin-account-management',
+          component: AdminAccountManagementView,
         },
       ],
     },

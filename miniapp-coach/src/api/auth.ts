@@ -51,9 +51,10 @@ export function refreshToken(token: string): Promise<{ accessToken: string; refr
   })
 }
 
-export function logoutCoach(): Promise<void> {
+export function logoutCoach(token: string): Promise<void> {
   return request<void>({
-    url: '/coach/auth/logout'
+    url: '/coach/auth/logout',
+    data: { refreshToken: token },
   })
 }
 

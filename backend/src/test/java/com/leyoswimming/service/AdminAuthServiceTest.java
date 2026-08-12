@@ -20,11 +20,11 @@ import com.leyoswimming.repository.AdminSessionMapper;
 import com.leyoswimming.repository.AdminUserMapper;
 import com.leyoswimming.security.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -98,12 +98,58 @@ class AdminAuthServiceTest {
   @DisplayName("登出使 token 失效")
   void logout_validToken_revokesSession() {
     String token = jwtTokenProvider.generateAdminToken(1L, "admin");
+    com.leyoswimming.entity.AdminSession session = new com.leyoswimming.entity.AdminSession();
+    session.setId(1L);
+    session.setAdminUserId(1L);
+    when(adminSessionMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(session));
 
     adminAuthService.logout(token);
 
-    ArgumentCaptor<com.leyoswimming.entity.AdminSession> captor =
-        ArgumentCaptor.forClass(com.leyoswimming.entity.AdminSession.class);
-    verify(adminSessionMapper).selectOne(any(LambdaQueryWrapper.class));
+    verify(adminSessionMapper).selectList(any(LambdaQueryWrapper.class));
+    verify(adminSessionMapper).updateById(session);
+    assertThat(session.getRevokedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("isAdminActive 对启用且未删除的管理员返回 true")
+  void isAdminActive_enabledAdmin_returnsTrue() {
+    when(adminUserMapper.selectById(1L)).thenReturn(enabledAdmin());
+
+    assertThat(adminAuthService.isAdminActive(1L)).isTrue();
+  }
+
+  @Test
+  @DisplayName("isAdminActive 对被禁用的管理员返回 false")
+  void isAdminActive_disabledAdmin_returnsFalse() {
+    AdminUser admin = enabledAdmin();
+    admin.setStatus(1);
+    when(adminUserMapper.selectById(1L)).thenReturn(admin);
+
+    assertThat(adminAuthService.isAdminActive(1L)).isFalse();
+  }
+
+  @Test
+  @DisplayName("isAdminActive 对已删除的管理员返回 false")
+  void isAdminActive_deletedAdmin_returnsFalse() {
+    AdminUser admin = enabledAdmin();
+    admin.setDeletedAt(java.time.LocalDateTime.now());
+    when(adminUserMapper.selectById(1L)).thenReturn(admin);
+
+    assertThat(adminAuthService.isAdminActive(1L)).isFalse();
+  }
+
+  @Test
+  @DisplayName("isAdminActive 对不存在管理员返回 false")
+  void isAdminActive_missingAdmin_returnsFalse() {
+    when(adminUserMapper.selectById(1L)).thenReturn(null);
+
+    assertThat(adminAuthService.isAdminActive(1L)).isFalse();
+  }
+
+  @Test
+  @DisplayName("isAdminActive 对 null adminId 返回 false")
+  void isAdminActive_nullAdminId_returnsFalse() {
+    assertThat(adminAuthService.isAdminActive(null)).isFalse();
   }
 
   private AdminUser enabledAdmin() {

@@ -22,9 +22,9 @@ const menuGroups: MenuGroup[] = [
   {
     title: '用户管理',
     children: [
-      { title: '用户列表', path: '/user-management', disabled: true },
+      { title: '用户列表', path: '/user-management' },
       { title: '教练入驻审核', path: '/coach-audit/queue' },
-      { title: '教练管理', path: '/coach-management', disabled: true },
+      { title: '教练管理', path: '/coach-management' },
       { title: '教练离职审批', path: '/resignation/approval-queue' },
     ],
   },
@@ -62,6 +62,10 @@ const menuGroups: MenuGroup[] = [
     children: [
       { title: '工单列表', path: '/ticket-management', disabled: true },
     ],
+  },
+  {
+    title: '系统设置',
+    children: [{ title: '管理员账号', path: '/admin-account-management' }],
   },
 ];
 

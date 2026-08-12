@@ -22,8 +22,12 @@ export default function WechatLoginPage() {
   const [errorTip, setErrorTip] = useState('');
   const [showReauth, setShowReauth] = useState(false);
   const login = useAuthStore((state) => state.login);
-  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
-    usePolicyVersions();
+  const {
+    termsVersion,
+    privacyVersion,
+    loading: policyLoading,
+    error: policyError,
+  } = usePolicyVersions();
 
   function validateProtocol(): boolean {
     if (!protocolChecked) {

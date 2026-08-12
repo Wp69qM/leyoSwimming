@@ -2,7 +2,9 @@ package com.leyoswimming.controller.coach;
 
 import com.leyoswimming.common.ApiResponse;
 import com.leyoswimming.dto.request.UpdateCoachProfileRequest;
+import com.leyoswimming.dto.request.UpdateCoachReferencePriceRequest;
 import com.leyoswimming.dto.response.CoachProfileResponse;
+import com.leyoswimming.dto.response.CoachReferencePriceResponse;
 import com.leyoswimming.service.CoachProfileService;
 import com.leyoswimming.service.FileStorageService;
 import jakarta.validation.Valid;
@@ -39,5 +41,12 @@ public class CoachProfileController {
   public ApiResponse<String> uploadAvatar(
       @AuthenticationPrincipal Long coachId, @RequestParam("file") MultipartFile file) {
     return ApiResponse.ok(fileStorageService.store(file));
+  }
+
+  @PostMapping("/reference-price/update")
+  public ApiResponse<CoachReferencePriceResponse> updateReferencePrice(
+      @AuthenticationPrincipal Long coachId,
+      @Valid @RequestBody UpdateCoachReferencePriceRequest request) {
+    return ApiResponse.ok(coachProfileService.updateReferencePrice(coachId, request));
   }
 }

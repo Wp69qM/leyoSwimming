@@ -30,8 +30,12 @@ export default function PhoneLoginPage() {
   const [codeError, setCodeError] = useState(false);
   const login = useAuthStore((state) => state.login);
   const { seconds, isRunning, start } = useCountdown({ initialSeconds: 60 });
-  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
-    usePolicyVersions();
+  const {
+    termsVersion,
+    privacyVersion,
+    loading: policyLoading,
+    error: policyError,
+  } = usePolicyVersions();
 
   const canSend = isValidPhone(phone) && !isRunning && !sending;
   const canSubmit = isValidPhone(phone) && code.length === 6;
@@ -62,9 +66,7 @@ export default function PhoneLoginPage() {
       start();
     } catch (error) {
       const errCode = getErrorCode(error);
-      setErrorTip(
-        ERROR_MESSAGES[errCode ?? 0] || '验证码发送失败，请稍后重试'
-      );
+      setErrorTip(ERROR_MESSAGES[errCode ?? 0] || '验证码发送失败，请稍后重试');
     } finally {
       setSending(false);
     }

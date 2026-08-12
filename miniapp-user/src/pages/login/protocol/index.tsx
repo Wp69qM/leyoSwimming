@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, ScrollView } from '@tarojs/components';
-import { getCurrentPrivacy, getCurrentTerms, type PolicyInfo } from '@/api/policy';
+import {
+  getCurrentPrivacy,
+  getCurrentTerms,
+  type PolicyInfo,
+} from '@/api/policy';
 import './index.scss';
 
 export default function ProtocolPage() {
@@ -15,7 +19,10 @@ export default function ProtocolPage() {
     let cancelled = false;
     async function load() {
       try {
-        const res = type === 'privacy' ? await getCurrentPrivacy() : await getCurrentTerms();
+        const res =
+          type === 'privacy'
+            ? await getCurrentPrivacy()
+            : await getCurrentTerms();
         if (cancelled) return;
         setPolicy(res);
       } catch {
@@ -57,7 +64,9 @@ export default function ProtocolPage() {
         )}
         {policy && (
           <View>
-            <Text className='protocol-page__version'>版本：{policy.version}</Text>
+            <Text className='protocol-page__version'>
+              版本：{policy.version}
+            </Text>
             <Text className='protocol-page__content'>{policy.content}</Text>
           </View>
         )}

@@ -1,0 +1,227 @@
+@import '@/styles/variables.scss';
+
+.mine {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  background-color: $bg-color;
+  box-sizing: border-box;
+
+  &--loading,
+  &--error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  &__loading-text,
+  &__error-text {
+    color: $text-color-tertiary;
+    font-size: $font-size-md;
+  }
+
+  &__retry {
+    margin-top: 16px;
+    padding: 8px 24px;
+    color: $text-color-inverse;
+    font-size: $font-size-md;
+    background-color: $primary-color;
+    border-radius: $border-radius-md;
+  }
+
+  &__header {
+    margin-bottom: 16px;
+
+    &-title {
+      color: $text-color-primary;
+      font-size: $font-size-xl;
+      font-weight: 600;
+    }
+  }
+
+  &__card {
+    padding: 16px;
+    background-color: $bg-color-card;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  &__profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  &__avatar {
+    width: 72px;
+    height: 72px;
+    margin-right: 16px;
+    border-radius: 50%;
+    background-color: $primary-color;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &-img {
+      width: 100%;
+      height: 100%;
+    }
+
+    &-text {
+      color: $text-color-inverse;
+      font-size: $font-size-xxl;
+      font-weight: 500;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &__name {
+    margin-bottom: 8px;
+    color: $text-color-primary;
+    font-size: $font-size-lg;
+    font-weight: 500;
+  }
+
+  &__tag {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 2px 8px;
+    font-size: $font-size-xs;
+    border-radius: $border-radius-sm;
+
+    &--default {
+      color: $text-color-secondary;
+      background-color: $border-color-light;
+    }
+
+    &--warning {
+      color: #92400e;
+      background-color: #fef3c7;
+    }
+
+    &--success {
+      color: #14532d;
+      background-color: #dcfce7;
+    }
+
+    &--danger {
+      color: #991b1b;
+      background-color: #fee2e2;
+    }
+  }
+
+  &__status-card {
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: $border-radius-lg;
+
+    &.mine__status--warning {
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
+    }
+
+    &.mine__status--danger {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+
+    &.mine__status--default {
+      background-color: $bg-color-white;
+      border: 1px solid $border-color;
+    }
+  }
+
+  &__status-title {
+    display: block;
+    margin-bottom: 8px;
+    color: $text-color-primary;
+    font-size: $font-size-md;
+    font-weight: 500;
+  }
+
+  &__status-desc {
+    display: block;
+    color: $text-color-secondary;
+    font-size: $font-size-sm;
+    line-height: 1.5;
+  }
+
+  &__status-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: $primary-color;
+    font-size: $font-size-sm;
+  }
+
+  &__menu {
+    background-color: $bg-color-card;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    margin-bottom: 32px;
+
+    &-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid $border-color;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:active {
+        background-color: $border-color-light;
+      }
+
+      &--danger {
+        color: $error-color;
+      }
+
+      &--primary {
+        color: $primary-color;
+      }
+    }
+
+    &-text {
+      font-size: $font-size-md;
+    }
+
+    &-value {
+      flex: 1;
+      text-align: right;
+      margin-right: 8px;
+      color: $text-color-tertiary;
+      font-size: $font-size-sm;
+    }
+
+    &-arrow {
+      color: $text-color-tertiary;
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__logout {
+    width: 100%;
+    height: 44px;
+    line-height: 44px;
+    color: $error-color;
+    font-size: $font-size-md;
+    background-color: $bg-color-card;
+    border-radius: $border-radius-md;
+    border: 1px solid $error-color;
+
+    &:active {
+      background-color: #fef2f2;
+    }
+  }
+}

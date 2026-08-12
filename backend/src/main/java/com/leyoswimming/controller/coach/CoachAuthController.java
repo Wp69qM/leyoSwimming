@@ -11,6 +11,7 @@ import com.leyoswimming.service.CoachSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,13 @@ public class CoachAuthController {
   public ApiResponse<RefreshTokenResponse> refresh(
       @Valid @RequestBody RefreshTokenRequest request) {
     return ApiResponse.ok(coachSessionService.refreshAccessToken(request.refreshToken()));
+  }
+
+  @PostMapping("/logout")
+  public ApiResponse<Void> logout(
+      @AuthenticationPrincipal Long coachId, @Valid @RequestBody RefreshTokenRequest request) {
+    coachSessionService.logout(coachId, request.refreshToken());
+    return ApiResponse.ok(null);
   }
 
   private String extractIp(HttpServletRequest request) {

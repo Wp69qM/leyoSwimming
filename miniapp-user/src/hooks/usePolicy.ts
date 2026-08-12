@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { getCurrentPrivacy, getCurrentTerms, type PolicyInfo } from '@/api/policy';
+import {
+  getCurrentPrivacy,
+  getCurrentTerms,
+  type PolicyInfo,
+} from '@/api/policy';
 
 export interface PolicyVersions {
   termsVersion: string;

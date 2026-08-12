@@ -141,7 +141,8 @@ describe('authStore', () => {
         if (key === 'access_token') return 'stored_access';
         if (key === 'refresh_token') return 'stored_refresh';
         if (key === 'token_expires_at') return Date.now() + 100000;
-        if (key === 'user_info') return { userId: 'u1', profileCompleted: true };
+        if (key === 'user_info')
+          return { userId: 'u1', profileCompleted: true };
         return null;
       });
 

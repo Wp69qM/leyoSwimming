@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HexFormat;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -74,9 +75,7 @@ public class AdminAuthService {
       return;
     }
     String tokenHash = sha256(token);
-    AdminSession session =
-        adminSessionMapper.selectOne(
-            new LambdaQueryWrapper<AdminSession>().eq(AdminSession::getTokenHash, tokenHash));
+    AdminSession session = findLatestSessionByTokenHash(tokenHash);
     if (session != null && session.getRevokedAt() == null) {
       session.setRevokedAt(LocalDateTime.now());
       adminSessionMapper.updateById(session);
@@ -88,13 +87,32 @@ public class AdminAuthService {
       return false;
     }
     String tokenHash = sha256(token);
-    AdminSession session =
-        adminSessionMapper.selectOne(
-            new LambdaQueryWrapper<AdminSession>().eq(AdminSession::getTokenHash, tokenHash));
+    AdminSession session = findLatestSessionByTokenHash(tokenHash);
     if (session == null || session.getRevokedAt() != null) {
       return false;
     }
     return session.getExpiresAt().isAfter(LocalDateTime.now());
+  }
+
+  public boolean isAdminActive(Long adminId) {
+    if (adminId == null) {
+      return false;
+    }
+    AdminUser admin = adminUserMapper.selectById(adminId);
+    return admin != null
+        && admin.getStatus() != null
+        && admin.getStatus() == ADMIN_STATUS_ENABLED
+        && admin.getDeletedAt() == null;
+  }
+
+  private AdminSession findLatestSessionByTokenHash(String tokenHash) {
+    List<AdminSession> sessions =
+        adminSessionMapper.selectList(
+            new LambdaQueryWrapper<AdminSession>()
+                .eq(AdminSession::getTokenHash, tokenHash)
+                .orderByDesc(AdminSession::getCreatedAt)
+                .last("LIMIT 1"));
+    return sessions.isEmpty() ? null : sessions.get(0);
   }
 
   private void saveSession(Long adminUserId, String token) {

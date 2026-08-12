@@ -49,10 +49,11 @@ export function phoneLogin(params: PhoneLoginParams) {
   });
 }
 
-export function logout() {
+export function logout(token: string) {
   return request<unknown>({
     url: '/user/auth/logout',
     method: 'POST',
+    data: { refreshToken: token },
   });
 }
 

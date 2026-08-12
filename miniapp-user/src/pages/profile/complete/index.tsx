@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, Input, Button, Image, Switch } from '@tarojs/components';
-import { getProfile, updateProfile, uploadAvatar, type UserProfile, type UpdateProfileParams } from '@/api/profile';
+import {
+  getProfile,
+  updateProfile,
+  uploadAvatar,
+  type UserProfile,
+  type UpdateProfileParams,
+} from '@/api/profile';
 import { sendSmsCode } from '@/api/common';
 import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
@@ -126,10 +132,13 @@ export default function ProfileCompletePage() {
     if (!gender) return '请选择性别';
     if (ageNum < 18) {
       if (!guardianName.trim()) return '请输入监护人姓名';
-      if (!/^1[3-9]\d{9}$/.test(guardianPhone)) return '请输入正确的监护人手机号';
+      if (!/^1[3-9]\d{9}$/.test(guardianPhone))
+        return '请输入正确的监护人手机号';
     }
-    if (hasSwimBasis && swimStrokes.length === 0) return '请至少选择一种会游的泳姿';
-    if (newPhone && !/^1[3-9]\d{9}$/.test(newPhone)) return '请输入正确的新手机号';
+    if (hasSwimBasis && swimStrokes.length === 0)
+      return '请至少选择一种会游的泳姿';
+    if (newPhone && !/^1[3-9]\d{9}$/.test(newPhone))
+      return '请输入正确的新手机号';
     if (newPhone && (!oldCode || !newCode)) return '请填写新旧手机号的验证码';
     return null;
   }
@@ -175,9 +184,9 @@ export default function ProfileCompletePage() {
       navigateTimerRef.current = setTimeout(() => {
         Taro.switchTab({ url: '/pages/index/index' });
       }, 800);
-    } catch (error) {
-      const code = getErrorCode(error);
-      const message = handleBusinessError(error);
+    } catch (err) {
+      const code = getErrorCode(err);
+      const message = handleBusinessError(err);
       setErrorTip(message);
       if (code === 440005) {
         Taro.showToast({ title: '昵称或描述包含敏感词', icon: 'none' });
@@ -203,7 +212,11 @@ export default function ProfileCompletePage() {
 
       <View className='profile-complete__avatar' onClick={handleChooseAvatar}>
         {avatarUrl ? (
-          <Image className='profile-complete__avatar-img' src={avatarUrl} mode='aspectFill' />
+          <Image
+            className='profile-complete__avatar-img'
+            src={avatarUrl}
+            mode='aspectFill'
+          />
         ) : (
           <View className='profile-complete__avatar-placeholder'>
             <Text className='profile-complete__avatar-text'>点击上传头像</Text>
@@ -297,7 +310,9 @@ export default function ProfileCompletePage() {
                 className={`profile-complete__stroke ${swimStrokes.includes(stroke.value) ? 'profile-complete__stroke--active' : ''}`}
                 onClick={() => toggleStroke(stroke.value)}
               >
-                <Text className='profile-complete__stroke-text'>{stroke.label}</Text>
+                <Text className='profile-complete__stroke-text'>
+                  {stroke.label}
+                </Text>
               </View>
             ))}
           </View>
@@ -306,7 +321,9 @@ export default function ProfileCompletePage() {
             type='number'
             placeholder='游泳年限（选填）'
             value={swimYears}
-            onInput={(e) => setSwimYears(e.detail.value.replace(/\D/g, '').slice(0, 2))}
+            onInput={(e) =>
+              setSwimYears(e.detail.value.replace(/\D/g, '').slice(0, 2))
+            }
           />
         </View>
       )}
@@ -323,7 +340,9 @@ export default function ProfileCompletePage() {
       </View>
 
       <View className='profile-complete__section'>
-        <Text className='profile-complete__section-title'>更换手机号（选填）</Text>
+        <Text className='profile-complete__section-title'>
+          更换手机号（选填）
+        </Text>
         <View className='profile-complete__field'>
           <Text className='profile-complete__label'>当前手机号</Text>
           <Input
@@ -338,7 +357,9 @@ export default function ProfileCompletePage() {
             type='number'
             placeholder='旧手机号验证码'
             value={oldCode}
-            onInput={(e) => setOldCode(e.detail.value.replace(/\D/g, '').slice(0, 6))}
+            onInput={(e) =>
+              setOldCode(e.detail.value.replace(/\D/g, '').slice(0, 6))
+            }
             maxlength={6}
           />
           <Button
@@ -355,7 +376,9 @@ export default function ProfileCompletePage() {
             type='number'
             placeholder='新手机号'
             value={newPhone}
-            onInput={(e) => setNewPhone(e.detail.value.replace(/\D/g, '').slice(0, 11))}
+            onInput={(e) =>
+              setNewPhone(e.detail.value.replace(/\D/g, '').slice(0, 11))
+            }
             maxlength={11}
           />
         </View>
@@ -365,7 +388,9 @@ export default function ProfileCompletePage() {
             type='number'
             placeholder='新手机号验证码'
             value={newCode}
-            onInput={(e) => setNewCode(e.detail.value.replace(/\D/g, '').slice(0, 6))}
+            onInput={(e) =>
+              setNewCode(e.detail.value.replace(/\D/g, '').slice(0, 6))
+            }
             maxlength={6}
           />
           <Button

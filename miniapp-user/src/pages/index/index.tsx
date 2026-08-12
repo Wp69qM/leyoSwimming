@@ -47,6 +47,52 @@ export default function Index() {
     initialize();
   }
 
+  if (loading) {
+    return (
+      <View className='splash'>
+        <View className='splash__content'>
+          <View className='splash__logo'>
+            <Image
+              className='splash__logo-icon'
+              src={logoRibbon}
+              mode='aspectFit'
+            />
+          </View>
+          <Text className='splash__brand'>{APP_NAME}</Text>
+          <Text className='splash__slogan'>{APP_SLOGAN}</Text>
+          <View className='splash__loading'>
+            <View className='splash__loading-dot' />
+            <Text className='splash__loading-text'>加载中…</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className='splash'>
+        <View className='splash__content'>
+          <View className='splash__logo'>
+            <Image
+              className='splash__logo-icon'
+              src={logoRibbon}
+              mode='aspectFit'
+            />
+          </View>
+          <Text className='splash__brand'>{APP_NAME}</Text>
+          <Text className='splash__slogan'>{APP_SLOGAN}</Text>
+          <View className='splash__error'>
+            <Text className='splash__error-text'>网络异常，请重试</Text>
+            <View className='splash__retry' onClick={handleRetry}>
+              <Text className='splash__retry-text'>重新加载</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className='splash'>
       <View className='splash__content'>
@@ -57,23 +103,8 @@ export default function Index() {
             mode='aspectFit'
           />
         </View>
-
         <Text className='splash__brand'>{APP_NAME}</Text>
         <Text className='splash__slogan'>{APP_SLOGAN}</Text>
-
-        {error ? (
-          <View className='splash__error'>
-            <Text className='splash__error-text'>网络异常，请重试</Text>
-            <View className='splash__retry' onClick={handleRetry}>
-              <Text className='splash__retry-text'>重新加载</Text>
-            </View>
-          </View>
-        ) : (
-          <View className='splash__loading'>
-            <View className='splash__loading-dot' />
-            <Text className='splash__loading-text'>加载中…</Text>
-          </View>
-        )}
       </View>
     </View>
   );

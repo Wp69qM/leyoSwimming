@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro';
-import { request } from './request';
 import { getApiBaseUrl } from '@/utils/env';
+import { request } from './request';
 import type { ConsentStatus } from './policy';
 
 export interface UserProfile {
@@ -50,7 +50,7 @@ export function updateProfile(params: UpdateProfileParams) {
     url: '/user/profile/update',
     method: 'POST',
     data: params,
-  })
+  });
 }
 
 function uploadFileToUrl(filePath: string, url: string): Promise<string> {

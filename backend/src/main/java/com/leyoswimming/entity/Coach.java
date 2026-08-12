@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,6 @@ public class Coach {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phone;
 
-  @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phoneHash;
 
   @TableField(updateStrategy = FieldStrategy.IGNORED)
@@ -62,6 +62,8 @@ public class Coach {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String idCardNo;
 
+  private String idCardHash;
+
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private Integer totalStudents;
 
@@ -77,8 +79,17 @@ public class Coach {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private java.math.BigDecimal referencePrice;
 
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private LocalDateTime priceChangedAt;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private Integer priceChangeCountToday = 0;
+
   @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
   private List<CoachCertificate> certificates;
+
+  @Version
+  private Integer version;
 
   @Data
   public static class CoachCertificate {

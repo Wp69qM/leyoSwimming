@@ -3,6 +3,7 @@ package com.leyoswimming.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -114,6 +115,27 @@ class CoachSessionServiceTest {
             ex ->
                 assertThat(((BusinessException) ex).getErrorCode())
                     .isEqualTo(ErrorCode.COACH_NOT_FOUND));
+  }
+
+  @Test
+  @DisplayName("登出：删除对应 coach_id + refresh_token_hash 的 session")
+  void logout_validToken_deletesSession() {
+    String refreshToken = jwtTokenProvider.generateRefreshToken();
+
+    coachSessionService.logout(1L, refreshToken);
+
+    verify(coachSessionMapper).delete(any(LambdaQueryWrapper.class));
+  }
+
+  @Test
+  @DisplayName("登出：重复调用保持幂等")
+  void logout_calledTwice_deletesSessionTwice() {
+    String refreshToken = jwtTokenProvider.generateRefreshToken();
+
+    coachSessionService.logout(1L, refreshToken);
+    coachSessionService.logout(1L, refreshToken);
+
+    verify(coachSessionMapper, times(2)).delete(any(LambdaQueryWrapper.class));
   }
 
   private CoachSession activeSession(String hash, Long coachId) {

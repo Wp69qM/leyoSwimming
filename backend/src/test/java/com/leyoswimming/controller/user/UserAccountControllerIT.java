@@ -153,7 +153,7 @@ class UserAccountControllerIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         String.format(
-                            "{\"code\":\"%s\",\"phoneEncryptedData\":\"data\",\"phoneIv\":\"iv\",\"termsAccepted\":true,\"privacyAccepted\":true}",
+                            "{\"code\":\"%s\",\"phoneEncryptedData\":\"data\",\"phoneIv\":\"iv\",\"termsAccepted\":true,\"privacyAccepted\":true,\"termsVersion\":\"v1.0\",\"privacyVersion\":\"v1.0\"}",
                             wxCode)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))

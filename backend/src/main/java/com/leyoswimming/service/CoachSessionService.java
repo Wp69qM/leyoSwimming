@@ -47,4 +47,13 @@ public class CoachSessionService {
     return new RefreshTokenResponse(
         newAccessToken, newRefreshToken, jwtTokenProvider.getExpirationSeconds());
   }
+
+  @Transactional
+  public void logout(Long coachId, String refreshToken) {
+    String hash = jwtTokenProvider.hashRefreshToken(refreshToken);
+    coachSessionMapper.delete(
+        new LambdaQueryWrapper<CoachSession>()
+            .eq(CoachSession::getCoachId, coachId)
+            .eq(CoachSession::getRefreshTokenHash, hash));
+  }
 }

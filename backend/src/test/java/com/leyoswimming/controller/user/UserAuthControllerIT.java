@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leyoswimming.repository.SmsCodeMapper;
+import com.leyoswimming.util.PhoneEncryptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ class UserAuthControllerIT {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
   @Autowired private SmsCodeMapper smsCodeMapper;
+  @Autowired private PhoneEncryptor phoneEncryptor;
 
   @Test
   @DisplayName("POST /api/user/auth/wechat-login 新用户注册并登录成功")
@@ -38,7 +40,7 @@ class UserAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"code":"user_wx_new","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"avatarUrl":"avatar.jpg","nickName":"User"}
+                    {"code":"user_wx_new","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0","avatarUrl":"avatar.jpg","nickName":"User"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(0))
@@ -58,7 +60,7 @@ class UserAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"code":"user_wx_terms","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":false,"privacyAccepted":true}
+                    {"code":"user_wx_terms","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":false,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(440001))
@@ -76,7 +78,7 @@ class UserAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"phone":"13800138100","code":"123456","termsAccepted":true,"privacyAccepted":true}
+                    {"phone":"13800138100","code":"123456","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(0))
@@ -96,7 +98,7 @@ class UserAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"phone":"13800138101","code":"000000","termsAccepted":true,"privacyAccepted":true}
+                    {"phone":"13800138101","code":"000000","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(420001))
@@ -113,7 +115,7 @@ class UserAuthControllerIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
-                        {"code":"user_wx_refresh","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true}
+                        {"code":"user_wx_refresh","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                         """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
@@ -144,7 +146,7 @@ class UserAuthControllerIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
-                        {"code":"user_wx_logout","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true}
+                        {"code":"user_wx_logout","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                         """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
@@ -190,11 +192,9 @@ class UserAuthControllerIT {
 
   private String phoneHash(String phone) {
     try {
-      java.security.MessageDigest digest =
-          java.security.MessageDigest.getInstance("SHA-256");
-      return java.util.Base64.getEncoder().encodeToString(digest.digest(phone.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-    } catch (java.security.NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 algorithm not available", e);
+      return phoneEncryptor.hash(phone);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to hash phone", e);
     }
   }
 }

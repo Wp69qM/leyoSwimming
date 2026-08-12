@@ -14,6 +14,7 @@ public enum ErrorCode {
   VALIDATION_ERROR(100005, "参数校验失败"),
   IDEMPOTENCY_DUPLICATE(100006, "请求正在处理中，请勿重复提交"),
   OPERATION_IN_PROGRESS(100007, "操作正在进行中，请稍后重试"),
+  DUPLICATE_KEY(100008, "数据已存在，请勿重复提交"),
 
   // 认证授权 200xxx
   UNAUTHORIZED(200001, "未登录或 Token 无效"),
@@ -22,6 +23,15 @@ public enum ErrorCode {
   // 权限禁止 300xxx
   FORBIDDEN(300001, "无操作权限"),
   ADMIN_DISABLED(300002, "账号已被禁用，请联系超级管理员"),
+  ADMIN_PERMISSION_DENIED(300003, "无操作权限"),
+
+  // 管理员 310xxx
+  ADMIN_NOT_FOUND(310001, "管理员账号不存在"),
+  ADMIN_USERNAME_ALREADY_EXISTS(310002, "登录账号已存在"),
+  ADMIN_CANNOT_DELETE_SELF(310003, "不能删除当前登录账号"),
+  ADMIN_CANNOT_DISABLE_SELF(310004, "不能禁用当前登录账号"),
+  ADMIN_LAST_SUPER_ADMIN_PROTECTED(310005, "系统中必须保留至少一个启用的超级管理员"),
+  ADMIN_CONCURRENTLY_UPDATED(310006, "管理员信息已被他人更新，请刷新后重试"),
 
   // 用户 400xxx
   USER_NOT_FOUND(400001, "用户不存在"),
@@ -30,13 +40,20 @@ public enum ErrorCode {
   PENDING_ORDER_EXISTS(400202, "您有未完成订单，请完成后注销"),
   ONGOING_BOOKING_EXISTS(400203, "您有未完成的课程预约，请完成后注销"),
   USER_ALREADY_DELETED(400204, "账号已注销"),
+  USER_CONCURRENTLY_UPDATED(400205, "用户信息已被他人更新，请刷新后重试"),
+  INVALID_GUARDIAN_INFO(400206, "未成年人需填写监护人信息"),
+  PHONE_ALREADY_EXISTS(400207, "该手机号已被占用"),
 
   // 教练 410xxx
   COACH_NOT_FOUND(410001, "教练不存在"),
   COACH_STATUS_NOT_ALLOWED(410002, "当前状态不可申请离职"),
+  COACH_STATUS_NOT_APPROVED(410006, "教练不处于已通过状态"),
+  ID_CARD_ALREADY_EXISTS(410007, "身份证号已存在"),
   RESIGNATION_ALREADY_PENDING(410003, "已有进行中的离职申请"),
   TICKET_NOT_PROCESSING(410004, "工单状态不允许该操作"),
   NOT_OWN_PACKAGE(410005, "该套餐不属于当前教练"),
+  INVALID_REFERENCE_PRICE(410008, "参考单价需在 50-2000 元之间"),
+  PRICE_CHANGE_LIMIT_REACHED(410009, "今日参考单价修改次数已达上限"),
 
   // 管理员审批 510xxx
   CHECKLIST_NOT_PASSED(510001, "请先完成所有检查项"),

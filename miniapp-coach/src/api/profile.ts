@@ -7,11 +7,25 @@ export interface CoachProfile {
   id: number
   name: string
   avatarUrl?: string
+  portraitUrl?: string
   phone?: string
   age?: number
   gender?: 'male' | 'female'
+  email?: string
+  wechatQrUrl?: string
+  idCardNoMasked?: string
+  idCardFrontUrl?: string
+  idCardBackUrl?: string
+  coachCertUrls?: string[]
+  healthCertUrl?: string
+  totalStudents?: number
+  totalHours?: number
   personalDesc?: string
   teachingYears?: number
+  teachingStrokes?: string[]
+  bio?: string
+  referencePrice?: number
+  status: number
   certificates?: string[]
   profileCompleted: boolean
   consent: ConsentStatus
@@ -22,13 +36,24 @@ export interface UpdateProfileParams {
   age: number
   gender: 'male' | 'female'
   avatarUrl?: string
+  portraitUrl?: string
+  email?: string
+  wechatQrUrl?: string
   personalDesc?: string
   teachingYears?: number
   certificates?: string[]
+  teachingStrokes?: string[]
+  bio?: string
   newPhone?: string
   oldPhoneVerifyCode?: string
   newPhoneVerifyCode?: string
   idempotencyKey: string
+}
+
+export interface ReferencePriceResult {
+  referencePrice: number
+  priceChangedAt: string
+  remainingChangesToday: number
 }
 
 export function getProfile() {
@@ -41,6 +66,17 @@ export function getProfile() {
 export function updateProfile(params: UpdateProfileParams) {
   return request<CoachProfile>({
     url: '/coach/profile/update',
+    method: 'POST',
+    data: params,
+  })
+}
+
+export function updateReferencePrice(params: {
+  referencePrice: number
+  idempotencyKey: string
+}) {
+  return request<ReferencePriceResult>({
+    url: '/coach/profile/reference-price/update',
     method: 'POST',
     data: params,
   })

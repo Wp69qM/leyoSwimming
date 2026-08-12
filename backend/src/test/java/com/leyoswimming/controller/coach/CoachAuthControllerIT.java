@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leyoswimming.repository.SmsCodeMapper;
+import com.leyoswimming.util.PhoneEncryptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ class CoachAuthControllerIT {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
   @Autowired private SmsCodeMapper smsCodeMapper;
+  @Autowired private PhoneEncryptor phoneEncryptor;
 
   @Test
   @DisplayName("POST /api/coach/auth/wechat-login 新教练注册并登录成功")
@@ -37,7 +39,7 @@ class CoachAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"code":"coach_wx_new","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"avatarUrl":"avatar.jpg","nickName":"Coach"}
+                    {"code":"coach_wx_new","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0","avatarUrl":"avatar.jpg","nickName":"Coach"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(0))
@@ -57,7 +59,7 @@ class CoachAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"code":"coach_wx_terms","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":false}
+                    {"code":"coach_wx_terms","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":false,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(440001))
@@ -75,7 +77,7 @@ class CoachAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"phone":"13800138200","code":"123456","termsAccepted":true,"privacyAccepted":true}
+                    {"phone":"13800138200","code":"123456","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(0))
@@ -95,7 +97,7 @@ class CoachAuthControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"phone":"13800138201","code":"000000","termsAccepted":true,"privacyAccepted":true}
+                    {"phone":"13800138201","code":"000000","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                     """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(420001))
@@ -112,7 +114,7 @@ class CoachAuthControllerIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
-                        {"code":"coach_wx_refresh","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true}
+                        {"code":"coach_wx_refresh","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
                         """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
@@ -130,6 +132,37 @@ class CoachAuthControllerIT {
         .andExpect(jsonPath("$.code").value(0))
         .andExpect(jsonPath("$.data.accessToken").isString())
         .andExpect(jsonPath("$.data.expiresInSeconds").value(86400));
+  }
+
+  @Test
+  @DisplayName("POST /api/coach/auth/logout 携带有效 access token 登出成功")
+  void logout_withAccessToken_returnsOk() throws Exception {
+    MvcResult loginResult =
+        mockMvc
+            .perform(
+                post("/api/coach/auth/wechat-login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {"code":"coach_wx_logout","phoneEncryptedData":"data","phoneIv":"iv","termsAccepted":true,"privacyAccepted":true,"termsVersion":"v1.0","privacyVersion":"v1.0"}
+                        """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+    JsonNode loginBody =
+        objectMapper.readTree(loginResult.getResponse().getContentAsString()).path("data");
+    String accessToken = loginBody.path("accessToken").asText();
+    String refreshToken = loginBody.path("refreshToken").asText();
+
+    mockMvc
+        .perform(
+            post("/api/coach/auth/logout")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"refreshToken\":\"%s\"}", refreshToken)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(0))
+        .andExpect(jsonPath("$.data").doesNotExist());
   }
 
   @Test
@@ -157,11 +190,9 @@ class CoachAuthControllerIT {
 
   private String phoneHash(String phone) {
     try {
-      java.security.MessageDigest digest =
-          java.security.MessageDigest.getInstance("SHA-256");
-      return java.util.Base64.getEncoder().encodeToString(digest.digest(phone.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-    } catch (java.security.NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 algorithm not available", e);
+      return phoneEncryptor.hash(phone);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to hash phone", e);
     }
   }
 }

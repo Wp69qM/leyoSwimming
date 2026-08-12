@@ -4,6 +4,7 @@ import com.leyoswimming.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -42,6 +43,13 @@ public class GlobalExceptionHandler {
   public ApiResponse<Void> handleBadRequest(Exception ex) {
     log.warn("Bad request: {}", ex.getMessage());
     return ApiResponse.error(ErrorCode.BAD_REQUEST.getCode(), "请求参数错误");
+  }
+
+  @ExceptionHandler(DuplicateKeyException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public ApiResponse<Void> handleDuplicateKey(DuplicateKeyException ex, HttpServletRequest request) {
+    log.warn("Duplicate key violation: method={}, uri={}", request.getMethod(), request.getRequestURI(), ex);
+    return ApiResponse.error(ErrorCode.DUPLICATE_KEY.getCode(), ErrorCode.DUPLICATE_KEY.getMessage());
   }
 
   @ExceptionHandler(Exception.class)

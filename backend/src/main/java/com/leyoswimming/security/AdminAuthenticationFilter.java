@@ -28,29 +28,32 @@ public class AdminAuthenticationFilter extends OncePerRequestFilter {
   private final ObjectMapper objectMapper;
 
   @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return !path.startsWith("/api/admin/") || path.startsWith("/api/admin/auth/");
+  }
+
+  @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
 
-    String path = request.getRequestURI();
-    if (path.startsWith("/api/admin/auth/login")) {
-      filterChain.doFilter(request, response);
-      return;
-    }
-
     String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
-    if (token != null
-        && jwtTokenProvider.isTokenValid(token)
-        && "admin".equals(jwtTokenProvider.getTokenType(token))
-        && adminAuthService.isTokenActive(token)) {
+    if (token != null && jwtTokenProvider.isTokenValid(token)) {
       Long adminId = jwtTokenProvider.getAdminUserId(token);
-      UsernamePasswordAuthenticationToken authentication =
-          new UsernamePasswordAuthenticationToken(
-              adminId, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
-      SecurityContextHolder.getContext().setAuthentication(authentication);
+      if ("admin".equals(jwtTokenProvider.getTokenType(token))
+          && adminAuthService.isTokenActive(token)
+          && adminAuthService.isAdminActive(adminId)) {
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(
+                adminId, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        filterChain.doFilter(request, response);
+        return;
+      }
     }
 
-    filterChain.doFilter(request, response);
+    writeUnauthorized(response);
   }
 
   private String extractBearerToken(String authorization) {
@@ -65,6 +68,6 @@ public class AdminAuthenticationFilter extends OncePerRequestFilter {
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     objectMapper.writeValue(
         response.getOutputStream(),
-        ApiResponse.error(ErrorCode.UNAUTHORIZED.getCode(), ErrorCode.TOKEN_EXPIRED.getMessage()));
+        ApiResponse.error(ErrorCode.UNAUTHORIZED.getCode(), ErrorCode.UNAUTHORIZED.getMessage()));
   }
 }
