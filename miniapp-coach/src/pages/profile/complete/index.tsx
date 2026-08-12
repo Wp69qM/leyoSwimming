@@ -145,9 +145,9 @@ export default function ProfileCompletePage() {
       navigateTimerRef.current = setTimeout(() => {
         Taro.switchTab({ url: '/pages/index/index' })
       }, 800)
-    } catch (error) {
-      const code = getErrorCode(error)
-      const message = handleBusinessError(error)
+    } catch (err) {
+      const code = getErrorCode(err)
+      const message = handleBusinessError(err)
       setErrorTip(message)
       if (code === 440005) {
         Taro.showToast({ title: '昵称或描述包含敏感词', icon: 'none' })

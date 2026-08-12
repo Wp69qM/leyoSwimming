@@ -23,6 +23,7 @@ public class Coach {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phone;
 
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phoneHash;
 
   @TableField(updateStrategy = FieldStrategy.IGNORED)
@@ -32,6 +33,7 @@ public class Coach {
   private Integer status;
   private String rejectionReason;
   private LocalDateTime submittedAt;
+  private LocalDateTime approvedAt;
   private LocalDateTime lastLoginAt;
   private String loginIp;
   private LocalDateTime createdAt;
@@ -50,6 +52,30 @@ public class Coach {
 
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private Integer teachingYears;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String email;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String wechatQrUrl;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String idCardNo;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private Integer totalStudents;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private Integer totalHours;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String teachingStrokes;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String bio;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private java.math.BigDecimal referencePrice;
 
   @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
   private List<CoachCertificate> certificates;

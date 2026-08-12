@@ -6,6 +6,12 @@ export function maskPhone(phone: string): string {
   return phone;
 }
 
+export function maskIdCard(idCard: string): string {
+  if (!idCard) return '-';
+  if (idCard.length <= 10) return idCard;
+  return `${idCard.slice(0, 6)}${'*'.repeat(idCard.length - 10)}${idCard.slice(-4)}`;
+}
+
 export function formatDateTime(value: string | Date | undefined): string {
   if (!value) return '-';
   const date = typeof value === 'string' ? new Date(value) : value;

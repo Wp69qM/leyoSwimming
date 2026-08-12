@@ -11,7 +11,9 @@ import com.leyoswimming.enums.AppType;
 import com.leyoswimming.enums.CoachStatus;
 import com.leyoswimming.exception.BusinessException;
 import com.leyoswimming.repository.CoachMapper;
+import com.leyoswimming.service.DistributedLockHelper.LockToken;
 import com.leyoswimming.util.PhoneEncryptor;
+import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class CoachProfileService {
 
   private static final int MIN_AGE = 3;
   private static final int MAX_AGE = 99;
+  private static final Duration PHONE_CHANGE_LOCK_TTL = Duration.ofSeconds(60);
 
   private final CoachMapper coachMapper;
   private final PhoneEncryptor phoneEncryptor;
@@ -32,6 +35,7 @@ public class CoachProfileService {
   private final SensitiveWordFilter sensitiveWordFilter;
   private final PolicyService policyService;
   private final IdempotencyHelper idempotencyHelper;
+  private final DistributedLockHelper lockHelper;
 
   @Transactional(readOnly = true)
   public CoachProfileResponse getProfile(Long coachId) {
@@ -131,18 +135,22 @@ public class CoachProfileService {
     if (isBlank(request.oldPhoneVerifyCode()) || isBlank(request.newPhoneVerifyCode())) {
       throw new BusinessException(ErrorCode.INVALID_SMS_CODE);
     }
-    String currentPlainPhone = decryptPhone(coach.getPhone());
-    smsCodeService.verify(
-        currentPlainPhone, request.oldPhoneVerifyCode(), "change_phone_old", AppType.coach);
-    smsCodeService.verify(
-        request.newPhone(), request.newPhoneVerifyCode(), "change_phone_new", AppType.coach);
-    String encryptedNewPhone = encryptPhone(request.newPhone());
     String newPhoneHash = hashPhone(request.newPhone());
-    if (phoneAlreadyUsedByOther(coach.getId(), newPhoneHash)) {
-      throw new BusinessException(ErrorCode.PHONE_ALREADY_BOUND);
+    LockToken lock = lockHelper.lock("phone_change", newPhoneHash, PHONE_CHANGE_LOCK_TTL);
+    try {
+      String currentPlainPhone = decryptPhone(coach.getPhone());
+      smsCodeService.verify(
+          currentPlainPhone, request.oldPhoneVerifyCode(), "change_phone_old", AppType.coach);
+      smsCodeService.verify(
+          request.newPhone(), request.newPhoneVerifyCode(), "change_phone_new", AppType.coach);
+      if (phoneAlreadyUsedByOther(coach.getId(), newPhoneHash)) {
+        throw new BusinessException(ErrorCode.PHONE_ALREADY_BOUND);
+      }
+      coach.setPhone(encryptPhone(request.newPhone()));
+      coach.setPhoneHash(newPhoneHash);
+    } finally {
+      lockHelper.unlockAfterTransaction(lock);
     }
-    coach.setPhone(encryptedNewPhone);
-    coach.setPhoneHash(newPhoneHash);
   }
 
   private boolean phoneAlreadyUsedByOther(Long currentCoachId, String phoneHash) {

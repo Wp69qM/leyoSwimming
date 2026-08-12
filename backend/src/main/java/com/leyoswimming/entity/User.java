@@ -23,6 +23,7 @@ public class User {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phone;
 
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String phoneHash;
 
   @TableField(updateStrategy = FieldStrategy.IGNORED)
@@ -41,6 +42,7 @@ public class User {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String guardianPhone;
 
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String guardianPhoneHash;
 
   private Boolean hasSwimBasis;

@@ -34,15 +34,43 @@ const checklist = ref<ResignationChecklist>({
 
 const statusMap: Record<
   ResignationStatus,
-  { label: string; type: 'primary' | 'success' | 'danger' | 'warning'; color: string; bgColor: string }
+  {
+    label: string;
+    type: 'primary' | 'success' | 'danger' | 'warning';
+    color: string;
+    bgColor: string;
+  }
 > = {
-  processing: { label: '处理中', type: 'warning', color: '#FAAD14', bgColor: '#FFFBE6' },
-  pending_audit: { label: '待审批', type: 'primary', color: '#1890FF', bgColor: '#E6F7FF' },
-  approved: { label: '已通过', type: 'success', color: '#52C41A', bgColor: '#F6FFED' },
-  rejected: { label: '已驳回', type: 'danger', color: '#FF4D4F', bgColor: '#FFF1F0' },
+  processing: {
+    label: '处理中',
+    type: 'warning',
+    color: '#FAAD14',
+    bgColor: '#FFFBE6',
+  },
+  pending_audit: {
+    label: '待审批',
+    type: 'primary',
+    color: '#1890FF',
+    bgColor: '#E6F7FF',
+  },
+  approved: {
+    label: '已通过',
+    type: 'success',
+    color: '#52C41A',
+    bgColor: '#F6FFED',
+  },
+  rejected: {
+    label: '已驳回',
+    type: 'danger',
+    color: '#FF4D4F',
+    bgColor: '#FFF1F0',
+  },
 };
 
-const resultMap: Record<Exclude<StudentHandleResult, null>, { label: string; color: string; bgColor: string }> = {
+const resultMap: Record<
+  Exclude<StudentHandleResult, null>,
+  { label: string; color: string; bgColor: string }
+> = {
   transfer: { label: '转新教练', color: '#1890FF', bgColor: '#E6F7FF' },
   refund: { label: '全额退款', color: '#FF4D4F', bgColor: '#FFF1F0' },
   continue: { label: '继续上完', color: '#52C41A', bgColor: '#F6FFED' },
@@ -75,7 +103,12 @@ const unpassedItems = computed(() => {
 
 function getResultDisplay(row: ResignationPackageItem) {
   if (!row.action) {
-    return { label: '待处理', color: '#C9CDD4', bgColor: 'transparent', isTag: false };
+    return {
+      label: '待处理',
+      color: '#C9CDD4',
+      bgColor: 'transparent',
+      isTag: false,
+    };
   }
   return { ...resultMap[row.action], isTag: true };
 }
@@ -104,11 +137,14 @@ const timelineNodes = computed<TimelineNode[]>(() => {
   const { status, submittedAt, packages, handledPackages } = detail.value;
   const submitted = formatDateTime(submittedAt);
 
-  const studentProcessingDone = packages.length === 0 || handledPackages === packages.length;
-  const studentProcessingActive = packages.length > 0 && handledPackages < packages.length;
+  const studentProcessingDone =
+    packages.length === 0 || handledPackages === packages.length;
+  const studentProcessingActive =
+    packages.length > 0 && handledPackages < packages.length;
 
   const checklistDone = allChecklistPassed.value;
-  const checklistActive = studentProcessingDone && !checklistDone && status === 'pending_audit';
+  const checklistActive =
+    studentProcessingDone && !checklistDone && status === 'pending_audit';
 
   const approvedDone = status === 'approved';
   const rejectedDone = status === 'rejected';
@@ -295,16 +331,25 @@ onMounted(() => {
         <div class="info-item">
           <span class="info-label">入职时间</span>
           <span class="info-value">
-            {{ detail.coach.joinedAt ? formatDateTime(detail.coach.joinedAt).split(' ')[0] : '-' }}
+            {{
+              detail.coach.joinedAt
+                ? formatDateTime(detail.coach.joinedAt).split(' ')[0]
+                : '-'
+            }}
           </span>
         </div>
         <div class="info-item">
           <span class="info-label">提交离职时间</span>
-          <span class="info-value">{{ formatDateTime(detail.coach.submittedAt) }}</span>
+          <span class="info-value">{{
+            formatDateTime(detail.coach.submittedAt)
+          }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Active 学员数</span>
-          <span class="info-value" :class="activeStudentCount > 0 ? 'text-danger' : ''">
+          <span
+            class="info-value"
+            :class="activeStudentCount > 0 ? 'text-danger' : ''"
+          >
             {{ activeStudentCount }}
           </span>
         </div>
@@ -354,7 +399,9 @@ onMounted(() => {
             >
               {{ getResultDisplay(row).label }}
             </span>
-            <span v-else class="text-muted">{{ getResultDisplay(row).label }}</span>
+            <span v-else class="text-muted">{{
+              getResultDisplay(row).label
+            }}</span>
           </template>
         </el-table-column>
         <el-table-column label="处理人" align="center" width="140">
@@ -364,7 +411,9 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="处理时间" align="center" width="180">
           <template #default="{ row }">
-            <span class="text-muted">{{ row.handledAt ? formatDateTime(row.handledAt) : '-' }}</span>
+            <span class="text-muted">{{
+              row.handledAt ? formatDateTime(row.handledAt) : '-'
+            }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -383,9 +432,15 @@ onMounted(() => {
           </el-checkbox>
           <span
             class="checklist-status"
-            :class="checklist.activeStudentsCleared ? 'text-success' : 'text-danger'"
+            :class="
+              checklist.activeStudentsCleared ? 'text-success' : 'text-danger'
+            "
           >
-            {{ checklist.activeStudentsCleared ? '已通过' : `当前仍有 ${activeStudentCount} 名学员未处理` }}
+            {{
+              checklist.activeStudentsCleared
+                ? '已通过'
+                : `当前仍有 ${activeStudentCount} 名学员未处理`
+            }}
           </span>
         </div>
         <div class="checklist-item">
@@ -397,9 +452,15 @@ onMounted(() => {
           </el-checkbox>
           <span
             class="checklist-status"
-            :class="checklist.allActionsRegistered ? 'text-success' : 'text-danger'"
+            :class="
+              checklist.allActionsRegistered ? 'text-success' : 'text-danger'
+            "
           >
-            {{ checklist.allActionsRegistered ? '已通过' : `还有 ${activeStudentCount - detail.handledPackages} 名学员待处理` }}
+            {{
+              checklist.allActionsRegistered
+                ? '已通过'
+                : `还有 ${activeStudentCount - detail.handledPackages} 名学员待处理`
+            }}
           </span>
         </div>
         <div class="checklist-item">
@@ -411,7 +472,9 @@ onMounted(() => {
           </el-checkbox>
           <span
             class="checklist-status"
-            :class="checklist.settlementCompleted ? 'text-success' : 'text-danger'"
+            :class="
+              checklist.settlementCompleted ? 'text-success' : 'text-danger'
+            "
           >
             {{ checklist.settlementCompleted ? '已结算' : '未结算' }}
           </span>
@@ -443,7 +506,13 @@ onMounted(() => {
       <div class="card-title">审批记录</div>
       <div class="timeline">
         <template v-for="(node, index) in timelineNodes" :key="node.title">
-          <div class="timeline-node" :class="{ 'timeline-node--done': node.done, 'timeline-node--active': node.active }">
+          <div
+            class="timeline-node"
+            :class="{
+              'timeline-node--done': node.done,
+              'timeline-node--active': node.active,
+            }"
+          >
             <div class="timeline-dot" />
             <div class="timeline-title">{{ node.title }}</div>
             <div class="timeline-time">{{ node.time }}</div>

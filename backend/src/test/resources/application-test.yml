@@ -29,6 +29,8 @@ leyo:
     refresh-token-expiration: 604800000
   phone-encryption:
     key: local-test-phone-encryption-key-32bytes!
+  id-card-encryption:
+    key: local-test-id-card-encryption-key-32b
   wechat:
     appid: wx_test_appid
     secret: wx_test_secret

@@ -1,0 +1,89 @@
+@import '@/styles/variables.scss';
+
+.coach-onboarding-success {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 120rpx;
+
+  &__illustration {
+    width: 320rpx;
+    height: 320rpx;
+    border-radius: 160rpx;
+    overflow: hidden;
+    margin-bottom: 48rpx;
+    background-color: #E6F7FF;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__title {
+    font-size: 44rpx;
+    font-weight: 500;
+    color: #262626;
+    margin-bottom: 16rpx;
+  }
+
+  &__subtitle {
+    font-size: 28rpx;
+    color: #8C8C8C;
+    margin-bottom: 16rpx;
+  }
+
+  &__countdown {
+    font-size: 24rpx;
+    color: #1890FF;
+    margin-bottom: 64rpx;
+  }
+
+  &__card {
+    width: 686rpx;
+    margin: 0 32rpx 48rpx;
+    padding: 32rpx;
+    background-color: #fff;
+    border-radius: 24rpx;
+    box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+  }
+
+  &__card-title {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  &__status-tag {
+    padding: 8rpx 20rpx;
+    font-size: 24rpx;
+    color: #1890FF;
+    background-color: #E6F7FF;
+    border-radius: 24rpx;
+  }
+
+  &__card-tip {
+    font-size: 26rpx;
+    color: #8C8C8C;
+  }
+
+  &__btn {
+    width: 686rpx;
+    height: 96rpx;
+    line-height: 96rpx;
+    font-size: 32rpx;
+    font-weight: 500;
+    color: #fff;
+    background-color: #1890FF;
+    border-radius: 16rpx;
+  }
+}

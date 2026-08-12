@@ -1,7 +1,10 @@
 package com.leyoswimming.config;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.leyoswimming.entity.Coach;
 import com.leyoswimming.entity.User;
+import com.leyoswimming.enums.CoachStatus;
+import com.leyoswimming.enums.UserStatus;
 import com.leyoswimming.repository.CoachMapper;
 import com.leyoswimming.repository.UserMapper;
 import com.leyoswimming.util.PhoneEncryptor;
@@ -30,7 +33,19 @@ public class BackfillPhoneHashInitializer {
   }
 
   private void backfillUsers() {
-    List<User> users = userMapper.selectList(null);
+    LambdaQueryWrapper<User> wrapper =
+        new LambdaQueryWrapper<User>()
+            .eq(User::getStatus, UserStatus.ACTIVE.getValue())
+            .and(
+                w ->
+                    w.and(
+                            w2 ->
+                                w2.isNotNull(User::getPhone).isNull(User::getPhoneHash))
+                        .or(
+                            w2 ->
+                                w2.isNotNull(User::getGuardianPhone)
+                                    .isNull(User::getGuardianPhoneHash)));
+    List<User> users = userMapper.selectList(wrapper);
     int updated = 0;
     for (User user : users) {
       if (hasText(user.getPhone()) && !hasText(user.getPhoneHash())) {
@@ -60,7 +75,12 @@ public class BackfillPhoneHashInitializer {
   }
 
   private void backfillCoaches() {
-    List<Coach> coaches = coachMapper.selectList(null);
+    LambdaQueryWrapper<Coach> wrapper =
+        new LambdaQueryWrapper<Coach>()
+            .ne(Coach::getStatus, CoachStatus.RESIGNED.getValue())
+            .isNotNull(Coach::getPhone)
+            .isNull(Coach::getPhoneHash);
+    List<Coach> coaches = coachMapper.selectList(wrapper);
     int updated = 0;
     for (Coach coach : coaches) {
       if (hasText(coach.getPhone()) && !hasText(coach.getPhoneHash())) {

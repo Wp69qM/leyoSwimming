@@ -11,8 +11,8 @@
 
 **Spec coverage:** REQ-025-1 / REQ-025-2 全部场景
 
-- [ ] **RED:** Write failing tests — create prepay params for WeChat/Alipay; handle success callback by updating order.status and creating package; reject expired orders; idempotent duplicate callback
-- [ ] **GREEN:** Implement `PaymentService.createPrepay(orderId, channel)` and `PaymentService.handleCallback(channel, payload)` with transaction
+- [ ] **RED:** Write failing tests — create prepay params for WeChat/Alipay; handle success callback by updating order.status and creating package from order snapshot fields; reject expired orders; idempotent duplicate callback; ignore package_template changes after order creation
+- [ ] **GREEN:** Implement `PaymentService.createPrepay(orderId, channel)` and `PaymentService.handleCallback(channel, payload)` with transaction; package creation must read snapshot fields from order and must not query package_template
 - [ ] **REFACTOR:** Extract channel-specific signature verification into adapters
 - [ ] **COMMIT:** `feat(payment): add prepay creation and callback handler`
 

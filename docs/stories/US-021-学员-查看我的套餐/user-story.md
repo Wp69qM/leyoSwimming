@@ -43,8 +43,9 @@
 1. 用户进入「我的套餐」页面
 2. 系统查询用户名下所有 package 记录
 3. 系统按状态分组展示：active / exhausted / expired / refunded / frozen
-4. 每个卡片展示：教练姓名、课时数、已用/剩余课时、有效期、状态标签
+4. 每个卡片展示购买时快照字段：教练姓名、套餐模式标签（正价/体验课）、教学类型、每节课时长、有效期、课时数、已用/剩余课时、购买时价格、状态标签
 5. 页面顶部汇总：总课时、已上课时、剩余课时
+6. 套餐详情页展示完整快照字段，若原 package_template 已下架或修改，仍以 package 实例中的快照为准
 
 ### 4.2 异常分支
 
@@ -69,12 +70,13 @@
 
 ```gherkin
 Given 用户已登录且名下有 2 个 active 套餐
-And   套餐 A：10 节，已用 3 节，剩余 7 节
-And   套餐 B：6 节，已用 0 节，剩余 6 节
+And   套餐 A：10 节，已用 3 节，剩余 7 节，package_mode='standard'，teaching_type='private'，duration_minutes=60，valid_days=90，paid_amount=3000
+And   套餐 B：6 节，已用 0 节，剩余 6 节，package_mode='standard'，teaching_type='group'，duration_minutes=90，valid_days=60，paid_amount=2400
 When  用户进入「我的套餐」页面
 Then  页面展示 2 个 active 套餐卡片
 And   顶部汇总：总课时 16，已用 3，剩余 13
-And   每个卡片展示教练姓名、有效期、状态标签
+And   每个卡片展示教练姓名、套餐模式标签（正价/体验课）、教学类型、每节课时长、有效期、购买时价格、状态标签
+And   每个卡片数据来自 package 实例快照字段，不依赖当前 package_template
 And   接口返回 HTTP 200
 ```
 
@@ -122,6 +124,17 @@ And   顶部汇总不纳入 expired 套餐
 And   接口返回 HTTP 200
 ```
 
+### 6.6 场景 6：原模板已下架仍显示购买时信息
+
+```gherkin
+Given 用户已登录且名下有 1 个 active 套餐
+And   该套餐购买时 package_template 的 package_name='10 节私教课'，package_mode='standard'，teaching_type='private'，duration_minutes=60，paid_amount=3000
+And   该 package_template 现已被管理员修改为 package_name='12 节私教课'，status='inactive'
+When  用户进入「我的套餐」页面
+Then  卡片仍展示购买时的 package_name='10 节私教课'、package_mode='standard'、teaching_type='private'、duration_minutes=60、paid_amount=3000
+And   接口返回 HTTP 200
+```
+
 ---
 
 ## 7. 数据/API/状态机影响
@@ -130,9 +143,10 @@ And   接口返回 HTTP 200
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `package` | 读取 | 用户名下所有套餐 |
+| 1 | `package` | 读取 | 用户名下所有套餐；展示字段全部来自购买时模板快照 |
 | 2 | `coach` | 读取 | 教练姓名、状态 |
 | 3 | `user` | 读取 | 登录态 |
+| 4 | `package_template` | 不读取 | 学员端不依赖当前模板字段，避免模板后续变更影响历史套餐展示 |
 
 ### 7.2 API 影响
 
@@ -190,14 +204,14 @@ And   接口返回 HTTP 200
 - [x] **V**aluable（有价值）- 用户核心信息入口
 - [x] **E**stimable（可估算）- 0.5 人天明确
 - [x] **S**mall（足够小）- 单一查询页面
-- [x] **T**estable（可测试）- 3 个 GWT 场景
+- [x] **T**estable（可测试）- 6 个 GWT 场景
 
 ---
 
 ## 11. 完整性检查
 
 - [x] 15 章齐全
-- [x] 3 个 GWT 场景
+- [x] 6 个 GWT 场景
 - [x] ≥3 边界场景
 - [x] PRD 引用明确
 
@@ -207,6 +221,7 @@ And   接口返回 HTTP 200
 
 - **缓存**：套餐列表可本地缓存 30s，下拉刷新强制拉取
 - **性能要求**：列表接口 P99 < 100ms
+- **模板快照**：「我的套餐」所有展示字段必须读取 package 实例中的快照字段，不关联当前 package_template，确保模板后续修改或下架不影响已购套餐展示
 
 ---
 
@@ -258,6 +273,7 @@ And   接口返回 HTTP 200
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | v3 评审 P0 修复：§6 新增场景 4（exhausted 展示）和场景 5（expired 含剩余课时展示+退款入口），对齐 PRD §6.4.1 expired 退款规则 |
 | v1.2 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
+| v1.3 | 2026-08-12 | PM | 适配 US-045：§4.1 明确展示 package 实例快照字段；§6 补充快照字段断言，新增场景 6；§7.1 更新数据表影响；§12 补充模板快照备注 |
 
 ---
 

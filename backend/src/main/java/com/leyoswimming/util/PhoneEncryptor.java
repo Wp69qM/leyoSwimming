@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,9 +59,16 @@ public class PhoneEncryptor {
     if (phone == null) {
       return null;
     }
-    return Base64.getEncoder()
-        .encodeToString(
-            MessageDigest.getInstance("SHA-256").digest(phone.getBytes(StandardCharsets.UTF_8)));
+    Mac mac = Mac.getInstance("HmacSHA256");
+    mac.init(new SecretKeySpec(keySpec.getEncoded(), "HmacSHA256"));
+    return Base64.getEncoder().encodeToString(mac.doFinal(phone.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  public static String mask(String phone) {
+    if (phone == null || phone.length() != 11) {
+      return phone;
+    }
+    return phone.substring(0, 3) + "****" + phone.substring(7);
   }
 
   String encryptWithFixedIvForTest(String phone) throws Exception {

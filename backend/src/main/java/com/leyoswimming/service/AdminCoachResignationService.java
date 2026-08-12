@@ -262,7 +262,11 @@ public class AdminCoachResignationService {
     scheduleSlotMapper.hideFutureByCoachId(coachId, now);
 
     Coach coach = coachMapper.selectById(coachId);
+    if (coach == null) {
+      throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
+    }
     coach.setStatus(CoachStatus.RESIGNED.getValue());
+    coach.setPhoneHash(null);
     coachMapper.updateById(coach);
 
     ticket.setStatus("approved");

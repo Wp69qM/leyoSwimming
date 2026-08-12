@@ -4,8 +4,8 @@
 
 ## What Changes
 
-- 新增 `GET /api/orders`：当前用户订单列表（分页 + 状态筛选）
-- 新增 `GET /api/orders/{order_id}`：订单详情（含 package / coach / payment / refund）
+- 新增 `GET /api/orders`：当前用户订单列表（分页 + 状态筛选），列表卡片展示套餐模式标签（正价/体验课）
+- 新增 `GET /api/orders/{order_id}`：订单详情（含 package / coach / payment / refund），套餐信息区展示购买时快照字段，不依赖 package_template 当前状态
 - 新增 Redis 缓存层：列表 60s / 详情 300s
 - 新增小程序「我的订单」列表页与订单详情页
 - 详情页为退款入口（US-027）预留
@@ -22,7 +22,7 @@
 
 ## Impact
 
-- **数据表**：读取 `order` / `package` / `coach` / `payment` / `refund`
+- **数据表**：读取 `order`（列表与详情中的套餐信息均取自 order 快照字段） / `package`（仅用于展示当前课时包状态） / `coach`（兜底读取） / `payment` / `refund`；不读取 `package_template`
 - **API**：新增 2 个端点
 - **缓存**：新增 Redis 订单列表与详情缓存
 - **前端**：新增小程序 2 个页面

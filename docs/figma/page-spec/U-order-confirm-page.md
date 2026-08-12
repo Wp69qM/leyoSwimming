@@ -2,9 +2,9 @@
 
 > **性质**：Figma 设计交付的唯一指令源。AI 生成 Figma 时**必须**按本规格严格执行。
 > **核心约束**：本规格的每一条元素显隐规则必须可追溯到 [PRD](../../prd/prd.md) 或具体 US 的某条业务规则。
-> **归属 US**：US-017 / US-019 / US-020 / US-025
+> **归属 US**：US-017 / US-019 / US-020 / US-025 / US-045
 > **对应 PRD**：§3.5 单教练约束、§4.1 套餐类型、§4.5 体验课规则、§5.3.4 购买与支付、§6.2 订单状态机、§6.9 签署流程、§13.3 MVP 页面清单第 11 项
-> **版本**：v1.0 | **创建日期**：2026-08-02
+> **版本**：v1.1 | **创建日期**：2026-08-12
 > **特别说明**：本页是「购买套餐 → 生成待支付订单」的确认入口，必须同时展示套餐信息、教练信息、价格明细与协议签署，并在提交前完成所有业务校验。
 
 ---
@@ -96,41 +96,50 @@
 
 ### 3.3 套餐信息卡（Package Info Card）
 
-> **来源**：[US-017 §4.1](../../../docs/stories/US-017-游客-购买体验课套餐/user-story.md) / [US-020 §4.1](../../../docs/stories/US-020-学员-购买正价套餐/user-story.md) / [PRD §4.1](../../../docs/prd/prd.md) / [PRD §5.5.3](../../../docs/prd/prd.md)。
-> 套餐信息卡需区分体验课与正价课、标准套餐与自定义课时。
+> **来源**：[US-017 §4.1](../../../docs/stories/US-017-游客-购买体验课套餐/user-story.md) / [US-020 §4.1](../../../docs/stories/US-020-学员-购买正价套餐/user-story.md) / [US-045 §4.1](../../../docs/stories/US-045-管理员-配置标准与自定义套餐/user-story.md) / [PRD §4.1](../../../docs/prd/prd.md) / [PRD §5.5.3](../../../docs/prd/prd.md)。
+> 套餐信息卡需区分体验课与正价课、标准套餐与自定义课时。**提交订单时，系统需将套餐模板的 `package_mode`、`teaching_type`、`stroke_ids`、`total_hours`、`duration_minutes`、`valid_days`、`original_price`、`price`、`refund_enabled`、`refund_ratio`、`refund_valid_days` 等字段快照保存到订单记录中，避免后续模板变更影响本订单。**
 
 #### A. 体验课套餐信息
 
 | 字段 | 值 |
 |------|-----|
-| 容器 | 343×104，x = 16，y = 176（教练卡下方 12px），背景 `gradient-accent`，`radius-lg` 12px，`shadow-raised` |
-| 左上角标签 | "新人体验课" 胶囊标签，背景 #FFFFFF 24% 不透明度，文字 12px / Medium #FFFFFF，位于左上角 12px |
-| 主标题 | "1 节体验课"，20px / Bold #FFFFFF，x = 16，y = 44 |
-| 副标题 | "30 天有效 · 限购 1 份"，14px / Regular #FFFFFF 80%，位于主标题下方 4px |
-| 价格 | "¥99"，24px / Bold #FFFFFF，右侧对齐 x = 327 |
+| 容器 | 343×140，x = 16，y = 176（教练卡下方 12px），背景 `gradient-accent`，`radius-lg` 12px，`shadow-raised` |
+| 套餐模式标签 | "体验课" 胶囊标签，背景 #FFFFFF 24% 不透明度，文字 12px / Medium #FFFFFF，位于左上角 12px |
+| 主标题 | "1 节体验课"，20px / Bold #FFFFFF，x = 16，y = 48 |
+| 教学类型/泳姿 | "一对一 · 自由泳"，14px / Regular #FFFFFF 80%，位于主标题下方 4px |
+| 课时/时长/有效期 | "1 节 · 60 分钟/节 · 30 天有效"，14px / Regular #FFFFFF 80%，位于教学类型下方 4px |
+| 原价/售价 | 左侧 "原价 ¥XXX" 12px / Regular #FFFFFF 60% 删除线；右侧 "售价 ¥99" 20px / Bold #FFFFFF，右侧对齐 x = 327 |
+| 退款规则概要 | "开课前 X 天内可退 XX%" / "本套餐不支持退款"，12px / Regular #FFFFFF 80%，位于价格下方 4px |
 | 数量 | 固定为 1，不展示数量调节器 |
 
 #### B. 正价标准套餐信息
 
 | 字段 | 值 |
 |------|-----|
-| 容器 | 343×120，x = 16，y = 176，背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
+| 容器 | 343×168，x = 16，y = 176，背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
 | 区标题 | "正价套餐"，16px / Medium `color-text-primary`，顶部 padding 16px，左侧 padding 16px |
+| 套餐模式标签 | "正价套餐" 胶囊标签，背景 `color-primary` 浅色，文字 12px / Medium `color-primary`，位于区标题右侧 12px |
 | 套餐名称 | "X 节标准课"，16px / Medium `color-text-primary`，y = 48，x = 16 |
-| 套餐描述 | "一对一 · 有效期 Y 天"，12px / Regular `color-text-secondary`，位于套餐名称下方 4px |
-| 单价/均价 | "¥XXX/节"，14px / Regular `color-text-secondary`，右侧 x = 260，y = 50 |
-| 总价 | "¥XXXX"，20px / Bold `color-text-primary`，右侧 x = 260，y = 76 |
+| 教学类型/泳姿 | "一对一 · 自由泳/蛙泳"，12px / Regular `color-text-secondary`，位于套餐名称下方 4px |
+| 课时/时长/有效期 | "X 节 · 60 分钟/节 · 有效期 Y 天"，12px / Regular `color-text-secondary`，位于教学类型下方 4px |
+| 原价/售价 | 左侧 "原价 ¥XXXX" 12px / Regular `color-text-secondary` 删除线；右侧 "售价 ¥XXXX" 20px / Bold `color-text-primary` |
+| 退款规则概要 | "开课前 X 天内可退 XX%" / "本套餐不支持退款"，12px / Regular `color-text-secondary` |
 | 数量 | 锁定为套餐固定课时，右侧显示 "X 节" 14px / Medium `color-text-primary` |
 
 #### C. 自定义课时信息
 
 | 字段 | 值 |
 |------|-----|
-| 容器 | 343×144，x = 16，y = 176，背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
+| 容器 | 343×192，x = 16，y = 176，背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
 | 区标题 | "自定义课时"，16px / Medium `color-text-primary`，顶部 padding 16px |
+| 套餐模式标签 | "正价套餐" 胶囊标签，背景 `color-primary` 浅色，文字 12px / Medium `color-primary`，位于区标题右侧 12px |
 | 参考单价说明 | "按教练参考单价 ¥XXX/节 计算"，12px / Regular `color-text-secondary` |
+| 教学类型/泳姿 | 显示当前教练默认教学类型与可选泳姿，12px / Regular `color-text-secondary` |
+| 课时/时长/有效期 | "X 节 · 60 分钟/节 · 有效期 Y 天"，12px / Regular `color-text-secondary` |
+| 原价/售价 | 左侧 "原价 ¥XXXX" 12px / Regular `color-text-secondary` 删除线；右侧 "售价 ¥XXXX" 20px / Bold `color-text-primary` |
+| 退款规则概要 | "开课前 X 天内可退 XX%" / "本套餐不支持退款"，12px / Regular `color-text-secondary` |
 | 数量调节器 | 横向步进器：减号按钮 32×32 / 数量显示 48×32 / 加号按钮 32×32；最小 1，最大由教练可售课时上限决定 |
-| 调节器位置 | 右侧，y = 72 |
+| 调节器位置 | 右侧，y = 112 |
 | 实时总价 | "合计 ¥XXXX"，20px / Bold `color-text-primary`，底部 padding 16px |
 
 ### 3.4 价格明细区（Price Breakdown）
@@ -158,7 +167,8 @@
 | 容器 | 343×自适应，x = 16，y = （价格明细区下方 12px），背景 `#FFFFFF`，`radius-lg` 12px，`shadow-card` |
 | 区标题 | "购买协议"，16px / Medium `color-text-primary`，顶部 padding 16px |
 | 复选框组 | 每项 40px 高，左侧 20×20 复选框，右侧协议文案 14px / Regular `color-text-primary` |
-| 《用户须知》 | "我已阅读并同意《用户须知》"，"《用户须知》"为 14px / Medium `color-primary` 文字按钮 |
+| 《用户须知》 | "我已阅读并同意《用户须知》"，"《用户须知》"为 14px / Medium `color-primary` 文字按钮；内嵌退款规则说明 |
+| 退款规则说明 | 在《用户须知》中展示：当 `refund_enabled=true` 时显示“开课前 `refund_valid_days` 天内可申请退款，退款比例 `refund_ratio%`”；`refund_enabled=false` 时显示“本套餐不支持退款”。文案 12px / Regular `color-text-secondary`，位于用户须知下方 4px |
 | 健康承诺书 | 仅正价课显示："我已阅读并同意《健康承诺书》" |
 | 免责协议 | 仅正价课显示："我已阅读并同意《免责协议》" |
 | 未勾选提示 | 点击提交时若有未勾选项，toast "请先同意全部协议" |
@@ -215,6 +225,16 @@
 | 显示条件 | 用户已有 active/exhausted 体验套餐时显示；本页应被前置拦截，若进入则显示此条 |
 | 点击行为 | "去预约" → `U-教练排班页` |
 
+#### D. 套餐已下架提示条
+
+| 字段 | 值 |
+|------|-----|
+| 容器 | 343×40，x = 16，背景 `#FFF2E8`，`radius-lg` 8px |
+| 左侧图标 | 16×16 警告三角占位，`color-error` #FF4D4F |
+| 文案 | "该套餐已下架，请重新选择"，14px / Regular `color-error` |
+| 显示条件 | 进入本页时检测到 `package_template.status ≠ 'active'` 或模板已被删除 |
+| 交互影响 | 底部"提交订单"按钮禁用；点击提示条返回上一页 |
+
 ### 3.8 底部固定提交栏（Bottom Submit Bar）
 
 > **来源**：[US-017 §4.1](../../../docs/stories/US-017-游客-购买体验课套餐/user-story.md) / [US-020 §4.1](../../../docs/stories/US-020-学员-购买正价套餐/user-story.md) / [PRD §6.2](../../../docs/prd/prd.md) 订单状态机。
@@ -228,8 +248,8 @@
 | 右侧提交按钮 | 宽 160px，高 44px，x = 199，y = 12，圆角 8px（`radius-md`） |
 | 主按钮（提交订单） | 背景 `gradient-primary`，文字 "提交订单" 16px / Medium #FFFFFF，`shadow-primary` |
 | 禁用按钮 | 背景 `#F5F5F5`，文字 `color-text-disabled` #BFBFBF，如 "提交订单" |
-| 显示条件 | 正常状态显示主按钮；单教练冲突/教练不可用/未签协议/未验证监护人时按钮禁用 |
-| 点击行为 | 提交订单 → 调用创建订单 API → 成功跳转 `U-支付页`（带 order_id 参数） |
+| 显示条件 | 正常状态显示主按钮；单教练冲突/教练不可用/套餐已下架/未签协议/未验证监护人时按钮禁用 |
+| 点击行为 | 提交订单 → 校验模板仍上架 → 调用创建订单 API（将当前模板字段快照写入订单）→ 成功跳转 `U-支付页`（带 order_id 参数）；若模板已下架则 toast "该套餐已下架，请重新选择" |
 
 ---
 
@@ -275,7 +295,7 @@
 |------|------|------|
 | **空状态** | 无套餐信息传入（如直接 deep link 进入缺少参数） | 中央 Empty 组件：插画 + "暂无订单信息" + "返回首页" 按钮（→ `U-首页`） |
 | **加载中** | 首次进入 / 拉取教练/套餐详情 / 提交订单中 | 卡片区域显示骨架屏（浅灰 #F5F5F5 矩形占位）；提交按钮显示 loading 态 |
-| **错误状态** | 网络断开 / 接口 5xx / 业务 4xx（如套餐已下架） | 中央错误插画 + "加载失败，点击重试" + Primary「重新加载」按钮；套餐下架时显示 "该套餐已下架" |
+| **错误状态** | 网络断开 / 接口 5xx / 业务 4xx（如套餐已下架） | 中央错误插画 + "加载失败，点击重试" + Primary「重新加载」按钮；套餐模板下架或不存在时显示 "该套餐已下架，请重新选择" |
 | **成功状态** | 数据正常返回 | 按 §4 显示规则矩阵完整展示；提交成功后跳转支付页 |
 
 ---
@@ -293,6 +313,9 @@
 | 订单状态机：提交后 order.status = 待支付 | PRD §6.2 / US-020 §4.1 | §3.8 提交后跳转支付页 |
 | 教练 status ≠ 1 时不可购买 | US-017 §4.2 / US-020 §4.2 | §3.7-B 教练不可用提示条 |
 | 标准套餐课时数固定，自定义课时按参考单价计算 | PRD §5.5.3 / US-019 §4.1 | §3.3-B 数量锁定 / §3.3-C 数量调节器 |
+| 已购套餐保存模板快照，避免后续模板变更影响历史订单 | US-045 §5 规则 5 | §3.3 套餐信息卡；§3.8 提交订单快照 |
+| 套餐模板下架时不可提交订单 | US-045 §4.2 / 本 US 新增 | §3.7-D 套餐已下架提示条；§3.8 / §6 错误状态 |
+| 购买须知中需展示退款规则 | US-045 §4.1 | §3.5 协议签署区退款规则说明 |
 | MVP 页面清单第 11 项「订单确认页」用于选择教练+课时 | PRD §13.3 | 本页 Frame 名与功能定位 |
 
 ---
@@ -313,6 +336,9 @@
 - [ ] 未遗漏未成年人监护人手机号输入区
 - [ ] 体验课数量已锁定为 1 节，不展示调节器
 - [ ] 自定义课时已展示数量步进器与实时总价
+- [ ] 已展示套餐模式标签、教学类型、泳姿、课时数、每节课时长、有效期、原价/售价、退款规则概要
+- [ ] 已明确提交订单时保存模板字段快照
+- [ ] 已处理套餐已下架异常状态与提示
 
 ---
 
@@ -320,4 +346,5 @@
 
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
+| v1.1 | 2026-08-12 | PM | 适配 US-045：套餐信息卡增加模式标签、教学类型、泳姿、课时/时长/有效期、原价/售价、退款规则；提交订单时快照保存模板字段；增加套餐已下架异常状态；购买须知中增加退款规则说明 |
 | v1.0 | 2026-08-02 | PM | 初版：覆盖游客/注册用户/学员（本教练/其他教练）四种身份，区分体验课/正价标准套餐/自定义课时三种订单类型，包含协议签署、监护人验证、单教练冲突、价格明细与底部提交栏 |

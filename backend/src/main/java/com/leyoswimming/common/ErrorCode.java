@@ -13,6 +13,7 @@ public enum ErrorCode {
   RESOURCE_NOT_FOUND(100004, "资源不存在"),
   VALIDATION_ERROR(100005, "参数校验失败"),
   IDEMPOTENCY_DUPLICATE(100006, "请求正在处理中，请勿重复提交"),
+  OPERATION_IN_PROGRESS(100007, "操作正在进行中，请稍后重试"),
 
   // 认证授权 200xxx
   UNAUTHORIZED(200001, "未登录或 Token 无效"),
@@ -47,6 +48,7 @@ public enum ErrorCode {
   INVALID_SMS_CODE(420001, "验证码错误或已过期"),
   SMS_RATE_LIMIT(420002, "请 60 秒后再试"),
   SMS_SEND_FAILED(420003, "验证码发送失败，请稍后重试"),
+  SMS_TOO_MANY_ATTEMPTS(420004, "验证失败次数过多，请 30 分钟后重试"),
 
   // 微信 430xxx
   WECHAT_CODE_INVALID(430001, "登录凭证已失效，请重新点击登录"),

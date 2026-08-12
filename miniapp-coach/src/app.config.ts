@@ -5,6 +5,9 @@ export default defineAppConfig({
     'pages/login/phone/index',
     'pages/login/protocol/index',
     'pages/profile/complete/index',
+    'pages/onboarding/index/index',
+    'pages/onboarding/success/index',
+    'pages/onboarding/pending/index',
     'pages/resignation/apply/index',
     'pages/resignation/ticket/index',
     'pages/resignation/processing/index'

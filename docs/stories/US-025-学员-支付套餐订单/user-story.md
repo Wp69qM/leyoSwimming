@@ -3,7 +3,7 @@
 > **状态**：[REVIEW]（评审中）
 > **优先级**：[MVP]
 > **估时**：1.5 人天
-> **作者**：PM　|　**最后更新**：2026-07-30
+> **作者**：PM　|　**最后更新**：2026-08-12
 > **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
@@ -49,9 +49,10 @@
 4. 系统调用微信支付/支付宝统一下单，生成预支付参数
 5. 前端调起对应支付 SDK，用户完成支付
 6. 第三方支付异步回调系统支付接口
-7. 系统幂等处理回调：order.status → 已支付，package.status → active
-8. 系统触发身份重算：注册用户 → 学员
-9. 系统发送支付成功通知
+7. 系统幂等处理回调：order.status → 已支付，paid_at 写入时间戳
+8. 系统使用订单中已快照的模板字段创建 package，package.status → active（不实时查询 package_template）
+9. 系统触发身份重算：注册用户 → 学员
+10. 系统发送支付成功通知
 
 ### 4.2 异常分支
 
@@ -80,11 +81,13 @@
 
 ```gherkin
 Given 用户已登录且存在待支付订单 order.status = 待支付，amount = 1800 元
+And   订单中已快照模板字段：package_name = "蛙泳基础 10 节", package_mode = "standard", coach_id = "C001", coach_name = "王教练", teaching_type = "1v1", stroke_ids = ["breaststroke"], total_hours = 10, duration_minutes = 60, valid_days = 90, original_price = 2000, paid_amount = 1800, refund_enabled = true, refund_ratio = 0.8, refund_valid_days = 30
 And   订单未超过 24h 有效期
 When  用户选择微信支付并完成支付
 Then  系统收到支付成功回调
 And   order.status = 已支付，paid_at 写入时间戳
 And   package.status = active，available = 10
+And   package 字段与订单快照一致：package_mode = "standard", coach_id = "C001", teaching_type = "1v1", total_hours = 10, duration_minutes = 60, valid_days = 90, paid_amount = 1800
 And   用户身份升级为学员
 And   系统发送支付成功微信订阅消息
 ```
@@ -93,11 +96,13 @@ And   系统发送支付成功微信订阅消息
 
 ```gherkin
 Given 用户已登录且存在待支付订单 order.status = 待支付，amount = 2400 元
+And   订单中已快照模板字段：package_name = "自由泳进阶 12 节", package_mode = "standard", coach_id = "C002", coach_name = "李教练", teaching_type = "1v2", stroke_ids = ["freestyle"], total_hours = 12, duration_minutes = 60, valid_days = 120, original_price = 2600, paid_amount = 2400, refund_enabled = true, refund_ratio = 0.7, refund_valid_days = 30
 And   订单未超过 24h 有效期
 When  用户选择支付宝支付并完成支付
 Then  系统收到支付成功回调
 And   order.status = 已支付
 And   package.status = active
+And   package 字段与订单快照一致：package_mode = "standard", coach_id = "C002", teaching_type = "1v2", total_hours = 12, duration_minutes = 60, valid_days = 120, paid_amount = 2400
 And   用户身份升级为学员
 ```
 
@@ -125,10 +130,12 @@ And   前端提示"订单已过期，请重新下单"
 
 ```gherkin
 Given 订单已支付成功且 package.status = active
+And   package 字段与订单快照一致
 When  第三方支付再次发送同一笔支付成功回调
 Then  系统幂等处理，返回 HTTP 200
 And   不重复创建 package
 And   order.status 仍 = 已支付
+And   package 字段仍与订单快照一致
 ```
 
 ---
@@ -139,11 +146,12 @@ And   order.status 仍 = 已支付
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `order` | 修改 | status → 已支付，paid_at 回填 |
+| 1 | `order` | 修改 | status → 已支付，paid_at 回填；order 中已保存模板快照字段，用于后续 package 创建 |
 | 2 | `payment` | 新增 | 支付流水，含 channel_trade_no |
-| 3 | `package` | 新增 | 支付成功后创建 active 课时包 |
+| 3 | `package` | 新增 | 支付成功后创建 active 课时包，字段全部取自 order 快照，不实时查询 package_template |
 | 4 | `user` | 读取/触发 | 身份重算为学员 |
 | 5 | `agreement_sign` | 读取 | 校验协议已签署 |
+| 6 | `package_template` | 读取 | 下单时校验 template.status = active；支付回调阶段不再依赖 template 当前状态 |
 
 ### 7.2 API 影响
 
@@ -184,7 +192,13 @@ And   order.status 仍 = 已支付
 - **预期行为**：幂等键保证仅生成一笔 payment 记录，仅调起一次支付
 - **用户可见反馈**：正常调起支付 SDK
 
-### 8.4 边界场景 4：支付超时与候补转正并发竞争
+### 8.4 边界场景 4：支付期间模板被修改/下架
+
+- **触发条件**：用户下单后、支付回调完成前，管理员修改了 package_template（如下架、改价、调整课时数）
+- **预期行为**：支付成功后创建 package 仍使用订单中已快照的模板字段，不受 package_template 后续变更影响；package_template 当前状态不阻塞已下单订单的支付回调
+- **用户可见反馈**：用户支付成功后，套餐内容、价格、有效期与下单时一致
+
+### 8.5 边界场景 5：支付超时与候补转正并发竞争
 
 - **触发条件**：订单 24h 超时取消定时任务执行的同时，该订单对应教练的候补学员触发转正（US-023）
 - **预期行为**：库存释放（超时取消）与候补转正必须竞争同一分布式锁（`inventory:{coach_id}`），串行执行；避免超时释放的库存被重复分配给候补或原订单
@@ -250,6 +264,7 @@ And   order.status 仍 = 已支付
 
 - **幂等键**：`idempotency_key = order_id:pay:{timestamp}:{nonce}`，按订单维度去重
 - **事务边界**：支付流水状态更新 + order 状态更新 + package 创建 在同一事务
+- **快照字段**：package 创建必须仅读取 order 中已保存的快照字段（package_name, package_mode, coach_id, coach_name, teaching_type, stroke_ids, total_hours, duration_minutes, valid_days, original_price, paid_amount, refund_enabled, refund_ratio, refund_valid_days），禁止回查 package_template
 - **性能要求**：支付回调处理 P99 < 500ms，预支付参数获取 P99 < 200ms
 - **对账机制**：每日凌晨与第三方支付渠道对账，差异进入异常队列
 
@@ -304,6 +319,7 @@ And   order.status 仍 = 已支付
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | P1 修复：§8 增加支付超时与候补转正并发竞争边界场景，明确使用同一分布式锁 |
 | v1.2 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
+| v1.3 | 2026-08-12 | PM | 适配 US-045：package 创建使用订单快照字段；§6 Gherkin 补充快照字段断言；§8 增加支付期间模板被修改/下架边界场景；§7.1/§12 更新数据表影响与备注 |
 
 ---
 

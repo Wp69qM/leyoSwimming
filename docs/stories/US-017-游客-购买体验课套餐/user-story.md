@@ -36,6 +36,7 @@
 - [x] 目标教练已通过入驻审核（依赖 US-011）
 - [x] 用户已阅读并同意最新版《用户须知》（§6.9）
 - [x] 用户名下无 active/exhausted 体验套餐（§4.5）
+- [x] 目标体验课模板存在且已上架（`package_mode='experience'` 且 `status='active'`，依赖 US-045）
 
 ---
 
@@ -45,11 +46,11 @@
 
 1. 游客进入教练详情页，点击「购买体验课」
 2. 系统展示《用户须知》并校验用户已勾选「我已阅读并同意《用户须知》」
-3. 系统校验用户身份、教练状态、体验课购买资格、协议勾选状态
+3. 系统校验用户身份、教练状态、体验课模板状态（`package_mode='experience'` 且 `status='active'`）、体验课购买资格、协议勾选状态
 4. 系统生成待支付订单（order.status = 待支付）
 5. 游客选择微信支付/支付宝支付并完成付款
 6. 系统接收支付回调，更新订单为已支付
-7. **支付成功后**系统创建 active 体验套餐（package.status = active，available=1，expire_at=30 天后）
+7. **支付成功后**系统创建 active 体验套餐，并将模板关键字段快照写入 `package` 实例（`package_name`、`package_mode='experience'`、`coach_id`、`coach_name`、`teaching_type`、`total_hours=1`、`duration_minutes`、`valid_days=30`、`original_price`、`paid_amount`、`refund_enabled`、`refund_ratio`、`refund_valid_days`），`package.status=active`，`available=1`，`expire_at=30` 天后
 8. 系统触发身份重算，用户变为学员
 9. 系统返回购买成功，游客可预约该教练体验课
 
@@ -60,7 +61,8 @@
 - **分支 1**：用户未勾选《用户须知》 → 返回错误 `AGREEMENT_REQUIRED`
 - **分支 2**：用户已有 active/exhausted 体验套餐 → 返回错误 `TRIAL_PACKAGE_EXISTS`
 - **分支 3**：教练 status ≠ 1 → 返回错误 `COACH_UNAVAILABLE`
-- **分支 4**：支付超时 24h → 订单自动取消，套餐回滚
+- **分支 4**：体验课模板未上架或不存在（`package_mode ≠ 'experience'` 或 `status ≠ 'active'`） → 返回错误 `TRIAL_PACKAGE_INACTIVE`，前端提示"该体验课已下架"
+- **分支 5**：支付超时 24h → 订单自动取消，套餐回滚
 
 ---
 
@@ -73,6 +75,8 @@
 | 3 | 订单状态机 | [§6.2](../../prd/prd.md) |
 | 4 | 支付成功后身份 = 学员 | [§3.3](../../prd/prd.md) |
 | 5 | 购买前必须签署《用户须知》 | [§6.9](../../prd/prd.md) |
+| 6 | 体验课模板必须已上架（`status='active'`）且 `package_mode='experience'` 才能购买 | US-045 |
+| 7 | 已购套餐保存模板快照字段，不受后续模板变更影响 | US-045 |
 
 ---
 
@@ -83,6 +87,7 @@
 ```gherkin
 Given 游客已登录且名下无体验套餐
 And   教练 A 状态为已通过（status=1）
+And   体验课模板 T 状态为 active 且 package_mode='experience'
 When  游客提交体验课订单
 Then  订单状态 = 待支付
 And   不创建 package（套餐在支付成功后才激活）
@@ -90,6 +95,7 @@ And   接口返回 HTTP 201 与支付参数
 When  游客完成支付，支付回调到达
 Then  订单状态 = 已支付
 And   package.status = active，package_type = 0，available = 1，total_hours = 1，expire_at = 30 天后
+And   package 保存模板 T 的快照字段（package_name、package_mode='experience'、coach_id、coach_name、teaching_type、duration_minutes、valid_days=30、original_price、paid_amount、refund_enabled、refund_ratio、refund_valid_days）
 And   用户身份变为学员
 And   接口返回 HTTP 200
 ```
@@ -144,6 +150,18 @@ And   不创建 package（因支付未成功，套餐从未激活）
 And   用户身份保持游客/注册用户不变
 ```
 
+### 6.7 场景 7：体验课模板已下架
+
+```gherkin
+Given 游客已登录且名下无体验套餐
+And   教练 A 状态为已通过（status=1）
+And   体验课模板 T 状态为 inactive
+When  游客提交体验课订单
+Then  系统返回 HTTP 400，错误码 TRIAL_PACKAGE_INACTIVE
+And   前端提示"该体验课已下架"
+And   不创建订单
+```
+
 ---
 
 ## 7. 数据/API/状态机影响
@@ -153,10 +171,11 @@ And   用户身份保持游客/注册用户不变
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
 | 1 | `order` | 新增 | 体验课订单，course_type=0，初始 status=待支付 |
-| 2 | `package` | 新增（支付成功后） | 体验套餐，支付回调成功时创建，status=active，expire_at=30 天后 |
-| 3 | `payment` | 新增 | 支付流水 |
-| 4 | `agreement_sign` | 新增 | 记录《用户须知》签署版本与时间 |
-| 5 | `user` | 修改 | 支付成功后 identity 字段更新为学员 |
+| 2 | `package_template` | 读 | 按 `package_mode='experience'` 且 `status='active'` 查询体验课模板 |
+| 3 | `package` | 新增（支付成功后） | 体验套餐，保存模板快照字段，status=active，expire_at=30 天后 |
+| 4 | `payment` | 新增 | 支付流水 |
+| 5 | `agreement_sign` | 新增 | 记录《用户须知》签署版本与时间 |
+| 6 | `user` | 修改 | 支付成功后 identity 字段更新为学员 |
 
 ### 7.2 API 影响
 
@@ -219,7 +238,7 @@ And   用户身份保持游客/注册用户不变
 - [x] **V**aluable（有价值）- 核心转化入口
 - [x] **E**stimable（可估算）- 1 人天明确
 - [x] **S**mall（足够小）- 单一购买场景
-- [x] **T**estable（可测试）- 5 个 GWT 场景可客观验证
+- [x] **T**estable（可测试）- 7 个 GWT 场景可客观验证
 
 ---
 
@@ -238,7 +257,7 @@ And   用户身份保持游客/注册用户不变
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 GWT
+- [x] 1 正常 + 6 异常 GWT
 - [x] 每个 Then 含具体数值/状态码/DB 字段值
 
 ### 11.4 配套文档
@@ -304,6 +323,7 @@ And   用户身份保持游客/注册用户不变
 | v1.2 | 2026-07-31 | PM | P1 修复：补充购买前《用户须知》签署校验；§3/§4.1/§4.2/§5/§6/§7/§12 更新 |
 | v1.3 | 2026-07-31 | 开发 | P1-7 修复：§3 前置条件补充《健康承诺书》《免责协议》两项（PRD §6.9 / §11.3 要求首次购买前必须签署；隐私协议在 US-004 已签署，此处不重复）；同步更新 openspec spec.md REQ-001 |
 | v1.4 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
+| v1.5 | 2026-08-12 | PM | 适配 US-045：§3/§4.1/§4.2/§5/§6/§7.1 增加 package_template 状态校验、模板快照字段及 TRIAL_PACKAGE_INACTIVE 异常分支 |
 
 ---
 

@@ -8,7 +8,7 @@ US-020 完成了正价套餐下单，但订单仍处于待支付状态。必须�
 - 新增 `POST /api/payments/callback/wechat` 与 `POST /api/payments/callback/alipay`：处理渠道异步回调
 - 新增 `GET /api/orders/{order_id}`：查询订单支付状态
 - 新增 `payment` 表记录支付流水与幂等键
-- 支付成功事务内更新 order.status → 已支付，创建 package.status → active
+- 支付成功事务内更新 order.status → 已支付；使用订单中已快照的模板字段创建 package.status → active，不实时查询 package_template
 - 异步触发身份重算：注册用户 → 学员
 - 新增定时任务关闭 24h 未支付订单
 - 新增 Redis 分布式锁与订单状态缓存
@@ -26,7 +26,7 @@ US-020 完成了正价套餐下单，但订单仍处于待支付状态。必须�
 
 ## Impact
 
-- **数据表**：新增/修改 `order` / `payment` / `package`；读取 `user` / `agreement_sign`
+- **数据表**：新增/修改 `order`（回填 paid_at，保存模板快照字段） / `payment` / `package`（字段取自 order 快照）；读取 `user` / `agreement_sign` / `package_template`（下单时校验 active，支付回调阶段不依赖）
 - **API**：新增 4 个端点
 - **缓存**：新增 Redis 分布式锁与订单状态缓存
 - **定时任务**：新增订单过期关闭任务

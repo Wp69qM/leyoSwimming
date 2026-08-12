@@ -37,6 +37,7 @@
 - [x] 用户已阅读并同意最新版《用户须知》、健康承诺书、免责协议（§6.9）
 - [x] 如用户为未成年人，已填写监护人手机号并通过短信校验（§6.9）
 - [x] 系统已配置标准套餐或允许自定义课时（依赖 US-019 / US-045）
+- [x] 所选套餐模板 `package_mode='standard'` 且 `status='active'`（已上架）
 
 ---
 
@@ -49,10 +50,12 @@
 3. 系统展示《用户须知》、健康承诺书、免责协议；用户勾选同意
 4. 如用户年龄 < 18 岁，系统要求填写监护人手机号并发送短信验证码校验
 5. 系统校验：教练 status=1、用户无其他教练的 active 套餐、协议版本正确、监护人手机号已校验（未成年人）
-6. 系统生成待支付订单（order.status=待支付，course_type=1）
-7. 系统记录协议签署（agreement_sign）
-8. 系统向监护人手机号发送「未成年人已提交正价套餐购买订单」短信通知
-9. 系统返回订单信息，前端跳转支付页（US-025）
+6. 系统校验所选套餐模板：`package_mode='standard'` 且 `status='active'`；若模板未上架，拒绝创建订单
+7. 系统将模板关键字段快照写入订单/预生成 package：package_name、package_mode、coach_id、coach_name、teaching_type、stroke_ids、total_hours、duration_minutes、valid_days、original_price、paid_amount、refund_enabled、refund_ratio、refund_valid_days、tags、description、images
+8. 系统生成待支付订单（order.status=待支付，course_type=1）
+9. 系统记录协议签署（agreement_sign）
+10. 系统向监护人手机号发送「未成年人已提交正价套餐购买订单」短信通知
+11. 系统返回订单信息，前端跳转支付页（US-025）
 
 ### 4.2 异常分支
 
@@ -60,7 +63,8 @@
 - **分支 2**：用户已持有其他教练的 active 套餐 → 返回错误码 `COACH_CONFLICT`，引导先更换教练（US-022）
 - **分支 3**：教练 status ≠ 1 → 返回错误码 `COACH_UNAVAILABLE`
 - **分支 4**：未成年用户未填写或未完成监护人手机号短信校验 → 返回错误码 `GUARDIAN_PHONE_REQUIRED`
-- **分支 5**：同一教练存在未支付订单 → 返回现有待支付订单（幂等）
+- **分支 5**：所选套餐模板 `package_mode ≠ 'standard'` 或 `status ≠ 'active'` → 返回错误码 `PACKAGE_NOT_AVAILABLE`
+- **分支 6**：同一教练存在未支付订单 → 返回现有待支付订单（幂等）
 
 ---
 
@@ -85,9 +89,11 @@
 Given 注册用户已登录且同意最新版协议
 And   教练 A 状态为已通过（status=1）
 And   用户名下无其他教练的 active 套餐
-And   系统已配置 10 节标准套餐
+And   系统已配置 10 节标准套餐，package_mode='standard'，status='active'
 When  用户选择教练 A 的 10 节标准套餐并提交订单
-Then  系统创建 order.status = 待支付，course_type = 1
+Then  系统校验模板 package_mode='standard' 且 status='active'
+And   系统将 package_name、package_mode、coach_id、coach_name、teaching_type、stroke_ids、total_hours、duration_minutes、valid_days、original_price、paid_amount、refund_enabled、refund_ratio、refund_valid_days、tags、description、images 快照写入订单/预生成 package
+And   系统创建 order.status = 待支付，course_type = 1
 And   系统记录 agreement_sign 版本号与签署时间
 And   接口返回 HTTP 201 与订单 ID
 And   前端跳转支付页（US-025）
@@ -98,9 +104,12 @@ And   前端跳转支付页（US-025）
 ```gherkin
 Given 注册用户已登录且同意最新版协议
 And   教练 A 已设置参考单价
+And   系统已开启自定义课时，package_mode='standard'，status='active'
 And   用户选择自定义 12 课时
 When  用户提交自定义课时订单
-Then  系统按参考单价计算订单金额
+Then  系统校验模板 package_mode='standard' 且 status='active'
+And   系统按参考单价计算订单金额
+And   系统将 package_name、package_mode、coach_id、coach_name、teaching_type、stroke_ids、total_hours、duration_minutes、valid_days、original_price、paid_amount、refund_enabled、refund_ratio、refund_valid_days、tags、description、images 快照写入订单/预生成 package
 And   order.status = 待支付，course_type = 1
 And   接口返回 HTTP 201 与订单 ID
 ```
@@ -150,6 +159,17 @@ Then  系统返回 HTTP 400，错误码 COACH_UNAVAILABLE
 And   不创建订单
 ```
 
+### 6.7 场景 7：套餐模板未上架
+
+```gherkin
+Given 注册用户已登录且同意最新版协议
+And   教练 A 状态为已通过（status=1）
+And   系统已配置 10 节标准套餐，package_mode='standard'，status='inactive'
+When  用户选择教练 A 的 10 节标准套餐并提交订单
+Then  系统返回 HTTP 400，错误码 PACKAGE_NOT_AVAILABLE
+And   不创建订单
+```
+
 ---
 
 ## 7. 数据/API/状态机影响
@@ -158,13 +178,14 @@ And   不创建订单
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `order` | 新增 | 待支付订单，course_type=1 |
+| 1 | `order` | 新增 | 待支付订单，course_type=1；关联套餐模板快照字段 |
 | 2 | `agreement_sign` | 新增 | 协议签署记录（版本号、时间） |
 | 3 | `guardian_contact` | 新增 | 未成年人监护人手机号与短信校验记录 |
 | 4 | `user` | 读取 | 校验登录态、身份与年龄 |
-| 5 | `package` | 读取 | 校验是否持有其他教练 active 套餐 |
+| 5 | `package` | 读取/新增 | 校验是否持有其他教练 active 套餐；创建时写入模板快照字段 |
 | 6 | `coach` | 读取 | 校验教练状态与参考单价 |
-| 7 | `standard_package` | 读取 | 标准套餐配置 |
+| 7 | `package_template` | 读取 | 读取套餐模板配置；校验 `package_mode='standard'` 且 `status='active'` |
+
 
 ### 7.2 API 影响
 
@@ -247,7 +268,7 @@ And   不创建订单
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 GWT
+- [x] 2 正常 + 4 异常 GWT
 - [x] 每个 Then 含具体数值/状态码/DB 字段值
 
 ### 11.4 配套文档
@@ -262,6 +283,7 @@ And   不创建订单
 - **事务边界**：订单创建 + 协议签署记录写入 + 监护人联系记录写入在同一事务
 - **性能要求**：下单接口 P99 < 300ms
 - **未成年人保护**：未成年人下单必须填写监护人手机号并通过短信校验；订单创建后向监护人发送短信通知
+- **模板快照**：订单/预生成 package 必须保存购买时模板快照，后续 package_template 变更不影响已购套餐（US-045）
 
 ---
 
@@ -345,6 +367,7 @@ And   不创建订单
 | v1.1 | 2026-07-31 | PM | P1 修复：补充未成年人监护人手机号校验与短信通知；§3/§4.1/§4.2/§5/§6/§7/§12 更新 |
 | v1.2 | 2026-07-31 | PM | §14 页面级设计决策补全四要素结构（背景-选项-结论-影响范围），新增 2 个决策（14.3 套餐价格展示形式、14.4 未成年人监护人信息收集时机） |
 | v1.3 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
+| v1.4 | 2026-08-12 | PM | 适配 US-045：§3 增加模板 `status='active'` 前置条件；§4.1 增加模板状态校验与快照字段写入；§4.2 增加 `PACKAGE_NOT_AVAILABLE` 异常分支；§6 补充模板状态校验与快照字段断言，新增场景 7；§7.1 更新 `package_template` 与快照说明；§12 补充模板快照备注 |
 
 ---
 

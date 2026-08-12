@@ -76,6 +76,8 @@ public class UserAccountService {
     user.setStatus(UserStatus.DELETED.getValue());
     user.setDeletedAt(now);
     user.setAnonymousAfter(anonymousAfter);
+    user.setPhoneHash(null);
+    user.setGuardianPhoneHash(null);
     userMapper.updateById(user);
 
     userSessionMapper.delete(

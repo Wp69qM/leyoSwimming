@@ -12,10 +12,12 @@
 
 ```gherkin
 Given 学员已登录且名下有 3 笔订单
+And   订单 1 的 package_mode = "standard"；订单 2 的 package_mode = "experience"；订单 3 的 package_mode = "standard"
 When  学员请求「我的订单」列表
 Then  系统返回 HTTP 200
 And   items 按 created_at 倒序包含 3 笔订单
 And   每笔订单包含 order_id、amount、status
+And   每笔订单包含 package_mode 字段，"standard" 映射为"正价"，"experience" 映射为"体验课"
 ```
 
 #### Scenario: 无订单空状态
@@ -47,8 +49,12 @@ Then  系统返回 HTTP 403，错误码 ORDER_ACCESS_DENIED
 
 ```gherkin
 Given 学员已登录且存在 order.status = 已支付的订单
+And   该订单快照字段：package_name = "蛙泳基础 10 节", package_mode = "standard", coach_name = "王教练", teaching_type = "1v1", total_hours = 10, duration_minutes = 60, valid_days = 90, original_price = 2000, paid_amount = 1800, refund_enabled = true, refund_ratio = 0.8, refund_valid_days = 30
+And   对应 package_template 后续已被管理员修改为其他内容
 When  学员请求该订单详情
 Then  系统返回 HTTP 200
-And   详情包含订单号、套餐名称、教练姓名、金额、支付时间
+And   详情包含订单号、金额、支付时间
+And   套餐信息区包含购买时快照：package_name、package_mode（显示"正价"）、coach_name、teaching_type、total_hours、duration_minutes、valid_days、original_price、paid_amount、退款规则
+And   套餐信息取值不受 package_template 后续变更影响
 And   展示「申请退款」入口
 ```

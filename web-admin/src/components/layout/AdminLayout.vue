@@ -23,7 +23,7 @@ const menuGroups: MenuGroup[] = [
     title: '用户管理',
     children: [
       { title: '用户列表', path: '/user-management', disabled: true },
-      { title: '教练入驻审核', path: '/coach-audit', disabled: true },
+      { title: '教练入驻审核', path: '/coach-audit/queue' },
       { title: '教练管理', path: '/coach-management', disabled: true },
       { title: '教练离职审批', path: '/resignation/approval-queue' },
     ],
@@ -48,7 +48,11 @@ const menuGroups: MenuGroup[] = [
     title: '场馆运营',
     children: [
       { title: '场馆配置', path: '/venue-config', disabled: true },
-      { title: '公告/Banner/卡片', path: '/announcement-config', disabled: true },
+      {
+        title: '公告/Banner/卡片',
+        path: '/announcement-config',
+        disabled: true,
+      },
       { title: '用户须知', path: '/user-agreement-config', disabled: true },
       { title: '闭馆/换水设置', path: '/closure-config', disabled: true },
     ],
@@ -93,11 +97,7 @@ async function handleLogout() {
           首页
         </router-link>
 
-        <div
-          v-for="group in menuGroups"
-          :key="group.title"
-          class="nav-group"
-        >
+        <div v-for="group in menuGroups" :key="group.title" class="nav-group">
           <div class="nav-group-title">{{ group.title }}</div>
           <template v-for="item in group.children" :key="item.title">
             <router-link
@@ -143,7 +143,9 @@ async function handleLogout() {
         <div class="header-right">
           <el-dropdown v-if="authStore.admin" trigger="click">
             <span class="user-info">
-              <span class="user-avatar">{{ authStore.admin.name?.charAt(0) }}</span>
+              <span class="user-avatar">{{
+                authStore.admin.name?.charAt(0)
+              }}</span>
               <span class="user-name">{{ authStore.admin.name }}</span>
               <span class="dropdown-icon">▼</span>
             </span>
@@ -216,7 +218,9 @@ async function handleLogout() {
   padding: 0 24px;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 
   &--primary {
     height: 48px;

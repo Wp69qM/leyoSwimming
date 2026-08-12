@@ -12,11 +12,12 @@ US-025 完成正价套餐订单的支付闭环，核心是预支付参数创建 
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `order` | 更新支付状态 | `id`, `user_id`, `amount`, `status`, `paid_at`, `expire_at` |
+| `order` | 更新支付状态；保存模板快照 | `id`, `user_id`, `amount`, `status`, `paid_at`, `expire_at`, `package_name`, `package_mode`, `coach_id`, `coach_name`, `teaching_type`, `stroke_ids`, `total_hours`, `duration_minutes`, `valid_days`, `original_price`, `paid_amount`, `refund_enabled`, `refund_ratio`, `refund_valid_days` |
 | `payment` | 支付流水 | `id`, `order_id`, `idempotency_key`, `channel`, `channel_trade_no`, `amount`, `status` |
-| `package` | 支付成功后创建 | `id`, `user_id`, `coach_id`, `order_id`, `total_hours`, `available_count`, `status` |
+| `package` | 支付成功后创建，字段取自 order 快照 | `id`, `user_id`, `coach_id`, `order_id`, `package_mode`, `teaching_type`, `stroke_ids`, `total_hours`, `duration_minutes`, `valid_days`, `original_price`, `paid_amount`, `available_count`, `status` |
 | `user` | 读取身份 | `id`, `status` |
 | `agreement_sign` | 校验协议 | `user_id`, `agreement_type`, `version` |
+| `package_template` | 下单时校验状态 | `id`, `status` |
 
 ### 索引
 

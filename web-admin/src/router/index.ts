@@ -5,6 +5,8 @@ import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
 import ResignationApprovalQueueView from '@/views/resignation/ResignationApprovalQueueView.vue';
 import ResignationTicketDetailView from '@/views/resignation/ResignationTicketDetailView.vue';
+import CoachAuditQueueView from '@/views/coach-audit/CoachAuditQueueView.vue';
+import CoachAuditDetailView from '@/views/coach-audit/CoachAuditDetailView.vue';
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +30,16 @@ export const router = createRouter({
           path: 'resignation/ticket-detail/:ticketId',
           name: 'resignation-ticket-detail',
           component: ResignationTicketDetailView,
+        },
+        {
+          path: 'coach-audit/queue',
+          name: 'coach-audit-queue',
+          component: CoachAuditQueueView,
+        },
+        {
+          path: 'coach-audit/detail/:applicationId',
+          name: 'coach-audit-detail',
+          component: CoachAuditDetailView,
         },
       ],
     },

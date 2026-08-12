@@ -14,9 +14,12 @@ import com.leyoswimming.enums.AppType;
 import com.leyoswimming.exception.BusinessException;
 import com.leyoswimming.repository.SmsCodeMapper;
 import com.leyoswimming.service.sms.SmsSender;
+import com.leyoswimming.util.PhoneEncryptor;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,17 +27,29 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SmsCodeServiceTest {
 
   @Mock private SmsCodeMapper smsCodeMapper;
   @Mock private SmsSender smsSender;
+  @Mock private StringRedisTemplate redisTemplate;
+  @Mock private ValueOperations<String, String> valueOperations;
   private SmsCodeService smsCodeService;
+  private PhoneEncryptor phoneEncryptor;
 
   @BeforeEach
-  void setUp() {
-    smsCodeService = new SmsCodeService(smsCodeMapper, smsSender);
+  void setUp() throws Exception {
+    phoneEncryptor = new PhoneEncryptor("local-test-phone-encryption-key-32bytes!");
+    when(redisTemplate.hasKey(any())).thenReturn(false);
+    when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    when(valueOperations.increment(any())).thenReturn(1L);
+    when(redisTemplate.expire(any(), any())).thenReturn(true);
+    when(redisTemplate.delete(any(String.class))).thenReturn(true);
+    smsCodeService = new SmsCodeService(smsCodeMapper, smsSender, redisTemplate, phoneEncryptor);
   }
 
   @Test
@@ -149,6 +164,8 @@ class SmsCodeServiceTest {
             ex ->
                 assertThat(((BusinessException) ex).getErrorCode())
                     .isEqualTo(ErrorCode.INVALID_SMS_CODE));
+
+    verify(valueOperations, never()).increment(any());
   }
 
   private SmsCode validSmsCode(String code) {

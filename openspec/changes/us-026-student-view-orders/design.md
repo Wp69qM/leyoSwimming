@@ -12,11 +12,12 @@ US-026 是只读 US，为学员提供订单列表与详情查询能力，含分�
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `order` | 列表 + 详情主表 | `id`, `user_id`, `amount`, `status`, `created_at`, `paid_at`, `refunded_at`, `refund_status` |
-| `package` | 详情套餐信息 | `id`, `total_hours`, `available_count`, `status` |
-| `coach` | 详情教练信息 | `id`, `name` |
+| `order` | 列表 + 详情主表；套餐信息取自快照字段 | `id`, `user_id`, `amount`, `status`, `created_at`, `paid_at`, `refunded_at`, `refund_status`, `package_name`, `package_mode`, `coach_name`, `teaching_type`, `total_hours`, `duration_minutes`, `valid_days`, `original_price`, `paid_amount`, `refund_enabled`, `refund_ratio`, `refund_valid_days` |
+| `package` | 详情当前课时包状态 | `id`, `total_hours`, `available_count`, `status` |
+| `coach` | 兜底读取教练信息（优先展示 order.coach_name 快照） | `id`, `name` |
 | `payment` | 详情支付时间 | `order_id`, `paid_at`, `status` |
 | `refund` | 详情退款信息 | `order_id`, `amount`, `status`, `completed_at` |
+| `package_template` | 不读取 | — |
 
 ### order.status 枚举（v3 评审 P0 修复，对齐 PRD §6.2.2 v11.1）
 
@@ -46,12 +47,12 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 
 - 鉴权：必须登录
 - Query: `page`, `size`, `status`
-- Response 200: `{ items: OrderListItem[], total, page, size }`
+- Response 200: `{ items: OrderListItem[], total, page, size }`，其中 OrderListItem 包含 `package_mode` 字段，前端映射为"正价"/"体验课"标签
 
 ### GET /api/orders/{order_id}
 
 - 鉴权：必须登录且为订单所有者
-- Response 200: `{ order_id, status, amount, package, coach, payment, refund }`
+- Response 200: `{ order_id, status, amount, package_snapshot, package, coach, payment, refund }`，其中 `package_snapshot` 为购买时模板快照字段，不受 package_template 后续变更影响
 - Response 403: `ORDER_ACCESS_DENIED`
 - Response 404: `ORDER_NOT_FOUND`
 

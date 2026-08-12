@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
-import { request } from './request'
 import { API_BASE_URL } from '@/constants'
+import { request } from './request'
 import type { ConsentStatus } from './policy'
 
 export interface CoachProfile {

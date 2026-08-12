@@ -49,11 +49,13 @@ And   order.status = 已取消
 
 ```gherkin
 Given 存在待支付订单 order.amount = 1800 元
+And   订单中已快照模板字段：package_name = "蛙泳基础 10 节", package_mode = "standard", coach_id = "C001", coach_name = "王教练", teaching_type = "1v1", stroke_ids = ["breaststroke"], total_hours = 10, duration_minutes = 60, valid_days = 90, original_price = 2000, paid_amount = 1800, refund_enabled = true, refund_ratio = 0.8, refund_valid_days = 30
 And   已生成对应微信支付流水
 When  微信发送支付成功回调，金额为 1800 元
 Then  系统验证签名通过
 And   order.status = 已支付，paid_at 非空
 And   package.status = active，available = 10
+And   package 字段与订单快照一致：package_mode = "standard", coach_id = "C001", teaching_type = "1v1", total_hours = 10, duration_minutes = 60, valid_days = 90, paid_amount = 1800
 And   返回 { code: "SUCCESS" }
 ```
 
@@ -61,10 +63,27 @@ And   返回 { code: "SUCCESS" }
 
 ```gherkin
 Given 订单已支付成功且 package.status = active
+And   package 字段与订单快照一致
 When  微信再次发送同一 channel_trade_no 的支付成功回调
 Then  系统返回 HTTP 200
 And   不重复创建 package
 And   order.status 仍 = 已支付
+And   package 字段仍与订单快照一致
+```
+
+#### Scenario: 支付期间模板被修改/下架
+
+```gherkin
+Given 存在待支付订单 order.amount = 1800 元
+And   订单中已快照模板字段：package_mode = "standard", total_hours = 10, paid_amount = 1800
+And   用户下单后、支付回调前，对应 package_template 被管理员修改（如下架、total_hours 改为 12）
+When  微信发送支付成功回调，金额为 1800 元
+Then  系统使用订单快照字段创建 package
+And   package.status = active
+And   package.package_mode = "standard"
+And   package.total_hours = 10
+And   package.paid_amount = 1800
+And   package 字段不受 package_template 后续变更影响
 ```
 
 #### Scenario: 支付超时取消与候补转正并发竞争

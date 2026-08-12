@@ -10,8 +10,8 @@
 
 **Spec coverage:** REQ-026-1 / REQ-026-2 全部场景
 
-- [ ] **RED:** Write failing tests — list orders by user sorted by created_at desc; detail returns order + package + coach + payment; reject other user's order
-- [ ] **GREEN:** Implement `OrderQueryService.list(userId, pagination, status)` and `OrderQueryService.detail(userId, orderId)`
+- [ ] **RED:** Write failing tests — list orders by user sorted by created_at desc with package_mode tag; detail returns order snapshot (package name/mode/coach/type/hours/duration/validity/prices/refund rules) + current package + coach + payment; reject other user's order; detail unaffected by package_template changes after purchase
+- [ ] **GREEN:** Implement `OrderQueryService.list(userId, pagination, status)` and `OrderQueryService.detail(userId, orderId)`; list returns package_mode; detail returns package_snapshot from order and does not read package_template
 - [ ] **REFACTOR:** Extract reusable order DTO mapper
 - [ ] **COMMIT:** `feat(order): add order query service`
 

@@ -283,7 +283,13 @@ onMounted(() => {
           <el-button type="primary" @click="fetchList">刷新</el-button>
         </el-empty>
       </template>
-      <el-table v-else :data="tableData" stripe header-row-class-name="table-header" style="width: 100%">
+      <el-table
+        v-else
+        :data="tableData"
+        stripe
+        header-row-class-name="table-header"
+        style="width: 100%"
+      >
         <el-table-column label="工单号" width="100">
           <template #default="{ row }">
             <span class="ticket-no">{{ row.ticketNo }}</span>
