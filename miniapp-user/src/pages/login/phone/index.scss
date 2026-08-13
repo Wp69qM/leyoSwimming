@@ -1,84 +1,124 @@
 .phone-login {
   min-height: 100vh;
-  background: #f5f7fa;
-  padding: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    180deg,
+    #1890ff 0%,
+    #096dd9 50%,
+    #0050b3 100%
+  );
   box-sizing: border-box;
 
   &__brand {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 96rpx;
+    padding: 64rpx 0 48rpx;
   }
 
   &__logo {
-    width: 128rpx;
-    height: 128rpx;
+    width: 160rpx;
+    height: 160rpx;
     border-radius: 50%;
-    background: rgb(24 144 255 / 10%);
+    background: rgb(255 255 255 / 15%);
+    border: 2rpx solid rgb(255 255 255 / 25%);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   &__logo-icon {
-    width: 64rpx;
-    height: 64rpx;
-    border: 4rpx solid #1890ff;
+    width: 88rpx;
+    height: 88rpx;
+    border: 3rpx solid rgb(255 255 255 / 80%);
     border-radius: 50%;
     position: relative;
 
     &::after {
       content: '';
       position: absolute;
-      width: 32rpx;
-      height: 16rpx;
-      border-bottom: 4rpx solid #1890ff;
-      border-radius: 0 0 32rpx 32rpx;
-      top: 50%;
+      width: 44rpx;
+      height: 22rpx;
+      border-bottom: 4rpx solid rgb(255 255 255 / 90%);
+      border-radius: 0 0 44rpx 44rpx;
+      top: 46%;
       left: 50%;
       transform: translate(-50%, -50%);
     }
   }
 
-  &__title {
+  &__name {
     margin-top: 32rpx;
-    font-size: 48rpx;
+    font-size: 44rpx;
     font-weight: 600;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  &__slogan {
+    margin-top: 12rpx;
+    font-size: 26rpx;
+    color: rgb(255 255 255 / 85%);
+    line-height: 1.2;
+  }
+
+  &__card {
+    flex: 1;
+    background: #fff;
+    border-radius: 40rpx 40rpx 0 0;
+    padding: 56rpx 40rpx calc(40rpx + env(safe-area-inset-bottom));
+    box-shadow: 0 -8rpx 40rpx rgb(0 0 0 / 8%);
+  }
+
+  &__title {
+    font-size: 44rpx;
+    font-weight: 700;
     color: #262626;
+    line-height: 1.2;
   }
 
   &__subtitle {
-    margin-top: 16rpx;
-    font-size: 28rpx;
+    margin-top: 12rpx;
+    font-size: 26rpx;
     color: #8c8c8c;
+    line-height: 1.4;
   }
 
-  &__form {
-    margin-top: 96rpx;
+  &__field {
+    margin-top: 48rpx;
   }
 
-  &__input-wrap {
+  &__label {
+    display: block;
+    font-size: 28rpx;
+    font-weight: 500;
+    color: #262626;
+    margin-bottom: 16rpx;
+  }
+
+  &__input-row {
     display: flex;
     align-items: center;
-    height: 112rpx;
-    background: #fff;
-    border-radius: 16rpx;
-    border: 2rpx solid #e8e8e8;
-    padding: 0 24rpx;
-    margin-bottom: 32rpx;
+    height: 92rpx;
+    background: #f5f7fa;
+    border: 1rpx solid #e8e8e8;
+    border-radius: 20rpx;
+    padding: 0 28rpx;
+    box-sizing: border-box;
+    gap: 20rpx;
 
     &--error {
+      background: #fff2f0;
       border-color: #ff4d4f;
     }
   }
 
   &__input-icon {
-    width: 48rpx;
-    height: 48rpx;
-    margin-right: 16rpx;
+    width: 40rpx;
+    height: 40rpx;
     flex-shrink: 0;
-    background: #bfbfbf;
+    background: #9ca3af;
     border-radius: 50%;
 
     &--phone {
@@ -94,10 +134,11 @@
 
   &__input {
     flex: 1;
-    font-size: 32rpx;
+    font-size: 28rpx;
     color: #262626;
     height: 100%;
     min-width: 0;
+    background: transparent;
 
     &::placeholder {
       color: #bfbfbf;
@@ -106,18 +147,21 @@
 
   &__code-btn {
     margin: 0;
-    padding: 0 24rpx;
-    height: 64rpx;
-    line-height: 64rpx;
+    padding: 0 20rpx;
+    width: 200rpx;
+    height: 92rpx;
+    line-height: 92rpx;
     font-size: 26rpx;
-    color: #bfbfbf;
-    background: #f5f5f5;
-    border-radius: 999rpx;
+    font-weight: 500;
+    color: #fff;
+    background: #bfbfbf;
+    border-radius: 20rpx;
     flex-shrink: 0;
+    box-shadow: 0 8rpx 20rpx rgb(191 191 191 / 25%);
 
     &--active {
       background: #1890ff;
-      color: #fff;
+      box-shadow: 0 8rpx 20rpx rgb(24 144 255 / 25%);
     }
 
     &[disabled] {
@@ -130,14 +174,39 @@
   }
 
   &__error {
+    margin-top: 24rpx;
     background: rgb(255 241 240 / 95%);
     border-radius: 16rpx;
-    padding: 24rpx 32rpx;
-    margin-top: 32rpx;
+    padding: 20rpx 28rpx;
+    display: flex;
+    align-items: center;
+  }
+
+  &__error-icon {
+    width: 40rpx;
+    height: 40rpx;
+    border-radius: 50%;
+    background: #ff4d4f;
+    margin-right: 16rpx;
+    flex-shrink: 0;
+    position: relative;
+
+    &::before {
+      content: '!';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 24rpx;
+      font-weight: 600;
+      line-height: 1;
+    }
   }
 
   &__error-text {
-    font-size: 28rpx;
+    flex: 1;
+    font-size: 26rpx;
     color: #ff4d4f;
   }
 
@@ -146,15 +215,15 @@
     width: 100%;
     height: 96rpx;
     line-height: 96rpx;
-    background: #07c160;
+    background: linear-gradient(90deg, #1890ff 0%, #0050b3 100%);
     color: #fff;
     font-size: 32rpx;
-    font-weight: 500;
-    border-radius: 16rpx;
-    box-shadow: 0 8rpx 24rpx rgb(7 193 96 / 35%);
+    font-weight: 600;
+    border-radius: 20rpx;
+    box-shadow: 0 8rpx 28rpx rgb(24 144 255 / 35%);
 
     &--loading {
-      background: #06ad56;
+      opacity: 0.85;
     }
 
     &[disabled] {
@@ -166,12 +235,79 @@
     }
   }
 
-  &__wechat-link {
+  &__divider {
+    margin-top: 56rpx;
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+  }
+
+  &__divider-line {
+    flex: 1;
+    height: 1px;
+    background: #f0f0f0;
+  }
+
+  &__divider-text {
+    font-size: 24rpx;
+    color: #bfbfbf;
+  }
+
+  &__wechat-entry {
+    margin-top: 40rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16rpx;
+    align-self: center;
+    padding: 24rpx 48rpx;
+    border: 1rpx solid #e8e8e8;
+    border-radius: 20rpx;
+    background: #fff;
+  }
+
+  &__wechat-icon {
+    width: 44rpx;
+    height: 44rpx;
+    border-radius: 50%;
+    background: #07c160;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 24rpx;
+      height: 20rpx;
+      border: 3rpx solid #fff;
+      border-radius: 50% 50% 50% 0;
+      transform: translate(-60%, -55%) rotate(-45deg);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 8rpx;
+      height: 8rpx;
+      background: #fff;
+      border-radius: 50%;
+      transform: translate(-30%, -90%);
+    }
+  }
+
+  &__wechat-text {
+    font-size: 28rpx;
+    color: #595959;
+  }
+
+  &__tip {
     display: block;
     margin-top: 32rpx;
     text-align: center;
-    font-size: 28rpx;
-    color: #1890ff;
-    font-weight: 500;
+    font-size: 24rpx;
+    color: #bfbfbf;
   }
 }

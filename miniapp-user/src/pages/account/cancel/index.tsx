@@ -19,10 +19,10 @@ interface CheckItem {
 }
 
 const RISK_ITEMS = [
-  '注销后账号不可找回',
-  '原账号数据与新账号隔离',
-  '重新登录视为新用户，不绑定原数据',
-  '历史订单/交易记录保留 90 天后匿名化',
+  '注销后账号不可找回，所有数据将被清除',
+  '原账号数据与新账号完全隔离，无法合并',
+  '重新登录视为新用户，不绑定原账号数据',
+  '历史订单/交易记录保留 90 天后匿名化处理',
 ];
 
 const CHECK_ITEMS: CheckItem[] = [
@@ -42,6 +42,10 @@ const CHECK_ITEMS: CheckItem[] = [
     unmetLabel: '存在进行中或待上课的课程预约',
   },
 ];
+
+const SYSTEM_INFO = Taro.getSystemInfoSync();
+const STATUS_BAR_HEIGHT = SYSTEM_INFO.statusBarHeight || 0;
+const NAV_BAR_HEIGHT = 44;
 
 export default function AccountCancelPage() {
   const logout = useAuthStore((state) => state.logout);
@@ -99,6 +103,10 @@ export default function AccountCancelPage() {
     }
   }
 
+  function handleBack() {
+    Taro.navigateBack();
+  }
+
   function renderCheckIcon(met: boolean) {
     if (met) {
       return (
@@ -116,11 +124,32 @@ export default function AccountCancelPage() {
 
   return (
     <View className='account-cancel'>
-      <View className='account-cancel__content'>
+      <View
+        className='account-cancel__navbar'
+        style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
+      >
+        <View
+          className='account-cancel__navbar-inner'
+          style={{ height: `${NAV_BAR_HEIGHT}px` }}
+        >
+          <View className='account-cancel__navbar-back' onClick={handleBack}>
+            <Text className='account-cancel__navbar-back-icon'>‹</Text>
+          </View>
+          <Text className='account-cancel__navbar-title'>注销账号</Text>
+        </View>
+      </View>
+
+      <View
+        className='account-cancel__content'
+        style={{ paddingTop: `${STATUS_BAR_HEIGHT + NAV_BAR_HEIGHT}px` }}
+      >
         <View className='account-cancel__risk-card'>
-          <Text className='account-cancel__risk-title'>
-            注销账号前，请确认以下重要信息
-          </Text>
+          <View className='account-cancel__risk-header'>
+            <View className='account-cancel__risk-header-icon' />
+            <Text className='account-cancel__risk-title'>
+              注销账号前，请确认以下重要信息
+            </Text>
+          </View>
           <View className='account-cancel__risk-list'>
             {RISK_ITEMS.map((item) => (
               <View className='account-cancel__risk-item' key={item}>
@@ -150,17 +179,19 @@ export default function AccountCancelPage() {
                     className={`account-cancel__checklist-item ${met ? '' : 'account-cancel__checklist-item--error'}`}
                     key={item.key}
                   >
-                    {renderCheckIcon(met)}
-                    <View className='account-cancel__checklist-info'>
-                      <Text className='account-cancel__checklist-label'>
+                    <View className='account-cancel__checklist-left'>
+                      {renderCheckIcon(met)}
+                      <Text
+                        className={`account-cancel__checklist-label ${met ? 'account-cancel__checklist-label--success' : ''}`}
+                      >
                         {item.label}
                       </Text>
-                      {!met && (
-                        <Text className='account-cancel__checklist-hint'>
-                          {item.unmetLabel}
-                        </Text>
-                      )}
                     </View>
+                    <Text
+                      className={`account-cancel__checklist-status ${met ? 'account-cancel__checklist-status--success' : 'account-cancel__checklist-status--error'}`}
+                    >
+                      {met ? '已通过' : item.unmetLabel}
+                    </Text>
                   </View>
                 );
               })}

@@ -15,8 +15,10 @@ public class RefundRecord {
   private Long id;
 
   private Long packageId;
+  private Long orderId;
   private Long ticketId;
   private BigDecimal refundAmount;
+  private String reason;
   private Integer status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;

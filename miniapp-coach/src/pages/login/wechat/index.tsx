@@ -129,8 +129,8 @@ export default function WechatLoginPage() {
           <View className="wechat-login__logo-icon" />
         </View>
         <Text className="wechat-login__name">{APP_NAME}</Text>
-        <Text className="wechat-login__slogan">专业教练，轻松开课</Text>
-        <Text className="wechat-login__guide">微信一键登录，开启教练工作台</Text>
+        <Text className="wechat-login__slogan">专业游泳约课平台</Text>
+        <Text className="wechat-login__guide">登录后即可预约课程、购买套餐</Text>
       </View>
 
       {errorTip && (

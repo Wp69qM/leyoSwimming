@@ -63,6 +63,7 @@ public class AdminCoachResignationService {
   private final AdminUserMapper adminUserMapper;
   private final PhoneEncryptor phoneEncryptor;
 
+  @Transactional(readOnly = true)
   public AdminResignationTicketListResponse list(String status, Integer page, Integer pageSize) {
     return list(status, page, pageSize, null, null, null);
   }
@@ -142,7 +143,8 @@ public class AdminCoachResignationService {
                       ticket.getTotalPackages(),
                       ticket.getHandledPackages(),
                       ticket.getSubmittedAt(),
-                      ticket.getCreatedAt());
+                      ticket.getCreatedAt(),
+                      coachJoinedAt(coach));
                 })
             .toList();
 
@@ -174,6 +176,7 @@ public class AdminCoachResignationService {
     }
   }
 
+  @Transactional(readOnly = true)
   public AdminResignationTicketDetailResponse detail(Long ticketId) {
     CoachResignationTicket ticket = ticketMapper.selectById(ticketId);
     if (ticket == null) {
@@ -293,6 +296,9 @@ public class AdminCoachResignationService {
 
     Long coachId = ticket.getCoachId();
     Coach coach = coachMapper.selectById(coachId);
+    if (coach == null) {
+      throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "教练不存在");
+    }
     coach.setStatus(CoachStatus.APPROVED.getValue());
     coachMapper.updateById(coach);
 
@@ -338,7 +344,8 @@ public class AdminCoachResignationService {
             coach != null ? coach.getName() : null,
             coach != null ? decryptPhone(coach.getPhone()) : null,
             coach != null ? coach.getStatus() : null,
-            coach != null ? coach.getSubmittedAt() : null);
+            coach != null ? coach.getSubmittedAt() : null,
+            coachJoinedAt(coach));
 
     List<AdminResignationTicketDetailResponse.PackageItem> items =
         activePackages.stream()
@@ -413,5 +420,12 @@ public class AdminCoachResignationService {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  private LocalDateTime coachJoinedAt(Coach coach) {
+    if (coach == null) {
+      return null;
+    }
+    return coach.getApprovedAt() != null ? coach.getApprovedAt() : coach.getCreatedAt();
   }
 }

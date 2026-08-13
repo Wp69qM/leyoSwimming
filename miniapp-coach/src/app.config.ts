@@ -4,6 +4,7 @@ export default defineAppConfig({
     'pages/booking/index',
     'pages/student/index',
     'pages/mine/index',
+    'pages/coach/index',
     'pages/login/wechat/index',
     'pages/login/phone/index',
     'pages/login/protocol/index',
@@ -22,10 +23,10 @@ export default defineAppConfig({
     navigationBarTextStyle: 'black'
   },
   tabBar: {
-    color: '#9ca3af',
-    selectedColor: '#2563eb',
-    backgroundColor: '#ffffff',
-    borderStyle: 'black',
+    color: '#8C8C8C',
+    selectedColor: '#1890FF',
+    backgroundColor: '#FFFFFF',
+    borderStyle: 'white',
     list: [
       {
         pagePath: 'pages/index/index',

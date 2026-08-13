@@ -19,7 +19,11 @@ export function ProtocolCheckbox({
         className={`protocol-checkbox__box ${checked ? 'protocol-checkbox__box--checked' : ''}`}
         onClick={() => onChange(!checked)}
       >
-        {checked && <Text className="protocol-checkbox__check">✓</Text>}
+        {checked ? (
+          <Text className="protocol-checkbox__check">✓</Text>
+        ) : (
+          <View className="protocol-checkbox__dot" />
+        )}
       </View>
       <Text className="protocol-checkbox__text">
         已阅读并同意

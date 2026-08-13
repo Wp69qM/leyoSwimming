@@ -2,6 +2,10 @@ import { useState } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, Button } from '@tarojs/components';
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox';
+import {
+  ProtocolDrawer,
+  type ProtocolTab,
+} from '@/pages/login/protocol/ProtocolDrawer';
 import { wechatLogin } from '@/api/auth';
 import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
@@ -18,6 +22,9 @@ const ERROR_MESSAGES: Record<number, string> = {
 
 export default function WechatLoginPage() {
   const [protocolChecked, setProtocolChecked] = useState(false);
+  const [protocolVisible, setProtocolVisible] = useState(false);
+  const [protocolInitialTab, setProtocolInitialTab] =
+    useState<ProtocolTab>('terms');
   const [loading, setLoading] = useState(false);
   const [errorTip, setErrorTip] = useState('');
   const [showReauth, setShowReauth] = useState(false);
@@ -116,33 +123,48 @@ export default function WechatLoginPage() {
   }
 
   function openProtocolModal(type: 'terms' | 'privacy') {
-    Taro.navigateTo({ url: `/pages/login/protocol/index?type=${type}` });
+    setProtocolInitialTab(type);
+    setProtocolVisible(true);
+  }
+
+  function handleCloseProtocol() {
+    setProtocolVisible(false);
+  }
+
+  function handleAgreeProtocol() {
+    setProtocolChecked(true);
+    setProtocolVisible(false);
   }
 
   return (
     <View className='wechat-login'>
-      <View className='wechat-login__brand'>
+      <View
+        className={`wechat-login__brand ${errorTip ? 'wechat-login__brand--dimmed' : ''}`}
+      >
         <View className='wechat-login__logo'>
           <View className='wechat-login__logo-icon' />
         </View>
         <Text className='wechat-login__name'>{APP_NAME}</Text>
-        <Text className='wechat-login__slogan'>让每一次入水，都更有价值</Text>
-        <Text className='wechat-login__guide'>微信一键登录，安全又便捷</Text>
+        <Text className='wechat-login__slogan'>专业游泳约课平台</Text>
+        <Text className='wechat-login__guide'>
+          登录后即可预约课程、购买套餐
+        </Text>
       </View>
 
-      {errorTip && (
-        <View className='wechat-login__error'>
-          <Text className='wechat-login__error-text'>{errorTip}</Text>
-        </View>
-      )}
-
-      {showReauth && (
-        <Button className='wechat-login__reauth' onClick={handleReauth}>
-          重新授权
-        </Button>
-      )}
-
       <View className='wechat-login__footer'>
+        {errorTip && (
+          <View className='wechat-login__error'>
+            <View className='wechat-login__error-icon' />
+            <Text className='wechat-login__error-text'>{errorTip}</Text>
+          </View>
+        )}
+
+        {showReauth && (
+          <Button className='wechat-login__reauth' onClick={handleReauth}>
+            重新授权
+          </Button>
+        )}
+
         <ProtocolCheckbox
           checked={protocolChecked}
           onChange={setProtocolChecked}
@@ -156,6 +178,7 @@ export default function WechatLoginPage() {
           loading={loading}
           disabled={loading}
         >
+          {!loading && <View className='wechat-login__button-icon' />}
           {loading ? '登录中…' : '微信一键登录'}
         </Button>
         <Text
@@ -165,6 +188,13 @@ export default function WechatLoginPage() {
           使用手机号登录
         </Text>
       </View>
+
+      <ProtocolDrawer
+        visible={protocolVisible}
+        initialTab={protocolInitialTab}
+        onClose={handleCloseProtocol}
+        onAgree={handleAgreeProtocol}
+      />
     </View>
   );
 }

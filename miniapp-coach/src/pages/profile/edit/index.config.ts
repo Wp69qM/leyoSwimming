@@ -1,3 +1,4 @@
 export default definePageConfig({
-  navigationBarTitleText: '个人主页编辑',
+  navigationStyle: 'custom',
+  enableShareAppMessage: true,
 })

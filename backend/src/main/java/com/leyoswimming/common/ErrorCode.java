@@ -55,6 +55,15 @@ public enum ErrorCode {
   INVALID_REFERENCE_PRICE(410008, "参考单价需在 50-2000 元之间"),
   PRICE_CHANGE_LIMIT_REACHED(410009, "今日参考单价修改次数已达上限"),
 
+  // 套餐/订单 420xxx
+  PACKAGE_NOT_FOUND(420001, "套餐不存在"),
+  PACKAGE_STATUS_NOT_ALLOWED(420002, "当前套餐状态不允许该操作"),
+  PACKAGE_NOT_REFUNDABLE(420003, "该套餐不满足退款条件"),
+  REFUND_AMOUNT_INVALID(420004, "退款金额无效"),
+  REFUND_PENDING_EXISTS(420005, "存在待处理的退款申请"),
+  ORDER_NOT_FOUND(420006, "订单不存在"),
+  ORDER_STATUS_NOT_ALLOWED(420007, "当前订单状态不允许该操作"),
+
   // 管理员审批 510xxx
   CHECKLIST_NOT_PASSED(510001, "请先完成所有检查项"),
   SCHEDULE_NOT_CLEARED(510002, "未来排班未清空"),

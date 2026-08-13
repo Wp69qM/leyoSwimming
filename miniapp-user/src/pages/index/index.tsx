@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, Image } from '@tarojs/components';
 import { useAuthStore } from '@/stores/authStore';
-import { APP_NAME, APP_SLOGAN } from '@/constants';
+import { APP_NAME } from '@/constants';
 import logoRibbon from '@/assets/logo-ribbon.svg';
 import './index.scss';
 
@@ -59,7 +59,7 @@ export default function Index() {
             />
           </View>
           <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>{APP_SLOGAN}</Text>
+          <Text className='splash__slogan'>{'专业游泳约课，从这里开始'}</Text>
           <View className='splash__loading'>
             <View className='splash__loading-dot' />
             <Text className='splash__loading-text'>加载中…</Text>
@@ -81,8 +81,9 @@ export default function Index() {
             />
           </View>
           <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>{APP_SLOGAN}</Text>
+          <Text className='splash__slogan'>{'专业游泳约课，从这里开始'}</Text>
           <View className='splash__error'>
+            <View className='splash__error-illustration' />
             <Text className='splash__error-text'>网络异常，请重试</Text>
             <View className='splash__retry' onClick={handleRetry}>
               <Text className='splash__retry-text'>重新加载</Text>
@@ -96,15 +97,19 @@ export default function Index() {
   return (
     <View className='splash'>
       <View className='splash__content'>
-        <View className='splash__logo'>
-          <Image
-            className='splash__logo-icon'
-            src={logoRibbon}
-            mode='aspectFit'
-          />
+        <View
+          className={`splash__brand-wrap ${error ? 'splash__brand-wrap--dimmed' : ''}`}
+        >
+          <View className='splash__logo'>
+            <Image
+              className='splash__logo-icon'
+              src={logoRibbon}
+              mode='aspectFit'
+            />
+          </View>
+          <Text className='splash__brand'>{APP_NAME}</Text>
+          <Text className='splash__slogan'>{'专业游泳约课，从这里开始'}</Text>
         </View>
-        <Text className='splash__brand'>{APP_NAME}</Text>
-        <Text className='splash__slogan'>{APP_SLOGAN}</Text>
       </View>
     </View>
   );

@@ -16,12 +16,17 @@ public class CoursePackage {
 
   private Long userId;
   private Long coachId;
+  private String packageMode;
   private Integer totalHours;
   private Integer consumedCount;
   private Integer reservedCount;
   private Integer availableCount;
   private BigDecimal pricePerHour;
   private BigDecimal paidAmount;
+  private BigDecimal originalPrice;
+  private Boolean refundEnabled;
+  private BigDecimal refundRatio;
+  private Integer refundValidDays;
   private String status;
   private String frozenReason;
   private LocalDateTime pendingHandoverAt;

@@ -9,13 +9,51 @@ import './index.scss';
 
 interface MenuItem {
   label: string;
+  iconClass: string;
   url?: string;
-  action?: () => void;
+  requireAuth?: boolean;
 }
+
+const MENU_ITEMS: MenuItem[] = [
+  {
+    label: '我的套餐',
+    iconClass: 'mine__menu-icon--package',
+    requireAuth: true,
+  },
+  {
+    label: '我的订单',
+    iconClass: 'mine__menu-icon--order',
+    requireAuth: true,
+  },
+  {
+    label: '我的预约',
+    iconClass: 'mine__menu-icon--booking',
+    requireAuth: true,
+  },
+  {
+    label: '隐私协议',
+    iconClass: 'mine__menu-icon--privacy',
+    url: '/pages/privacy/index',
+    requireAuth: true,
+  },
+  {
+    label: '设置',
+    iconClass: 'mine__menu-icon--settings',
+    url: '/pages/settings/index',
+    requireAuth: true,
+  },
+];
+
+const SYSTEM_INFO = Taro.getSystemInfoSync();
+const STATUS_BAR_HEIGHT = SYSTEM_INFO.statusBarHeight || 0;
+const NAV_BAR_HEIGHT = 44;
+
+const LOGIN_URL = '/pages/login/wechat/index';
 
 export default function MinePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const {
     accessToken,
     refreshToken,
@@ -47,42 +85,40 @@ export default function MinePage() {
     };
   }, [accessToken]);
 
-  const menuItems: MenuItem[] = [
-    {
-      label: '我的套餐',
-      action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }),
-    },
-    {
-      label: '我的订单',
-      action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }),
-    },
-    {
-      label: '我的预约',
-      action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }),
-    },
-    { label: '隐私协议', url: '/pages/login/protocol/index' },
-    {
-      label: '设置',
-      action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }),
-    },
-  ];
+  function redirectToLogin() {
+    Taro.redirectTo({ url: LOGIN_URL });
+  }
+
+  function handleProfileClick() {
+    if (!isLoggedIn) {
+      redirectToLogin();
+      return;
+    }
+    Taro.navigateTo({ url: '/pages/profile/complete/index' });
+  }
 
   function handleMenuClick(item: MenuItem) {
+    if (!isLoggedIn && item.requireAuth) {
+      redirectToLogin();
+      return;
+    }
     if (item.url) {
       Taro.navigateTo({ url: item.url }).catch(() => {
         Taro.switchTab({ url: item.url });
       });
-    } else if (item.action) {
-      item.action();
+      return;
     }
+    Taro.showToast({ title: '功能开发中', icon: 'none' });
   }
 
   function handleLogout() {
     Taro.showModal({
-      title: '确认退出登录？',
-      content: '退出后将清除本地登录状态',
+      title: '确定要退出登录吗？',
+      cancelText: '取消',
+      confirmText: '确认',
       success: async (res) => {
         if (!res.confirm) return;
+        setLogoutLoading(true);
         try {
           if (refreshToken) {
             await logout(refreshToken);
@@ -91,34 +127,10 @@ export default function MinePage() {
           Taro.showToast({ title: handleBusinessError(err), icon: 'none' });
         } finally {
           clearAuth();
-          Taro.redirectTo({ url: '/pages/login/wechat/index' });
+          setLogoutLoading(false);
         }
       },
     });
-  }
-
-  function handleLogin() {
-    Taro.redirectTo({ url: '/pages/login/wechat/index' });
-  }
-
-  if (loading) {
-    return (
-      <View className='mine mine--loading'>
-        <Text className='mine__loading-text'>加载中…</Text>
-      </View>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <View className='mine mine--guest'>
-        <Text className='mine__guest-title'>您还未登录</Text>
-        <Text className='mine__guest-desc'>登录后查看个人中心</Text>
-        <Button className='mine__login-btn' onClick={handleLogin}>
-          去登录
-        </Button>
-      </View>
-    );
   }
 
   const displayName = profile?.name || '游泳爱好者';
@@ -126,48 +138,84 @@ export default function MinePage() {
 
   return (
     <View className='mine'>
-      <View className='mine__header'>
-        <Text className='mine__header-title'>我的</Text>
-      </View>
-
-      <View className='mine__card mine__profile'>
-        <View className='mine__avatar'>
-          {avatarUrl ? (
-            <Image
-              className='mine__avatar-img'
-              src={avatarUrl}
-              mode='aspectFill'
-            />
-          ) : (
-            <Text className='mine__avatar-text'>{displayName.charAt(0)}</Text>
-          )}
-        </View>
-        <View className='mine__info'>
-          <Text className='mine__name'>{displayName}</Text>
-          <Text className='mine__phone'>
-            {profile?.phone
-              ? `${profile.phone.slice(0, 3)}****${profile.phone.slice(-4)}`
-              : ''}
-          </Text>
+      <View
+        className='mine__navbar'
+        style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
+      >
+        <View
+          className='mine__navbar-inner'
+          style={{ height: `${NAV_BAR_HEIGHT}px` }}
+        >
+          <Text className='mine__navbar-title'>我的</Text>
         </View>
       </View>
 
-      <View className='mine__menu'>
-        {menuItems.map((item) => (
-          <View
-            key={item.label}
-            className='mine__menu-item'
-            onClick={() => handleMenuClick(item)}
-          >
-            <Text className='mine__menu-text'>{item.label}</Text>
-            <Text className='mine__menu-arrow'>›</Text>
+      <View
+        className='mine__content'
+        style={{ paddingTop: `${STATUS_BAR_HEIGHT + NAV_BAR_HEIGHT}px` }}
+      >
+        <View className='mine__card mine__profile' onClick={handleProfileClick}>
+          <View className='mine__avatar'>
+            {avatarUrl ? (
+              <Image
+                className='mine__avatar-img'
+                src={avatarUrl}
+                mode='aspectFill'
+              />
+            ) : (
+              <Text className='mine__avatar-text'>
+                {isLoggedIn ? displayName.charAt(0) : '?'}
+              </Text>
+            )}
           </View>
-        ))}
-      </View>
+          <View className='mine__info'>
+            {isLoggedIn ? (
+              <>
+                <Text className='mine__name'>{displayName}</Text>
+                <Text className='mine__status'>注册用户</Text>
+              </>
+            ) : (
+              <>
+                <Text className='mine__name'>请登录/注册</Text>
+                <Text className='mine__status'>登录后查看个人中心</Text>
+              </>
+            )}
+          </View>
+        </View>
 
-      <Button className='mine__logout' onClick={handleLogout}>
-        退出登录
-      </Button>
+        <View className='mine__menu'>
+          {MENU_ITEMS.map((item) => (
+            <View
+              key={item.label}
+              className='mine__menu-item'
+              onClick={() => handleMenuClick(item)}
+            >
+              <View className='mine__menu-left'>
+                <View className={`mine__menu-icon ${item.iconClass}`} />
+                <Text className='mine__menu-text'>{item.label}</Text>
+              </View>
+              <Text className='mine__menu-arrow'>&#8250;</Text>
+            </View>
+          ))}
+        </View>
+
+        {isLoggedIn && (
+          <Button
+            className={`mine__logout ${logoutLoading ? 'mine__logout--loading' : ''}`}
+            onClick={handleLogout}
+            loading={logoutLoading}
+            disabled={logoutLoading}
+          >
+            {logoutLoading ? '退出中…' : '退出登录'}
+          </Button>
+        )}
+
+        {loading && (
+          <View className='mine__loading'>
+            <Text className='mine__loading-text'>加载中…</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }

@@ -17,5 +17,6 @@ public record AdminResignationTicketListResponse(
       Integer totalPackages,
       Integer handledPackages,
       LocalDateTime submittedAt,
-      LocalDateTime createdAt) {}
+      LocalDateTime createdAt,
+      LocalDateTime coachJoinedAt) {}
 }

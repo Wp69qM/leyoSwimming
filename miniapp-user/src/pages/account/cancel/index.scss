@@ -28,6 +28,46 @@ $font-size-h2: 40rpx;
   display: flex;
   flex-direction: column;
 
+  &__navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    border-bottom: 1px solid $color-divider;
+  }
+
+  &__navbar-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__navbar-back {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 88rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__navbar-back-icon {
+    font-size: 48rpx;
+    color: $color-text-primary;
+    line-height: 1;
+  }
+
+  &__navbar-title {
+    font-size: 34rpx;
+    font-weight: 500;
+    color: $color-text-primary;
+  }
+
   &__content {
     flex: 1;
     padding: $space-md;
@@ -36,17 +76,47 @@ $font-size-h2: 40rpx;
 
   &__risk-card {
     background-color: $color-error-bg;
-    border: 1px solid $color-error-border;
+    border: 2rpx solid $color-error-border;
     border-radius: $radius-lg;
     padding: $space-md;
   }
 
+  &__risk-header {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-sm;
+    margin-bottom: $space-sm;
+  }
+
+  &__risk-header-icon {
+    width: 32rpx;
+    height: 32rpx;
+    border-radius: 50%;
+    background-color: $color-error;
+    margin-top: 2rpx;
+    flex-shrink: 0;
+    position: relative;
+
+    &::before {
+      content: '!';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 22rpx;
+      font-weight: 600;
+      line-height: 1;
+    }
+  }
+
   &__risk-title {
+    flex: 1;
     display: block;
     font-size: $font-size-body-sm;
     font-weight: 500;
     color: $color-error;
-    margin-bottom: $space-sm;
+    line-height: 1.5;
   }
 
   &__risk-list {
@@ -93,7 +163,7 @@ $font-size-h2: 40rpx;
     margin-top: $space-md;
     background-color: $color-bg-card;
     border-radius: $radius-lg;
-    box-shadow: 0 4rpx 16rpx rgb(0 0 0 / 8%);
+    box-shadow: 0 4rpx 16rpx rgb(0 0 0 / 6%);
     padding: $space-md;
   }
 
@@ -125,6 +195,10 @@ $font-size-h2: 40rpx;
     font-size: $font-size-body-sm;
     color: $color-text-primary;
     line-height: 1.5;
+
+    &--success {
+      color: $color-success;
+    }
   }
 
   &__checklist-hint {
@@ -135,12 +209,35 @@ $font-size-h2: 40rpx;
 
   &__checklist-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
 
     &--error {
       .account-cancel__checklist-label {
         color: $color-error;
       }
+    }
+  }
+
+  &__checklist-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__checklist-status {
+    flex-shrink: 0;
+    margin-left: $space-sm;
+    font-size: $font-size-caption;
+    line-height: 1.4;
+
+    &--success {
+      color: $color-success;
+    }
+
+    &--error {
+      color: $color-error;
     }
   }
 
@@ -206,11 +303,11 @@ $font-size-h2: 40rpx;
     right: 0;
     bottom: 0;
     background-color: $color-bg-card;
-    border-top: 1px solid $color-divider;
-    box-shadow: 0 -8rpx 24rpx rgb(0 0 0 / 8%);
-    padding: $space-md;
-    padding-bottom: 48rpx;
+    border-top: 2rpx solid $color-divider;
+    box-shadow: 0 -8rpx 24rpx rgb(0 0 0 / 6%);
+    padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
     z-index: 10;
+    box-sizing: border-box;
   }
 
   &__submit {

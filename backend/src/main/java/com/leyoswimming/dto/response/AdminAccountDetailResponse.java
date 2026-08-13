@@ -7,6 +7,7 @@ public record AdminAccountDetailResponse(
     Long adminId,
     String username,
     String name,
+    String phone,
     String role,
     Integer status,
     LocalDateTime lastLoginAt,

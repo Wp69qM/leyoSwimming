@@ -11,7 +11,17 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    margin-top: -120rpx;
+    margin-top: -160rpx;
+  }
+
+  &__brand-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &--dimmed {
+      opacity: 0.6;
+    }
   }
 
   &__logo {
@@ -19,7 +29,6 @@
     width: 192rpx;
     height: 192rpx;
     background: rgb(255 255 255 / 15%);
-    border: 2rpx solid rgb(255 255 255 / 25%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -27,8 +36,8 @@
   }
 
   &__logo-icon {
-    width: 128rpx;
-    height: 128rpx;
+    width: 96rpx;
+    height: 96rpx;
   }
 
   &__brand {
@@ -48,19 +57,21 @@
   }
 
   &__loading {
-    margin-top: 96rpx;
+    margin-top: 80rpx;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 16rpx;
   }
 
   &__loading-dot {
-    width: 50rpx;
-    height: 48rpx;
-    background: rgb(255 255 255 / 30%);
-    border: 2rpx solid rgb(255 255 255 / 50%);
-    border-radius: 24rpx;
+    width: 40rpx;
+    height: 40rpx;
+    border: 3rpx solid rgb(255 255 255 / 35%);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: splash-spin 1s linear infinite;
   }
 
   &__loading-text {
@@ -76,6 +87,13 @@
     flex-direction: column;
     align-items: center;
     gap: 24rpx;
+  }
+
+  &__error-illustration {
+    width: 240rpx;
+    height: 240rpx;
+    background: rgb(255 255 255 / 15%);
+    border-radius: 16rpx;
   }
 
   &__error-text {
@@ -95,5 +113,15 @@
     font-weight: 500;
     color: #1890ff;
     line-height: 40rpx;
+  }
+}
+
+@keyframes splash-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }

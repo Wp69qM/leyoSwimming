@@ -1,78 +1,75 @@
-@import '@/styles/variables';
-
 .mine {
   min-height: 100vh;
-  padding: 24px 16px;
-  background-color: $background-color;
+  background-color: #f5f7fa;
   box-sizing: border-box;
 
-  &--loading,
-  &--guest {
+  &__navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  &__navbar-inner {
+    position: relative;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+  }
+
+  &__navbar-title {
+    font-size: 34rpx;
+    font-weight: 500;
+    color: #262626;
+  }
+
+  &__content {
+    padding: 32rpx;
+    padding-bottom: 48rpx;
+  }
+
+  &__loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(255 255 255 / 60%);
+    z-index: 50;
   }
 
   &__loading-text {
-    color: $text-color-muted;
-    font-size: 14px;
-  }
-
-  &__guest-title {
-    margin-bottom: 8px;
-    color: $text-color;
-    font-size: 18px;
-    font-weight: 500;
-  }
-
-  &__guest-desc {
-    margin-bottom: 24px;
-    color: $text-color-secondary;
-    font-size: 14px;
-  }
-
-  &__login-btn {
-    width: 200px;
-    height: 44px;
-    line-height: 44px;
-    color: #fff;
-    font-size: 16px;
-    background-color: $primary-color;
-    border-radius: $border-radius;
-    border: none;
-  }
-
-  &__header {
-    margin-bottom: 16px;
-
-    &-title {
-      color: $text-color;
-      font-size: 20px;
-      font-weight: 600;
-    }
+    color: #999;
+    font-size: 28rpx;
   }
 
   &__card {
-    padding: 16px;
     background-color: #fff;
-    border-radius: $border-radius;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+    border-radius: 24rpx;
+    box-shadow: 0 4rpx 16rpx rgb(0 0 0 / 6%);
   }
 
   &__profile {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    height: 240rpx;
+    padding: 0 32rpx;
+    margin-bottom: 32rpx;
+
+    &:active {
+      opacity: 0.96;
+    }
   }
 
   &__avatar {
-    width: 64px;
-    height: 64px;
-    margin-right: 16px;
+    width: 128rpx;
+    height: 128rpx;
+    margin-right: 32rpx;
     border-radius: 50%;
-    background-color: $primary-color;
+    background-color: #e6f7ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -86,8 +83,8 @@
 
     &-text {
       color: #fff;
-      font-size: 24px;
-      font-weight: 500;
+      font-size: 48rpx;
+      font-weight: 600;
     }
   }
 
@@ -98,30 +95,30 @@
   }
 
   &__name {
-    margin-bottom: 4px;
-    color: $text-color;
-    font-size: 18px;
+    margin-bottom: 8rpx;
+    color: #262626;
+    font-size: 40rpx;
     font-weight: 500;
   }
 
-  &__phone {
-    color: $text-color-muted;
-    font-size: 14px;
+  &__status {
+    color: #8c8c8c;
+    font-size: 24rpx;
   }
 
   &__menu {
     background-color: #fff;
-    border-radius: $border-radius;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+    border-radius: 24rpx;
+    box-shadow: 0 4rpx 16rpx rgb(0 0 0 / 6%);
     overflow: hidden;
-    margin-bottom: 24px;
+    margin-bottom: 48rpx;
 
     &-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px;
-      border-bottom: 1px solid $border-color;
+      padding: 32rpx;
+      border-bottom: 1rpx solid #f0f0f0;
 
       &:last-child {
         border-bottom: none;
@@ -132,29 +129,72 @@
       }
     }
 
+    &-left {
+      display: flex;
+      align-items: center;
+    }
+
+    &-icon {
+      width: 48rpx;
+      height: 48rpx;
+      border-radius: 12rpx;
+      margin-right: 24rpx;
+      flex-shrink: 0;
+
+      &--package {
+        background-color: #e6f7ff;
+      }
+
+      &--order {
+        background-color: #f6ffed;
+      }
+
+      &--booking {
+        background-color: #fff7e6;
+      }
+
+      &--privacy {
+        background-color: #f9f0ff;
+      }
+
+      &--settings {
+        background-color: #f5f5f5;
+      }
+    }
+
     &-text {
-      color: $text-color;
-      font-size: 15px;
+      color: #262626;
+      font-size: 28rpx;
     }
 
     &-arrow {
-      color: $text-color-muted;
-      font-size: 18px;
+      color: #bfbfbf;
+      font-size: 36rpx;
     }
   }
 
   &__logout {
-    width: 100%;
-    height: 44px;
-    line-height: 44px;
-    color: $danger-color;
-    font-size: 16px;
+    width: 686rpx;
+    height: 96rpx;
+    line-height: 96rpx;
+    color: #ff4d4f;
+    font-size: 32rpx;
+    font-weight: 500;
     background-color: #fff;
-    border-radius: $border-radius;
-    border: 1px solid $danger-color;
+    border-radius: 24rpx;
+    border: none;
+    box-shadow: 0 4rpx 16rpx rgb(0 0 0 / 6%);
+
+    &::after {
+      border: none;
+    }
 
     &:active {
       background-color: rgb(255 77 79 / 4%);
+    }
+
+    &--loading {
+      opacity: 0.7;
     }
   }
 }

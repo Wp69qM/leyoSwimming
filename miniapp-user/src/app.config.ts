@@ -9,6 +9,9 @@ export default {
     'pages/login/protocol/index',
     'pages/profile/complete/index',
     'pages/account/cancel/index',
+    'pages/settings/index',
+    'pages/terms/index',
+    'pages/privacy/index',
   ],
   window: {
     backgroundTextStyle: 'light',

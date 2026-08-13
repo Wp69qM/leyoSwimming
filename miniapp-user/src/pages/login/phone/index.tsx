@@ -2,12 +2,17 @@ import { useState } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, Input, Button } from '@tarojs/components';
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox';
+import {
+  ProtocolDrawer,
+  type ProtocolTab,
+} from '@/pages/login/protocol/ProtocolDrawer';
 import { phoneLogin } from '@/api/auth';
 import { sendSmsCode } from '@/api/common';
 import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
 import { useCountdown } from '@/hooks/useCountdown';
 import { usePolicyVersions } from '@/hooks/usePolicy';
+import { APP_NAME } from '@/constants';
 import { formatPhoneInput, isValidPhone } from '@/utils/phone';
 import './index.scss';
 
@@ -23,6 +28,9 @@ export default function PhoneLoginPage() {
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [protocolChecked, setProtocolChecked] = useState(false);
+  const [protocolVisible, setProtocolVisible] = useState(false);
+  const [protocolInitialTab, setProtocolInitialTab] =
+    useState<ProtocolTab>('terms');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [errorTip, setErrorTip] = useState('');
@@ -78,11 +86,12 @@ export default function PhoneLoginPage() {
     setCodeError(false);
 
     if (!protocolChecked) {
+      const tip = ERROR_MESSAGES[440001];
       Taro.showToast({
-        title: ERROR_MESSAGES.TERMS_NOT_ACCEPTED,
+        title: tip,
         icon: 'none',
       });
-      setErrorTip(ERROR_MESSAGES.TERMS_NOT_ACCEPTED);
+      setErrorTip(tip);
       return;
     }
 
@@ -98,7 +107,7 @@ export default function PhoneLoginPage() {
 
     if (!isValidPhone(phone)) {
       setPhoneError(true);
-      setErrorTip(ERROR_MESSAGES.INVALID_PHONE);
+      setErrorTip(ERROR_MESSAGES[100003]);
       return;
     }
 
@@ -149,7 +158,17 @@ export default function PhoneLoginPage() {
   }
 
   function openProtocolModal(type: 'terms' | 'privacy') {
-    Taro.navigateTo({ url: `/pages/login/protocol/index?type=${type}` });
+    setProtocolInitialTab(type);
+    setProtocolVisible(true);
+  }
+
+  function handleCloseProtocol() {
+    setProtocolVisible(false);
+  }
+
+  function handleAgreeProtocol() {
+    setProtocolChecked(true);
+    setProtocolVisible(false);
   }
 
   return (
@@ -158,51 +177,60 @@ export default function PhoneLoginPage() {
         <View className='phone-login__logo'>
           <View className='phone-login__logo-icon' />
         </View>
-        <Text className='phone-login__title'>手机号登录</Text>
-        <Text className='phone-login__subtitle'>
-          未注册手机号验证通过后将自动创建账号
-        </Text>
+        <Text className='phone-login__name'>{APP_NAME}</Text>
+        <Text className='phone-login__slogan'>专业游泳约课平台</Text>
       </View>
 
-      <View className='phone-login__form'>
-        <View
-          className={`phone-login__input-wrap ${phoneError ? 'phone-login__input-wrap--error' : ''}`}
-        >
-          <View className='phone-login__input-icon phone-login__input-icon--phone' />
-          <Input
-            className='phone-login__input'
-            type='number'
-            placeholder='请输入手机号'
-            value={phone}
-            onInput={(e) => handlePhoneChange(e.detail.value)}
-            maxlength={11}
-          />
+      <View className='phone-login__card'>
+        <Text className='phone-login__title'>手机号登录</Text>
+        <Text className='phone-login__subtitle'>
+          输入手机号获取验证码，即可快速登录
+        </Text>
+
+        <View className='phone-login__field'>
+          <Text className='phone-login__label'>手机号</Text>
+          <View
+            className={`phone-login__input-row ${phoneError ? 'phone-login__input-row--error' : ''}`}
+          >
+            <View className='phone-login__input-icon phone-login__input-icon--phone' />
+            <Input
+              className='phone-login__input'
+              type='number'
+              placeholder='请输入11位手机号'
+              value={phone}
+              onInput={(e) => handlePhoneChange(e.detail.value)}
+              maxlength={11}
+            />
+          </View>
         </View>
 
-        <View
-          className={`phone-login__input-wrap ${codeError ? 'phone-login__input-wrap--error' : ''}`}
-        >
-          <View className='phone-login__input-icon phone-login__input-icon--code' />
-          <Input
-            className='phone-login__input'
-            type='number'
-            placeholder='请输入验证码'
-            value={code}
-            onInput={(e) => handleCodeChange(e.detail.value)}
-            maxlength={6}
-          />
-          <Button
-            className={`phone-login__code-btn ${canSend ? 'phone-login__code-btn--active' : ''}`}
-            onClick={handleSendCode}
-            disabled={!canSend}
-            loading={sending}
+        <View className='phone-login__field'>
+          <Text className='phone-login__label'>验证码</Text>
+          <View
+            className={`phone-login__input-row ${codeError ? 'phone-login__input-row--error' : ''}`}
           >
-            {isRunning
-              ? `${seconds}s后重发`
-              : sending
-                ? '发送中…'
-                : '获取验证码'}
-          </Button>
+            <View className='phone-login__input-icon phone-login__input-icon--code' />
+            <Input
+              className='phone-login__input'
+              type='number'
+              placeholder='请输入短信验证码'
+              value={code}
+              onInput={(e) => handleCodeChange(e.detail.value)}
+              maxlength={6}
+            />
+            <Button
+              className={`phone-login__code-btn ${canSend ? 'phone-login__code-btn--active' : ''}`}
+              onClick={handleSendCode}
+              disabled={!canSend}
+              loading={sending}
+            >
+              {isRunning
+                ? `${seconds}s后重发`
+                : sending
+                  ? '发送中…'
+                  : '获取验证码'}
+            </Button>
+          </View>
         </View>
 
         <ProtocolCheckbox
@@ -214,6 +242,7 @@ export default function PhoneLoginPage() {
 
         {errorTip && (
           <View className='phone-login__error'>
+            <View className='phone-login__error-icon' />
             <Text className='phone-login__error-text'>{errorTip}</Text>
           </View>
         )}
@@ -227,13 +256,31 @@ export default function PhoneLoginPage() {
           {loading ? '登录中…' : '登录'}
         </Button>
 
-        <Text
-          className='phone-login__wechat-link'
+        <View className='phone-login__divider'>
+          <View className='phone-login__divider-line' />
+          <Text className='phone-login__divider-text'>其他登录方式</Text>
+          <View className='phone-login__divider-line' />
+        </View>
+
+        <View
+          className='phone-login__wechat-entry'
           onClick={navigateToWechatLogin}
         >
-          使用微信一键登录
+          <View className='phone-login__wechat-icon' />
+          <Text className='phone-login__wechat-text'>使用微信登录</Text>
+        </View>
+
+        <Text className='phone-login__tip'>
+          未注册手机号将自动创建账号
         </Text>
       </View>
+
+      <ProtocolDrawer
+        visible={protocolVisible}
+        initialTab={protocolInitialTab}
+        onClose={handleCloseProtocol}
+        onAgree={handleAgreeProtocol}
+      />
     </View>
   );
 }

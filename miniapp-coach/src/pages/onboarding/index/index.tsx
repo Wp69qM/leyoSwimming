@@ -322,6 +322,64 @@ export default function CoachOnboardingPage() {
       )}
 
       <View className='coach-onboarding__card'>
+        <Text className='coach-onboarding__card-title'>实名与资质</Text>
+        <View className='coach-onboarding__field'>
+          <Text className='coach-onboarding__label'>身份证号</Text>
+          <Input
+            className='coach-onboarding__input'
+            placeholder='请输入18位身份证号'
+            value={idCardNo}
+            onInput={(e) => setIdCardNo(e.detail.value.trim())}
+            maxlength={18}
+            disabled={isFormDisabled}
+          />
+        </View>
+        {CERT_TYPES.map((cert) => (
+          <View key={cert.key} className='coach-onboarding__upload-field'>
+            <Text className='coach-onboarding__label'>{cert.label}</Text>
+            <View className='coach-onboarding__upload-list'>
+              {getCertImages(cert.key).map((url) => (
+                <View key={url} className='coach-onboarding__upload-item'>
+                  <Image className='coach-onboarding__upload-img' src={url} mode='aspectFill' />
+                  <Text
+                    className='coach-onboarding__upload-remove'
+                    onClick={() => removeCert(cert.key, url)}
+                  >
+                    ✕
+                  </Text>
+                </View>
+              ))}
+              {(cert.multiple || getCertImages(cert.key).length === 0) && (
+                <View
+                  className='coach-onboarding__upload-placeholder'
+                  onClick={() => handleUpload(cert.key, cert.multiple)}
+                >
+                  <Text className='coach-onboarding__upload-plus'>+</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        ))}
+      </View>
+
+      <View className='coach-onboarding__card'>
+        <Text className='coach-onboarding__card-title'>服务设置</Text>
+        <View className='coach-onboarding__field'>
+          <Text className='coach-onboarding__label'>参考单价</Text>
+          <Input
+            className='coach-onboarding__input'
+            type='digit'
+            placeholder='50-2000'
+            value={referencePrice}
+            onInput={(e) => setReferencePrice(e.detail.value)}
+            disabled={isFormDisabled}
+          />
+          <Text className='coach-onboarding__unit'>元/节</Text>
+        </View>
+        <Text className='coach-onboarding__hint'>参考单价范围 50-2000 元/节</Text>
+      </View>
+
+      <View className='coach-onboarding__card'>
         <Text className='coach-onboarding__card-title'>基础信息</Text>
         <View className='coach-onboarding__field'>
           <Text className='coach-onboarding__label'>姓名/昵称</Text>
@@ -381,47 +439,6 @@ export default function CoachOnboardingPage() {
       </View>
 
       <View className='coach-onboarding__card'>
-        <Text className='coach-onboarding__card-title'>实名与资质</Text>
-        <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>身份证号</Text>
-          <Input
-            className='coach-onboarding__input'
-            placeholder='请输入 18 位身份证号'
-            value={idCardNo}
-            onInput={(e) => setIdCardNo(e.detail.value.trim())}
-            maxlength={18}
-            disabled={isFormDisabled}
-          />
-        </View>
-        {CERT_TYPES.map((cert) => (
-          <View key={cert.key} className='coach-onboarding__upload-field'>
-            <Text className='coach-onboarding__label'>{cert.label}</Text>
-            <View className='coach-onboarding__upload-list'>
-              {getCertImages(cert.key).map((url) => (
-                <View key={url} className='coach-onboarding__upload-item'>
-                  <Image className='coach-onboarding__upload-img' src={url} mode='aspectFill' />
-                  <Text
-                    className='coach-onboarding__upload-remove'
-                    onClick={() => removeCert(cert.key, url)}
-                  >
-                    ✕
-                  </Text>
-                </View>
-              ))}
-              {(cert.multiple || getCertImages(cert.key).length === 0) && (
-                <View
-                  className='coach-onboarding__upload-placeholder'
-                  onClick={() => handleUpload(cert.key, cert.multiple)}
-                >
-                  <Text className='coach-onboarding__upload-plus'>+</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        ))}
-      </View>
-
-      <View className='coach-onboarding__card'>
         <Text className='coach-onboarding__card-title'>教学履历</Text>
         <View className='coach-onboarding__field'>
           <Text className='coach-onboarding__label'>任教年限</Text>
@@ -460,7 +477,7 @@ export default function CoachOnboardingPage() {
           <Text className='coach-onboarding__unit'>节</Text>
         </View>
         <View className='coach-onboarding__field coach-onboarding__field--column'>
-          <Text className='coach-onboarding__label'>擅长泳姿（可选）</Text>
+          <Text className='coach-onboarding__label'>擅长泳姿</Text>
           <View className='coach-onboarding__stroke-list'>
             {STROKE_OPTIONS.map((stroke) => (
               <Text
@@ -477,7 +494,7 @@ export default function CoachOnboardingPage() {
           <Text className='coach-onboarding__label'>个人简介</Text>
           <Textarea
             className='coach-onboarding__textarea'
-            placeholder='请输入个人简介'
+            placeholder='请介绍您的教学经历和特长'
             value={bio}
             onInput={(e) => setBio(e.detail.value)}
             maxlength={500}
@@ -485,23 +502,6 @@ export default function CoachOnboardingPage() {
           />
           <Text className='coach-onboarding__char-count'>{bio.length}/500</Text>
         </View>
-      </View>
-
-      <View className='coach-onboarding__card'>
-        <Text className='coach-onboarding__card-title'>服务设置</Text>
-        <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>参考单价</Text>
-          <Input
-            className='coach-onboarding__input'
-            type='digit'
-            placeholder='请输入参考单价'
-            value={referencePrice}
-            onInput={(e) => setReferencePrice(e.detail.value)}
-            disabled={isFormDisabled}
-          />
-          <Text className='coach-onboarding__unit'>元/节</Text>
-        </View>
-        <Text className='coach-onboarding__hint'>参考单价范围 50-2000 元/节</Text>
       </View>
 
       {errorTip && (

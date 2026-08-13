@@ -19,7 +19,12 @@ public record AdminResignationTicketDetailResponse(
     Checklist checklist) {
 
   public record CoachInfo(
-      Long coachId, String name, String phone, Integer status, LocalDateTime submittedAt) {}
+      Long coachId,
+      String name,
+      String phone,
+      Integer status,
+      LocalDateTime submittedAt,
+      LocalDateTime joinedAt) {}
 
   public record PackageItem(
       Long packageId,

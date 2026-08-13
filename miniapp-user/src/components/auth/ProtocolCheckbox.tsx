@@ -1,4 +1,5 @@
 import { View, Text } from '@tarojs/components';
+import './ProtocolCheckbox.scss';
 
 export interface ProtocolCheckboxProps {
   checked: boolean;

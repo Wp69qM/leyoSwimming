@@ -55,7 +55,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 80rpx;
+    padding-top: 96rpx;
     padding-bottom: 48rpx;
   }
 
@@ -70,9 +70,9 @@
     margin-bottom: 32rpx;
   }
 
-  &__status-icon-text {
-    font-size: 80rpx;
-    line-height: 80rpx;
+  &__status-icon-img {
+    width: 80rpx;
+    height: 80rpx;
   }
 
   &__status-title {

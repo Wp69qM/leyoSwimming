@@ -4,15 +4,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 32rpx;
   box-sizing: border-box;
   position: relative;
 
   &__brand {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 25vh;
+    justify-content: center;
+    padding: 0 32rpx;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   &__logo {
@@ -98,14 +101,12 @@
   }
 
   &__footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    width: 100%;
+    min-height: 360rpx;
     background: #ffffff;
     border-radius: 32rpx 32rpx 0 0;
-    padding: 48rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
-    box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.08);
+    padding: 48rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+    box-sizing: border-box;
   }
 
   &__button {
@@ -118,7 +119,6 @@
     font-size: 32rpx;
     font-weight: 500;
     border-radius: 16rpx;
-    box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.35);
 
     &--loading {
       background: #06ad56;
@@ -139,7 +139,6 @@
     text-align: center;
     font-size: 28rpx;
     color: #1890ff;
-    font-weight: 500;
   }
 }
 
@@ -168,6 +167,13 @@
     color: #ffffff;
     font-size: 24rpx;
     line-height: 1;
+  }
+
+  &__dot {
+    width: 18rpx;
+    height: 18rpx;
+    border-radius: 50%;
+    background-color: #FF6B35;
   }
 
   &__text {

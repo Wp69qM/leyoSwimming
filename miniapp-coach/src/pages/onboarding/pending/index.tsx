@@ -6,8 +6,7 @@ import { handleBusinessError } from '@/api/request'
 import { maskPhone } from '@/utils/phone'
 import './index.scss'
 
-const ILLUSTRATION_URL =
-  'https://console.enterprise.trae.cn/api/ide/v1/text_to_image?prompt=A+flat+minimal+illustration+of+a+clock+or+hourglass+with+a+swimming+coach+badge%2C+orange+and+yellow+gradient%2C+review+pending%2C+clean+white+background&image_size=square'
+const CLOCK_SVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkFBRDE0IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBvbHlsaW5lIHBvaW50cz0iMjAsMTIgMjAsMjAgMjYsMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZBQUQxNCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg=='
 
 const CERT_TYPE_LABELS: Record<string, string> = {
   ID_CARD_FRONT: '身份证正面照',
@@ -130,7 +129,11 @@ export default function CoachOnboardingPendingPage() {
         <>
           <View className='coach-onboarding-pending__status'>
             <View className='coach-onboarding-pending__status-icon'>
-              <Text className='coach-onboarding-pending__status-icon-text'>⏳</Text>
+              <Image
+                className='coach-onboarding-pending__status-icon-img'
+                src={CLOCK_SVG}
+                mode='aspectFit'
+              />
             </View>
             <Text className='coach-onboarding-pending__status-title'>审核中，请耐心等待</Text>
             <Text className='coach-onboarding-pending__status-subtitle'>预计 1-3 个工作日内完成审核</Text>
@@ -144,7 +147,7 @@ export default function CoachOnboardingPendingPage() {
             <View className='coach-onboarding-pending__profile'>
               <Image
                 className='coach-onboarding-pending__avatar'
-                src={portraitUrl || ILLUSTRATION_URL}
+                src={portraitUrl || CLOCK_SVG}
                 mode='aspectFill'
               />
               <View className='coach-onboarding-pending__profile-info'>

@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text, Input, Button, Image, Switch } from '@tarojs/components';
+import {
+  View,
+  Text,
+  Input,
+  Button,
+  Image,
+  Picker,
+  Textarea,
+} from '@tarojs/components';
 import {
   getProfile,
   updateProfile,
@@ -8,11 +16,16 @@ import {
   type UserProfile,
   type UpdateProfileParams,
 } from '@/api/profile';
-import { sendSmsCode } from '@/api/common';
 import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
-import { useCountdown } from '@/hooks/useCountdown';
 import './index.scss';
+
+const AGE_RANGE = Array.from({ length: 97 }, (_, i) => String(i + 3));
+
+const SWIM_BASIS_OPTIONS = [
+  { value: 'yes', label: '是' },
+  { value: 'no', label: '否' },
+];
 
 const SWIM_STROKES = [
   { value: 'breaststroke', label: '蛙泳' },
@@ -20,6 +33,26 @@ const SWIM_STROKES = [
   { value: 'backstroke', label: '仰泳' },
   { value: 'butterfly', label: '蝶泳' },
 ];
+
+const GENDER_OPTIONS = [
+  { value: 'male', label: '男' },
+  { value: 'female', label: '女' },
+];
+
+interface FieldErrors {
+  avatarUrl?: string;
+  phone?: string;
+  name?: string;
+  age?: string;
+  gender?: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  swimStrokes?: string;
+}
+
+const SYSTEM_INFO = Taro.getSystemInfoSync();
+const STATUS_BAR_HEIGHT = SYSTEM_INFO.statusBarHeight || 0;
+const NAV_BAR_HEIGHT = 44;
 
 export default function ProfileCompletePage() {
   const [loading, setLoading] = useState(false);
@@ -32,19 +65,23 @@ export default function ProfileCompletePage() {
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [guardianName, setGuardianName] = useState('');
   const [guardianPhone, setGuardianPhone] = useState('');
-  const [hasSwimBasis, setHasSwimBasis] = useState(false);
+  const [swimBasisLevel, setSwimBasisLevel] = useState<'yes' | 'no' | ''>('');
   const [swimStrokes, setSwimStrokes] = useState<string[]>([]);
   const [swimYears, setSwimYears] = useState('');
   const [personalDesc, setPersonalDesc] = useState('');
-  const [newPhone, setNewPhone] = useState('');
-  const [oldCode, setOldCode] = useState('');
-  const [newCode, setNewCode] = useState('');
-  const [errorTip, setErrorTip] = useState('');
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [globalError, setGlobalError] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const setUserInfo = useAuthStore((state) => state.setUserInfo);
-  const oldTimer = useCountdown({ initialSeconds: 60 });
-  const newTimer = useCountdown({ initialSeconds: 60 });
+  const userInfo = useAuthStore((state) => state.userInfo);
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    Taro.setNavigationBarTitle({
+      title: userInfo?.profileCompleted ? '编辑资料' : '完善资料',
+    });
+  }, [userInfo?.profileCompleted]);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,19 +90,26 @@ export default function ProfileCompletePage() {
         const data = await getProfile();
         if (cancelled) return;
         setProfile(data);
+        setIsEditMode(!!data.profileCompleted);
         setName(data.name || '');
         setAvatarUrl(data.avatarUrl || '');
         setAge(data.age ? String(data.age) : '');
         setGender(data.gender || '');
         setGuardianName(data.guardianName || '');
         setGuardianPhone(data.guardianPhone || '');
-        setHasSwimBasis(Boolean(data.hasSwimBasis));
+        setSwimBasisLevel(
+          data.hasSwimBasis === undefined
+            ? ''
+            : data.hasSwimBasis
+              ? 'yes'
+              : 'no'
+        );
         setSwimStrokes(data.swimStrokes || []);
         setSwimYears(data.swimYears ? String(data.swimYears) : '');
         setPersonalDesc(data.personalDesc || '');
       } catch (error) {
         if (cancelled) return;
-        setErrorTip(handleBusinessError(error));
+        setGlobalError(handleBusinessError(error));
       } finally {
         if (!cancelled) setInitialLoading(false);
       }
@@ -79,10 +123,20 @@ export default function ProfileCompletePage() {
     };
   }, []);
 
+  function clearFieldError(field: keyof FieldErrors) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
   function toggleStroke(value: string) {
     setSwimStrokes((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
+    clearFieldError('swimStrokes');
   }
 
   async function handleChooseAvatar() {
@@ -96,62 +150,46 @@ export default function ProfileCompletePage() {
       const tempPath = res.tempFilePaths[0];
       const url = await uploadAvatar(tempPath);
       setAvatarUrl(url);
+      clearFieldError('avatarUrl');
     } catch (error) {
       Taro.showToast({ title: handleBusinessError(error), icon: 'none' });
     }
   }
 
-  async function handleSendOldCode() {
-    if (!profile?.phone) return;
-    try {
-      await sendSmsCode({ phone: profile.phone, scene: 'change_phone_old' });
-      oldTimer.start();
-    } catch (error) {
-      Taro.showToast({ title: handleBusinessError(error), icon: 'none' });
-    }
-  }
+  const phoneNumber = profile?.phone || '';
 
-  async function handleSendNewCode() {
-    if (!/^1[3-9]\d{9}$/.test(newPhone)) {
-      Taro.showToast({ title: '请输入正确的新手机号', icon: 'none' });
-      return;
-    }
-    try {
-      await sendSmsCode({ phone: newPhone, scene: 'change_phone_new' });
-      newTimer.start();
-    } catch (error) {
-      Taro.showToast({ title: handleBusinessError(error), icon: 'none' });
-    }
-  }
-
-  function validate(): string | null {
-    if (!name.trim()) return '请输入昵称';
-    if (!/^[^\s]{1,32}$/.test(name.trim())) return '昵称长度不超过32个字符';
+  function validate(): FieldErrors | null {
+    const next: FieldErrors = {};
+    if (!avatarUrl) next.avatarUrl = '请上传头像';
+    if (!/^1[3-9]\d{9}$/.test(phoneNumber)) next.phone = '请输入正确的手机号';
+    if (!name.trim()) next.name = '姓名不能为空';
+    else if (!/^[^\s]{1,32}$/.test(name.trim()))
+      next.name = '姓名长度不超过32个字符';
     const ageNum = Number(age);
-    if (!age || ageNum < 3 || ageNum > 99) return '年龄需在 3-99 岁之间';
-    if (!gender) return '请选择性别';
+    if (!age || ageNum < 3 || ageNum > 99) next.age = '请选择年龄';
+    if (!gender) next.gender = '请选择性别';
     if (ageNum < 18) {
-      if (!guardianName.trim()) return '请输入监护人姓名';
+      if (!guardianName.trim()) next.guardianName = '请输入监护人姓名';
       if (!/^1[3-9]\d{9}$/.test(guardianPhone))
-        return '请输入正确的监护人手机号';
+        next.guardianPhone = '请输入正确的监护人手机号';
     }
-    if (hasSwimBasis && swimStrokes.length === 0)
-      return '请至少选择一种会游的泳姿';
-    if (newPhone && !/^1[3-9]\d{9}$/.test(newPhone))
-      return '请输入正确的新手机号';
-    if (newPhone && (!oldCode || !newCode)) return '请填写新旧手机号的验证码';
-    return null;
+    if (swimBasisLevel === 'yes' && swimStrokes.length === 0)
+      next.swimStrokes = '请至少选择一种会游的泳姿';
+    return Object.keys(next).length > 0 ? next : null;
   }
+
+  const isFormValid = !validate();
 
   async function handleSubmit() {
-    setErrorTip('');
-    const error = validate();
-    if (error) {
-      setErrorTip(error);
+    setGlobalError('');
+    const fieldErrors = validate();
+    if (fieldErrors) {
+      setErrors(fieldErrors);
       return;
     }
     setLoading(true);
     try {
+      const hasSwimBasis = swimBasisLevel === 'yes';
       const params: UpdateProfileParams = {
         name: name.trim(),
         age: Number(age),
@@ -163,14 +201,12 @@ export default function ProfileCompletePage() {
         avatarUrl: avatarUrl || undefined,
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       };
-      if (age && Number(age) < 18) {
+      if (profile?.phone) {
+        params.phone = profile.phone;
+      }
+      if (Number(age) < 18) {
         params.guardianName = guardianName.trim();
         params.guardianPhone = guardianPhone;
-      }
-      if (newPhone) {
-        params.newPhone = newPhone;
-        params.oldPhoneVerifyCode = oldCode;
-        params.newPhoneVerifyCode = newCode;
       }
       const data = await updateProfile(params);
       setUserInfo({
@@ -182,241 +218,357 @@ export default function ProfileCompletePage() {
       });
       Taro.showToast({ title: '保存成功', icon: 'success' });
       navigateTimerRef.current = setTimeout(() => {
-        Taro.switchTab({ url: '/pages/index/index' });
+        if (isEditMode) {
+          Taro.navigateBack();
+        } else {
+          Taro.switchTab({ url: '/pages/index/index' });
+        }
       }, 800);
     } catch (err) {
       const code = getErrorCode(err);
       const message = handleBusinessError(err);
-      setErrorTip(message);
+      setGlobalError(message);
       if (code === 440005) {
-        Taro.showToast({ title: '昵称或描述包含敏感词', icon: 'none' });
+        Taro.showToast({ title: '姓名或描述包含敏感词', icon: 'none' });
       }
     } finally {
       setLoading(false);
     }
   }
 
+  function handleBack() {
+    Taro.navigateBack();
+  }
+
   if (initialLoading) {
     return (
       <View className='profile-complete'>
+        <View
+          className='profile-complete__navbar'
+          style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
+        >
+          <View
+            className='profile-complete__navbar-inner'
+            style={{ height: `${NAV_BAR_HEIGHT}px` }}
+          >
+            <Text className='profile-complete__navbar-title'>
+              {isEditMode ? '编辑资料' : '完善资料'}
+            </Text>
+          </View>
+        </View>
         <Text className='profile-complete__loading'>加载中…</Text>
       </View>
     );
   }
 
   const ageNum = Number(age) || 0;
+  const ageIndex = age ? AGE_RANGE.indexOf(age) : -1;
+  const showSwimDetail = swimBasisLevel === 'yes';
+  const pageTitle = isEditMode ? '编辑资料' : '完善资料';
 
   return (
     <View className='profile-complete'>
-      <Text className='profile-complete__title'>完善个人资料</Text>
-
-      <View className='profile-complete__avatar' onClick={handleChooseAvatar}>
-        {avatarUrl ? (
-          <Image
-            className='profile-complete__avatar-img'
-            src={avatarUrl}
-            mode='aspectFill'
-          />
-        ) : (
-          <View className='profile-complete__avatar-placeholder'>
-            <Text className='profile-complete__avatar-text'>点击上传头像</Text>
-          </View>
-        )}
-      </View>
-
-      <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>昵称</Text>
-        <Input
-          className='profile-complete__input'
-          placeholder='请输入昵称'
-          value={name}
-          onInput={(e) => setName(e.detail.value)}
-          maxlength={32}
-        />
-      </View>
-
-      <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>年龄</Text>
-        <Input
-          className='profile-complete__input'
-          type='number'
-          placeholder='请输入年龄'
-          value={age}
-          onInput={(e) => setAge(e.detail.value.replace(/\D/g, '').slice(0, 2))}
-        />
-      </View>
-
-      <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>性别</Text>
-        <View className='profile-complete__radio-group'>
-          <Text
-            className={`profile-complete__radio ${gender === 'male' ? 'profile-complete__radio--active' : ''}`}
-            onClick={() => setGender('male')}
-          >
-            男
-          </Text>
-          <Text
-            className={`profile-complete__radio ${gender === 'female' ? 'profile-complete__radio--active' : ''}`}
-            onClick={() => setGender('female')}
-          >
-            女
-          </Text>
+      <View
+        className='profile-complete__navbar'
+        style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
+      >
+        <View
+          className='profile-complete__navbar-inner'
+          style={{ height: `${NAV_BAR_HEIGHT}px` }}
+        >
+          {isEditMode && (
+            <View
+              className='profile-complete__navbar-back'
+              onClick={handleBack}
+            >
+              <Text className='profile-complete__navbar-back-icon'>‹</Text>
+            </View>
+          )}
+          <Text className='profile-complete__navbar-title'>{pageTitle}</Text>
         </View>
       </View>
 
-      {ageNum > 0 && ageNum < 18 && (
-        <>
-          <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>监护人姓名</Text>
-            <Input
-              className='profile-complete__input'
-              placeholder='请输入监护人姓名'
-              value={guardianName}
-              onInput={(e) => setGuardianName(e.detail.value)}
-            />
+      <View
+        className='profile-complete__body'
+        style={{ paddingTop: `${STATUS_BAR_HEIGHT + NAV_BAR_HEIGHT}px` }}
+      >
+        <View className='profile-complete__avatar-wrap'>
+          <View
+            className={`profile-complete__avatar ${errors.avatarUrl ? 'profile-complete__avatar--error' : ''}`}
+            onClick={handleChooseAvatar}
+          >
+            {avatarUrl ? (
+              <Image
+                className='profile-complete__avatar-img'
+                src={avatarUrl}
+                mode='aspectFill'
+              />
+            ) : (
+              <View className='profile-complete__avatar-placeholder' />
+            )}
+            <View className='profile-complete__camera'>
+              <View className='profile-complete__camera-icon' />
+            </View>
           </View>
+          <Text
+            className={`profile-complete__avatar-tip ${errors.avatarUrl ? 'profile-complete__avatar-tip--error' : ''}`}
+          >
+            {avatarUrl ? '点击更换头像' : '点击上传头像'}
+          </Text>
+        </View>
+
+        <View className='profile-complete__card'>
           <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>监护人手机号</Text>
+            <Text className='profile-complete__label'>
+              手机号<Text className='profile-complete__required'>*</Text>
+            </Text>
             <Input
-              className='profile-complete__input'
+              className={`profile-complete__input ${errors.phone ? 'profile-complete__input--error' : ''}`}
               type='number'
-              placeholder='请输入监护人手机号'
-              value={guardianPhone}
-              onInput={(e) => setGuardianPhone(e.detail.value.slice(0, 11))}
+              placeholder='登录时绑定的手机号'
+              value={profile?.phone || ''}
+              onInput={(e) => {
+                clearFieldError('phone');
+                if (profile) {
+                  setProfile({
+                    ...profile,
+                    phone: e.detail.value.replace(/\D/g, '').slice(0, 11),
+                  });
+                }
+              }}
               maxlength={11}
             />
+            {errors.phone && (
+              <Text className='profile-complete__field-error'>
+                {errors.phone}
+              </Text>
+            )}
           </View>
-        </>
-      )}
 
-      <View className='profile-complete__field profile-complete__field--row'>
-        <Text className='profile-complete__label'>是否有游泳基础</Text>
-        <Switch
-          checked={hasSwimBasis}
-          onChange={(e) => {
-            setHasSwimBasis(e.detail.value);
-            if (!e.detail.value) setSwimStrokes([]);
-          }}
-        />
-      </View>
+          <View className='profile-complete__field'>
+            <Text className='profile-complete__label'>
+              姓名<Text className='profile-complete__required'>*</Text>
+            </Text>
+            <Input
+              className={`profile-complete__input ${errors.name ? 'profile-complete__input--error' : ''}`}
+              placeholder='请输入真实姓名'
+              value={name}
+              onInput={(e) => {
+                setName(e.detail.value);
+                clearFieldError('name');
+              }}
+              maxlength={32}
+            />
+            {errors.name && (
+              <Text className='profile-complete__field-error'>
+                {errors.name}
+              </Text>
+            )}
+          </View>
 
-      {hasSwimBasis && (
-        <View className='profile-complete__field'>
-          <Text className='profile-complete__label'>会游哪些泳姿</Text>
-          <View className='profile-complete__stroke-list'>
-            {SWIM_STROKES.map((stroke) => (
+          <View className='profile-complete__field'>
+            <Text className='profile-complete__label'>
+              年龄<Text className='profile-complete__required'>*</Text>
+            </Text>
+            <Picker
+              mode='selector'
+              range={AGE_RANGE}
+              value={ageIndex >= 0 ? ageIndex : 0}
+              onChange={(e) => {
+                setAge(AGE_RANGE[Number(e.detail.value)]);
+                clearFieldError('age');
+              }}
+            >
               <View
-                key={stroke.value}
-                className={`profile-complete__stroke ${swimStrokes.includes(stroke.value) ? 'profile-complete__stroke--active' : ''}`}
-                onClick={() => toggleStroke(stroke.value)}
+                className={`profile-complete__picker ${age ? 'profile-complete__picker--active' : ''} ${errors.age ? 'profile-complete__picker--error' : ''}`}
               >
-                <Text className='profile-complete__stroke-text'>
-                  {stroke.label}
+                <Text className='profile-complete__picker-text'>
+                  {age ? `${age} 岁` : '请选择年龄（3-99）'}
                 </Text>
               </View>
-            ))}
+            </Picker>
+            {errors.age && (
+              <Text className='profile-complete__field-error'>
+                {errors.age}
+              </Text>
+            )}
           </View>
-          <Input
-            className='profile-complete__input profile-complete__input--mt'
-            type='number'
-            placeholder='游泳年限（选填）'
-            value={swimYears}
-            onInput={(e) =>
-              setSwimYears(e.detail.value.replace(/\D/g, '').slice(0, 2))
-            }
-          />
-        </View>
-      )}
 
-      <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>个人描述</Text>
-        <Input
-          className='profile-complete__input'
-          placeholder='简单介绍一下自己（选填）'
-          value={personalDesc}
-          onInput={(e) => setPersonalDesc(e.detail.value)}
-          maxlength={512}
-        />
-      </View>
+          <View className='profile-complete__field'>
+            <Text className='profile-complete__label'>
+              性别<Text className='profile-complete__required'>*</Text>
+            </Text>
+            <View className='profile-complete__radio-group'>
+              {GENDER_OPTIONS.map((option) => (
+                <View
+                  key={option.value}
+                  className={`profile-complete__radio ${gender === option.value ? 'profile-complete__radio--active' : ''} ${errors.gender ? 'profile-complete__radio--error' : ''}`}
+                  onClick={() => {
+                    setGender(option.value as 'male' | 'female');
+                    clearFieldError('gender');
+                  }}
+                >
+                  <Text className='profile-complete__radio-text'>
+                    {option.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            {errors.gender && (
+              <Text className='profile-complete__field-error'>
+                {errors.gender}
+              </Text>
+            )}
+          </View>
 
-      <View className='profile-complete__section'>
-        <Text className='profile-complete__section-title'>
-          更换手机号（选填）
-        </Text>
-        <View className='profile-complete__field'>
-          <Text className='profile-complete__label'>当前手机号</Text>
-          <Input
-            className='profile-complete__input'
-            value={profile?.phone || ''}
-            disabled
-          />
+          {ageNum > 0 && ageNum < 18 && (
+            <>
+              <View className='profile-complete__guardian-header'>
+                <View className='profile-complete__guardian-icon' />
+                <Text className='profile-complete__guardian-title'>
+                  监护人信息（未成年人必填）
+                </Text>
+              </View>
+              <View className='profile-complete__field'>
+                <Text className='profile-complete__label'>
+                  监护人姓名
+                  <Text className='profile-complete__required'>*</Text>
+                </Text>
+                <Input
+                  className={`profile-complete__input ${errors.guardianName ? 'profile-complete__input--error' : ''}`}
+                  placeholder='请输入监护人真实姓名'
+                  value={guardianName}
+                  onInput={(e) => {
+                    setGuardianName(e.detail.value);
+                    clearFieldError('guardianName');
+                  }}
+                  maxlength={32}
+                />
+                {errors.guardianName && (
+                  <Text className='profile-complete__field-error'>
+                    {errors.guardianName}
+                  </Text>
+                )}
+              </View>
+              <View className='profile-complete__field'>
+                <Text className='profile-complete__label'>
+                  监护人手机号
+                  <Text className='profile-complete__required'>*</Text>
+                </Text>
+                <Input
+                  className={`profile-complete__input ${errors.guardianPhone ? 'profile-complete__input--error' : ''}`}
+                  type='number'
+                  placeholder='请输入监护人手机号'
+                  value={guardianPhone}
+                  onInput={(e) => {
+                    setGuardianPhone(
+                      e.detail.value.replace(/\D/g, '').slice(0, 11)
+                    );
+                    clearFieldError('guardianPhone');
+                  }}
+                  maxlength={11}
+                />
+                {errors.guardianPhone && (
+                  <Text className='profile-complete__field-error'>
+                    {errors.guardianPhone}
+                  </Text>
+                )}
+              </View>
+            </>
+          )}
+
+          <View className='profile-complete__field'>
+            <Text className='profile-complete__label'>是否有游泳基础</Text>
+            <View className='profile-complete__radio-group'>
+              {SWIM_BASIS_OPTIONS.map((option) => (
+                <View
+                  key={option.value}
+                  className={`profile-complete__radio ${swimBasisLevel === option.value ? 'profile-complete__radio--active' : ''}`}
+                  onClick={() => {
+                    setSwimBasisLevel(option.value as 'yes' | 'no');
+                    if (option.value === 'no') {
+                      setSwimStrokes([]);
+                      setSwimYears('');
+                    }
+                  }}
+                >
+                  <Text className='profile-complete__radio-text'>
+                    {option.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {showSwimDetail && (
+            <View className='profile-complete__field'>
+              <Text className='profile-complete__label'>会游哪些泳姿</Text>
+              <View className='profile-complete__stroke-list'>
+                {SWIM_STROKES.map((stroke) => (
+                  <View
+                    key={stroke.value}
+                    className={`profile-complete__stroke ${swimStrokes.includes(stroke.value) ? 'profile-complete__stroke--active' : ''} ${errors.swimStrokes ? 'profile-complete__stroke--error' : ''}`}
+                    onClick={() => toggleStroke(stroke.value)}
+                  >
+                    <Text className='profile-complete__stroke-text'>
+                      {stroke.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              {errors.swimStrokes && (
+                <Text className='profile-complete__field-error'>
+                  {errors.swimStrokes}
+                </Text>
+              )}
+              <Input
+                className='profile-complete__input profile-complete__input--mt'
+                type='number'
+                placeholder='请输入游泳年限（年）'
+                value={swimYears}
+                onInput={(e) =>
+                  setSwimYears(e.detail.value.replace(/\D/g, '').slice(0, 2))
+                }
+              />
+            </View>
+          )}
+
+          <View className='profile-complete__field profile-complete__field--last'>
+            <Text className='profile-complete__label'>
+              个人描述
+              <Text className='profile-complete__label-note'>（选填）</Text>
+            </Text>
+            <Textarea
+              className='profile-complete__textarea'
+              placeholder='可填写游泳目标、身体状况、特殊需求等，方便教练备课'
+              value={personalDesc}
+              onInput={(e) => setPersonalDesc(e.detail.value)}
+              maxlength={200}
+            />
+            <Text className='profile-complete__counter'>
+              {personalDesc.length}/200
+            </Text>
+          </View>
         </View>
-        <View className='profile-complete__field profile-complete__field--code'>
-          <Input
-            className='profile-complete__input'
-            type='number'
-            placeholder='旧手机号验证码'
-            value={oldCode}
-            onInput={(e) =>
-              setOldCode(e.detail.value.replace(/\D/g, '').slice(0, 6))
-            }
-            maxlength={6}
-          />
+
+        <View className='profile-complete__footer'>
+          {globalError && (
+            <View className='profile-complete__error'>
+              <Text className='profile-complete__error-text'>
+                {globalError}
+              </Text>
+            </View>
+          )}
           <Button
-            className={`profile-complete__code-btn ${oldTimer.canSend ? 'profile-complete__code-btn--active' : ''}`}
-            onClick={handleSendOldCode}
-            disabled={!oldTimer.canSend}
+            className={`profile-complete__submit ${loading ? 'profile-complete__submit--loading' : ''} ${!isFormValid ? 'profile-complete__submit--disabled' : ''}`}
+            onClick={handleSubmit}
+            loading={loading}
+            disabled={loading || !isFormValid}
           >
-            {oldTimer.isRunning ? `${oldTimer.seconds}s` : '获取验证码'}
+            {loading ? '保存中…' : isEditMode ? '保存' : '保存并进入首页'}
           </Button>
         </View>
-        <View className='profile-complete__field profile-complete__field--code'>
-          <Input
-            className='profile-complete__input'
-            type='number'
-            placeholder='新手机号'
-            value={newPhone}
-            onInput={(e) =>
-              setNewPhone(e.detail.value.replace(/\D/g, '').slice(0, 11))
-            }
-            maxlength={11}
-          />
-        </View>
-        <View className='profile-complete__field profile-complete__field--code'>
-          <Input
-            className='profile-complete__input'
-            type='number'
-            placeholder='新手机号验证码'
-            value={newCode}
-            onInput={(e) =>
-              setNewCode(e.detail.value.replace(/\D/g, '').slice(0, 6))
-            }
-            maxlength={6}
-          />
-          <Button
-            className={`profile-complete__code-btn ${newTimer.canSend && /^1[3-9]\d{9}$/.test(newPhone) ? 'profile-complete__code-btn--active' : ''}`}
-            onClick={handleSendNewCode}
-            disabled={!newTimer.canSend || !/^1[3-9]\d{9}$/.test(newPhone)}
-          >
-            {newTimer.isRunning ? `${newTimer.seconds}s` : '获取验证码'}
-          </Button>
-        </View>
       </View>
-
-      {errorTip && (
-        <View className='profile-complete__error'>
-          <Text className='profile-complete__error-text'>{errorTip}</Text>
-        </View>
-      )}
-
-      <Button
-        className={`profile-complete__submit ${loading ? 'profile-complete__submit--loading' : ''}`}
-        onClick={handleSubmit}
-        loading={loading}
-        disabled={loading}
-      >
-        {loading ? '保存中…' : '保存并进入'}
-      </Button>
     </View>
   );
 }

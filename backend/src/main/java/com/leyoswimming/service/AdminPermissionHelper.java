@@ -24,6 +24,10 @@ public class AdminPermissionHelper {
   public static final String PERM_COACH_WRITE = "COACH:WRITE";
   public static final String PERM_COACH_CANCEL_ENTRY = "COACH:CANCEL_ENTRY";
   public static final String PERM_ADMIN_WRITE = "ADMIN:WRITE";
+  public static final String PERM_ORDER_READ = "ORDER:READ";
+  public static final String PERM_ORDER_WRITE = "ORDER:WRITE";
+  public static final String PERM_PACKAGE_READ = "PACKAGE:READ";
+  public static final String PERM_PACKAGE_WRITE = "PACKAGE:WRITE";
 
   private static final Set<String> SUPER_ADMIN_PERMS =
       Set.of(
@@ -33,7 +37,11 @@ public class AdminPermissionHelper {
           PERM_COACH_READ,
           PERM_COACH_WRITE,
           PERM_COACH_CANCEL_ENTRY,
-          PERM_ADMIN_WRITE);
+          PERM_ADMIN_WRITE,
+          PERM_ORDER_READ,
+          PERM_ORDER_WRITE,
+          PERM_PACKAGE_READ,
+          PERM_PACKAGE_WRITE);
 
   private static final Set<String> ADMIN_PERMS =
       Set.of(
@@ -42,7 +50,11 @@ public class AdminPermissionHelper {
           PERM_USER_BAN,
           PERM_COACH_READ,
           PERM_COACH_WRITE,
-          PERM_COACH_CANCEL_ENTRY);
+          PERM_COACH_CANCEL_ENTRY,
+          PERM_ORDER_READ,
+          PERM_ORDER_WRITE,
+          PERM_PACKAGE_READ,
+          PERM_PACKAGE_WRITE);
 
   private static final Set<String> COACH_MANAGER_PERMS =
       Set.of(PERM_COACH_READ, PERM_COACH_WRITE);
