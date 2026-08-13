@@ -24,6 +24,7 @@ CREATE INDEX idx_package_user_type ON package(user_id, package_type);
 ## API Design
 
 - `GET /api/users/me/packages`：我的套餐列表（分组）
+- `GET /api/coach/v1/packages/{package_id}`：教练视角套餐使用详情页数据；校验当前教练为 package.coach_id 且与学员存在关联
 
 ## Caching
 

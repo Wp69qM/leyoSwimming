@@ -49,18 +49,18 @@
 ### 4.1 主路径
 
 1. 系统定时任务每小时扫描 `package` 表中 `status='active'` 且 `expire_at <= NOW()` 的记录
-2. 对每条命中记录，原子更新 `status='expired'`
+2. 对每条命中记录，原子更新 `status='expired'`，并将 `reserved` 课时释放回 `available`（`available = available + reserved`，`reserved = 0`）
 3. 教练确认上课后，系统扣减 `available`、增加 `consumed`
 4. 若更新后 `available=0` 且 `reserved=0`，原子更新 `status='exhausted'`
 5. 学员取消预约后，系统恢复 `available`、扣减 `reserved`
 6. 恢复后仅重新校验状态，不将 `exhausted/expired/refunded/frozen` 回退为 `active`
-7. **exhausted → expired 转换**：定时任务同时扫描 `status='exhausted'` 且 `expire_at <= NOW()` 的记录，原子更新 `status='expired'`（套餐已耗尽但仍可能到达有效期边界，此为前进转换，非回退）
+7. `exhausted` 与 `expired` 均为终态，二者之间不再相互转换
 
 ### 4.2 异常分支
 
-- **分支 1**：过期套餐上仍有 `reserved` 课时 → 仍标记为 `expired`，保留计数，已预约课程仍有效
+- **分支 1**：过期套餐上仍有 `reserved` 课时 → 仍标记为 `expired`，并将 `reserved` 释放回 `available`
 - **分支 2**：并发巡检或事件重算同时命中同一套餐 → 通过唯一任务锁/乐观锁保证仅转换一次
-- **分支 3**：取消预约使 `available` 从 0 恢复为大于 0 → 不触发 `active` 回退；状态保持原终态
+- **分支 3**：取消预约后 `available` 恢复为大于 0 → 状态保持 `active`；只有 `available=0` 且 `reserved=0` 时才会转为 `exhausted`
 
 ---
 
@@ -75,7 +75,8 @@
 | 3 | `active → expired` 触发条件：`now() >= expire_at`，每小时巡检 | [§3.4.1](../../prd/prd.md) |
 | 4 | 状态-计数不变量：active 必有 `available + reserved > 0`；exhausted 必有 `available=0` 且 `reserved=0` | [§3.4.4](../../prd/prd.md) |
 | 5 | 课时预占与消耗规则：reserved 增加只能来自用户预约；consumed 增加只能来自教练确认 | [§6.3.1](../../prd/prd.md) |
-| 6 | 套餐状态机完整转换 | [§4.2](../../prd/prd.md) |
+| 6 | 套餐过期时，reserved 预占课时自动释放回 available | 本 US 新增 |
+| 7 | 套餐状态机完整转换 | [§4.2](../../prd/prd.md) |
 
 ---
 
@@ -90,7 +91,9 @@ Given 系统中存在套餐 A，status='active'，total_hours=10，available=3�
 And   当前系统时间为 2026-07-30 01:00:00
 When  系统每小时套餐过期巡检任务执行
 Then  套餐 A 的 status 更新为 'expired'
-And   available 保持为 3，reserved 保持为 2，consumed 保持为 5
+And   available 从 3 更新为 5（释放 reserved 预占课时）
+And   reserved 从 2 更新为 0
+And   consumed 保持为 5
 And   available + reserved + consumed = total_hours
 And   系统记录状态转换日志：from='active', to='expired', reason='EXPIRE_CRON'
 ```
@@ -106,15 +109,17 @@ And   套餐 B 的 status 自动更新为 'exhausted'
 And   系统记录状态转换日志：from='active', to='exhausted', reason='HOURS_EXHAUSTED'
 ```
 
-### 6.3 场景 3：过期套餐上仍有 reserved 课时仍正确标记为 expired
+### 6.3 场景 3：过期套餐上仍有 reserved 课时，自动释放到 available
 
 ```gherkin
 Given 套餐 C 的 expire_at='2026-07-29 23:59:59'，status='active'
 And   套餐 C 当前 available=2，reserved=1，consumed=7
 When  系统过期巡检任务执行
 Then  套餐 C 的 status 更新为 'expired'
-And   available 保持为 2，reserved 保持为 1，consumed 保持为 7
-And   学员端「我的套餐」显示该套餐已过期，但已预约的 1 节课仍可正常上课
+And   available 从 2 更新为 3（释放 reserved 预占课时）
+And   reserved 从 1 更新为 0
+And   consumed 保持为 7
+And   学员端「我的套餐」显示该套餐已过期，已预占课时已释放
 ```
 
 ### 6.4 场景 4：并发巡检保证同一套餐仅转换一次
@@ -127,7 +132,7 @@ And   另一个实例收到 0 行更新或锁冲突，不重复写入状态转�
 And   套餐 D 的状态转换日志表中仅有 1 条 from='active', to='expired' 记录
 ```
 
-### 6.5 场景 5：取消预约恢复 available 后不应误将 exhausted 回退为 active
+### 6.5 场景 5：终态套餐的已确认课程不允许取消
 
 ```gherkin
 Given 套餐 E 的 status='exhausted'，total_hours=10，available=0，reserved=0，consumed=10
@@ -135,18 +140,6 @@ When  学员尝试取消一个已确认上课的历史记录（系统不允许�
 Then  系统拒绝该取消操作，返回错误码 COURSE_ALREADY_CONFIRMED
 And   套餐 E 的 status 保持 'exhausted'
 And   available / reserved / consumed 保持不变
-```
-
-### 6.6 场景 6：已耗尽套餐到达有效期边界转为 expired
-
-```gherkin
-Given 套餐 F 的 status='exhausted'，expire_at='2026-07-29 23:59:59'
-And   available=0，reserved=0，consumed=10
-And   当前系统时间为 2026-07-30 01:00:00
-When  系统每小时套餐过期巡检任务执行（扫描 active 与 exhausted）
-Then  套餐 F 的 status 从 'exhausted' 更新为 'expired'
-And   available / reserved / consumed 保持不变
-And   系统记录状态转换日志：from='exhausted', to='expired', reason='EXPIRE_CRON'
 ```
 
 ---
@@ -174,9 +167,9 @@ And   系统记录状态转换日志：from='exhausted', to='expired', reason='E
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
-| 1 | `package.status` | active → expired | 定时任务检测到 `now() >= expire_at` | 终态，不自动回退 |
-| 2 | `package.status` | active → exhausted | 事件触发后 `available=0` 且 `reserved=0` | 中间态，仍可能 expired |
-| 3 | `package.status` | exhausted → expired | 定时任务检测到 `now() >= expire_at`（扫描 exhausted） | 前进转换，非回退；终态 |
+| 1 | `package.status` + `package.available` + `package.reserved` | active → expired | 定时任务检测到 `now() >= expire_at` | 终态，不自动回退；同时将 `reserved` 释放回 `available` |
+| 2 | `package.status` | active → exhausted | 事件触发后 `available=0` 且 `reserved=0` | 终态，不自动回退 |
+| 3 | `package.status` | exhausted ⇄ expired | 不存在 | 二者均为终态，互转 |
 
 ---
 
@@ -326,6 +319,8 @@ And   系统记录状态转换日志：from='exhausted', to='expired', reason='E
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v1.1 | 2026-07-31 | PM | P1 修复：§2/§4.1/§7.3 补充 `exhausted → expired` 状态转换（定时任务扫描 exhausted）；新增场景 6 验证该转换 |
 | v1.2 | 2026-07-31 | PM | P1/P2 修复：§6.1 场景 1 改为部分消耗后过期断言（available + reserved + consumed = total_hours），避免 `consumed_count = 0` 误用 |
+| v1.3 | 2026-08-12 | PM | 修复：套餐过期时自动将 `reserved` 释放回 `available`；更新 §4.1/§4.2/§5/§6.1/§6.3/§7.3 |
+| v1.4 | 2026-08-12 | PM | 修复：`exhausted` 与 `expired` 均为终态，删除二者之间的转换；移除 §6.6 场景；更新 §4.1/§4.2/§7.3；修正 §4.2 分支 3 与 §6.5 场景 5 的表述，取消预约不使终态回退 |
 
 ---
 

@@ -13,7 +13,7 @@
 | 层 | 位置 | 角色 | 维护者 | 频次 |
 |----|------|------|--------|------|
 | **L1 设计系统 (DS)** | `docs/figma/README.md`（本文） | 全局规范：token / 组件 / 状态徽标 / 4 态模板 / 文案 / 主题 | 资深设计 | 一次定义，全局复用 |
-| **L1.5 页面交付规格 (Page Spec)** | `docs/figma/page-spec/*.md` | 页面级设计指令源：每个页面精确的元素清单、身份显隐矩阵、跳转矩阵、四态、AI 检查清单 | PM / 设计负责人 | 每页面一份 |
+| **L1.5 页面交付规格 (Page Spec)** | `docs/figma/page-spec/*.md` | 页面级设计指令源：每个页面的元素清单、身份显隐矩阵、跳转矩阵、四态、AI 检查清单；**不写颜色、尺寸、边距、字体等视觉样式细节**，视觉样式由 Calicat 设计稿唯一决定 | PM / 设计负责人 | 每页面一份 |
 | **L2 故事级设计内容** | `docs/stories/US-XXX-.../user-story.md` §13-15 | 故事独有设计决策 + Figma 链接 + 评审记录 | 各 US 设计 | 每故事一份 |
 | **L3 设计师交付物** | Figma 云端 | 实际设计稿、组件实例、原型 | 各 US 设计 | 实时 |
 
@@ -765,3 +765,4 @@ Frame（375×812，背景 #F5F7FA）
 | v1.2 | 2026-07-31 | PM | 新增 §0.5 游泳运动主题（Aquatic Motion）：主题理念/参考/风格定调；补齐 §1 全部 Token 色值（13 色 + 字号 9 级 + 间距/圆角/阴影）；新增 §2 组件库选型：小程序端 NutUI-React-Taro、Web 端 Element Plus，含组件映射表 + 主题对齐 SCSS 变量 |
 | v1.3 | 2026-08-01 | PM | 扩展 §1.3 阴影系统（7 级阴影含主色/强调色光晕）；新增 §1.4 渐变 Token（6 种渐变）；新增 §1.5 栅格系统；新增 §2.5 组件视觉规格（按钮/卡片/标签/头像/输入框/NavBar/TabBar/列表项/空状态/图标/进度环共 11 个组件精确参数）；新增 §2.6 AI 设计生成规则（页面骨架/居中对齐/视觉层次/图标占位/排班网格/列表/详情/四态/颜色纪律共 10 条强制规则） |
 | v1.4 | 2026-08-02 | PM | 架构升级为四层：新增 L1.5 Page Spec 层；建立 `docs/figma/page-spec/` 目录；新增 TEMPLATE.md / U-home-page.md / U-splash-page.md / U-announcement-page.md / U-coach-list-page.md / U-coach-detail-page.md / U-coach-schedule-page.md；新增 cross-page-check.md 跨页一致性自检报告；明确 Page Spec 是 AI 生成 Figma 的唯一指令源 |
+| v1.5 | 2026-08-12 | PM | 明确 L1.5 Page Spec 不写颜色、尺寸、边距、字体等视觉样式细节；视觉样式由 Calicat 设计稿唯一决定 |

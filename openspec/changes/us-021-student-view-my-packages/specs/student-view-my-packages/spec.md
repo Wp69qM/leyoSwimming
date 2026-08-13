@@ -40,3 +40,23 @@ Then  active 套餐正常展示
 And   frozen 套餐显示"教练已离职，请更换教练或申请退款"
 And   接口返回 HTTP 200
 ```
+
+### Requirement: REQ-004 系统应提供教练视角套餐使用详情页
+
+The system MUST provide a coach-view package usage detail page that is reachable from the US-037 student detail page package card. The page MUST display the package snapshot, usage statistics, student mini-card, and booking history. It MUST NOT expose purchase/upgrade actions.
+
+#### Scenario: Coach opens package usage detail from US-037
+
+```gherkin
+Given 教练 C 已登录且为已通过状态
+And   学员 S 与教练 C 存在 package P 关联
+And   package P：status='active'，package_mode='standard'，total_hours=10，available=4，consumed_count=6
+When  教练 C 在 US-037 学员详情页点击 package P 卡片
+Then  系统跳转至 US-021 教练视角套餐使用详情页
+And   页面展示 package P 快照：套餐名、模式、有效期、教学类型、泳姿、每节课时长
+And   页面展示状态标签「使用中」与剩余 4 课时
+And   页面展示套餐统计摘要：总课时 10 / 已用 6 / 剩余 4
+And   页面展示学员 S 迷你卡，点击进入 C-学员详情编辑页
+And   页面展示该 package 的使用记录列表
+And   页面不展示购买/加课入口
+```
