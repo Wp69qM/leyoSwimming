@@ -8,7 +8,6 @@ import type {
   AdminCoachCertificate,
 } from '@/types/api';
 import { getCoachDetail, addCoach, updateCoach } from '@/api/coachManagement';
-import AvatarInput from '@/components/common/AvatarInput.vue';
 import ImageInput from '@/components/common/ImageInput.vue';
 
 const props = defineProps<{
@@ -36,7 +35,6 @@ const localVisible = computed({
 });
 
 const form = reactive({
-  avatarUrl: '',
   phone: '',
   name: '',
   gender: 'MALE',
@@ -180,7 +178,6 @@ const rules = computed(() => ({
 function resetForm() {
   coach.value = null;
   error.value = '';
-  form.avatarUrl = '';
   form.phone = '';
   form.name = '';
   form.gender = 'MALE';
@@ -224,7 +221,6 @@ function findCoachCerts(
 
 function fillFromCoach(data: AdminCoachDetail) {
   coach.value = data;
-  form.avatarUrl = data.avatarUrl || '';
   form.phone = data.phone || '';
   form.name = data.name || '';
   form.gender = data.gender || 'MALE';
@@ -310,7 +306,7 @@ async function handleSubmit() {
   saving.value = true;
   try {
     const basePayload = {
-      avatarUrl: form.avatarUrl || undefined,
+      avatarUrl: form.portraitUrl || undefined,
       phone: form.phone.trim(),
       name: form.name.trim(),
       gender: form.gender,
@@ -392,7 +388,7 @@ watch(
       <el-form-item label="个人形象照" prop="portraitUrl">
         <ImageInput
           v-model="form.portraitUrl"
-          placeholder="形象照"
+          placeholder="请上传个人形象照 80*80px"
           :width="80"
           :height="80"
         />
@@ -450,21 +446,7 @@ watch(
             />
           </el-form-item>
         </el-col>
-        <el-col :span="12">
-          <el-form-item label="参考单价（元/节）" prop="referencePrice">
-            <el-input-number
-              v-model="form.referencePrice"
-              :min="50"
-              :max="2000"
-              controls-position="right"
-            />
-          </el-form-item>
-        </el-col>
       </el-row>
-
-      <el-form-item label="头像">
-        <AvatarInput v-model="form.avatarUrl" />
-      </el-form-item>
 
       <el-form-item label="微信二维码">
         <ImageInput v-model="form.wechatQrUrl" placeholder="二维码" />
@@ -586,6 +568,18 @@ watch(
           placeholder="请输入个人简介"
         />
       </el-form-item>
+
+      <div class="section-title">服务设置</div>
+
+      <el-form-item label="参考单价" prop="referencePrice">
+        <el-input-number
+          v-model="form.referencePrice"
+          :min="50"
+          :max="2000"
+          controls-position="right"
+        />
+        <span class="unit-text">元/节</span>
+      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -637,5 +631,11 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.unit-text {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #86909c;
 }
 </style>

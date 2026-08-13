@@ -2,6 +2,12 @@
 import { ref, computed, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  User,
+  CircleCheck,
+  CircleClose,
+  TrendCharts,
+} from '@element-plus/icons-vue';
 import type {
   CoachApplicationItem,
   CoachAuditStatus,
@@ -37,7 +43,13 @@ const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const selectedRows = ref<CoachApplicationItem[]>([]);
-const stats = ref({ pendingCount: 0, todayNewCount: 0, overdue24hCount: 0 });
+const stats = ref({
+  pendingCount: 0,
+  todayNewCount: 0,
+  overdue24hCount: 0,
+  todayApprovedCount: 0,
+  todayRejectedCount: 0,
+});
 
 const statusMap: Record<
   CoachAuditStatus,
@@ -60,15 +72,76 @@ const pendingRows = computed(() =>
 
 const hasSelectedPending = computed(() => pendingRows.value.length > 0);
 
+function isToday(dateStr: string | undefined): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const today = new Date();
+  return (
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
+  );
+}
+
+const todayApprovedCount = computed(() => {
+  if (stats.value.todayApprovedCount !== undefined) {
+    return stats.value.todayApprovedCount;
+  }
+  return tableData.value.filter(
+    (item) => item.status === 'approved' && isToday(item.submittedAt)
+  ).length;
+});
+
+const todayRejectedCount = computed(() => {
+  if (stats.value.todayRejectedCount !== undefined) {
+    return stats.value.todayRejectedCount;
+  }
+  return tableData.value.filter(
+    (item) => item.status === 'rejected' && isToday(item.submittedAt)
+  ).length;
+});
+
+const statCards = computed(() => [
+  {
+    label: '待审核',
+    value: stats.value.pendingCount,
+    color: '#1890FF',
+    bgColor: '#E6F7FF',
+    icon: User,
+  },
+  {
+    label: '今日通过',
+    value: todayApprovedCount.value,
+    color: '#52C41A',
+    bgColor: '#F6FFED',
+    icon: CircleCheck,
+  },
+  {
+    label: '今日驳回',
+    value: todayRejectedCount.value,
+    color: '#FF4D4F',
+    bgColor: '#FFF1F0',
+    icon: CircleClose,
+  },
+  {
+    label: '累计入驻',
+    value: total.value,
+    color: '#262626',
+    bgColor: '#F5F5F5',
+    icon: TrendCharts,
+  },
+]);
+
 function formatGender(gender: string): string {
   if (gender === 'male') return '男';
   if (gender === 'female') return '女';
   return gender || '-';
 }
 
-function formatStrokes(strokes: string | string[]): string {
-  if (!strokes || (Array.isArray(strokes) && strokes.length === 0)) return '-';
-  return Array.isArray(strokes) ? strokes.join('、') : strokes;
+function formatStrokes(strokes: string | string[] | undefined): string[] {
+  if (!strokes) return [];
+  if (Array.isArray(strokes)) return strokes;
+  return strokes.split(/[,，]/).filter(Boolean);
 }
 
 function formatEntryType(previousCoachStatus: number): string {
@@ -83,19 +156,18 @@ async function fetchStats() {
   try {
     const res = await getCoachAuditStats();
     if (res.data) {
-      stats.value = res.data;
+      stats.value = {
+        ...stats.value,
+        ...res.data,
+      };
     }
   } catch {
-    // 若后端未提供统计接口，则使用当前列表数据兜底
     stats.value = {
       pendingCount: tableData.value.filter((item) => item.status === 'pending')
         .length,
       todayNewCount: tableData.value.filter((item) => {
         if (!item.submittedAt) return false;
-        return (
-          new Date(item.submittedAt).toDateString() ===
-          new Date().toDateString()
-        );
+        return isToday(item.submittedAt);
       }).length,
       overdue24hCount: tableData.value.filter((item) => {
         if (item.status !== 'pending' || !item.submittedAt) return false;
@@ -104,6 +176,12 @@ async function fetchStats() {
           24 * 60 * 60 * 1000
         );
       }).length,
+      todayApprovedCount: tableData.value.filter(
+        (item) => item.status === 'approved' && isToday(item.submittedAt)
+      ).length,
+      todayRejectedCount: tableData.value.filter(
+        (item) => item.status === 'rejected' && isToday(item.submittedAt)
+      ).length,
     };
   }
 }
@@ -182,30 +260,54 @@ async function handleApprove(row: CoachApplicationItem) {
   }
 }
 
-async function handleReject(row: CoachApplicationItem) {
+function openRejectDialog(row: CoachApplicationItem) {
+  rejectTargetId.value = row.applicationId;
+  rejectReason.value = '';
+  rejectVisible.value = true;
+}
+
+function handleRejectReasonSelect(reason: string) {
+  rejectReason.value = reason;
+}
+
+function closeRejectDialog() {
+  rejectVisible.value = false;
+  rejectTargetId.value = null;
+  rejectReason.value = '';
+}
+
+async function handleRejectSubmit() {
+  if (!rejectTargetId.value || !rejectReason.value.trim()) return;
+  rejectLoading.value = true;
   try {
-    const { value } = await ElMessageBox.prompt(
-      '请输入驳回原因，教练将收到该原因',
-      '驳回入驻申请',
-      {
-        confirmButtonText: '确认驳回',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '请输入驳回原因',
-        type: 'warning',
-      }
+    await rejectCoachApplication(
+      rejectTargetId.value,
+      rejectReason.value.trim()
     );
-    await rejectCoachApplication(row.applicationId, value.trim());
     ElMessage.success('已驳回');
+    closeRejectDialog();
     fetchList();
   } catch (err) {
-    if (err instanceof Error && err.message !== 'cancel') {
+    if (err instanceof Error) {
       ElMessage.error(err.message);
     }
+  } finally {
+    rejectLoading.value = false;
   }
 }
 
 const BATCH_APPROVE_SIZE = 5;
+
+const quickRejectReasons = [
+  '资料不全',
+  '证书不清晰',
+  '信息不一致',
+  '单价不合理',
+];
+const rejectVisible = ref(false);
+const rejectReason = ref('');
+const rejectLoading = ref(false);
+const rejectTargetId = ref<number | null>(null);
 
 async function handleBatchApprove() {
   if (!hasSelectedPending.value) return;
@@ -264,72 +366,81 @@ onMounted(() => {
     </div>
 
     <div class="summary-bar">
-      待审核：{{ stats.pendingCount }} 条 · 今日新增：{{
-        stats.todayNewCount
-      }}
-      条 · 超 24h 未处理：{{ stats.overdue24hCount }} 条
+      <div
+        v-for="card in statCards"
+        :key="card.label"
+        class="summary-card"
+        :style="{ backgroundColor: card.bgColor }"
+      >
+        <div
+          class="summary-icon"
+          :style="{ color: card.color, backgroundColor: '#ffffff' }"
+        >
+          <el-icon :size="22">
+            <component :is="card.icon" />
+          </el-icon>
+        </div>
+        <div class="summary-info">
+          <div class="summary-value" :style="{ color: card.color }">
+            {{ card.value }}
+          </div>
+          <div class="summary-label">{{ card.label }}</div>
+        </div>
+      </div>
     </div>
 
     <div class="filter-card">
-      <el-form :model="queryForm" inline>
-        <el-form-item label="审核状态">
-          <el-select
-            v-model="queryForm.status"
-            placeholder="全部状态"
-            style="width: 160px"
-            clearable
-          >
-            <el-option
-              v-for="option in statusOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
+      <el-form :model="queryForm" inline class="filter-form" label-width="0">
+        <div class="filter-row">
+          <el-form-item>
+            <el-select
+              v-model="queryForm.status"
+              placeholder="全部状态"
+              style="width: 160px"
+              clearable
+            >
+              <el-option
+                v-for="option in statusOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-date-picker
+              v-model="queryForm.submitStartDate"
+              type="date"
+              placeholder="开始日期"
+              value-format="YYYY-MM-DD"
+              style="width: 160px"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="提交时间">
-          <el-date-picker
-            v-model="queryForm.submitStartDate"
-            type="date"
-            placeholder="开始日期"
-            value-format="YYYY-MM-DD"
-            style="width: 160px"
-          />
-          <span class="date-separator">至</span>
-          <el-date-picker
-            v-model="queryForm.submitEndDate"
-            type="date"
-            placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            style="width: 160px"
-          />
-        </el-form-item>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="queryForm.keyword"
-            placeholder="姓名 / 手机号"
-            clearable
-            style="width: 240px"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+            <span class="date-separator">至</span>
+            <el-date-picker
+              v-model="queryForm.submitEndDate"
+              type="date"
+              placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              style="width: 160px"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="queryForm.keyword"
+              placeholder="姓名 / 手机号"
+              clearable
+              style="width: 240px"
+            />
+          </el-form-item>
+          <el-form-item class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </div>
       </el-form>
     </div>
 
     <div class="table-card">
-      <div v-if="hasSelectedPending" class="batch-bar">
-        <span>已选 {{ pendingRows.length }} 条</span>
-        <div class="batch-actions">
-          <el-button @click="selectedRows = []">取消选择</el-button>
-          <el-button type="primary" @click="handleBatchApprove"
-            >批量通过</el-button
-          >
-        </div>
-      </div>
-
       <el-skeleton v-if="loading" :rows="3" animated />
       <template v-else-if="error">
         <el-empty description="加载失败">
@@ -344,8 +455,8 @@ onMounted(() => {
       <el-table
         v-else
         :data="tableData"
-        stripe
         header-row-class-name="table-header"
+        row-class-name="table-row"
         style="width: 100%"
         @selection-change="
           (val: CoachApplicationItem[]) => (selectedRows = val)
@@ -374,14 +485,18 @@ onMounted(() => {
         <el-table-column label="教学年限" align="center" width="100">
           <template #default="{ row }"> {{ row.teachingYears }} 年 </template>
         </el-table-column>
-        <el-table-column
-          label="擅长"
-          align="center"
-          width="120"
-          show-overflow-tooltip
-        >
+        <el-table-column label="擅长" align="center" width="120">
           <template #default="{ row }">
-            {{ formatStrokes(row.teachingStrokes) }}
+            <div class="stroke-tags">
+              <el-tag
+                v-for="stroke in formatStrokes(row.teachingStrokes)"
+                :key="stroke"
+                size="small"
+                class="stroke-tag"
+              >
+                {{ stroke }}
+              </el-tag>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="申请时间" width="160">
@@ -402,7 +517,7 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="入驻类型" align="center" width="140">
+        <el-table-column label="入驻类型" align="center" width="120">
           <template #default="{ row }">
             {{ formatEntryType(row.previousCoachStatus) }}
           </template>
@@ -417,7 +532,7 @@ onMounted(() => {
               <el-button link type="primary" @click="handleApprove(row)">
                 通过
               </el-button>
-              <el-button link type="danger" @click="handleReject(row)">
+              <el-button link type="danger" @click="openRejectDialog(row)">
                 驳回
               </el-button>
             </template>
@@ -425,9 +540,21 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
+      <div v-if="hasSelectedPending" class="batch-bar">
+        <span>已选 {{ pendingRows.length }} 条</span>
+        <div class="batch-actions">
+          <el-button @click="selectedRows = []">取消选择</el-button>
+          <el-button type="primary" @click="handleBatchApprove"
+            >批量通过</el-button
+          >
+        </div>
+      </div>
+
       <div v-if="tableData.length > 0" class="pagination-wrap">
-        <div class="pagination-info">
-          共 <strong>{{ total }}</strong> 条
+        <div class="pagination-total">
+          共
+          <span class="total-number">{{ total.toLocaleString() }}</span>
+          条待审核
         </div>
         <el-pagination
           v-model:current-page="page"
@@ -440,6 +567,50 @@ onMounted(() => {
         />
       </div>
     </div>
+
+    <el-dialog
+      v-model="rejectVisible"
+      title="驳回入驻申请"
+      width="360px"
+      :close-on-click-modal="false"
+      destroy-on-close
+      @close="closeRejectDialog"
+    >
+      <div class="reject-dialog-body">
+        <div class="quick-reasons">
+          <span
+            v-for="reason in quickRejectReasons"
+            :key="reason"
+            class="quick-reason-tag"
+            :class="{ active: rejectReason === reason }"
+            @click="handleRejectReasonSelect(reason)"
+          >
+            {{ reason }}
+          </span>
+        </div>
+        <el-input
+          v-model="rejectReason"
+          type="textarea"
+          :rows="3"
+          placeholder="请输入驳回原因，教练将收到该原因"
+          maxlength="200"
+          show-word-limit
+        />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeRejectDialog">取消</el-button>
+          <el-button
+            type="danger"
+            :loading="rejectLoading"
+            :disabled="!rejectReason.trim()"
+            @click="handleRejectSubmit"
+          >
+            确认驳回
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -456,12 +627,44 @@ onMounted(() => {
 }
 
 .summary-bar {
-  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
   margin-bottom: 16px;
-  font-size: 14px;
-  color: #262626;
-  background: #e6f7ff;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
   border-radius: 4px;
+}
+
+.summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+.summary-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-value {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #595959;
 }
 
 .filter-card {
@@ -470,6 +673,24 @@ onMounted(() => {
   background: #ffffff;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-form {
+  margin-bottom: 0;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .date-separator {
@@ -512,6 +733,17 @@ onMounted(() => {
   border-radius: 12px;
 }
 
+.stroke-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.stroke-tag {
+  margin: 0;
+}
+
 .pagination-wrap {
   display: flex;
   align-items: center;
@@ -519,18 +751,92 @@ onMounted(() => {
   padding: 16px 8px 0;
 }
 
-.pagination-info {
+.pagination-total {
   font-size: 14px;
   color: #86909c;
+}
 
-  strong {
-    color: #1d2129;
-  }
+.pagination-total .total-number {
+  font-weight: 500;
+  color: #1d2129;
 }
 
 :deep(.table-header) {
   th {
+    height: 48px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #262626;
     background: #f5f7fa;
   }
+}
+
+:deep(.table-row) {
+  td {
+    height: 56px;
+    border-bottom: 1px solid #f0f2f5;
+  }
+}
+
+:deep(.el-table__body) {
+  .el-table__row {
+    td {
+      height: 56px;
+    }
+  }
+}
+
+:deep(.el-form--inline) {
+  .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  .el-form-item__label {
+    display: none;
+  }
+}
+
+:deep(.el-table__body) {
+  .el-table__row:last-child td {
+    border-bottom: none;
+  }
+}
+
+.reject-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quick-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-reason-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #595959;
+  background: #f5f5f5;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+
+  &.active,
+  &:hover {
+    color: #1890ff;
+    background: #e6f7ff;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
-import { View, Hide } from '@element-plus/icons-vue';
+import { View, Hide, UserFilled, InfoFilled } from '@element-plus/icons-vue';
 import type { AdminAccountAddRequest } from '@/types/api';
 import { addAdminAccount } from '@/api/adminAccountManagement';
 
@@ -131,12 +131,21 @@ watch(
 <template>
   <el-dialog
     v-model="localVisible"
-    title="新建管理员"
     width="480px"
     :close-on-click-modal="false"
     destroy-on-close
     @close="handleClose"
   >
+    <template #header>
+      <div class="dialog-header">
+        <el-icon class="dialog-header-icon" :size="18"><UserFilled /></el-icon>
+        <div class="dialog-header-text">
+          <div class="dialog-title">新建管理员</div>
+          <div class="dialog-subtitle">创建新的管理员账号并分配角色权限</div>
+        </div>
+      </div>
+    </template>
+
     <el-alert
       v-if="error"
       :title="error"
@@ -153,19 +162,19 @@ watch(
       label-width="120px"
       class="admin-form"
     >
-      <el-form-item label="姓名" prop="name">
+      <el-form-item label="登录账号" prop="username">
         <el-input
-          v-model="form.name"
-          placeholder="请输入姓名"
+          v-model="form.username"
+          placeholder="请输入登录账号"
           maxlength="32"
           style="width: 280px"
         />
       </el-form-item>
 
-      <el-form-item label="登录账号" prop="username">
+      <el-form-item label="姓名" prop="name">
         <el-input
-          v-model="form.username"
-          placeholder="请输入登录账号"
+          v-model="form.name"
+          placeholder="请输入管理员姓名"
           maxlength="32"
           style="width: 280px"
         />
@@ -224,18 +233,57 @@ watch(
       </el-form-item>
     </el-form>
 
+    <div class="form-hint">
+      <el-icon :size="16"><InfoFilled /></el-icon>
+      <span>创建后管理员将收到账号激活通知</span>
+    </div>
+
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSubmit"
-          >保存</el-button
+        <el-button
+          type="primary"
+          :loading="loading"
+          :icon="UserFilled"
+          @click="handleSubmit"
         >
+          确认创建
+        </el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <style scoped lang="scss">
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-header-icon {
+  color: #1890ff;
+}
+
+.dialog-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #262626;
+  line-height: 1.2;
+}
+
+.dialog-subtitle {
+  font-size: 13px;
+  color: #86909c;
+  line-height: 1.2;
+}
+
 .admin-form {
   max-height: 60vh;
   padding: 24px 24px 8px;
@@ -244,6 +292,15 @@ watch(
 
 .form-error {
   margin: 16px 24px 0;
+}
+
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 24px 16px;
+  font-size: 13px;
+  color: #86909c;
 }
 
 .dialog-footer {

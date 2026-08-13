@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { Calendar, Search, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { AdminUserListItem, AdminUserDetail } from '@/types/api';
 import { getUserList, banUser, unbanUser } from '@/api/userManagement';
-import { formatDateTime, maskPhone } from '@/utils/format';
+import { formatDateTime } from '@/utils/format';
 import UserCreateModal from './UserCreateModal.vue';
 import UserEditModal from './UserEditModal.vue';
 import UserViewModal from './UserViewModal.vue';
@@ -28,13 +29,40 @@ const profileOptions = [
   { label: '未完善', value: false },
 ];
 
+const genderOptions = [
+  { label: '全部', value: null },
+  { label: '男', value: 1 },
+  { label: '女', value: 2 },
+];
+
 const queryForm = reactive({
   identity: null as number | null,
   status: null as number | null,
   profileCompleted: null as boolean | null,
+  gender: null as number | null,
+  minAge: null as string | number | null,
+  maxAge: null as string | number | null,
+  source: '',
   startDate: '',
   endDate: '',
   keyword: '',
+});
+
+const dateRange = computed<[string, string] | ''>({
+  get() {
+    return queryForm.startDate && queryForm.endDate
+      ? [queryForm.startDate, queryForm.endDate]
+      : '';
+  },
+  set(val) {
+    if (Array.isArray(val) && val.length === 2) {
+      queryForm.startDate = val[0];
+      queryForm.endDate = val[1];
+    } else {
+      queryForm.startDate = '';
+      queryForm.endDate = '';
+    }
+  },
 });
 
 const tableData = ref<AdminUserListItem[]>([]);
@@ -43,6 +71,7 @@ const error = ref(false);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
+const advancedExpanded = ref(false);
 
 const createVisible = ref(false);
 const editVisible = ref(false);
@@ -88,16 +117,28 @@ function formatName(name: string | undefined): string {
   return name || '未设置';
 }
 
+function normalizeAge(value: string | number | null): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined;
+  const num = Number(value);
+  return Number.isNaN(num) ? undefined : num;
+}
+
 async function fetchList() {
   loading.value = true;
   error.value = false;
   try {
+    const minAge = normalizeAge(queryForm.minAge);
+    const maxAge = normalizeAge(queryForm.maxAge);
     const res = await getUserList({
       page: page.value,
       pageSize: pageSize.value,
       identity: queryForm.identity,
       status: queryForm.status,
       profileCompleted: queryForm.profileCompleted,
+      gender: queryForm.gender,
+      minAge,
+      maxAge,
+      source: queryForm.source || undefined,
       startDate: queryForm.startDate || undefined,
       endDate: queryForm.endDate || undefined,
       keyword: queryForm.keyword || undefined,
@@ -119,6 +160,12 @@ async function fetchList() {
 }
 
 function handleSearch() {
+  const minAge = normalizeAge(queryForm.minAge);
+  const maxAge = normalizeAge(queryForm.maxAge);
+  if (minAge != null && maxAge != null && minAge > maxAge) {
+    ElMessage.warning('最小年龄不能大于最大年龄');
+    return;
+  }
   page.value = 1;
   fetchList();
 }
@@ -127,9 +174,14 @@ function handleReset() {
   queryForm.identity = null;
   queryForm.status = null;
   queryForm.profileCompleted = null;
+  queryForm.gender = null;
+  queryForm.minAge = null;
+  queryForm.maxAge = null;
+  queryForm.source = '';
   queryForm.startDate = '';
   queryForm.endDate = '';
   queryForm.keyword = '';
+  advancedExpanded.value = false;
   page.value = 1;
   fetchList();
 }
@@ -151,6 +203,12 @@ function openEdit(row: AdminUserListItem) {
 function openView(row: AdminUserListItem) {
   selectedUserId.value = row.userId;
   viewVisible.value = true;
+}
+
+function handleCommand(command: string, row: AdminUserListItem) {
+  if (command === 'view') {
+    openView(row);
+  }
 }
 
 function handleCreateSuccess(user: AdminUserDetail) {
@@ -227,10 +285,15 @@ onMounted(() => {
       </el-breadcrumb>
     </div>
 
+    <div class="page-header">
+      <h1 class="page-title">用户列表</h1>
+      <el-button type="primary" @click="openCreate">新建用户</el-button>
+    </div>
+
     <div class="filter-card">
-      <div class="filter-header">
-        <el-form :model="queryForm" inline>
-          <el-form-item label="身份">
+      <el-form :model="queryForm" inline class="filter-form" label-width="0">
+        <div class="filter-row">
+          <el-form-item>
             <el-select
               v-model="queryForm.identity"
               placeholder="全部身份"
@@ -245,7 +308,7 @@ onMounted(() => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="账号状态">
+          <el-form-item>
             <el-select
               v-model="queryForm.status"
               placeholder="全部状态"
@@ -260,10 +323,10 @@ onMounted(() => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="资料完善">
+          <el-form-item>
             <el-select
               v-model="queryForm.profileCompleted"
-              placeholder="全部"
+              placeholder="资料完善状态"
               style="width: 160px"
               clearable
             >
@@ -275,38 +338,87 @@ onMounted(() => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="注册时间">
+          <el-form-item>
             <el-date-picker
-              v-model="queryForm.startDate"
-              type="date"
-              placeholder="开始日期"
+              v-model="dateRange"
+              type="daterange"
               value-format="YYYY-MM-DD"
-              style="width: 160px"
-            />
-            <span class="date-separator">至</span>
-            <el-date-picker
-              v-model="queryForm.endDate"
-              type="date"
-              placeholder="结束日期"
-              value-format="YYYY-MM-DD"
-              style="width: 160px"
-            />
-          </el-form-item>
-          <el-form-item label="关键词">
-            <el-input
-              v-model="queryForm.keyword"
-              placeholder="昵称 / 手机号 / ID"
-              clearable
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              :prefix-icon="Calendar"
               style="width: 240px"
             />
           </el-form-item>
           <el-form-item>
+            <el-input
+              v-model="queryForm.keyword"
+              placeholder="昵称 / 手机号 / ID"
+              clearable
+              :prefix-icon="Search"
+              style="width: 240px"
+            />
+          </el-form-item>
+          <el-form-item class="filter-actions">
             <el-button type="primary" @click="handleSearch">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
+            <el-button
+              link
+              type="primary"
+              class="advanced-toggle"
+              @click="advancedExpanded = !advancedExpanded"
+            >
+              <el-icon class="toggle-icon" :size="14">
+                <component :is="advancedExpanded ? ArrowUp : ArrowDown" />
+              </el-icon>
+              {{ advancedExpanded ? '收起高级筛选' : '展开高级筛选' }}
+            </el-button>
           </el-form-item>
-        </el-form>
-        <el-button type="primary" @click="openCreate">新建用户</el-button>
-      </div>
+        </div>
+        <div v-show="advancedExpanded" class="filter-row advanced-row">
+          <el-form-item>
+            <el-select
+              v-model="queryForm.gender"
+              placeholder="全部性别"
+              style="width: 160px"
+              clearable
+            >
+              <el-option
+                v-for="option in genderOptions"
+                :key="String(option.value)"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="queryForm.minAge"
+              type="number"
+              placeholder="最小年龄"
+              min="0"
+              max="120"
+              style="width: 100px"
+            />
+            <span class="date-separator">至</span>
+            <el-input
+              v-model="queryForm.maxAge"
+              type="number"
+              placeholder="最大年龄"
+              min="0"
+              max="120"
+              style="width: 100px"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="queryForm.source"
+              placeholder="注册来源"
+              clearable
+              style="width: 200px"
+            />
+          </el-form-item>
+        </div>
+      </el-form>
     </div>
 
     <div class="table-card">
@@ -324,11 +436,15 @@ onMounted(() => {
       <el-table
         v-else
         :data="tableData"
-        stripe
         header-row-class-name="table-header"
+        row-class-name="table-row"
         style="width: 100%"
       >
-        <el-table-column label="用户 ID" prop="userId" width="80" />
+        <el-table-column label="用户 ID" width="80">
+          <template #default="{ row }">
+            <span class="id-text">{{ row.userId }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="昵称/姓名" width="120">
           <template #default="{ row }">
             <el-button link type="primary" @click="openView(row)">
@@ -397,12 +513,12 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="操作" align="center" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openView(row)"
-              >查看</el-button
-            >
-            <el-button link type="primary" @click="openEdit(row)"
-              >编辑</el-button
-            >
+            <el-button link type="primary" @click="openView(row)">
+              查看
+            </el-button>
+            <el-button link type="primary" @click="openEdit(row)">
+              编辑
+            </el-button>
             <el-button
               v-if="row.status !== 2"
               link
@@ -414,13 +530,28 @@ onMounted(() => {
             <el-button v-else link type="primary" @click="handleUnban(row)">
               解禁
             </el-button>
+            <el-dropdown
+              trigger="click"
+              @command="(cmd: string) => handleCommand(cmd, row)"
+            >
+              <span class="operation-more">
+                更多
+                <i class="more-arrow"></i>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="view">查看日志</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
 
       <div v-if="tableData.length > 0" class="pagination-wrap">
-        <div class="pagination-info">
-          共 <strong>{{ total }}</strong> 条
+        <div class="pagination-total">
+          共
+          <span class="total-number">{{ total.toLocaleString() }}</span> 名用户
         </div>
         <el-pagination
           v-model:current-page="page"
@@ -452,6 +583,8 @@ onMounted(() => {
           editVisible = true;
         }
       "
+      @ban="(row) => handleBan(row)"
+      @unban="(row) => handleUnban(row)"
       @closed="handleViewClosed"
     />
   </div>
@@ -469,6 +602,20 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d2129;
+}
+
 .filter-card {
   padding: 16px;
   margin-bottom: 16px;
@@ -477,11 +624,35 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.filter-header {
+.filter-form {
+  margin-bottom: 0;
+}
+
+.filter-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.advanced-row {
+  margin-top: 12px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.advanced-toggle {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.toggle-icon {
+  margin-right: 4px;
 }
 
 .date-separator {
@@ -498,6 +669,11 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.id-text {
+  font-size: 13px;
+  color: #86909c;
+}
+
 .status-tag {
   display: inline-flex;
   align-items: center;
@@ -508,6 +684,32 @@ onMounted(() => {
   border-radius: 12px;
 }
 
+.operation-more {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 12px;
+  font-size: 14px;
+  line-height: 1;
+  color: #1890ff;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: #40a9ff;
+  }
+}
+
+.more-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-top: 4px solid currentcolor;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  transition: transform 0.2s ease;
+}
+
 .pagination-wrap {
   display: flex;
   align-items: center;
@@ -515,18 +717,47 @@ onMounted(() => {
   padding: 16px 8px 0;
 }
 
-.pagination-info {
+.pagination-total {
   font-size: 14px;
   color: #86909c;
+}
 
-  strong {
-    color: #1d2129;
-  }
+.pagination-total .total-number {
+  font-weight: 500;
+  color: #1d2129;
 }
 
 :deep(.table-header) {
   th {
+    height: 48px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #262626;
     background: #f5f7fa;
+  }
+}
+
+:deep(.table-row) {
+  td {
+    height: 56px;
+    border-bottom: 1px solid #f0f2f5;
+  }
+}
+
+:deep(.el-form--inline) {
+  .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  .el-form-item__label {
+    display: none;
+  }
+}
+
+:deep(.el-table__body) {
+  .el-table__row:last-child td {
+    border-bottom: none;
   }
 }
 </style>

@@ -15,6 +15,7 @@ export interface ResignationTicket {
   handledPackages: number;
   submittedAt: string;
   createdAt: string;
+  coachJoinedAt?: string;
 }
 
 export interface ResignationTicketListData {

@@ -2,9 +2,9 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { AdminCoachListItem, AdminCoachDetail } from '@/types/api';
+import type { AdminCoachListItem } from '@/types/api';
 import { getCoachList, cancelCoachEntry } from '@/api/coachManagement';
-import { formatDateTime } from '@/utils/format';
+import { formatDate } from '@/utils/format';
 import { ArrowDown } from '@element-plus/icons-vue';
 import CoachEditModal from './CoachEditModal.vue';
 
@@ -148,7 +148,7 @@ function handleEditSuccess() {
   fetchList();
 }
 
-function handleSchedule(row: AdminCoachListItem) {
+function handleSchedule(_row: AdminCoachListItem) {
   ElMessage.info('排班管理功能即将上线');
 }
 
@@ -159,7 +159,7 @@ function handleViewStudents(row: AdminCoachListItem) {
   });
 }
 
-function handleViewLogs(row: AdminCoachListItem) {
+function handleViewLogs(_row: AdminCoachListItem) {
   ElMessage.info('操作日志功能即将上线');
 }
 
@@ -303,7 +303,7 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="创建时间" width="160">
           <template #default="{ row }">
-            {{ formatDateTime(row.approvedAt) }}
+            {{ formatDate(row.approvedAt) }}
           </template>
         </el-table-column>
         <el-table-column label="在职时长" align="center" width="100">
@@ -396,15 +396,12 @@ onMounted(() => {
       </el-table>
 
       <div v-if="tableData.length > 0" class="pagination-wrap">
-        <div class="pagination-info">
-          共 <strong>{{ total }}</strong> 条
-        </div>
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
-          layout="sizes, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           @size-change="fetchList"
           @current-change="handlePageChange"
         />
@@ -478,17 +475,8 @@ onMounted(() => {
 .pagination-wrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 16px 8px 0;
-}
-
-.pagination-info {
-  font-size: 14px;
-  color: #86909c;
-
-  strong {
-    color: #1d2129;
-  }
 }
 
 :deep(.table-header) {

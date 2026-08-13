@@ -36,6 +36,8 @@ export interface CoachAuditStats {
   pendingCount: number;
   todayNewCount: number;
   overdue24hCount: number;
+  todayApprovedCount?: number;
+  todayRejectedCount?: number;
 }
 
 export interface CoachApplicationCertificate {

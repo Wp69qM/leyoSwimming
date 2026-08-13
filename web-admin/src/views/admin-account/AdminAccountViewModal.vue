@@ -4,6 +4,7 @@ import { useAdminAuthStore } from '@/stores/adminAuth';
 import type { AdminAccountDetail, AdminAccountAuditLog } from '@/types/api';
 import { getAdminAccountDetail } from '@/api/adminAccountManagement';
 import { formatDateTime } from '@/utils/format';
+import { UserFilled, Clock } from '@element-plus/icons-vue';
 
 const props = defineProps<{
   visible: boolean;
@@ -113,12 +114,23 @@ watch(
 <template>
   <el-dialog
     v-model="localVisible"
-    title="管理员详情"
     width="560px"
     :close-on-click-modal="false"
     destroy-on-close
     @close="handleClose"
   >
+    <template #header>
+      <div class="dialog-header">
+        <el-icon class="dialog-header-icon" :size="18"><UserFilled /></el-icon>
+        <div class="dialog-header-text">
+          <div class="dialog-title">管理员详情</div>
+          <div v-if="admin" class="dialog-subtitle">
+            账号：{{ admin.username }}
+          </div>
+        </div>
+      </div>
+    </template>
+
     <el-alert
       v-if="error"
       :title="error"
@@ -157,43 +169,71 @@ watch(
       </div>
 
       <div class="detail-section">
-        <div class="section-title">基础信息</div>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="label">管理员 ID</span>
-            <span class="value">{{ admin.adminId }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">姓名</span>
-            <span class="value">{{ admin.name || '-' }}</span>
-          </div>
-          <div class="detail-item">
+        <div class="section-title">
+          <el-icon><UserFilled /></el-icon>
+          <span>基本信息</span>
+        </div>
+        <div class="detail-rows">
+          <div class="detail-row">
             <span class="label">登录账号</span>
             <span class="value">{{ admin.username }}</span>
           </div>
-          <div class="detail-item">
+          <div class="detail-row">
+            <span class="label">姓名</span>
+            <span class="value">{{ admin.name || '-' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">手机号</span>
+            <span class="value">{{ admin.phone || '-' }}</span>
+          </div>
+          <div class="detail-row">
             <span class="label">角色</span>
-            <span class="value">{{
-              roleTagMap[admin.role]?.label || admin.role
-            }}</span>
+            <span class="value status-value">
+              <span
+                class="status-tag"
+                :style="{
+                  color: roleTagMap[admin.role]?.color,
+                  backgroundColor: roleTagMap[admin.role]?.bgColor,
+                }"
+              >
+                {{ roleTagMap[admin.role]?.label || admin.role }}
+              </span>
+            </span>
           </div>
-          <div class="detail-item">
-            <span class="label">状态</span>
-            <span class="value">{{
-              statusTagMap[admin.status]?.label || '-'
-            }}</span>
+          <div class="detail-row">
+            <span class="label">账号状态</span>
+            <span class="value status-value">
+              <span
+                class="status-tag"
+                :style="{
+                  color: statusTagMap[admin.status]?.color,
+                  backgroundColor: statusTagMap[admin.status]?.bgColor,
+                }"
+              >
+                {{ statusTagMap[admin.status]?.label || '-' }}
+              </span>
+            </span>
           </div>
-          <div class="detail-item">
-            <span class="label">最近登录时间</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="section-title">
+          <el-icon><Clock /></el-icon>
+          <span>登录信息</span>
+        </div>
+        <div class="detail-rows">
+          <div class="detail-row">
+            <span class="label">最后登录</span>
             <span class="value">{{ formatLastLogin(admin.lastLoginAt) }}</span>
           </div>
-          <div class="detail-item">
+          <div class="detail-row">
+            <span class="label">登录 IP</span>
+            <span class="value">{{ admin.lastLoginIp || '-' }}</span>
+          </div>
+          <div class="detail-row">
             <span class="label">创建时间</span>
             <span class="value">{{ formatDateTime(admin.createdAt) }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">更新时间</span>
-            <span class="value">{{ formatDateTime(admin.updatedAt) }}</span>
           </div>
         </div>
       </div>
@@ -232,6 +272,35 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-header-icon {
+  color: #1890ff;
+}
+
+.dialog-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #262626;
+  line-height: 1.2;
+}
+
+.dialog-subtitle {
+  font-size: 13px;
+  color: #86909c;
+  line-height: 1.2;
+}
+
 .form-error {
   margin: 16px 24px 0;
 }
@@ -276,30 +345,52 @@ watch(
 }
 
 .section-title {
-  margin-bottom: 16px;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 15px;
   font-weight: 500;
   color: #262626;
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.detail-item {
+.detail-rows {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  min-height: 45px;
   font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
-.detail-item .label {
-  color: #8c8c8c;
+.detail-row .label {
+  display: flex;
+  align-items: center;
+  width: 120px;
+  padding: 12px 16px;
+  color: #86909c;
+  background: #fafafa;
 }
 
-.detail-item .value {
+.detail-row .value {
+  flex: 1;
+  padding: 12px 16px;
   color: #262626;
+}
+
+.detail-row .status-value {
+  padding: 8px 16px;
 }
 
 .log-content {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
-import { ElMessage } from 'element-plus';
 import type {
   AdminAccountUpdateRequest,
   AdminAccountDetail,
@@ -9,6 +8,7 @@ import {
   getAdminAccountDetail,
   updateAdminAccount,
 } from '@/api/adminAccountManagement';
+import { EditPen } from '@element-plus/icons-vue';
 
 const props = defineProps<{
   visible: boolean;
@@ -138,12 +138,23 @@ watch(
 <template>
   <el-dialog
     v-model="localVisible"
-    title="编辑管理员"
     width="480px"
     :close-on-click-modal="false"
     destroy-on-close
     @close="handleClose"
   >
+    <template #header>
+      <div class="dialog-header">
+        <el-icon class="dialog-header-icon" :size="18"><EditPen /></el-icon>
+        <div class="dialog-header-text">
+          <div class="dialog-title">编辑管理员</div>
+          <div v-if="admin" class="dialog-subtitle">
+            账号：{{ admin.username }} · {{ admin.name || '未设置' }}
+          </div>
+        </div>
+      </div>
+    </template>
+
     <el-alert
       v-if="error"
       :title="error"
@@ -206,6 +217,35 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-header-icon {
+  color: #1890ff;
+}
+
+.dialog-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #262626;
+  line-height: 1.2;
+}
+
+.dialog-subtitle {
+  font-size: 13px;
+  color: #86909c;
+  line-height: 1.2;
+}
+
 .admin-form {
   max-height: 60vh;
   padding: 24px 24px 8px;

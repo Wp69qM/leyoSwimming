@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
+
 import type { AdminUserAddRequest, AdminUserDetail } from '@/types/api';
 import { addUser } from '@/api/userManagement';
 
@@ -16,10 +17,9 @@ const formRef = ref();
 const loading = ref(false);
 const error = ref('');
 
-const form = reactive<AdminUserAddRequest & { confirmPhone: string }>({
+const form = reactive<AdminUserAddRequest>({
   avatarUrl: '',
   phone: '',
-  confirmPhone: '',
   name: '',
   gender: 1,
   age: undefined as unknown as number,
@@ -47,9 +47,9 @@ const rules = computed(() => ({
     { required: true, message: '年龄不能为空', trigger: 'blur' },
     {
       type: 'integer' as const,
-      min: 3,
-      max: 99,
-      message: '年龄需在 3-99 岁之间',
+      min: 0,
+      max: 150,
+      message: '年龄需在 0-150 岁之间',
       trigger: 'blur',
     },
   ],
@@ -103,6 +103,29 @@ const rules = computed(() => ({
 
 const swimStrokeOptions = ['蛙泳', '自由泳', '仰泳', '蝶泳'];
 
+const canSubmit = computed(() => {
+  if (!form.phone || !/^1[3-9]\d{9}$/.test(form.phone)) return false;
+  if (
+    !form.name ||
+    form.name.trim().length === 0 ||
+    form.name.trim().length > 64
+  )
+    return false;
+  if (!form.gender) return false;
+  if (form.age == null || form.age < 0 || form.age > 150) return false;
+  if (form.hasSwimBasis) {
+    if (!form.swimStrokes || form.swimStrokes.length === 0) return false;
+    if (form.swimYears == null || form.swimYears < 0) return false;
+  }
+  if (isMinor.value) {
+    if (!form.guardianName || form.guardianName.trim().length === 0)
+      return false;
+    if (!form.guardianPhone || !/^1[3-9]\d{9}$/.test(form.guardianPhone))
+      return false;
+  }
+  return true;
+});
+
 const localVisible = computed({
   get: () => props.visible,
   set: (value) => emit('update:visible', value),
@@ -111,7 +134,6 @@ const localVisible = computed({
 function resetForm() {
   form.avatarUrl = '';
   form.phone = '';
-  form.confirmPhone = '';
   form.name = '';
   form.gender = 1;
   form.age = undefined as unknown as number;
@@ -178,6 +200,7 @@ watch(
     width="560px"
     :close-on-click-modal="false"
     destroy-on-close
+    class="user-create-dialog"
     @close="handleClose"
   >
     <el-alert
@@ -229,8 +252,8 @@ watch(
       <el-form-item label="年龄" prop="age">
         <el-input-number
           v-model="form.age"
-          :min="3"
-          :max="99"
+          :min="0"
+          :max="150"
           controls-position="right"
         />
       </el-form-item>
@@ -301,7 +324,12 @@ watch(
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSubmit">
+        <el-button
+          type="primary"
+          :loading="loading"
+          :disabled="!canSubmit"
+          @click="handleSubmit"
+        >
           保存
         </el-button>
       </div>
@@ -335,5 +363,24 @@ watch(
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+:deep(.user-create-dialog .el-dialog__header) {
+  padding: 0 24px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+:deep(.user-create-dialog .el-dialog__headerbtn) {
+  width: 32px;
+  height: 32px;
+}
+
+:deep(.user-create-dialog .el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.user-create-dialog .el-dialog__footer) {
+  padding: 0 24px;
+  border-top: 1px solid #e4e7ed;
 }
 </style>

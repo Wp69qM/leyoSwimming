@@ -201,7 +201,12 @@ async function handleLogin() {
           <span>{{ serverError }}</span>
         </div>
 
-        <button type="submit" class="login-button" :disabled="isDisabled">
+        <button
+          type="submit"
+          class="login-button"
+          :class="{ 'has-error-above': serverError }"
+          :disabled="isDisabled"
+        >
           <svg
             v-if="authStore.isLoggingIn"
             class="loading-icon"
@@ -416,7 +421,7 @@ async function handleLogin() {
   gap: 8px;
   width: 384px;
   height: 44px;
-  margin-top: 12px;
+  margin-top: 20px;
   padding: 0;
   font-size: 16px;
   font-weight: 500;
@@ -433,6 +438,10 @@ async function handleLogin() {
   &:disabled {
     cursor: not-allowed;
     opacity: 0.7;
+  }
+
+  &.has-error-above {
+    margin-top: 12px;
   }
 }
 

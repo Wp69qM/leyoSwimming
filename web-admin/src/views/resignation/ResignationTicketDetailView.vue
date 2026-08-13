@@ -14,7 +14,7 @@ import type {
   StudentHandleResult,
   ResignationPackageItem,
 } from '@/types/resignation';
-import { maskPhone, formatDateTime } from '@/utils/format';
+import { maskPhone, formatDateTime, formatDate } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();
@@ -148,7 +148,6 @@ const timelineNodes = computed<TimelineNode[]>(() => {
 
   const approvedDone = status === 'approved';
   const rejectedDone = status === 'rejected';
-  const finalDone = approvedDone || rejectedDone;
 
   return [
     { title: '提交离职', time: submitted, done: true, active: false },
@@ -165,9 +164,15 @@ const timelineNodes = computed<TimelineNode[]>(() => {
       active: checklistActive,
     },
     {
-      title: rejectedDone ? '管理员驳回' : '管理员通过',
-      time: finalDone ? submitted : '-',
-      done: finalDone,
+      title: '管理员通过',
+      time: approvedDone ? submitted : '-',
+      done: approvedDone,
+      active: false,
+    },
+    {
+      title: '管理员驳回',
+      time: rejectedDone ? submitted : '-',
+      done: rejectedDone,
       active: false,
     },
   ];
@@ -201,7 +206,7 @@ function goBack() {
 
 function goCoachDetail() {
   if (!detail.value) return;
-  router.push(`/coach/detail/${detail.value.coach.coachId}`);
+  router.push(`/coach-management/detail/${detail.value.coach.coachId}`);
 }
 
 async function handleApprove() {
@@ -305,15 +310,18 @@ onMounted(() => {
           <div class="coach-meta">
             <div class="coach-name-row">
               <span class="coach-name">{{ detail.coach.name }}</span>
-              <span
-                class="status-tag"
+              <el-tag
+                :color="statusMap[detail.status].bgColor"
                 :style="{
                   color: statusMap[detail.status].color,
-                  backgroundColor: statusMap[detail.status].bgColor,
+                  borderColor: statusMap[detail.status].bgColor,
                 }"
+                size="small"
+                effect="light"
+                round
               >
                 {{ statusMap[detail.status].label }}
-              </span>
+              </el-tag>
             </div>
             <div class="ticket-no">工单号：{{ detail.ticketNo }}</div>
           </div>
@@ -330,13 +338,9 @@ onMounted(() => {
         </div>
         <div class="info-item">
           <span class="info-label">入职时间</span>
-          <span class="info-value">
-            {{
-              detail.coach.joinedAt
-                ? formatDateTime(detail.coach.joinedAt).split(' ')[0]
-                : '-'
-            }}
-          </span>
+          <span class="info-value">{{
+            formatDate(detail.coach.joinedAt)
+          }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">提交离职时间</span>
@@ -526,50 +530,58 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="content-card action-card">
-      <div class="card-title">审批操作</div>
-      <div class="approval-form">
-        <div class="approval-form-label">审批意见</div>
-        <el-input
-          v-model="approvalComment"
-          type="textarea"
-          :rows="4"
-          placeholder="请输入审批意见（必填）"
-          :disabled="detail.status !== 'pending_audit'"
-        />
-      </div>
-      <div class="action-bar">
-        <template v-if="detail.status === 'pending_audit'">
-          <el-button
-            type="primary"
-            size="large"
-            :disabled="!allChecklistPassed"
-            @click="handleApprove"
-          >
-            <i class="ri-check-line" />
-            审核通过
-          </el-button>
-          <el-button type="danger" size="large" @click="handleReject">
-            <i class="ri-close-line" />
-            驳回申请
-          </el-button>
-        </template>
-        <span v-else class="closed-status">
-          <span
-            class="status-tag"
-            :style="{
-              color: statusMap[detail.status].color,
-              backgroundColor: statusMap[detail.status].bgColor,
-            }"
-          >
-            {{ statusMap[detail.status].label }}
-          </span>
-        </span>
-        <div class="action-bar-spacer" />
+    <div class="fixed-action-bar">
+      <div class="fixed-action-bar__inner">
         <el-button size="large" @click="goBack">
           <i class="ri-arrow-go-back-line" />
           返回列表
         </el-button>
+        <div class="fixed-action-bar__right">
+          <template v-if="detail.status === 'pending_audit'">
+            <div class="approval-comment-wrap">
+              <span class="approval-comment-label">审批意见</span>
+              <el-input
+                v-model="approvalComment"
+                type="textarea"
+                :rows="2"
+                placeholder="请输入审批意见（必填）"
+                class="approval-comment-input"
+              />
+            </div>
+            <el-tooltip
+              :disabled="allChecklistPassed"
+              content="请先完成检查清单"
+              placement="top"
+            >
+              <el-button
+                type="primary"
+                size="large"
+                :disabled="!allChecklistPassed"
+                @click="handleApprove"
+              >
+                <i class="ri-check-line" />
+                审核通过
+              </el-button>
+            </el-tooltip>
+            <el-button type="danger" size="large" @click="handleReject">
+              <i class="ri-close-line" />
+              驳回申请
+            </el-button>
+          </template>
+          <el-tag
+            v-else
+            :color="statusMap[detail.status].bgColor"
+            :style="{
+              color: statusMap[detail.status].color,
+              borderColor: statusMap[detail.status].bgColor,
+            }"
+            size="small"
+            effect="light"
+            round
+          >
+            {{ statusMap[detail.status].label }}
+          </el-tag>
+        </div>
       </div>
     </div>
   </div>
@@ -577,7 +589,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .resignation-ticket-detail {
-  padding-bottom: 24px;
+  padding-bottom: 96px;
 }
 
 .error-page {
@@ -695,7 +707,7 @@ onMounted(() => {
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 260px);
   gap: 16px;
 }
 
@@ -744,16 +756,6 @@ onMounted(() => {
   justify-content: center;
   height: 24px;
   padding: 0 8px;
-  font-size: 12px;
-  border-radius: 12px;
-}
-
-.status-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  padding: 0 10px;
   font-size: 12px;
   border-radius: 12px;
 }
@@ -860,22 +862,30 @@ onMounted(() => {
   }
 }
 
-.action-card {
-  margin-bottom: 0;
+.fixed-action-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 220px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 72px;
+  padding: 0 24px;
+  background: #ffffff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.approval-form {
-  margin-bottom: 20px;
+.fixed-action-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1440px;
 }
 
-.approval-form-label {
-  margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d2129;
-}
-
-.action-bar {
+.fixed-action-bar__right {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -887,13 +897,25 @@ onMounted(() => {
   }
 }
 
-.action-bar-spacer {
-  flex: 1;
+.approval-comment-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.closed-status {
-  display: inline-flex;
-  align-items: center;
+.approval-comment-label {
+  padding-top: 8px;
+  font-size: 14px;
+  color: #1d2129;
+  white-space: nowrap;
+}
+
+.approval-comment-input {
+  width: 400px;
+
+  :deep(.el-textarea__inner) {
+    resize: none;
+  }
 }
 
 :deep(.table-header) {

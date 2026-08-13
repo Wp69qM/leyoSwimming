@@ -47,9 +47,9 @@ const rules = computed(() => ({
     { required: true, message: '年龄不能为空', trigger: 'blur' },
     {
       type: 'integer' as const,
-      min: 3,
-      max: 99,
-      message: '年龄需在 3-99 岁之间',
+      min: 0,
+      max: 150,
+      message: '年龄需在 0-150 岁之间',
       trigger: 'blur',
     },
   ],
@@ -212,6 +212,7 @@ watch(
     width="560px"
     :close-on-click-modal="false"
     destroy-on-close
+    class="user-edit-dialog"
     @close="handleClose"
   >
     <el-alert
@@ -261,8 +262,8 @@ watch(
       <el-form-item label="年龄" prop="age">
         <el-input-number
           v-model="form.age"
-          :min="3"
-          :max="99"
+          :min="0"
+          :max="150"
           controls-position="right"
         />
       </el-form-item>
@@ -367,5 +368,24 @@ watch(
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+:deep(.user-edit-dialog .el-dialog__header) {
+  padding: 0 24px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+:deep(.user-edit-dialog .el-dialog__headerbtn) {
+  width: 32px;
+  height: 32px;
+}
+
+:deep(.user-edit-dialog .el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.user-edit-dialog .el-dialog__footer) {
+  padding: 0 24px;
+  border-top: 1px solid #e4e7ed;
 }
 </style>

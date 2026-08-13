@@ -3,12 +3,18 @@ import { ref, computed, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
+  Warning,
+  CircleCheck,
+  CircleClose,
+  User,
+} from '@element-plus/icons-vue';
+import {
   listResignationTickets,
   approveResignationTicket,
   rejectResignationTicket,
 } from '@/api/resignation';
 import type { ResignationTicket, ResignationStatus } from '@/types/resignation';
-import { maskPhone, formatDateTime } from '@/utils/format';
+import { maskPhone, formatDateTime, calculateTenure } from '@/utils/format';
 
 const router = useRouter();
 
@@ -33,28 +39,65 @@ const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 
+function isToday(dateStr: string | undefined): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const today = new Date();
+  return (
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
+  );
+}
+
 const pendingCount = computed(
   () => tableData.value.filter((item) => item.status === 'pending_audit').length
 );
-const approvedTodayCount = computed(
+
+const todayApprovedCount = computed(
   () =>
-    tableData.value.filter((item) => {
-      if (item.status !== 'approved' || !item.submittedAt) return false;
-      const submitDate = new Date(item.submittedAt).toDateString();
-      return submitDate === new Date().toDateString();
-    }).length
+    tableData.value.filter(
+      (item) => item.status === 'approved' && isToday(item.submittedAt)
+    ).length
 );
-const rejectedTodayCount = computed(
+
+const todayRejectedCount = computed(
   () =>
-    tableData.value.filter((item) => {
-      if (item.status !== 'rejected' || !item.submittedAt) return false;
-      const submitDate = new Date(item.submittedAt).toDateString();
-      return submitDate === new Date().toDateString();
-    }).length
+    tableData.value.filter(
+      (item) => item.status === 'rejected' && isToday(item.submittedAt)
+    ).length
 );
-const totalResignedCount = computed(
-  () => tableData.value.filter((item) => item.status === 'approved').length
-);
+
+const statCards = computed(() => [
+  {
+    label: '待审批',
+    value: pendingCount.value,
+    color: '#FAAD14',
+    bgColor: '#FFFBE6',
+    icon: Warning,
+  },
+  {
+    label: '今日通过',
+    value: todayApprovedCount.value,
+    color: '#52C41A',
+    bgColor: '#F6FFED',
+    icon: CircleCheck,
+  },
+  {
+    label: '今日拒绝',
+    value: todayRejectedCount.value,
+    color: '#FF4D4F',
+    bgColor: '#FFF1F0',
+    icon: CircleClose,
+  },
+  {
+    label: '累计离职',
+    value: total.value,
+    color: '#8C8C8C',
+    bgColor: '#F5F5F5',
+    icon: User,
+  },
+]);
 
 function calculateProgress(total: number, handled: number): number {
   if (total <= 0) return 100;
@@ -181,43 +224,21 @@ onMounted(() => {
       </el-breadcrumb>
     </div>
 
-    <div class="page-title">教练离职审批</div>
-
-    <div class="summary-bar">
-      <div class="summary-card summary-card--pending">
-        <div class="summary-icon">
-          <i class="ri-time-line" />
+    <div class="stat-cards">
+      <div
+        v-for="card in statCards"
+        :key="card.label"
+        class="stat-card"
+        :style="{ backgroundColor: card.bgColor }"
+      >
+        <div class="stat-icon" :style="{ color: card.color }">
+          <el-icon :size="22"><component :is="card.icon" /></el-icon>
         </div>
-        <div class="summary-info">
-          <div class="summary-value">{{ pendingCount }}</div>
-          <div class="summary-label">待审批</div>
-        </div>
-      </div>
-      <div class="summary-card summary-card--approved">
-        <div class="summary-icon">
-          <i class="ri-check-double-line" />
-        </div>
-        <div class="summary-info">
-          <div class="summary-value">{{ approvedTodayCount }}</div>
-          <div class="summary-label">今日通过</div>
-        </div>
-      </div>
-      <div class="summary-card summary-card--rejected">
-        <div class="summary-icon">
-          <i class="ri-close-circle-line" />
-        </div>
-        <div class="summary-info">
-          <div class="summary-value">{{ rejectedTodayCount }}</div>
-          <div class="summary-label">今日拒绝</div>
-        </div>
-      </div>
-      <div class="summary-card summary-card--total">
-        <div class="summary-icon">
-          <i class="ri-user-unfollow-line" />
-        </div>
-        <div class="summary-info">
-          <div class="summary-value">{{ totalResignedCount }}</div>
-          <div class="summary-label">累计离职</div>
+        <div class="stat-info">
+          <div class="stat-value" :style="{ color: card.color }">
+            {{ card.value }}
+          </div>
+          <div class="stat-label">{{ card.label }}</div>
         </div>
       </div>
     </div>
@@ -297,7 +318,9 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="教练姓名" width="100">
           <template #default="{ row }">
-            <span class="coach-name">{{ row.coachName }}</span>
+            <span class="coach-name" @click="goDetail(row.ticketId)">
+              {{ row.coachName }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="手机号" width="120">
@@ -306,8 +329,10 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column label="在职时长" align="center" width="100">
-          <template #default>
-            <span class="text-muted">-</span>
+          <template #default="{ row }">
+            <span class="tenure-text">
+              {{ calculateTenure(row.coachJoinedAt) }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="当前学员数" align="center" width="100">
@@ -346,15 +371,18 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="状态" align="center" width="100">
           <template #default="{ row }">
-            <span
-              class="status-tag"
+            <el-tag
+              :color="statusMap[row.status].bgColor"
               :style="{
                 color: statusMap[row.status].color,
-                backgroundColor: statusMap[row.status].bgColor,
+                borderColor: statusMap[row.status].bgColor,
               }"
+              size="small"
+              effect="light"
+              round
             >
               {{ statusMap[row.status].label }}
-            </span>
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" align="center" width="160" fixed="right">
@@ -375,15 +403,12 @@ onMounted(() => {
       </el-table>
 
       <div v-if="tableData.length > 0" class="pagination-wrap">
-        <div class="pagination-info">
-          共 <strong>{{ total }}</strong> 条待审批
-        </div>
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
-          layout="sizes, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           @size-change="fetchList"
           @current-change="handlePageChange"
         />
@@ -412,84 +437,45 @@ onMounted(() => {
   color: #1d2129;
 }
 
-.summary-bar {
+.stat-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
 
-.summary-card {
+.stat-card {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 16px;
-  background: #ffffff;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.summary-icon {
+.stat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  font-size: 22px;
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  border-radius: 50%;
 }
 
-.summary-card--pending .summary-icon {
-  color: #faad14;
-  background: rgba(250, 173, 20, 0.1);
-}
-
-.summary-card--approved .summary-icon {
-  color: #52c41a;
-  background: rgba(82, 196, 26, 0.1);
-}
-
-.summary-card--rejected .summary-icon {
-  color: #ff4d4f;
-  background: rgba(255, 77, 79, 0.1);
-}
-
-.summary-card--total .summary-icon {
-  color: #8c8c8c;
-  background: rgba(140, 140, 140, 0.1);
-}
-
-.summary-info {
+.stat-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-.summary-value {
+.stat-value {
   font-size: 24px;
   font-weight: 700;
-  line-height: 29px;
+  line-height: 1;
 }
 
-.summary-card--pending .summary-value {
-  color: #faad14;
-}
-
-.summary-card--approved .summary-value {
-  color: #52c41a;
-}
-
-.summary-card--rejected .summary-value {
-  color: #ff4d4f;
-}
-
-.summary-card--total .summary-value {
-  color: #8c8c8c;
-}
-
-.summary-label {
+.stat-label {
   font-size: 13px;
-  line-height: 16px;
   color: #86909c;
 }
 
@@ -523,6 +509,11 @@ onMounted(() => {
 .coach-name {
   font-weight: 500;
   color: #1d2129;
+  cursor: pointer;
+
+  &:hover {
+    color: #1890ff;
+  }
 }
 
 .reason-text {
@@ -531,6 +522,11 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.tenure-text {
+  font-size: 14px;
+  color: #262626;
 }
 
 .progress-cell {
@@ -561,16 +557,6 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.status-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  padding: 0 10px;
-  font-size: 12px;
-  border-radius: 12px;
-}
-
 .text-danger {
   color: #ff4d4f;
 }
@@ -582,7 +568,7 @@ onMounted(() => {
 .pagination-wrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 16px 8px 0;
 }
 

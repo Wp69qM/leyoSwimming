@@ -60,13 +60,13 @@ watch(
   <el-dialog
     v-model="localVisible"
     title="重置密码成功"
-    width="400px"
+    width="480px"
     :close-on-click-modal="false"
     destroy-on-close
     @close="handleClose"
   >
     <div class="reset-content">
-      <el-icon class="success-icon" :size="48" color="#52C41A"
+      <el-icon class="success-icon" :size="56" color="#52C41A"
         ><CircleCheck
       /></el-icon>
       <div class="main-text">新密码已生成，请妥善保存</div>
@@ -123,8 +123,14 @@ watch(
 .password-input {
   flex: 1;
 
+  :deep(.el-input__wrapper) {
+    height: 48px;
+  }
+
   :deep(.el-input__inner) {
+    height: 48px;
     font-family: monospace;
+    font-size: 16px;
   }
 }
 

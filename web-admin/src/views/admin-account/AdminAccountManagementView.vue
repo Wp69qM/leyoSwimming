@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ArrowDown } from '@element-plus/icons-vue';
+import { ArrowDown, Plus } from '@element-plus/icons-vue';
 import { useAdminAuthStore } from '@/stores/adminAuth';
 import type { AdminAccountListItem, AdminAccountDetail } from '@/types/api';
 import {
@@ -275,8 +275,16 @@ onMounted(() => {
 
     <div class="filter-card">
       <div class="filter-header">
+        <el-button
+          v-if="isSuperAdmin"
+          type="primary"
+          :icon="Plus"
+          @click="openCreate"
+        >
+          新建管理员
+        </el-button>
         <el-form :model="queryForm" inline>
-          <el-form-item label="角色">
+          <el-form-item>
             <el-select
               v-model="queryForm.role"
               placeholder="全部角色"
@@ -291,7 +299,7 @@ onMounted(() => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="状态">
+          <el-form-item>
             <el-select
               v-model="queryForm.status"
               placeholder="全部状态"
@@ -306,7 +314,7 @@ onMounted(() => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="关键词">
+          <el-form-item>
             <el-input
               v-model="queryForm.keyword"
               placeholder="姓名 / 登录账号 / ID"
@@ -319,9 +327,6 @@ onMounted(() => {
             <el-button @click="handleReset">重置</el-button>
           </el-form-item>
         </el-form>
-        <el-button v-if="isSuperAdmin" type="primary" @click="openCreate"
-          >新建管理员</el-button
-        >
       </div>
     </div>
 
@@ -344,7 +349,7 @@ onMounted(() => {
         header-row-class-name="table-header"
         style="width: 100%"
       >
-        <el-table-column label="管理员 ID" prop="adminId" width="80" />
+        <el-table-column label="账号" prop="username" min-width="140" />
         <el-table-column label="姓名" width="120">
           <template #default="{ row }">
             <el-button link type="primary" @click="openView(row)">
@@ -352,7 +357,6 @@ onMounted(() => {
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="登录账号" prop="username" width="140" />
         <el-table-column label="角色" align="center" width="120">
           <template #default="{ row }">
             <span
@@ -364,6 +368,11 @@ onMounted(() => {
             >
               {{ roleTagMap[row.role]?.label || row.role }}
             </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="手机号" width="140">
+          <template #default="{ row }">
+            {{ row.phone || '-' }}
           </template>
         </el-table-column>
         <el-table-column label="状态" align="center" width="100">
@@ -379,12 +388,12 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="最近登录时间" width="160">
+        <el-table-column label="最后登录" width="160">
           <template #default="{ row }">
             {{ formatLastLogin(row.lastLoginAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="160">
+        <el-table-column label="创建时间" width="170">
           <template #default="{ row }">
             {{ formatDateTime(row.createdAt) }}
           </template>
@@ -454,15 +463,12 @@ onMounted(() => {
       </el-table>
 
       <div v-if="tableData.length > 0" class="pagination-wrap">
-        <div class="pagination-info">
-          共 <strong>{{ total }}</strong> 条
-        </div>
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
-          layout="sizes, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           @size-change="fetchList"
           @current-change="handlePageChange"
         />
@@ -513,7 +519,7 @@ onMounted(() => {
 
 .filter-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
@@ -538,21 +544,16 @@ onMounted(() => {
 .pagination-wrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 16px 8px 0;
-}
-
-.pagination-info {
-  font-size: 14px;
-  color: #86909c;
-
-  strong {
-    color: #1d2129;
-  }
 }
 
 :deep(.table-header) {
   th {
+    height: 48px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #262626;
     background: #f5f7fa;
   }
 }

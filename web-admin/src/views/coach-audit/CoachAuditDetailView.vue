@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
@@ -24,6 +24,14 @@ const loading = ref(false);
 const error = ref(false);
 const previewImageUrl = ref('');
 const previewVisible = ref(false);
+const approvalComment = ref('');
+
+const checklist = reactive({
+  idCardClear: false,
+  infoConsistent: false,
+  noBadRecord: false,
+  priceReasonable: false,
+});
 
 const statusMap: Record<
   CoachAuditStatus,
@@ -59,6 +67,23 @@ const genderMap: Record<string, string> = {
   female: '女',
 };
 
+const certTypeLabels: Record<string, string> = {
+  ID_CARD_FRONT: '身份证正面',
+  ID_CARD_BACK: '身份证反面',
+  COACH_CERT: '教练资格证',
+  HEALTH_CERT: '健康证',
+  PORTRAIT: '个人形象照',
+  OTHER: '其他资质',
+};
+
+const expectedCertTypes = [
+  'ID_CARD_FRONT',
+  'ID_CARD_BACK',
+  'COACH_CERT',
+  'HEALTH_CERT',
+  'PORTRAIT',
+];
+
 const entryTypeLabel = computed(() => {
   if (!detail.value) return '-';
   return entryTypeMap[detail.value.previousCoachStatus] || '其他';
@@ -69,6 +94,14 @@ const sortedCertificates = computed<CoachApplicationCertificate[]>(() => {
   return [...detail.value.certificates].sort(
     (a, b) => a.sortOrder - b.sortOrder
   );
+});
+
+const certificateMap = computed(() => {
+  const map = new Map<string, CoachApplicationCertificate>();
+  sortedCertificates.value.forEach((cert) => {
+    map.set(cert.certType, cert);
+  });
+  return map;
 });
 
 function formatGender(gender: string): string {
@@ -98,6 +131,8 @@ async function fetchDetail() {
     const res = await getCoachApplicationDetail(applicationId.value);
     if (res.data) {
       detail.value = res.data;
+      approvalComment.value = '';
+      resetChecklist();
     } else {
       error.value = true;
     }
@@ -110,6 +145,13 @@ async function fetchDetail() {
   }
 }
 
+function resetChecklist() {
+  checklist.idCardClear = false;
+  checklist.infoConsistent = false;
+  checklist.noBadRecord = false;
+  checklist.priceReasonable = false;
+}
+
 function goBack() {
   router.push('/coach-audit/queue');
 }
@@ -117,15 +159,14 @@ function goBack() {
 async function handleApprove() {
   if (!detail.value) return;
   try {
-    await ElMessageBox.confirm(
-      `确认通过教练 ${detail.value.name} 的入驻申请？通过后将立即生效且不可撤销`,
-      '确认通过',
-      {
-        confirmButtonText: '确认通过',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
+    const message = approvalComment.value.trim()
+      ? `确认通过教练 ${detail.value.name} 的入驻申请？\n审核意见：${approvalComment.value.trim()}`
+      : `确认通过教练 ${detail.value.name} 的入驻申请？通过后将立即生效且不可撤销`;
+    await ElMessageBox.confirm(message, '确认通过', {
+      confirmButtonText: '确认通过',
+      cancelButtonText: '取消',
+      type: 'warning',
+    });
     await approveCoachApplication(detail.value.applicationId);
     ElMessage.success('操作成功');
     fetchDetail();
@@ -138,19 +179,21 @@ async function handleApprove() {
 
 async function handleReject() {
   if (!detail.value) return;
+  if (!approvalComment.value.trim()) {
+    ElMessage.warning('请输入审批意见');
+    return;
+  }
   try {
-    const { value } = await ElMessageBox.prompt(
-      '请输入驳回原因，教练将收到该原因',
-      '驳回入驻申请',
-      {
-        confirmButtonText: '确认驳回',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '请输入驳回原因',
-        type: 'warning',
-      }
+    const message = `确认驳回教练 ${detail.value.name} 的入驻申请？\n驳回原因：${approvalComment.value.trim()}`;
+    await ElMessageBox.confirm(message, '驳回入驻申请', {
+      confirmButtonText: '确认驳回',
+      cancelButtonText: '取消',
+      type: 'warning',
+    });
+    await rejectCoachApplication(
+      detail.value.applicationId,
+      approvalComment.value.trim()
     );
-    await rejectCoachApplication(detail.value.applicationId, value.trim());
     ElMessage.success('已驳回');
     fetchDetail();
   } catch (err) {
@@ -184,7 +227,7 @@ watch(
         <el-breadcrumb-item :to="{ path: '/coach-audit/queue' }">
           教练入驻审核
         </el-breadcrumb-item>
-        <el-breadcrumb-item>申请详情</el-breadcrumb-item>
+        <el-breadcrumb-item>审核详情</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
 
@@ -192,7 +235,16 @@ watch(
       <div class="back-btn" @click="goBack">
         <i class="ri-arrow-left-line" />
       </div>
-      <h1 class="page-title">入驻申请详情</h1>
+      <h1 class="page-title">教练入驻资料详情</h1>
+      <span
+        class="status-tag"
+        :style="{
+          color: statusMap[detail.status].color,
+          backgroundColor: statusMap[detail.status].bgColor,
+        }"
+      >
+        {{ statusMap[detail.status].label }}
+      </span>
     </div>
 
     <div class="info-card">
@@ -202,18 +254,7 @@ watch(
             {{ detail.name.charAt(0) }}
           </div>
           <div class="coach-meta">
-            <div class="coach-name-row">
-              <span class="coach-name">{{ detail.name }}</span>
-              <span
-                class="status-tag"
-                :style="{
-                  color: statusMap[detail.status].color,
-                  backgroundColor: statusMap[detail.status].bgColor,
-                }"
-              >
-                {{ statusMap[detail.status].label }}
-              </span>
-            </div>
+            <div class="coach-name">{{ detail.name }}</div>
             <div class="application-id">
               申请 ID：{{ detail.applicationId }}
             </div>
@@ -222,72 +263,107 @@ watch(
         <div class="entry-type">入驻类型：{{ entryTypeLabel }}</div>
       </div>
 
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">手机号</span>
-          <span class="info-value">{{ maskPhone(detail.phone) }}</span>
+      <div class="section">
+        <div class="section-title">基础信息</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">姓名/昵称</span>
+            <span class="info-value">{{ detail.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">手机号</span>
+            <span class="info-value">{{ maskPhone(detail.phone) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">性别</span>
+            <span class="info-value">{{ formatGender(detail.gender) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">年龄</span>
+            <span class="info-value">{{ detail.age ?? '-' }} 岁</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">邮箱</span>
+            <span class="info-value">{{ detail.email || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">微信二维码</span>
+            <span
+              v-if="detail.wechatQrUrl"
+              class="info-value info-value--link"
+              @click="openPreview(detail.wechatQrUrl)"
+            >
+              点击预览
+            </span>
+            <span v-else class="info-value">-</span>
+          </div>
         </div>
-        <div class="info-item">
-          <span class="info-label">性别</span>
-          <span class="info-value">{{ formatGender(detail.gender) }}</span>
+      </div>
+
+      <div class="section">
+        <div class="section-title">教学履历</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">任教年限</span>
+            <span class="info-value">{{ detail.teachingYears ?? '-' }} 年</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">总学员数</span>
+            <span class="info-value">{{ detail.totalStudents ?? '-' }} 人</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">总课时数</span>
+            <span class="info-value">{{ detail.totalHours ?? '-' }} 节</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">擅长泳姿</span>
+            <span class="info-value">{{
+              formatStrokes(detail.teachingStrokes)
+            }}</span>
+          </div>
+          <div class="info-item info-item--full">
+            <span class="info-label">个人简介</span>
+            <span class="info-value info-value--block">{{
+              detail.bio || '-'
+            }}</span>
+          </div>
         </div>
-        <div class="info-item">
-          <span class="info-label">年龄</span>
-          <span class="info-value">{{ detail.age ?? '-' }} 岁</span>
+      </div>
+
+      <div class="section">
+        <div class="section-title">服务设置</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">参考单价</span>
+            <span class="info-value">{{
+              detail.referencePrice ? `¥${detail.referencePrice}` : '-'
+            }}</span>
+          </div>
         </div>
-        <div class="info-item">
-          <span class="info-label">教学年限</span>
-          <span class="info-value">{{ detail.teachingYears ?? '-' }} 年</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">累计学员</span>
-          <span class="info-value">{{ detail.totalStudents ?? '-' }} 人</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">累计课时</span>
-          <span class="info-value">{{ detail.totalHours ?? '-' }} 节</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">邮箱</span>
-          <span class="info-value">{{ detail.email || '-' }}</span>
-        </div>
-        <div class="info-item info-item--wide">
-          <span class="info-label">身份证号</span>
-          <span class="info-value">{{ maskIdCard(detail.idCardNo) }}</span>
-        </div>
-        <div class="info-item info-item--wide">
-          <span class="info-label">擅长泳姿</span>
-          <span class="info-value">{{
-            formatStrokes(detail.teachingStrokes)
-          }}</span>
-        </div>
-        <div class="info-item info-item--wide">
-          <span class="info-label">参考单价</span>
-          <span class="info-value">{{
-            detail.referencePrice ? `¥${detail.referencePrice}` : '-'
-          }}</span>
-        </div>
-        <div class="info-item info-item--full">
-          <span class="info-label">个人介绍</span>
-          <span class="info-value info-value--block">{{
-            detail.bio || '-'
-          }}</span>
-        </div>
+      </div>
+
+      <div class="submit-time">
+        提交时间：{{ formatDateTime(detail.submittedAt) }}
       </div>
     </div>
 
     <div class="content-card">
-      <div class="card-title">资质证书</div>
-      <div v-if="sortedCertificates.length > 0" class="certificate-list">
+      <div class="card-title">实名与资质照片</div>
+      <div class="id-card-no">身份证号：{{ maskIdCard(detail.idCardNo) }}</div>
+      <div class="certificate-list">
         <div
-          v-for="cert in sortedCertificates"
-          :key="cert.certId"
+          v-for="certType in expectedCertTypes"
+          :key="certType"
           class="certificate-item"
         >
-          <div class="certificate-label">{{ cert.certType }}</div>
-          <div class="certificate-image" @click="openPreview(cert.imageUrl)">
+          <div class="certificate-label">{{ certTypeLabels[certType] }}</div>
+          <div
+            v-if="certificateMap.get(certType)?.imageUrl"
+            class="certificate-image"
+            @click="openPreview(certificateMap.get(certType)!.imageUrl)"
+          >
             <el-image
-              :src="cert.imageUrl"
+              :src="certificateMap.get(certType)!.imageUrl"
               :preview-src-list="[]"
               fit="cover"
               class="certificate-thumb"
@@ -297,41 +373,99 @@ watch(
               </template>
             </el-image>
           </div>
+          <div v-else class="certificate-placeholder">未上传</div>
         </div>
-      </div>
-      <el-empty v-else description="未上传资质证书" />
-    </div>
-
-    <div v-if="detail.wechatQrUrl" class="content-card">
-      <div class="card-title">微信二维码</div>
-      <div class="wechat-qr" @click="openPreview(detail.wechatQrUrl)">
-        <el-image
-          :src="detail.wechatQrUrl"
-          :preview-src-list="[]"
-          fit="cover"
-          class="wechat-qr-image"
-        >
-          <template #error>
-            <div class="image-error">加载失败</div>
-          </template>
-        </el-image>
       </div>
     </div>
 
     <div class="content-card">
-      <div class="card-title">申请历史</div>
+      <div class="card-title">审核检查清单</div>
+      <div class="checklist">
+        <div class="checklist-item">
+          <el-checkbox
+            v-model="checklist.idCardClear"
+            :disabled="detail.status !== 'pending'"
+          >
+            证件清晰可辨
+          </el-checkbox>
+          <span
+            class="checklist-status"
+            :class="checklist.idCardClear ? 'text-success' : 'text-primary'"
+          >
+            {{ checklist.idCardClear ? '已通过' : '待确认' }}
+          </span>
+        </div>
+        <div class="checklist-item">
+          <el-checkbox
+            v-model="checklist.infoConsistent"
+            :disabled="detail.status !== 'pending'"
+          >
+            信息一致
+          </el-checkbox>
+          <span
+            class="checklist-status"
+            :class="checklist.infoConsistent ? 'text-success' : 'text-primary'"
+          >
+            {{ checklist.infoConsistent ? '已通过' : '待确认' }}
+          </span>
+        </div>
+        <div class="checklist-item">
+          <el-checkbox
+            v-model="checklist.noBadRecord"
+            :disabled="detail.status !== 'pending'"
+          >
+            无不良记录
+          </el-checkbox>
+          <span
+            class="checklist-status"
+            :class="checklist.noBadRecord ? 'text-success' : 'text-primary'"
+          >
+            {{ checklist.noBadRecord ? '已通过' : '待确认' }}
+          </span>
+        </div>
+        <div class="checklist-item">
+          <el-checkbox
+            v-model="checklist.priceReasonable"
+            :disabled="detail.status !== 'pending'"
+          >
+            单价在合理区间
+          </el-checkbox>
+          <span
+            class="checklist-status"
+            :class="checklist.priceReasonable ? 'text-success' : 'text-primary'"
+          >
+            {{ checklist.priceReasonable ? '已通过' : '待确认' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-card">
+      <div class="card-title">
+        申请历史
+        <span class="history-count"
+          >该教练共有 {{ detail.history.length }} 条申请记录</span
+        >
+      </div>
       <el-table
         v-if="detail.history.length > 0"
         :data="detail.history"
         style="width: 100%"
         header-row-class-name="table-header"
       >
-        <el-table-column label="申请 ID" prop="applicationId" width="100" />
-        <el-table-column label="状态" width="120">
+        <el-table-column label="申请 ID" prop="applicationId" width="120" />
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <span class="text-muted">{{
-              statusLabelMap[row.status] || row.status
-            }}</span>
+            <span
+              class="status-tag"
+              :style="{
+                color: statusMap[row.status as CoachAuditStatus].color,
+                backgroundColor:
+                  statusMap[row.status as CoachAuditStatus].bgColor,
+              }"
+            >
+              {{ statusLabelMap[row.status] || row.status }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="提交时间" width="180">
@@ -342,6 +476,11 @@ watch(
         <el-table-column label="审核时间" width="180">
           <template #default="{ row }">
             {{ formatDateTime(row.approvedAt ?? undefined) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="审核人" width="140">
+          <template #default="{ row }">
+            {{ row.approvedBy || '-' }}
           </template>
         </el-table-column>
         <el-table-column label="驳回原因">
@@ -376,35 +515,47 @@ watch(
       <el-empty v-else description="暂无审核日志" />
     </div>
 
-    <div class="content-card action-card">
-      <div class="card-title">审批操作</div>
-      <div class="action-bar">
-        <template v-if="detail.status === 'pending'">
-          <el-button type="primary" size="large" @click="handleApprove">
-            <i class="ri-check-line" />
-            审核通过
-          </el-button>
-          <el-button type="danger" size="large" @click="handleReject">
-            <i class="ri-close-line" />
-            驳回申请
-          </el-button>
-        </template>
-        <span v-else class="closed-status">
-          <span
-            class="status-tag"
-            :style="{
-              color: statusMap[detail.status].color,
-              backgroundColor: statusMap[detail.status].bgColor,
-            }"
-          >
-            {{ statusMap[detail.status].label }}
-          </span>
-        </span>
-        <div class="action-bar-spacer" />
+    <div class="fixed-action-bar">
+      <div class="fixed-action-bar__inner">
         <el-button size="large" @click="goBack">
           <i class="ri-arrow-go-back-line" />
           返回列表
         </el-button>
+        <div class="fixed-action-bar__right">
+          <template v-if="detail.status === 'pending'">
+            <el-input
+              v-model="approvalComment"
+              type="textarea"
+              :rows="2"
+              placeholder="请输入审核意见（选填，驳回时建议填写原因）"
+              class="approval-comment-input"
+            />
+            <el-button type="primary" size="large" @click="handleApprove">
+              <i class="ri-check-line" />
+              审核通过
+            </el-button>
+            <el-button
+              type="danger"
+              size="large"
+              :disabled="!approvalComment.trim()"
+              @click="handleReject"
+            >
+              <i class="ri-close-line" />
+              驳回申请
+            </el-button>
+          </template>
+          <span v-else class="closed-status">
+            <span
+              class="status-tag"
+              :style="{
+                color: statusMap[detail.status].color,
+                backgroundColor: statusMap[detail.status].bgColor,
+              }"
+            >
+              {{ statusMap[detail.status].label }}
+            </span>
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -421,7 +572,7 @@ watch(
 
 <style scoped lang="scss">
 .coach-audit-detail {
-  padding-bottom: 24px;
+  padding-bottom: 96px;
 }
 
 .error-page {
@@ -514,12 +665,6 @@ watch(
   padding-top: 4px;
 }
 
-.coach-name-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .coach-name {
   font-size: 20px;
   font-weight: 500;
@@ -536,6 +681,21 @@ watch(
   color: #262626;
 }
 
+.section {
+  margin-bottom: 24px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.section-title {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #262626;
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -547,10 +707,6 @@ watch(
   align-items: flex-start;
   gap: 8px;
   min-height: 20px;
-
-  &--wide {
-    grid-column: span 2;
-  }
 
   &--full {
     grid-column: span 3;
@@ -572,6 +728,17 @@ watch(
     line-height: 1.6;
     white-space: pre-wrap;
   }
+
+  &--link {
+    color: #1890ff;
+    cursor: pointer;
+  }
+}
+
+.submit-time {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8c8c8c;
 }
 
 .card-title {
@@ -581,10 +748,16 @@ watch(
   color: #262626;
 }
 
+.id-card-no {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #86909c;
+}
+
 .certificate-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 16px;
 }
 
 .certificate-item {
@@ -594,16 +767,20 @@ watch(
 }
 
 .certificate-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #86909c;
 }
 
-.certificate-image {
+.certificate-image,
+.certificate-placeholder {
   width: 160px;
-  height: 160px;
+  height: 120px;
   overflow: hidden;
+  border-radius: 8px;
+}
+
+.certificate-image {
   cursor: pointer;
-  border-radius: 4px;
 }
 
 .certificate-thumb {
@@ -611,18 +788,13 @@ watch(
   height: 100%;
 }
 
-.wechat-qr {
-  display: inline-flex;
-  width: 160px;
-  height: 160px;
-  overflow: hidden;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.wechat-qr-image {
-  width: 100%;
-  height: 100%;
+.certificate-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #86909c;
+  background: #f5f7fa;
 }
 
 .image-error {
@@ -646,8 +818,11 @@ watch(
   border-radius: 12px;
 }
 
-.text-muted {
-  color: #c9cdd4;
+.history-count {
+  margin-left: 12px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #86909c;
 }
 
 .audit-log-action {
@@ -668,11 +843,56 @@ watch(
   color: #ff4d4f;
 }
 
-.action-card {
-  margin-bottom: 0;
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.action-bar {
+.checklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.checklist-status {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.text-success {
+  color: #52c41a;
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.fixed-action-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 220px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 72px;
+  padding: 0 24px;
+  background: #ffffff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.fixed-action-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1440px;
+}
+
+.fixed-action-bar__right {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -684,8 +904,12 @@ watch(
   }
 }
 
-.action-bar-spacer {
-  flex: 1;
+.approval-comment-input {
+  width: 400px;
+
+  :deep(.el-textarea__inner) {
+    resize: none;
+  }
 }
 
 .closed-status {
@@ -696,6 +920,17 @@ watch(
 :deep(.table-header) {
   th {
     background: #f5f7fa;
+  }
+}
+
+.checklist-item {
+  :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+    background-color: #52c41a;
+    border-color: #52c41a;
+  }
+
+  :deep(.el-checkbox__input.is-checked + .el-checkbox__label) {
+    color: #1d2129;
   }
 }
 </style>

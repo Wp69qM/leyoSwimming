@@ -19,3 +19,42 @@ export function formatDateTime(value: string | Date | undefined): string {
   const pad = (n: number) => n.toString().padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
+
+export function formatDate(value: string | Date | undefined): string {
+  if (!value) return '-';
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '-';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function calculateTenure(
+  startAt: string | Date | undefined,
+  endAt: string | Date | undefined = new Date()
+): string {
+  if (!startAt) return '-';
+  const start = typeof startAt === 'string' ? new Date(startAt) : startAt;
+  const end = typeof endAt === 'string' ? new Date(endAt) : endAt;
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return '-';
+
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  if (end.getDate() < start.getDate()) {
+    months--;
+  }
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  if (years > 0 && months > 0) {
+    return `${years}年${months}个月`;
+  }
+  if (years > 0) {
+    return `${years}年`;
+  }
+  if (months > 0) {
+    return `${months}个月`;
+  }
+  return '1个月内';
+}

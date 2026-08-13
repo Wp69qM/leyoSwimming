@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, computed, watch } from 'vue';
 import type { AdminUserDetail } from '@/types/api';
 import { getUserDetail } from '@/api/userManagement';
 import { formatDateTime, maskPhone } from '@/utils/format';
@@ -14,6 +13,8 @@ const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
   (e: 'closed'): void;
   (e: 'edit'): void;
+  (e: 'ban', user: AdminUserDetail): void;
+  (e: 'unban', user: AdminUserDetail): void;
 }>();
 
 const user = ref<AdminUserDetail | null>(null);
@@ -79,6 +80,18 @@ function handleEdit() {
   emit('edit');
 }
 
+function handleBan() {
+  if (user.value) {
+    emit('ban', user.value);
+  }
+}
+
+function handleUnban() {
+  if (user.value) {
+    emit('unban', user.value);
+  }
+}
+
 watch(
   () => props.visible,
   (visible) => {
@@ -93,11 +106,12 @@ watch(
 
 <template>
   <el-dialog
-    v-model="props.visible"
+    v-model="localVisible"
     title="用户详情"
-    width="560px"
+    width="640px"
     :close-on-click-modal="false"
     destroy-on-close
+    class="user-view-dialog"
     @close="handleClose"
   >
     <el-alert
@@ -113,39 +127,39 @@ watch(
 
     <template v-else-if="user">
       <div class="info-card">
-        <el-avatar :size="64" :src="user.avatarUrl" />
+        <el-avatar :size="80" :src="user.avatarUrl" />
         <div class="info-main">
           <div class="info-title">{{ user.name || '未设置' }}</div>
           <div class="info-subtitle">用户 ID: {{ user.userId }}</div>
-        </div>
-        <div class="info-tags">
-          <span
-            class="status-tag"
-            :style="{
-              color: identityTagMap[user.identity]?.color,
-              backgroundColor: identityTagMap[user.identity]?.bgColor,
-            }"
-          >
-            {{ identityTagMap[user.identity]?.label || '-' }}
-          </span>
-          <span
-            class="status-tag"
-            :style="{
-              color: statusTagMap[user.status]?.color,
-              backgroundColor: statusTagMap[user.status]?.bgColor,
-            }"
-          >
-            {{ statusTagMap[user.status]?.label || '-' }}
-          </span>
-          <span
-            class="status-tag"
-            :style="{
-              color: profileTagMap[user.profileCompleted]?.color,
-              backgroundColor: profileTagMap[user.profileCompleted]?.bgColor,
-            }"
-          >
-            {{ profileTagMap[user.profileCompleted]?.label || '-' }}
-          </span>
+          <div class="info-tags">
+            <span
+              class="status-tag"
+              :style="{
+                color: identityTagMap[user.identity]?.color,
+                backgroundColor: identityTagMap[user.identity]?.bgColor,
+              }"
+            >
+              {{ identityTagMap[user.identity]?.label || '-' }}
+            </span>
+            <span
+              class="status-tag"
+              :style="{
+                color: statusTagMap[user.status]?.color,
+                backgroundColor: statusTagMap[user.status]?.bgColor,
+              }"
+            >
+              {{ statusTagMap[user.status]?.label || '-' }}
+            </span>
+            <span
+              class="status-tag"
+              :style="{
+                color: profileTagMap[user.profileCompleted]?.color,
+                backgroundColor: profileTagMap[user.profileCompleted]?.bgColor,
+              }"
+            >
+              {{ profileTagMap[user.profileCompleted]?.label || '-' }}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -173,8 +187,45 @@ watch(
             <span class="value">{{ formatAge(user.age) }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">来源</span>
+            <span class="label">注册来源</span>
             <span class="value">{{ user.source || '-' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">注册时间</span>
+            <span class="value">{{ formatDateTime(user.createdAt) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">最后登录时间</span>
+            <span class="value">{{ formatDateTime(user.lastLoginAt) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">账号状态</span>
+            <span class="value">
+              <span
+                class="status-tag"
+                :style="{
+                  color: statusTagMap[user.status]?.color,
+                  backgroundColor: statusTagMap[user.status]?.bgColor,
+                }"
+              >
+                {{ statusTagMap[user.status]?.label || '-' }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">资料完善状态</span>
+            <span class="value">
+              <span
+                class="status-tag"
+                :style="{
+                  color: profileTagMap[user.profileCompleted]?.color,
+                  backgroundColor:
+                    profileTagMap[user.profileCompleted]?.bgColor,
+                }"
+              >
+                {{ profileTagMap[user.profileCompleted]?.label || '-' }}
+              </span>
+            </span>
           </div>
         </div>
       </div>
@@ -239,6 +290,10 @@ watch(
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="handleClose">关闭</el-button>
+        <el-button v-if="user?.status !== 2" type="danger" @click="handleBan">
+          封禁
+        </el-button>
+        <el-button v-else type="primary" @click="handleUnban"> 解禁 </el-button>
         <el-button type="primary" @click="handleEdit">编辑资料</el-button>
       </div>
     </template>
@@ -250,12 +305,31 @@ watch(
   margin: 16px 24px 0;
 }
 
+:deep(.user-view-dialog .el-dialog__header) {
+  padding: 0 24px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+:deep(.user-view-dialog .el-dialog__headerbtn) {
+  width: 32px;
+  height: 32px;
+}
+
+:deep(.user-view-dialog .el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.user-view-dialog .el-dialog__footer) {
+  padding: 0 24px;
+  border-top: 1px solid #e4e7ed;
+}
+
 .info-card {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 24px;
-  margin: 0 24px 16px;
+  margin-bottom: 16px;
   background: #f5f7fa;
   border-radius: 4px;
 }
@@ -280,6 +354,7 @@ watch(
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 8px;
 }
 
 .status-tag {
@@ -293,7 +368,7 @@ watch(
 }
 
 .detail-section {
-  padding: 0 24px 16px;
+  padding-bottom: 16px;
 }
 
 .section-title {

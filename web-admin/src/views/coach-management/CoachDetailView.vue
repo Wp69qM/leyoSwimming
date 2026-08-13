@@ -2,9 +2,10 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { AdminCoachDetail, AdminCoachCertificate } from '@/types/api';
+import type { AdminCoachDetail } from '@/types/api';
 import { getCoachDetail, cancelCoachEntry } from '@/api/coachManagement';
 import { formatDateTime, maskPhone, maskIdCard } from '@/utils/format';
+import CoachEditModal from './CoachEditModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -14,6 +15,7 @@ const coach = ref<AdminCoachDetail | null>(null);
 const loading = ref(false);
 const error = ref(false);
 const activeTab = ref('basic');
+const editVisible = ref(false);
 
 const coachStatusMap: Record<
   number,
@@ -77,7 +79,13 @@ function goBack() {
 }
 
 function handleEdit() {
-  ElMessage.info('请返回列表点击编辑');
+  editVisible.value = true;
+}
+
+function handleEditSuccess() {
+  editVisible.value = false;
+  ElMessage.success('教练资料已更新');
+  fetchDetail();
 }
 
 function handleSchedule() {
@@ -188,8 +196,11 @@ onMounted(() => {
           <el-button
             v-if="coach.status === 1"
             type="primary"
-            @click="handleSchedule"
-            >排班入口</el-button
+            @click="handleEdit"
+            >编辑</el-button
+          >
+          <el-button v-if="coach.status === 1" @click="handleSchedule"
+            >排班</el-button
           >
           <el-button
             v-if="coach.status === 1"
@@ -249,6 +260,18 @@ onMounted(() => {
                   <span class="label">参考单价</span
                   ><span class="value">{{ coach.referencePrice }} 元/节</span>
                 </div>
+                <div class="detail-item">
+                  <span class="label">微信二维码</span>
+                  <el-image
+                    v-if="coach.wechatQrUrl"
+                    class="qr-thumb"
+                    :src="coach.wechatQrUrl"
+                    :preview-src-list="[coach.wechatQrUrl]"
+                    fit="cover"
+                    preview-teleported
+                  />
+                  <span v-else class="value">-</span>
+                </div>
               </div>
             </div>
 
@@ -263,37 +286,49 @@ onMounted(() => {
               <div class="cert-grid">
                 <div class="cert-box">
                   <div class="cert-label">身份证正面照</div>
-                  <img
+                  <el-image
                     v-if="findCertUrl('ID_CARD_FRONT')"
+                    class="cert-image"
                     :src="findCertUrl('ID_CARD_FRONT')"
-                    alt="身份证正面"
+                    :preview-src-list="[findCertUrl('ID_CARD_FRONT')]"
+                    fit="cover"
+                    preview-teleported
                   />
                   <span v-else class="cert-empty">未上传</span>
                 </div>
                 <div class="cert-box">
                   <div class="cert-label">身份证反面照</div>
-                  <img
+                  <el-image
                     v-if="findCertUrl('ID_CARD_BACK')"
+                    class="cert-image"
                     :src="findCertUrl('ID_CARD_BACK')"
-                    alt="身份证反面"
+                    :preview-src-list="[findCertUrl('ID_CARD_BACK')]"
+                    fit="cover"
+                    preview-teleported
                   />
                   <span v-else class="cert-empty">未上传</span>
                 </div>
                 <div class="cert-box">
                   <div class="cert-label">健康证</div>
-                  <img
+                  <el-image
                     v-if="findCertUrl('HEALTH_CERT')"
+                    class="cert-image"
                     :src="findCertUrl('HEALTH_CERT')"
-                    alt="健康证"
+                    :preview-src-list="[findCertUrl('HEALTH_CERT')]"
+                    fit="cover"
+                    preview-teleported
                   />
                   <span v-else class="cert-empty">未上传</span>
                 </div>
                 <div class="cert-box">
                   <div class="cert-label">个人形象照</div>
-                  <img
+                  <el-image
                     v-if="findCertUrl('PORTRAIT')"
+                    class="cert-image"
                     :src="findCertUrl('PORTRAIT')"
-                    alt="个人形象照"
+                    :preview-src-list="[findCertUrl('PORTRAIT')]"
+                    fit="cover"
+                    preview-teleported
                   />
                   <span v-else class="cert-empty">未上传</span>
                 </div>
@@ -305,7 +340,13 @@ onMounted(() => {
                   class="cert-box"
                 >
                   <div class="cert-label">教练资格证</div>
-                  <img :src="cert.imageUrl" alt="教练资格证" />
+                  <el-image
+                    class="cert-image"
+                    :src="cert.imageUrl"
+                    :preview-src-list="[cert.imageUrl]"
+                    fit="cover"
+                    preview-teleported
+                  />
                 </div>
               </div>
             </div>
@@ -385,14 +426,19 @@ onMounted(() => {
           @click="handleCancelEntry"
           >取消入驻</el-button
         >
-        <el-button
-          v-if="coach.status === 1 || coach.status === 2 || coach.status === 3"
-          type="primary"
-          @click="handleEdit"
+        <el-button v-if="coach.status === 1" type="primary" @click="handleEdit"
           >编辑资料</el-button
         >
       </div>
     </template>
+
+    <CoachEditModal
+      v-if="coach"
+      v-model:visible="editVisible"
+      :coach-id="coach.coachId"
+      :is-edit="true"
+      @success="handleEditSuccess"
+    />
   </div>
 </template>
 
@@ -533,12 +579,17 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
 
-  img {
+  .cert-image {
     width: 100px;
     height: 100px;
-    object-fit: cover;
     border-radius: 4px;
   }
+}
+
+.qr-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
 }
 
 .cert-label {
