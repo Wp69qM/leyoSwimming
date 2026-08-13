@@ -40,9 +40,9 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 
 ## 2. API 设计
 
-### 2.1 GET /api/orders/{order_id}/refund/check
+### 2.1 GET /api/packages/{package_id}/refund/check
 
-- **鉴权**：必须登录（订单所属用户）
+- **鉴权**：必须登录（套餐所属用户）
 - **Response 200**:
   ```json
   {
@@ -61,11 +61,11 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
     ]
   }
   ```
-- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | ORDER_NOT_PAID }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
+- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | PACKAGE_NOT_FOUND }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
 
-### 2.2 POST /api/orders/{order_id}/refund
+### 2.2 POST /api/packages/{package_id}/refund
 
-- **鉴权**：必须登录（订单所属用户）
+- **鉴权**：必须登录（套餐所属用户）
 - **Request**:
   ```json
   {
@@ -74,7 +74,7 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
   }
   ```
 - **Response 201**: `{ refund_id, status: "待审批" }`
-- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
+- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | REFUND_NOT_SUPPORTED | REFUND_EXPIRED | PACKAGE_EXHAUSTED_NOT_REFUNDABLE }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
 
 ### 2.3 业务规则
 
@@ -102,7 +102,7 @@ refund_record: 无 ──[学员提交]──→ 待审批
 
 | 缓存 | 键 | TTL | 失效策略 |
 |------|----|-----|---------|
-| 退款资格检查 | `refund:check:{order_id}` | 30s | 订单/套餐状态变更时失效 |
+| 退款资格检查 | `refund:check:{package_id}` | 30s | 套餐状态变更时失效 |
 
 ---
 
@@ -117,8 +117,8 @@ refund_record: 无 ──[学员提交]──→ 待审批
 
 ## 6. 安全
 
-- 登录鉴权 + 订单归属校验（仅订单所属用户可申请）
-- 幂等键：`{user_id}:{order_id}:refund`
+- 登录鉴权 + 套餐归属校验（仅套餐所属用户可申请）
+- 幂等键：`{user_id}:{package_id}:refund`
 - 事务包裹：reserved 释放 + booking 取消 + package.status → frozen(refund_pending) + refund_record 创建 + order 状态更新在同一事务（PRD §3.6 / §6.3.1），任一失败回滚
 
 ---

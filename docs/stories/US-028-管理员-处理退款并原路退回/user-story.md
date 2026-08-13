@@ -49,7 +49,7 @@
 3. 管理员点击退款订单查看详情：原购买订单信息、package 购买时快照信息（套餐名称、套餐模式 `package_mode`、原价 `original_price`、实付价 `paid_amount`、退款比例 `refund_ratio`、可退金额）、package 消耗情况、可退金额计算过程
 4. 管理员选择处理方式：
    - **通过退款**（两阶段）：
-     - **阶段 1 受理**：系统展示可退金额；管理员可在 `[0, 可退金额]` 范围内修改退款金额（修改需填写原因并记录 audit_log）；校验调整后金额 ≤ 可退金额；refund_record 与退款订单的 paid_amount 更新为调整后金额；order.status → 退款处理中；package.status 保持 frozen（refund_pending）；refund_transaction.status = 处理中；记录受理时间与受理管理员
+     - **阶段 1 受理**：系统展示可退金额作为参考；管理员可修改退款金额（修改需填写原因并记录 audit_log）；refund_record 与退款订单的 paid_amount 更新为调整后金额；order.status → 退款处理中；package.status 保持 frozen（refund_pending）；refund_transaction.status = 处理中；记录受理时间与受理管理员
      - **阶段 2 渠道回调**：调用 Mock 退款渠道；Mock 渠道回调成功 → order.status → 已退款；package.status → refunded；package.frozen_reason 清空；关联赠送 package 同步作废；refund_transaction.status = 成功；异步触发身份重算
      - **阶段 2 失败**：Mock 渠道回调失败 → order.status 回滚为 退款审批中；package.status 保持 frozen（refund_pending）；refund_transaction.status = 失败；进入重试队列并通知管理员
    - **驳回退款**：管理员填写驳回原因；order.status → 退款被拒；package.status 自动恢复为 active；package.frozen_reason 清空；系统通知学员并恢复 package 的约课能力
@@ -58,7 +58,7 @@
 ### 4.2 异常分支
 
 - **分支 1**：渠道退款接口调用失败（阶段 2 失败）→ refund_transaction.status = 失败，order.status 从「退款处理中」回滚为「退款审批中」，package.status 保持 frozen（refund_pending），package.booking_frozen 保持 true，进入重试队列并通知管理员
-- **分支 2**：管理员修改后的退款金额 > 可退金额，或与 package 快照计算结果不一致 → 系统拒绝审批，返回错误码 `REFUND_AMOUNT_MISMATCH`，提示管理员核对
+- **分支 2**：管理员修改后的退款金额 < 0 → 系统拒绝审批，返回错误码 `REFUND_AMOUNT_INVALID`，提示管理员核对
 - **分支 3**：驳回原因为空 → 返回错误码 `REJECT_REASON_REQUIRED`
 - **分支 4**：重复点击批准/驳回 → 幂等处理，返回当前最终状态
 - **分支 5**：无权限人员访问 → 返回 403 FORBIDDEN
@@ -372,6 +372,7 @@ And   不修改任何退款/订单状态
 | v1.5 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
 | v1.6 | 2026-08-12 | PM | 适配 US-045：§3 前置条件增加快照字段计算校验；§4.1 详情页展示 package 快照信息，批准时校验快照计算金额，驳回时 package.status 保持不变；§4.2 金额不匹配文案更新；§5 增加快照展示规则；§6 Gherkin 补充快照字段断言；§7.1 更新数据表影响；§7.3 与说明调整驳回状态为保持不变；§12 补充快照字段与驳回状态说明 |
 | v1.7 | 2026-08-12 | PM | 适配 US-046 订单/套餐边界重构：退款审批入口合并至订单管理页；标题改为「管理员处理退款订单并原路退回」；§2/§3/§4/§5/§6/§7/§8/§12/§13/§14 同步更新；新增驳回后 package 自动恢复 active、管理员可修改退款金额、Mock 退款渠道等规则 |
+| v1.8 | 2026-08-13 | PM | 放宽退款金额限制：管理员可基于业务场景调整退款金额（可大于可退金额），仅保留金额 ≥ 0 校验；§4.1/§4.2 同步更新；OpenSpec design.md/spec.md/tasks.md 同步 |
 
 ---
 

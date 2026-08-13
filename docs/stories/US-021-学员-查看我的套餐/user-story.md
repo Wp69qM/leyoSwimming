@@ -25,7 +25,7 @@
 ## 2. 触发条件
 
 - **触发方**：学员/注册用户
-- **触发动作**：进入「我的套餐」页面
+- **触发动作**：用户从底部导航「我的」进入个人中心页，点击「我的套餐」入口，进入「我的套餐」页面
 - **触发时机**：主动查看
 
 ---
@@ -45,7 +45,8 @@
 3. 系统按状态分组展示：active / exhausted / expired / refunded / frozen
 4. 每个卡片展示购买时快照字段：教练姓名、套餐模式标签（正价/体验课）、教学类型、每节课时长、有效期、课时数、已用/剩余课时、购买时价格、状态标签
 5. 页面顶部汇总：总课时、已上课时、剩余课时
-6. 套餐详情页展示完整快照字段，若原 package_template 已下架或修改，仍以 package 实例中的快照为准
+6. 套餐详情页展示完整快照字段；若原 package_template 已下架或修改，仍以 package 实例中的快照为准
+7. 套餐详情页满足退款条件时（package.status ∈ {active, expired} 或 frozen 且 frozen_reason='coach_resigned'，且 refund_enabled=true，未超过 refund_valid_days），展示「申请退款」按钮；点击后跳转 US-027 发起退款订单，退款金额由 US-027 按 package 快照规则计算；exhausted 套餐不展示退款入口
 
 ### 4.2 教练视角套餐使用详情页（由 US-037 入口承接）
 
@@ -73,6 +74,10 @@
 | 1 | 学员查看总课时、已上课时、剩余课时 | [§5.3.3](../../prd/prd.md) |
 | 2 | 套餐状态机 active / exhausted / expired / refunded / frozen | [§3.4](../../prd/prd.md) / [§4.2](../../prd/prd.md) |
 | 3 | 教练离职后 package 冻结且学员端可见 | [§3.7](../../prd/prd.md) |
+| 4 | 退款触发场景：package.status ∈ {active, expired} 或 frozen 且 frozen_reason='coach_resigned'；exhausted 不可退款 | [§6.4.1](../../prd/prd.md) |
+| 5 | 退款金额 = paid_amount × (total_hours - consumed_count) / total_hours × refund_ratio；教练离职 frozen 按 100% 退 | [§6.4.2](../../prd/prd.md) |
+| 6 | 退款资格受 package 快照 refund_enabled、refund_valid_days 控制 | [§6.4.1](../../prd/prd.md) |
+| 7 | 退款申请由 US-027 承接，点击「申请退款」跳转 US-027 | 本 US 与 US-027 衔接 |
 
 ---
 
@@ -87,7 +92,7 @@ And   套餐 B：6 节，已用 0 节，剩余 6 节，package_mode='standard'�
 When  用户进入「我的套餐」页面
 Then  页面展示 2 个 active 套餐卡片
 And   顶部汇总：总课时 16，已用 3，剩余 13
-And   每个卡片展示教练姓名、套餐模式标签（正价/体验课）、教学类型、每节课时长、有效期、购买时价格、状态标签
+And   每个卡片展示教练姓名、套餐模式标签（正价/体验课）、教学类型、每节课时长、有效期、购买时价格、剩余课时、状态标签
 And   每个卡片数据来自 package 实例快照字段，不依赖当前 package_template
 And   接口返回 HTTP 200
 ```
@@ -120,6 +125,7 @@ When  用户进入「我的套餐」页面
 Then  active 套餐在「可用」分组正常展示
 And   exhausted 套餐在「已耗尽」分组展示，卡片显示"课时已用完"标签
 And   exhausted 套餐卡片不展示「预约」按钮
+And   exhausted 套餐卡片不展示「申请退款」入口
 And   顶部汇总仅统计 active 套餐（exhausted 不纳入）
 And   接口返回 HTTP 200
 ```
@@ -128,15 +134,44 @@ And   接口返回 HTTP 200
 
 ```gherkin
 Given 用户已登录且名下有 1 个 expired 套餐（available_count = 3，now() > expire_at）
+And   package 快照 refund_enabled = true，未超过 refund_valid_days
 When  用户进入「我的套餐」页面
 Then  expired 套餐在「已过期」分组展示，卡片显示"已过期"标签与过期日期
 And   expired 套餐卡片提示"套餐已过期，剩余 3 节课时未使用"
-And   expired 套餐卡片展示「申请退款」入口（PRD §6.4.1 允许 expired 且 available>0 退款）
-And   顶部汇总不纳入 expired 套餐
-And   接口返回 HTTP 200
+And   expired 套餐卡片展示「申请退款」入口
+When  用户点击「申请退款」
+Then  跳转 US-027 退款申请页
+And   US-027 按 package 快照计算可退金额
 ```
 
-### 6.6 场景 6：原模板已下架仍显示购买时信息
+### 6.6 场景 6：active 套餐详情页展示「申请退款」入口
+
+```gherkin
+Given 用户已登录且名下有 1 个 active 套餐
+And   package 快照 total_hours = 10，consumed_count = 2，paid_amount = 1800 元，refund_enabled = true，refund_ratio = 1.0，未超过 refund_valid_days
+When  用户进入「我的套餐」页面
+And   用户点击 active 套餐卡片进入套餐详情页
+Then  套餐详情页展示完整快照字段
+And   套餐详情页展示「申请退款」按钮
+When  用户点击「申请退款」
+Then  跳转 US-027 退款申请页
+And   US-027 按 1800 × (10-2)/10 × 1.0 = 1440 元 计算可退金额
+```
+
+### 6.7 场景 7：教练离职 frozen 套餐展示「申请退款」入口
+
+```gherkin
+Given 用户已登录且名下有 1 个 frozen 套餐（frozen_reason='coach_resigned'）
+And   package 快照 paid_amount = 1800 元，refund_enabled = true，refund_ratio = 1.0
+When  用户进入「我的套餐」页面
+Then  frozen 套餐在「已冻结」分组展示，卡片显示"教练已离职，请更换教练或申请退款"
+And   frozen 套餐卡片展示「申请退款」入口
+When  用户点击「申请退款」
+Then  跳转 US-027 退款申请页
+And   US-027 按 100% 全额退款计算可退金额 1800 元
+```
+
+### 6.8 场景 8：原模板已下架仍显示购买时信息
 
 ```gherkin
 Given 用户已登录且名下有 1 个 active 套餐
@@ -217,14 +252,14 @@ And   接口返回 HTTP 200
 - [x] **V**aluable（有价值）- 用户核心信息入口
 - [x] **E**stimable（可估算）- 0.5 人天明确
 - [x] **S**mall（足够小）- 单一查询页面
-- [x] **T**estable（可测试）- 6 个 GWT 场景
+- [x] **T**estable（可测试）- 8 个 GWT 场景
 
 ---
 
 ## 11. 完整性检查
 
 - [x] 15 章齐全
-- [x] 6 个 GWT 场景
+- [x] 8 个 GWT 场景
 - [x] ≥3 边界场景
 - [x] PRD 引用明确
 
@@ -297,6 +332,7 @@ And   接口返回 HTTP 200
 | v1.2 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
 | v1.3 | 2026-08-12 | PM | 适配 US-045：§4.1 明确展示 package 实例快照字段；§6 补充快照字段断言，新增场景 6；§7.1 更新数据表影响；§12 补充模板快照备注 |
 | v1.4 | 2026-08-12 | PM | 适配 US-037：新增 §4.2 教练视角套餐使用详情页流程、§4.3 异常分支 3、§7.2 教练视角详情 API、§14.3 设计决策；明确套餐详情页由 US-021 教练视角统一承接 |
+| v1.5 | 2026-08-13 | PM | 完善退款入口：§4.1 补充套餐详情页「申请退款」按钮及跳转 US-027 规则（支持 active / expired / frozen(coach_resigned)，exhausted 不展示）；§5 新增退款规则引用；§6 新增场景 6/7 覆盖 active / frozen(coach_resigned) 套餐退款入口，场景 4 补充 exhausted 不展示退款入口；§10/§11 更新场景数量 |
 
 ---
 

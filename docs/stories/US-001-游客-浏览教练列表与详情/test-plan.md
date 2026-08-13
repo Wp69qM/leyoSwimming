@@ -23,9 +23,10 @@
 |------|------|--------|--------------|
 | 1 | 创建 Coach Repository（列表查询 + 排序 + 分页） | P0 | [§6.1 场景 1：正常浏览](./user-story.md#61-场景-1正常浏览)、[§6.6 场景 6：教练申请离职中仍可见且无标签](./user-story.md#66-场景-6教练申请离职中仍可见且无标签) |
 | 2 | 创建 Coach Repository（详情查询 + 状态过滤） | P0 | [§6.3 场景 3](./user-story.md#63-场景-3教练请假中)、[§6.4 场景 4](./user-story.md#64-场景-4教练待审核或驳回不出现)、[§6.5 场景 5](./user-story.md#65-场景-5教练已离职不出现)、[§6.6 场景 6](./user-story.md#66-场景-6教练申请离职中仍可见且无标签) |
-| 3 | GET /coaches 列表 API 端点 | P0 | §6.1、[§6.2 场景 2：空状态](./user-story.md#62-场景-2空状态)、§6.6 |
-| 4 | GET /coaches/:id 详情 API | P0 | §6.3、§6.4、§6.5、§6.6 |
+| 3 | POST /api/coach/list 列表 API 端点 | P0 | §6.1、[§6.2 场景 2：空状态](./user-story.md#62-场景-2空状态)、§6.6 |
+| 4 | POST /api/coach/detail 详情 API | P0 | §6.3、§6.4、§6.5、§6.6 |
 | 5 | 微信小程序列表页 + 缓存 | P1 | §6.1、§6.6 |
+| 6 | 微信小程序教练详情页交互（套餐 / 可约时间） | P1 | [§6.7 场景 7：点击套餐进入套餐详情](./user-story.md#67-场景-7点击套餐进入套餐详情)、[§6.8 场景 8：点击可约时间预览进入预约页](./user-story.md#68-场景-8点击可约时间预览进入预约页) |
 
 ---
 
@@ -233,7 +234,7 @@ git commit -m "feat(coach): add findById with status filter (hide pending coache
 
 ---
 
-### Task 3: GET /coaches 列表 API 端点 [P0]
+### Task 3: POST /api/coach/list 列表 API 端点 [P0]
 
 **Files:**
 - Create: `backend/src/controllers/coach.ts`
@@ -249,22 +250,28 @@ git commit -m "feat(coach): add findById with status filter (hide pending coache
 import request from 'supertest';
 import { app } from '../../src/app';
 
-describe('GET /coaches', () => {
+describe('POST /api/coach/list', () => {
   it('returns 200 with coaches array (正常浏览)', async () => {
-    const res = await request(app).get('/coaches?page=1&size=10');
+    const res = await request(app)
+      .post('/api/coach/list')
+      .send({ page: 1, pageSize: 10 });
     expect(res.status).toBe(200);
     expect(res.body.items).toBeInstanceOf(Array);
   });
 
   it('returns 200 with empty array when no public coaches (空状态)', async () => {
     // 测试前清空 coach 表或使用 mock DB
-    const res = await request(app).get('/coaches?page=1&size=10');
+    const res = await request(app)
+      .post('/api/coach/list')
+      .send({ page: 1, pageSize: 10 });
     expect(res.status).toBe(200);
     expect(res.body.items).toEqual([]);
   });
 
   it('includes status=4 coaches and excludes status=0/2/3 coaches', async () => {
-    const res = await request(app).get('/coaches?page=1&size=10');
+    const res = await request(app)
+      .post('/api/coach/list')
+      .send({ page: 1, pageSize: 10 });
     const statuses = res.body.items.map(c => c.status);
 
     expect(statuses).toContain(1);
@@ -290,8 +297,8 @@ import { CoachRepository } from '../repositories/coach';
 const coachRepo = new CoachRepository();
 
 export async function listCoaches(ctx) {
-  const { page = 1, size = 10 } = ctx.query;
-  const result = await coachRepo.findPublicList({ page: Number(page), size: Number(size) });
+  const { page = 1, pageSize = 10 } = ctx.request.body || {};
+  const result = await coachRepo.findPublicList({ page: Number(page), size: Number(pageSize) });
   ctx.body = result;
 }
 
@@ -299,8 +306,8 @@ export async function listCoaches(ctx) {
 import Router from 'koa-router';
 import { listCoaches } from '../controllers/coach';
 
-const router = new Router({ prefix: '/coaches' });
-router.get('/', listCoaches);
+const router = new Router({ prefix: '/api/coach' });
+router.post('/list', listCoaches);
 export default router;
 ```
 
@@ -311,19 +318,19 @@ Expected: PASS（3 个测试全过）
 
 - [ ] **Step 5: REFACTOR — 统一参数解析与常量复用**
 
-- 将 `page/size` 的 `Number()` 转换提取到 small helper 或 middleware，避免控制器重复
+- 将 `page/pageSize` 的 `Number()` 转换提取到 small helper 或 middleware，避免控制器重复
 - 确认控制器不自行判断 status，过滤逻辑下沉到 Repository
 
 - [ ] **Step 6: COMMIT**
 
 ```bash
 git add backend/src/controllers/coach.ts backend/src/routes/coach.ts backend/tests/controllers/coach.test.ts
-git commit -m "feat(api): add GET /coaches list endpoint"
+git commit -m "feat(api): add POST /api/coach/list endpoint"
 ```
 
 ---
 
-### Task 4: GET /coaches/:id 详情 API [P0]
+### Task 4: POST /api/coach/detail 详情 API [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/coach.ts`
@@ -336,9 +343,11 @@ git commit -m "feat(api): add GET /coaches list endpoint"
 
 ```typescript
 // 追加到 backend/tests/controllers/coach.test.ts
-describe('GET /coaches/:id', () => {
+describe('POST /api/coach/detail', () => {
   it('returns 200 with full coach info (status=1, 空闲中)', async () => {
-    const res = await request(app).get('/coaches/1');
+    const res = await request(app)
+      .post('/api/coach/detail')
+      .send({ coachId: 1 });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       id: 1,
@@ -348,32 +357,42 @@ describe('GET /coaches/:id', () => {
   });
 
   it('returns 200 with realTimeStatus=请假中 (场景 3)', async () => {
-    const res = await request(app).get('/coaches/3');  // 假设 id=3 状态为请假中
+    const res = await request(app)
+      .post('/api/coach/detail')
+      .send({ coachId: 3 });  // 假设 id=3 状态为请假中
     expect(res.status).toBe(200);
     expect(res.body.realTimeStatus).toBe('请假中');
   });
 
   it('returns 200 with status=4 coach and no resignation label (场景 6)', async () => {
-    const res = await request(app).get('/coaches/4');  // 假设 id=4 状态为申请离职中
+    const res = await request(app)
+      .post('/api/coach/detail')
+      .send({ coachId: 4 });  // 假设 id=4 状态为申请离职中
     expect(res.status).toBe(200);
     expect(res.body.status).toBe(4);
     // UI 层断言：详情组件不展示"申请离职中"标签（由前端测试覆盖）
   });
 
   it('returns 404 with COACH_NOT_FOUND for pending coach (status=0)', async () => {
-    const res = await request(app).get('/coaches/2');  // 假设 id=2 状态为待审核
+    const res = await request(app)
+      .post('/api/coach/detail')
+      .send({ coachId: 2 });  // 假设 id=2 状态为待审核
     expect(res.status).toBe(404);
     expect(res.body.error).toBe('COACH_NOT_FOUND');
   });
 
   it('returns 404 with COACH_NOT_FOUND for resigned coach (status=3)', async () => {
-    const res = await request(app).get('/coaches/5');  // 假设 id=5 状态为已离职
+    const res = await request(app)
+      .post('/api/coach/detail')
+      .send({ coachId: 5 });  // 假设 id=5 状态为已离职
     expect(res.status).toBe(404);
     expect(res.body.error).toBe('COACH_NOT_FOUND');
   });
 
   it('returns 404 with COACH_NOT_FOUND for non-existent id', async () => {
-    const res = await request(app).get('/coaches/99999');
+    const res = await request(app)
+      .post('/api/coach/detail')
+      .send({ coachId: 99999 });
     expect(res.status).toBe(404);
     expect(res.body.error).toBe('COACH_NOT_FOUND');
   });
@@ -391,7 +410,8 @@ Expected: FAIL with `404 expected but got 200`（route 还没注册）
 // 修改 backend/src/controllers/coach.ts
 export async function getCoachById(ctx) {
   try {
-    const coach = await coachRepo.findById(Number(ctx.params.id));
+    const { coachId } = ctx.request.body || {};
+    const coach = await coachRepo.findById(Number(coachId));
     ctx.body = coach;
   } catch (err) {
     if (err.message === 'COACH_NOT_FOUND') {
@@ -404,7 +424,7 @@ export async function getCoachById(ctx) {
 }
 
 // 修改 backend/src/routes/coach.ts
-router.get('/:id', getCoachById);
+router.post('/detail', getCoachById);
 ```
 
 - [ ] **Step 4: 跑测试确认通过**
@@ -421,7 +441,7 @@ Expected: PASS（6 个新测试全过，共 9 个）
 
 ```bash
 git add backend/src/controllers/coach.ts backend/src/routes/coach.ts backend/tests/controllers/coach.test.ts
-git commit -m "feat(api): add GET /coaches/:id detail endpoint with 404 handling"
+git commit -m "feat(api): add POST /api/coach/detail endpoint with 404 handling"
 ```
 
 ---
@@ -509,7 +529,11 @@ export default function CoachesPage() {
         setLoading(false);
       }
 
-      const res = await Taro.request({ url: '/coaches?page=1&size=10' });
+      const res = await Taro.request({
+        url: '/api/coach/list',
+        method: 'POST',
+        data: { page: 1, pageSize: 10 }
+      });
       setCoaches(res.data.items);
       Taro.setStorageSync('coaches_list', res.data.items);
     } finally {
@@ -557,13 +581,210 @@ git commit -m "feat(miniapp): add coaches list page with storage cache"
 
 ---
 
+### Task 6: 微信小程序教练详情页交互（套餐 / 可约时间）[P1]
+
+**Files:**
+- Create: `miniapp-user/src/pages/coach-detail/index.tsx`
+- Create: `miniapp-user/src/pages/coach-detail/index.test.tsx`
+
+**对应 GWT**：[user-story.md §6.7 场景 7：点击套餐进入套餐详情](./user-story.md#67-场景-7点击套餐进入套餐详情)、[§6.8 场景 8：点击可约时间预览进入预约页](./user-story.md#68-场景-8点击可约时间预览进入预约页)
+
+- [ ] **Step 1: RED — 写失败测试**
+
+```typescript
+// miniapp-user/src/pages/coach-detail/index.test.tsx
+import { render, fireEvent } from '@testing-library/react';
+import CoachDetailPage from './index';
+
+const mockCoach = {
+  id: 1,
+  name: '王教练',
+  avatar: 'https://cdn.example.com/avatar/1.jpg',
+  gender: 1,
+  age: 32,
+  rating: 4.9,
+  yearsOfTeaching: 8,
+  teachingStrokes: ['蛙泳', '自由泳'],
+  totalStudents: 128,
+  totalHours: 2560,
+  bio: '专业游泳教练',
+  referencePrice: 200,
+  contact: { phone: '138****8000', wechatQrCode: 'https://cdn.example.com/wechat/1.jpg' },
+  certificates: [{ name: '国家一级运动员', level: '国家级' }],
+  packages: [
+    { id: 0, name: '新人体验课', price: 99, hours: 1, isTrial: true },
+    { id: 1, name: '成人一对一正价课', price: 1800, hours: 10, isTrial: false },
+    { id: 2, name: '儿童启蒙课', price: 1200, hours: 8, isTrial: false },
+    { id: 3, name: '进阶提升课', price: 2000, hours: 10, isTrial: false },
+  ],
+  reviews: [],
+  availableTimes: [
+    { dayOfWeek: '周一', slots: ['09:00-10:00', '10:00-11:00'] },
+    { dayOfWeek: '周二', slots: ['14:00-15:00'] },
+    { dayOfWeek: '周三', slots: [] },
+  ],
+  realTimeStatus: '空闲中',
+};
+
+describe('CoachDetailPage', () => {
+  beforeEach(() => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => mockCoach,
+    } as any);
+  });
+
+  it('renders 3 package cards and "更多" entry', async () => {
+    const { findAllByTestId, findByText } = render(<CoachDetailPage />);
+    const cards = await findAllByTestId('package-card');
+    expect(cards).toHaveLength(3);
+    expect(await findByText('更多')).toBeInTheDocument();
+  });
+
+  it('renders trial package as first card when user is eligible', async () => {
+    const { findAllByTestId } = render(<CoachDetailPage />);
+    const cards = await findAllByTestId('package-card');
+    expect(cards[0]).toHaveTextContent('新人体验课');
+  });
+
+  it('navigates to package detail when a package card is tapped', async () => {
+    const navigateTo = jest.spyOn(Taro, 'navigateTo').mockImplementation(() => {});
+    const { findAllByTestId } = render(<CoachDetailPage />);
+    const cards = await findAllByTestId('package-card');
+    fireEvent.click(cards[1]);
+    expect(navigateTo).toHaveBeenCalledWith({ url: '/pages/package-detail/index?id=1' });
+  });
+
+  it('renders this week available times and "查看全部" entry', async () => {
+    const { findByText } = render(<CoachDetailPage />);
+    expect(await findByText('周一')).toBeInTheDocument();
+    expect(await findByText('查看全部')).toBeInTheDocument();
+  });
+
+  it('navigates to booking page when "查看全部" is tapped', async () => {
+    const navigateTo = jest.spyOn(Taro, 'navigateTo').mockImplementation(() => {});
+    const { findByText } = render(<CoachDetailPage />);
+    fireEvent.click(await findByText('查看全部'));
+    expect(navigateTo).toHaveBeenCalledWith({ url: '/pages/coach-booking/index?coachId=1' });
+  });
+});
+```
+
+- [ ] **Step 2: 跑测试确认失败**
+
+Run: `npm test -- coach-detail/index.test.tsx`
+Expected: FAIL with `Cannot find module './index'`
+
+- [ ] **Step 3: GREEN — 写最小实现**
+
+```tsx
+// miniapp-user/src/pages/coach-detail/index.tsx
+import { useEffect, useState } from 'react';
+import { View, Text } from '@tarojs/components';
+import Taro from '@tarojs/taro';
+
+export default function CoachDetailPage() {
+  const [coach, setCoach] = useState<any>(null);
+
+  useEffect(() => {
+    const { id } = Taro.getCurrentInstance().router?.params || {};
+    Taro.request({
+      url: '/api/coach/detail',
+      method: 'POST',
+      data: { coachId: Number(id) },
+    }).then(res => setCoach(res.data));
+  }, []);
+
+  if (!coach) return <View>加载中...</View>;
+
+  const visiblePackages = coach.packages.slice(0, 3);
+  const hasMorePackages = coach.packages.length > 3;
+
+  return (
+    <View>
+      {/* 头部信息区、简介区、参考单价区、联系方式区省略 */}
+
+      {/* 可选套餐区 */}
+      <View>
+        <Text>可选套餐</Text>
+        {visiblePackages.map((pkg: any) => (
+          <View
+            key={pkg.id}
+            data-testid="package-card"
+            onClick={() => Taro.navigateTo({ url: `/pages/package-detail/index?id=${pkg.id}` })}
+          >
+            {pkg.isTrial ? (
+              <View>
+                <Text>{pkg.name}</Text>
+                <Text>¥{pkg.price} · {pkg.hours}节</Text>
+                <Text>立即购买</Text>
+              </View>
+            ) : (
+              <View>
+                <Text>{pkg.name}</Text>
+                <Text>¥{pkg.price} · {pkg.hours}节</Text>
+              </View>
+            )}
+          </View>
+        ))}
+        {hasMorePackages && (
+          <Text onClick={() => Taro.navigateTo({ url: `/pages/coach-packages/index?coachId=${coach.id}` })}>
+            更多
+          </Text>
+        )}
+      </View>
+
+      {/* 可约时间预览区 */}
+      <View>
+        <View>
+          <Text>可约时间</Text>
+          <Text onClick={() => Taro.navigateTo({ url: `/pages/coach-booking/index?coachId=${coach.id}` })}>
+            查看全部
+          </Text>
+        </View>
+        {coach.availableTimes.map((day: any) => (
+          <View key={day.dayOfWeek}>
+            <Text>{day.dayOfWeek}</Text>
+            {day.slots.length > 0 ? (
+              day.slots.map((slot: string) => <Text key={slot}>{slot}</Text>)
+            ) : (
+              <Text>暂无可约</Text>
+            )}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+```
+
+- [ ] **Step 4: 跑测试确认通过**
+
+Run: `npm test -- coach-detail/index.test.tsx`
+Expected: PASS（5 个测试全过）
+
+- [ ] **Step 5: REFACTOR — 组件拆分**
+
+- 将套餐卡片提取为 `<PackageCard />`
+- 将可约时间预览提取为 `<AvailabilityPreview />`
+- 页面仅负责数据获取与组合
+
+- [ ] **Step 6: COMMIT**
+
+```bash
+git add miniapp-user/src/pages/coach-detail/
+git commit -m "feat(miniapp): add coach detail page with package and availability interactions"
+```
+
+---
+
 ## 3. 任务执行纪律
 
-- **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4 → Task 5
+- **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4 → Task 5 → Task 6
 - **每步必须可见**：Step 1（RED）→ Step 2（看失败）→ Step 3（GREEN）→ Step 4（看通过）→ Step 5（REFACTOR）→ Step 6（COMMIT）
 - **不允许 placeholder**：任何 "TBD" / "TODO" / "实现 later" / "类似 Task N" = 立即返工
 - **每个 Task 结束 = 1 次 commit**：禁止跨 Task 累积 commit
-- **P0 必做 / P1 选做**：MVP 阶段只跑 P0（Task 1-4），P1（Task 5）视进度决定
+- **P0 必做 / P1 选做**：MVP 阶段只跑 P0（Task 1-4），P1（Task 5-6）视进度决定
 - **GWT 覆盖**：每个 Task 头部必须明确「对应 GWT」场景编号
 
 ---

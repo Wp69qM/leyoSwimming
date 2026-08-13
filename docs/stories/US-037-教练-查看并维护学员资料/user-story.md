@@ -289,9 +289,12 @@ And   点击卡片仍可进入详情页查看历史资料
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 我的学员列表页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
-| 2 | 学员详情/编辑页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
-| 3 | 套餐使用详情页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
+| 1 | 我的学员列表页 page-spec | [C-student-list-page.md](../../figma/page-spec/C-student-list-page.md) | ✅ |
+| 2 | 学员详情/编辑页 page-spec | [C-student-detail-page.md](../../figma/page-spec/C-student-detail-page.md) | ✅ |
+| 3 | 套餐使用详情页 page-spec | [C-package-detail-page.md](../../figma/page-spec/C-package-detail-page.md) | ✅ |
+| 4 | 我的学员列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 5 | 学员详情/编辑页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 6 | 套餐使用详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

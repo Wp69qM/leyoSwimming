@@ -16,7 +16,7 @@ US-026 是只读 US，为学员提供订单列表与详情查询能力，含分�
 | `package` | 详情当前课时包状态 | `id`, `total_hours`, `available_count`, `status` |
 | `coach` | 兜底读取教练信息（优先展示 order.coach_name 快照） | `id`, `name` |
 | `payment` | 详情支付时间 | `order_id`, `paid_at`, `status` |
-| `refund` | 详情退款信息 | `order_id`, `amount`, `status`, `completed_at` |
+| `refund` | 详情/列表退款信息 | `order_id`, `amount`, `status`, `reason`, `reject_reason`, `completed_at` |
 | `package_template` | 不读取 | — |
 
 ### order.status 枚举（v3 评审 P0 修复，对齐 PRD §6.2.2 v11.1）
@@ -47,12 +47,20 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 
 - 鉴权：必须登录
 - Query: `page`, `size`, `status`
-- Response 200: `{ items: OrderListItem[], total, page, size }`，其中 OrderListItem 包含 `package_mode` 字段，前端映射为"正价"/"体验课"标签
+- Response 200: `{ items: OrderListItem[], total, page, size }`
+  - `OrderListItem` 包含 `package_mode` 字段，前端映射为"正价"/"体验课"标签
+  - 待支付订单额外返回 `remaining_seconds` 与 `actions: ["cancel_pay", "go_pay"]`
+  - 退款中订单额外返回 `actions: ["cancel_refund"]`
+  - 已退款订单额外返回 `refund_reason`
 
 ### GET /api/orders/{order_id}
 
 - 鉴权：必须登录且为订单所有者
-- Response 200: `{ order_id, status, amount, package_snapshot, package, coach, payment, refund }`，其中 `package_snapshot` 为购买时模板快照字段，不受 package_template 后续变更影响
+- Response 200: `{ order_id, status, amount, package_snapshot, package, coach, payment, refund, refund_reject_reason, remaining_seconds, actions }`
+  - `package_snapshot` 为购买时模板快照字段，不受 package_template 后续变更影响
+  - 待支付订单返回 `remaining_seconds` 与 `actions: ["cancel_pay", "go_pay"]`
+  - 退款中订单返回 `actions: ["cancel_refund"]`
+  - 退款被拒订单返回 `refund_reject_reason`
 - Response 403: `ORDER_ACCESS_DENIED`
 - Response 404: `ORDER_NOT_FOUND`
 
@@ -83,5 +91,5 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 |----|------|------|
 | US-020 | 依赖 | 订单数据 |
 | US-025 | 依赖 | 支付状态与 package |
-| US-027 | 被依赖 | 退款入口 |
+| US-027 | 被依赖 | 订单详情展示退款原因/状态 |
 | US-046 | 被依赖 | 管理端订单查看 |

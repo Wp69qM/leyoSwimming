@@ -109,7 +109,7 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 ## Security
 
 - 接口仅对管理员角色开放
-- 金额校验：审批金额 ≤ refund.amount
+- 金额校验：审批金额 ≥ 0（可退金额仅作为参考，管理员可基于业务场景调整）
 - 渠道密钥不暴露前端
 - 审批操作记录审计日志
 - 幂等键 + 分布式锁防重复审批

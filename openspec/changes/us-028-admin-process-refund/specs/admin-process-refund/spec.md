@@ -29,7 +29,7 @@ Then  系统返回 HTTP 403，错误码 FORBIDDEN
 
 ### Requirement: REQ-028-2 管理员批准退款并原路退回
 
-系统 MUST 允许管理员批准退款申请，校验退款金额不超过可退金额，调用原支付渠道退款接口，并更新订单与课时包状态。系统 MUST 对同一退款申请的重复批准进行幂等处理。
+系统 MUST 允许管理员批准退款申请，可退金额仅作为参考展示，管理员可基于业务场景调整实际退款金额（需 ≥ 0），调用原支付渠道退款接口，并更新订单与课时包状态。系统 MUST 对同一退款申请的重复批准进行幂等处理。
 
 #### Scenario: 批准标准退款
 
@@ -38,8 +38,10 @@ Given 管理员已登录
 And   存在 refund.status = 待审批，amount = 1440 分的退款申请
 And   对应 order.status = 退款审批中，package.status = frozen（refund_pending），package.booking_frozen = true
 And   原支付渠道为微信支付
-When  管理员批准该退款
-Then  系统创建 refund_transaction.status = 处理中
+When  管理员批准该退款并将金额调整为 1500 分（大于可退金额）
+Then  系统记录 audit_log 含调整原因
+And   refund_record.amount 与退款订单 paid_amount 更新为 1500 分
+And   系统创建 refund_transaction.status = 处理中
 And   order.status = 退款处理中
 And   package.status = frozen（refund_pending，保持）
 And   package.booking_frozen = true

@@ -27,8 +27,8 @@
 ## 2. 触发条件
 
 - **触发方**：学员
-- **触发动作**：在「我的订单」详情页或「我的套餐」详情页点击「申请退款」并填写退款原因
-- **触发时机**：存在已支付的购买订单，且对应 package.status ∈ {active, exhausted, expired}；或 package.status = frozen 且 frozen_reason = coach_resigned（教练离职 100% 退款场景，PRD §3.7 / §6.4.5）
+- **触发动作**：在「我的套餐」详情页点击「申请退款」并填写退款原因
+- **触发时机**：存在已支付的购买订单，且对应 package.status ∈ {active, expired}；或 package.status = frozen 且 frozen_reason = coach_resigned（教练离职 100% 退款场景，PRD §3.7 / §6.4.5）
 - **退款资格**：package 快照字段 `refund_enabled = true`，且未超过快照字段 `refund_valid_days` 限制；若 `refund_enabled = false`，前端不展示退款入口或提示「该套餐不支持退款」
 
 ---
@@ -37,7 +37,7 @@
 
 - [x] 学员已登录（依赖 US-004 / US-005）
 - [x] 存在一笔 order.type = 'purchase' 且 order.status = 已支付 的购买订单（依赖 US-025 / US-026）
-- [x] 对应 package.status ∈ {active, exhausted, expired, frozen}（frozen 仅允许教练离职场景 100% 退，PRD §6.4.5；已退款/refunded 不可再申请）
+- [x] 对应 package.status ∈ {active, expired, frozen}（frozen 仅允许教练离职场景 100% 退，PRD §6.4.5；已退款/refunded 不可再申请；已耗尽/exhausted 不可退款）
 - [x] package 快照字段 `refund_enabled = true`；若为 false，直接拦截并提示「该套餐不支持退款」
 - [x] 未超过 package 快照字段 `refund_valid_days` 限制（自购买日起算），超过则提示「已超出退款有效期」
 - [x] 对应 package 无正在处理中的退款订单（不存在 order.type = 'refund' 且 status ∈ {退款审批中, 争议退款处理中, 退款处理中} 的订单）
@@ -48,7 +48,7 @@
 
 ### 4.1 主路径
 
-1. 学员在「我的订单」详情页点击「申请退款」
+1. 学员在「我的套餐」详情页点击「申请退款」
 2. 系统展示退款规则与可退金额（按 package 快照字段计算）：可退金额 = `paid_amount × (total_hours - consumed_count) / total_hours × refund_ratio`，并展示快照字段 `refund_valid_days` 剩余有效期
 3. 学员选择退款原因：
    - 教练原因（教练离职、教练服务质量）
@@ -69,10 +69,11 @@
 
 - **分支 1**：订单未支付 → 返回 `ORDER_NOT_PAID`
 - **分支 2**：package.status = refunded → 返回 `PACKAGE_ALREADY_REFUNDED`
-- **分支 3**：package.status = frozen 且 frozen_reason ≠ coach_resigned → 返回 `PACKAGE_FROZEN`（非教练离职原因导致的 frozen 不允许申请退款）
-- **分支 4**：对应 package 已存在待处理退款订单（order.type = 'refund' 且 status ∈ {退款审批中, 争议退款处理中, 退款处理中}）→ 返回 `REFUND_IN_PROGRESS`
-- **分支 5**：package 快照字段 `refund_enabled = false` → 返回 `REFUND_NOT_SUPPORTED`，前端不展示退款入口或提示「该套餐不支持退款」
-- **分支 6**：超出 package 快照字段 `refund_valid_days` 有效期 → 返回 `REFUND_EXPIRED`，提示「已超出退款有效期」
+- **分支 3**：package.status = exhausted → 返回 `PACKAGE_EXHAUSTED_NOT_REFUNDABLE`，前端不展示退款入口或提示「课时已用完，不支持退款」
+- **分支 4**：package.status = frozen 且 frozen_reason ≠ coach_resigned → 返回 `PACKAGE_FROZEN`（非教练离职原因导致的 frozen 不允许申请退款）
+- **分支 5**：对应 package 已存在待处理退款订单（order.type = 'refund' 且 status ∈ {退款审批中, 争议退款处理中, 退款处理中}）→ 返回 `REFUND_IN_PROGRESS`
+- **分支 6**：package 快照字段 `refund_enabled = false` → 返回 `REFUND_NOT_SUPPORTED`，前端不展示退款入口或提示「该套餐不支持退款」
+- **分支 7**：超出 package 快照字段 `refund_valid_days` 有效期 → 返回 `REFUND_EXPIRED`，提示「已超出退款有效期」
 
 ---
 
@@ -80,7 +81,7 @@
 
 | # | 规则 | 章节 |
 |---|------|------|
-| 1 | 退款触发场景：已支付且 package.status ∈ {active, exhausted, expired}；教练离职 frozen 可 100% 退 | [§6.4.1](../../prd/prd.md)、[§3.7](../../prd/prd.md) |
+| 1 | 退款触发场景：已支付且 package.status ∈ {active, expired}；教练离职 frozen 可 100% 退；exhausted 不可退款 | [§6.4.1](../../prd/prd.md)、[§3.7](../../prd/prd.md) |
 | 2 | 退款金额 = package 快照 `paid_amount × (total_hours - consumed_count) / total_hours × refund_ratio`；所有计算字段均取自 package 购买时快照，不受后续 package_template 变更影响 | [§6.4.2](../../prd/prd.md) |
 | 3 | 退款审批期间 package.status → frozen（refund_pending），释放 reserved 并自动取消已预约课程 | [§3.6](../../prd/prd.md)、[§5.5.1.2](../../prd/prd.md)、[§6.3.1](../../prd/prd.md) |
 | 4 | 退款审批期间身份保持学员 | [§3.6](../../prd/prd.md) |
@@ -156,7 +157,19 @@ And   系统通知管理员与学员
 And   返回 HTTP 201
 ```
 
-### 6.5 场景 5：套餐不支持退款
+### 6.5 场景 5：已耗尽套餐拒绝退款
+
+```gherkin
+Given 学员已登录
+And   存在 order.status = 已支付，package.status = exhausted
+And   package 快照 total_hours = 10，consumed_count = 10，paid_amount = 1800 元，refund_enabled = true，未超过 refund_valid_days
+When  学员尝试申请退款
+Then  系统返回 HTTP 400，错误码 PACKAGE_EXHAUSTED_NOT_REFUNDABLE
+And   前端不展示退款入口或提示「课时已用完，不支持退款」
+And   不创建 refund_record
+```
+
+### 6.6 场景 6：套餐不支持退款
 
 ```gherkin
 Given 学员已登录
@@ -168,7 +181,7 @@ And   前端不展示退款入口或提示「该套餐不支持退款」
 And   不创建 refund_record
 ```
 
-### 6.6 场景 6：超出退款有效期
+### 6.7 场景 7：超出退款有效期
 
 ```gherkin
 Given 学员已登录
@@ -200,26 +213,26 @@ And   不创建 refund_record
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/orders/{order_id}/refund` | POST | 新增 | 学员提交退款申请；系统创建退款订单（type='refund'，status=退款审批中），原购买订单 status 保持「已支付」不变 |
-| 2 | `/api/orders/{order_id}/refund/check` | GET | 新增 | 查询可退金额与退款资格 |
+| 1 | `/api/packages/{package_id}/refund` | POST | 新增 | 学员从套餐详情页提交退款申请；系统校验 package 归属与状态，创建退款订单（type='refund'，status=退款审批中，关联原 purchase_order_id 与 package_id），原购买订单 status 保持「已支付」不变 |
+| 2 | `/api/packages/{package_id}/refund/check` | GET | 新增 | 查询可退金额与退款资格 |
 
 ### 7.3 状态机影响
 
 | # | 实体 | 转换 | 触发条件 | 说明 |
 |---|------|------|---------|------|
 | 1 | `order` | 新建退款订单（type='refund'，status=退款审批中） | 学员提交退款 | 退款订单关联原 purchase_order_id 与 package_id；原购买订单 status 保持「已支付」不变 |
-| 2 | `package` | active/exhausted/expired → frozen（refund_pending） | 学员提交退款 | status → frozen（PRD §3.6 / §5.5.1.2）；释放 reserved_count → 0；自动取消已预约课程 |
+| 2 | `package` | active/expired → frozen（refund_pending） | 学员提交退款 | status → frozen（PRD §3.6 / §5.5.1.2）；释放 reserved_count → 0；自动取消已预约课程 |
 | 3 | `package` | frozen(coach_resigned) → frozen（refund_pending） | 学员提交退款 | 保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算；释放 reserved_count → 0；自动取消已预约课程 |
 
 ---
 
 ## 8. 边界场景
 
-### 8.1 边界场景 1：体验套餐退款金额为 0
+### 8.1 边界场景 1：已耗尽套餐不可退款
 
-- **触发条件**：体验套餐（`package_mode = 'experience'`）consumed_count = 1（已用完），total_hours = 1
-- **预期行为**：可退金额 = 0；体验课套餐可能适用特殊退款规则（如不支持比例退款、仅支持未上课全额退或不可退），前端按快照 `refund_enabled` 与业务规则展示
-- **用户可见反馈**：退款按钮置灰或提示「本套餐已用完，无可退金额」/「该套餐不支持退款」
+- **触发条件**：package.status = exhausted（consumed_count = total_hours）
+- **预期行为**：系统拒绝退款申请，返回 `PACKAGE_EXHAUSTED_NOT_REFUNDABLE`；前端不展示「申请退款」入口或提示「课时已用完，不支持退款」
+- **用户可见反馈**：退款入口置灰或隐藏，提示「课时已用完，不支持退款」
 
 ### 8.2 边界场景 2：套餐已过期但有剩余课时
 
@@ -275,7 +288,7 @@ And   不创建 refund_record
 - [x] **V**aluable（有价值）- 保障学员资金权益
 - [x] **E**stimable（可估算）- 1 人天明确
 - [x] **S**mall（足够小）- 仅覆盖学员侧申请提交
-- [x] **T**estable（可测试）- 6 个 GWT 场景可客观验证
+- [x] **T**estable（可测试）- 7 个 GWT 场景可客观验证
 
 ---
 
@@ -295,7 +308,7 @@ And   不创建 refund_record
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 4 异常 = 6 个 GWT 场景（L1 等级）
+- [x] 2 正常 + 5 异常 = 7 个 GWT 场景（L1 等级）
 - [x] 每个 Then 含具体数值/状态码/DB 字段值
 - [x] 业务规则可被验证
 
@@ -325,8 +338,8 @@ And   不创建 refund_record
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 退款申请页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 退款原因选择弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
+| 1 | 我的套餐详情页（含申请退款入口）Figma file URL | 🔲 待设计填写 | 🔲 |
+| 2 | 退款申请页/退款原因选择弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -351,8 +364,8 @@ And   不创建 refund_record
 
 | 交互 | 触发 | 反馈 | 备注 |
 |------|------|------|------|
-| 查看可退金额 | 进入页面 | 实时计算展示 | 调用 GET /refund/check |
-| 提交退款 | 点击按钮 | 二次确认弹窗 → 成功 Toast | 跳转订单详情 |
+| 查看可退金额 | 进入退款申请页 | 实时计算展示 | 调用 GET /refund/check |
+| 提交退款 | 点击按钮 | 二次确认弹窗 → 成功 Toast | 跳转我的套餐详情或订单详情 |
 
 ---
 
@@ -377,6 +390,8 @@ And   不创建 refund_record
 | v1.6 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
 | v1.7 | 2026-08-12 | PM | 适配 US-045：明确退款资格与金额计算基于 package 快照字段（refund_enabled、refund_ratio、refund_valid_days）；§2/§3 增加快照资格判定；§4.1/§5 更新退款公式；§4.2 增加 REFUND_NOT_SUPPORTED、REFUND_EXPIRED 分支；§6 补充快照字段断言与两个新场景；§7.1 更新数据表影响；§8 增加体验课与快照边界场景；§12 补充快照字段说明 |
 | v1.8 | 2026-08-12 | PM | 适配 US-046 订单/套餐边界重构：退款申请创建独立的退款订单（order.type='refund'），原购买订单 status 保持「已支付」不变；§2/§3/§4.1/§4.2/§5/§6/§7/§12 同步更新 |
+| v1.9 | 2026-08-13 | PM | 明确 exhausted 套餐不可退款：§2/§3/§4.2/§5/§7.3/§8.1 移除 exhausted 退款支持；新增异常分支 3 与场景 5 拒绝 exhausted 退款；§10/§11 更新场景数量；同步 OpenSpec 错误码 PACKAGE_EXHAUSTED_NOT_REFUNDABLE |
+| v2.0 | 2026-08-13 | PM | 退款入口从「我的订单详情页」调整为「我的套餐详情页」；§2/§4.1/§7.2/§13/§14.2 同步更新；API 路径从 `/api/orders/{order_id}/refund` 改为 `/api/packages/{package_id}/refund`；tech-design.md 同步更新鉴权、缓存、幂等键与错误码；同步 OpenSpec 产物 |
 
 ---
 

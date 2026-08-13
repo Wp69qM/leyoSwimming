@@ -2,7 +2,7 @@
 
 ## Overview
 
-只读 US，提供当前用户套餐列表与状态分组。
+只读 US，提供当前用户套餐列表与状态分组。套餐详情页在满足退款条件时展示「申请退款」入口，点击跳转 US-027 发起退款。
 
 ## Data Model
 
@@ -10,7 +10,7 @@
 
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
-| `package` | 读 | `user_id`, `coach_id`, `status`, `total_hours`, `consumed_count`, `available_count`, `reserved_count`, `expire_at`, `frozen_reason` |
+| `package` | 读 | `user_id`, `coach_id`, `status`, `total_hours`, `consumed_count`, `available_count`, `reserved_count`, `expire_at`, `frozen_reason`, 快照字段 `paid_amount`, `refund_enabled`, `refund_ratio`, `refund_valid_days` |
 | `coach` | 读 | `name`, `status` |
 | `user` | 读 | `identity` |
 
@@ -49,5 +49,6 @@ CREATE INDEX idx_package_user_type ON package(user_id, package_type);
 |----|------|------|
 | US-004/US-005 | 依赖 | 登录 |
 | US-020 | 依赖 | 套餐购买 |
+| US-027 | 被依赖 | 点击「申请退款」跳转 US-027 发起退款 |
 | US-022 | 被依赖 | 更换教练 |
 | US-029 | 被依赖 | 预约 |

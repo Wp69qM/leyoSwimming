@@ -6,9 +6,9 @@
 - Create: `backend/src/services/my-packages.ts`
 - Test: `backend/tests/services/my-packages.test.ts`
 
-**Spec coverage:** REQ-001 正常查看、空状态、冻结套餐
+**Spec coverage:** REQ-001 正常查看、空状态、冻结套餐、退款入口
 
-- [ ] **RED:** Returns grouped packages with summary; empty when none; frozen visible
+- [ ] **RED:** Returns grouped packages with summary; empty when none; frozen visible; refund entry visible when eligible
 - [ ] **GREEN:** Implement `MyPackagesService.findGroupedByUser`
 - [ ] **REFACTOR:** Extract status group mapper
 - [ ] **COMMIT:** `feat(package): add my packages query service`
