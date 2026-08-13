@@ -13,14 +13,15 @@
 
 - [ ] **RED:** Write failing tests —
   - active package 返回 eligible + amount = paid × (total-consumed)/total
-  - exhausted 体验套餐（consumed=total）返回 amount=0
   - expired 套餐有剩余课时返回 eligible=true
   - frozen(coach_resigned) 返回 amount = paid_amount（100% 全额）
+  - PACKAGE_EXHAUSTED_NOT_REFUNDABLE 拒绝（exhausted 不可退款）
   - PACKAGE_ALREADY_REFUNDED 拒绝
   - PACKAGE_FROZEN 拒绝（非 coach_resigned）
-  - ORDER_NOT_PAID 拒绝
+  - REFUND_NOT_SUPPORTED 拒绝（package 快照 refund_enabled=false）
+  - REFUND_EXPIRED 拒绝（超出 refund_valid_days）
   - REFUND_IN_PROGRESS 拒绝
-- [ ] **GREEN:** Implement `RefundEligibilityService.check(orderId, userId)` 返回 `{ eligible, refund_amount, calculation, reason_codes }`
+- [ ] **GREEN:** Implement `RefundEligibilityService.check(packageId, userId)` 返回 `{ eligible, refund_amount, calculation, reason_codes }`
 - [ ] **REFACTOR:** 提取 `calculateRefundAmount(paidAmount, totalHours, consumedCount)` 为纯函数
 - [ ] **COMMIT:** `feat(refund): add refund eligibility service`
 
@@ -38,13 +39,15 @@
   - 重复提交返回 REFUND_IN_PROGRESS，不创建新记录
   - PACKAGE_ALREADY_REFUNDED 拒绝
   - PACKAGE_FROZEN 拒绝（非 coach_resigned）
-  - ORDER_NOT_PAID 拒绝
+  - REFUND_NOT_SUPPORTED 拒绝（package 快照 refund_enabled=false）
+  - REFUND_EXPIRED 拒绝
+  - PACKAGE_EXHAUSTED_NOT_REFUNDABLE 拒绝
   - INVALID_REASON_TYPE 拒绝
-  - 并发提交幂等（同一 user_id + order_id 第二次返回已存在）
+  - 并发提交幂等（同一 user_id + package_id 第二次返回已存在）
   - 事务回滚：模拟 package 更新失败时 refund_record 不落库
   - 通知管理员与学员被调用
-- [ ] **GREEN:** Implement `RefundSubmissionService.submit(orderId, userId, reasonType, reasonDetail)` 含事务包裹与幂等锁
-- [ ] **REFACTOR:** 提取 `notifyRefundSubmitted(refundId)` 通知 helper 与 `acquireIdempotentLock(userId, orderId)` 锁 helper
+- [ ] **GREEN:** Implement `RefundSubmissionService.submit(packageId, userId, reasonType, reasonDetail)` 含事务包裹与幂等锁
+- [ ] **REFACTOR:** 提取 `notifyRefundSubmitted(refundId)` 通知 helper 与 `acquireIdempotentLock(userId, packageId)` 锁 helper
 - [ ] **COMMIT:** `feat(refund): add refund submission service`
 
 ## Task 3: Refund APIs [P0]
@@ -56,17 +59,17 @@
 **Spec coverage:** 2 个 API 端点 + 鉴权 + 错误码映射
 
 - [ ] **RED:** Write failing tests —
-  - GET /api/orders/{order_id}/refund/check 返回 200 + eligible + refund_amount + calculation + reason_codes
+  - GET /api/packages/{package_id}/refund/check 返回 200 + eligible + refund_amount + calculation + reason_codes
   - GET /refund/check 套餐已退款返回 400 PACKAGE_ALREADY_REFUNDED
   - GET /refund/check 存在待审批返回 400 REFUND_IN_PROGRESS
   - GET /refund/check 未登录返回 401
-  - GET /refund/check 非订单所属用户返回 403
-  - POST /api/orders/{order_id}/refund 返回 201 + refund_id + status
+  - GET /refund/check 非套餐所属用户返回 403
+  - POST /api/packages/{package_id}/refund 返回 201 + refund_id + status
   - POST /refund 重复提交返回 400 REFUND_IN_PROGRESS
   - POST /refund 套餐已退款返回 400 PACKAGE_ALREADY_REFUNDED
   - POST /refund reason_type=4 返回 400 INVALID_REASON_TYPE
   - POST /refund 未登录返回 401
-  - POST /refund 非订单所属用户返回 403
+  - POST /refund 非套餐所属用户返回 403
   - 缓存命中：第二次 GET /refund/check 走缓存（mock 缓存层被调用）
 - [ ] **GREEN:** Implement controller + route，集成 RefundEligibilityService 与 RefundSubmissionService，添加缓存读写
 - [ ] **REFACTOR:** 提取共享 DTO（`RefundCheckResponse`、`RefundSubmitRequest`、`RefundSubmitResponse`）与错误码 → HTTP 状态映射中间件

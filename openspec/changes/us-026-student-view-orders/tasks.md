@@ -10,8 +10,8 @@
 
 **Spec coverage:** REQ-026-1 / REQ-026-2 全部场景
 
-- [ ] **RED:** Write failing tests — list orders by user sorted by created_at desc with package_mode tag; detail returns order snapshot (package name/mode/coach/type/hours/duration/validity/prices/refund rules) + current package + coach + payment; reject other user's order; detail unaffected by package_template changes after purchase
-- [ ] **GREEN:** Implement `OrderQueryService.list(userId, pagination, status)` and `OrderQueryService.detail(userId, orderId)`; list returns package_mode; detail returns package_snapshot from order and does not read package_template
+- [ ] **RED:** Write failing tests — list orders by user sorted by created_at desc with package_mode tag and status-specific fields (remaining_seconds/actions for pending, cancel_refund action for refunding, refund_reason for refunded); detail returns order snapshot + current package + coach + payment + refund + refund_reject_reason; reject other user's order; detail unaffected by package_template changes after purchase
+- [ ] **GREEN:** Implement `OrderQueryService.list(userId, pagination, status)` and `OrderQueryService.detail(userId, orderId)`; list returns package_mode, remaining_seconds, actions, refund_reason per status; detail returns package_snapshot from order and does not read package_template
 - [ ] **REFACTOR:** Extract reusable order DTO mapper
 - [ ] **COMMIT:** `feat(order): add order query service`
 
@@ -32,7 +32,7 @@
 - Create: `miniapp-user/src/pages/orders/index.tsx`, `miniapp-user/src/pages/order-detail/index.tsx`
 - Test: 对应测试文件
 
-- [ ] **RED:** Write failing tests — renders order cards; empty state; detail page shows refund entry
+- [ ] **RED:** Write failing tests — renders order cards with status-specific buttons (cancel_pay/go_pay/cancel_refund) and remaining time; empty state; detail page shows refund entry, refund reason, or reject reason based on status
 - [ ] **GREEN:** Implement pages
 - [ ] **REFACTOR:** Extract `<OrderCard />`
 - [ ] **COMMIT:** `feat(miniapp): add order list and detail pages`

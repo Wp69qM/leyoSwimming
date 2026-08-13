@@ -8,7 +8,7 @@
 - 新增 `GET /api/orders/{order_id}`：订单详情（含 package / coach / payment / refund），套餐信息区展示购买时快照字段，不依赖 package_template 当前状态
 - 新增 Redis 缓存层：列表 60s / 详情 300s
 - 新增小程序「我的订单」列表页与订单详情页
-- 详情页为退款入口（US-027）预留
+- 订单详情展示退款/驳回原因（US-027/028）
 
 ## Capabilities
 

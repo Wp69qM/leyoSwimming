@@ -8,6 +8,7 @@
 - 按 active / exhausted / expired / refunded / frozen 分组返回
 - 顶部汇总 active 套餐课时
 - frozen 套餐展示原因文案
+- 套餐详情页满足退款条件时展示「申请退款」入口，点击跳转 US-027
 
 ## Capabilities
 
@@ -21,7 +22,7 @@
 
 ## Impact
 
-- **数据表**：读取 `package`、`coach`
+- **数据表**：读取 `package`（含快照字段 `paid_amount`、`refund_enabled`、`refund_ratio`、`refund_valid_days`）、`coach`
 - **API**：新增 1 个端点
-- **前端**：新增「我的套餐」页面
-- **依赖**：依赖 US-004/US-005 / US-020；被 US-022 / US-029 依赖
+- **前端**：新增「我的套餐」页面，入口位于底部导航「我的」→ 个人中心 →「我的套餐」；套餐详情页在满足退款条件时展示「申请退款」入口
+- **依赖**：依赖 US-004/US-005 / US-020；被 US-027 / US-022 / US-029 依赖

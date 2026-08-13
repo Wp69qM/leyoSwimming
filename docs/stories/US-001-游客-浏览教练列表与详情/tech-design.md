@@ -26,10 +26,12 @@
 
 | 表名 | 操作 | 字段 | 说明 |
 |------|------|------|------|
-| `coach` | 读 | `id`, `name`, `status`, `rating`, `years_of_teaching`, `real_time_status` | 列表 + 详情主表 |
-| `coach_certificate` | 读 | `coach_id`, `name`, `level` | 详情页证书列表 |
+| `coach` | 读 | `id`, `name`, `gender`, `status`, `rating`, `years_of_teaching`, `teaching_strokes`, `real_time_status` | 列表主表 |
+| `coach` | 读 | `age`, `avatar_url`, `total_students`, `total_hours`, `bio`, `reference_price`, `phone`, `wechat_qr_url` | 详情页补充字段 |
+| `coach_certificate` | 读 | `coach_id`, `cert_type`, `image_url`, `name`, `level` | 详情页个人形象照（`cert_type=PORTRAIT`）与证书列表 |
 | `coach_review` | 读 | `coach_id`, `rating`, `content`, `created_at` | 详情页评价列表 |
 | `coach_availability` | 读 | `coach_id`, `date`, `start_time`, `end_time` | 详情页可约时间 |
+| `standard_package` / `custom_package` | 读 | 套餐基础字段 | 详情页可选套餐（详见 US-017 / US-019 / US-045） |
 
 ### 1.2 索引
 
@@ -52,20 +54,20 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 
 ## 2. API 设计
 
-### 2.1 GET /coaches（列表）
+### 2.1 POST /api/coach/list（列表）
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `GET /api/v1/coaches` |
+| 路径 | `POST /api/coach/list` |
 | 鉴权 | 否（游客可访问） |
 | 幂等 | 是 |
 
-**Query Parameters**
+**Request Body**
 
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
 |------|------|------|--------|------|
 | `page` | int | 否 | 1 | 页码 |
-| `size` | int | 否 | 10 | 每页条数，最大 50 |
+| `pageSize` | int | 否 | 10 | 每页条数，最大 50 |
 
 **Response 200**
 
@@ -75,11 +77,12 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
     {
       "id": 1,
       "name": "王教练",
+      "gender": 1,
       "status": 1,
       "avatar": "https://cdn.example.com/avatar/1.jpg",
       "rating": 4.9,
       "yearsOfTeaching": 8,
-      "certificates": ["国家一级运动员", "高级游泳教练"],
+      "teachingStrokes": ["蛙泳", "自由泳"],
       "realTimeStatus": "空闲中"
     }
   ],
@@ -97,19 +100,19 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 - 按 `rating DESC` 排序
 - `realTimeStatus` 返回中文文案，映射规则见 PRD §5.2.2
 
-### 2.2 GET /coaches/:id（详情）
+### 2.2 POST /api/coach/detail（详情）
 
 | 属性 | 值 |
 |------|----|
-| 路径 | `GET /api/v1/coaches/:id` |
+| 路径 | `POST /api/coach/detail` |
 | 鉴权 | 否 |
 | 幂等 | 是 |
 
-**Path Parameters**
+**Request Body**
 
-| 参数 | 类型 | 必填 | 说明 |
+| 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `id` | int | 是 | 教练 ID |
+| `coachId` | int | 是 | 教练 ID |
 
 **Response 200**
 
@@ -117,13 +120,27 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 {
   "id": 1,
   "name": "王教练",
+  "gender": 1,
+  "age": 32,
   "status": 1,
   "avatar": "https://cdn.example.com/avatar/1.jpg",
   "rating": 4.9,
   "yearsOfTeaching": 8,
+  "totalStudents": 128,
+  "totalHours": 2560,
+  "teachingStrokes": ["蛙泳", "自由泳"],
+  "bio": "专业游泳教练，擅长少儿与成人教学。",
+  "referencePrice": 200,
+  "contact": {
+    "phone": "138****8000",
+    "wechatQrCode": "https://cdn.example.com/wechat/1.jpg"
+  },
   "certificates": [
     { "name": "国家一级运动员", "level": "国家级" },
     { "name": "高级游泳教练", "level": "高级" }
+  ],
+  "packages": [
+    { "id": 1, "name": "成人一对一正价课", "price": 1800, "hours": 10 }
   ],
   "reviews": [
     { "id": 101, "rating": 5, "content": "非常专业", "createdAt": "2026-07-20T10:00:00Z" }
@@ -254,8 +271,8 @@ coach.real_time_status（status=1 时正常展示；status=4 时仍返回但不�
 | tech-design 章节 | 对应 test-plan Task |
 |------------------|---------------------|
 | §1 数据模型 + 索引 | Task 1, Task 2（Repository） |
-| §2.1 GET /coaches | Task 3（列表 API） |
-| §2.2 GET /coaches/:id | Task 4（详情 API） |
+| §2.1 POST /api/coach/list | Task 3（列表 API） |
+| §2.2 POST /api/coach/detail | Task 4（详情 API） |
 | §4 缓存策略 | Task 5（前端缓存） + 后端缓存后续补充 |
 | §5 性能指标 | Task 1-5 的验收指标 |
 

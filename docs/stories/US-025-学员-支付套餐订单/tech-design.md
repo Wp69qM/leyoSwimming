@@ -17,6 +17,7 @@
 | 字段 | 说明 |
 |------|------|
 | `id` | PK |
+| `type` | purchase / refund，购买订单为 purchase |
 | `user_id` | FK |
 | `coach_id` | FK |
 | `amount` | 订单金额（分）|
@@ -68,34 +69,56 @@ CREATE INDEX idx_package_order ON package(order_id);
 
 ### 2.1 POST /api/orders/{order_id}/pay
 
-- **鉴权**：必须登录
+- **鉴权**：必须登录且为订单所有者
+- **Request**:
+  ```json
+  {
+    "channel": 0
+  }
+  ```
+  - `channel`: 0=微信 Mock / 1=支付宝 Mock
+- **Response 200**:
+  ```json
+  {
+    "payment_id": "P-001",
+    "channel_trade_no": "MOCK-WX-202608130001",
+    "status": "success"
+  }
+  ```
+- **Response 400**: `{ code: ORDER_EXPIRED | ORDER_NOT_PAYABLE | INVALID_CHANNEL }`
+- **Response 404**: `{ code: ORDER_NOT_FOUND }`
+- **实现说明**：
+  - 校验订单归属、状态、有效期
+  - 创建 payment 流水（status=待支付）
+  - 调用 `MockPaymentProvider.pay(order, channel)` 生成 `channel_trade_no` 并即时返回支付成功
+  - 由 MockProvider 异步调用 `POST /api/payments/mock/callback` 完成 order/package 更新；或直接在当前事务后触发回调
+
+### 2.2 POST /api/payments/mock/callback
+
+- **鉴权**：内部接口；开发/测试环境使用，生产环境禁用或替换为真实渠道回调
 - **Request**:
   ```json
   {
     "channel": 0,
-    "return_url": "https://miniapp.example.com/pay/result"
+    "order_id": "O-001",
+    "channel_trade_no": "MOCK-WX-202608130001",
+    "amount": 180000,
+    "success": true
   }
   ```
-- **Response 200**: `{ payment_id, prepay_params }`
-- **Response 400**: `{ code: ORDER_EXPIRED | ORDER_NOT_PAYABLE | INVALID_CHANNEL }`
-- **Response 404**: `{ code: ORDER_NOT_FOUND }`
+- **Response 200**: `{ code: "SUCCESS" }`
+- **业务逻辑**：
+  - 校验 payment 存在且金额一致
+  - 幂等：同一 `channel_trade_no` 仅处理一次
+  - 事务内更新 payment.status=成功、order.status=已支付、paid_at=now，并基于 order 快照创建 package.status=active
+  - 异步触发用户身份重算
+  - 失败时也返回 200，避免 Mock 渠道重试；异常记录日志并进入补偿队列
 
-### 2.2 POST /api/payments/callback/wechat
-
-- **鉴权**：微信支付签名验证
-- **Request**: 微信支付回调 XML/JSON
-- **Response 200**: `{ code: "SUCCESS" }`（失败也返回 SUCCESS 避免重试，记录异常）
-
-### 2.3 POST /api/payments/callback/alipay
-
-- **鉴权**：支付宝签名验证
-- **Request**: 支付宝回调参数
-- **Response 200**: `"success"`
-
-### 2.4 GET /api/orders/{order_id}
+### 2.3 POST /api/orders/{order_id}
 
 - **鉴权**：必须登录且为订单所有者
-- **Response 200**: `{ order_id, status, amount, paid_at, package_id }`
+- **Request**: `{ order_id }`（参数通过 JSON body 传递）
+- **Response 200**: `{ order_id, type, status, amount, paid_at, package_id }`
 
 ## 3. 状态机
 
@@ -123,11 +146,12 @@ CREATE INDEX idx_package_order ON package(order_id);
 
 ## 6. 安全
 
-- 支付回调必须验证渠道签名（微信/支付宝）
+- Mock 回调接口需配置内部 token / IP 白名单，生产环境应禁用或替换为真实渠道回调
 - 订单归属校验：用户只能支付自己的订单
 - 金额校验：回调金额必须与 order.amount 一致
 - 防重放：channel_trade_no + 幂等键去重
 - 支付页 HTTPS，敏感字段加密传输
+- 真实支付渠道接入时，需补充对应签名验证与证书管理
 
 ## 7. 跨 US 依赖
 

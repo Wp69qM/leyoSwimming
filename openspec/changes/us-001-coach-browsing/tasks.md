@@ -29,7 +29,7 @@
 - [ ] **REFACTOR:** Reuse `PUBLIC_COACH_STATUSES` from Task 1; ensure `findById` returns `status` field so UI can decide label visibility
 - [ ] **COMMIT:** `feat(coach): add findById with status filter (hide pending coaches)`
 
-## Task 3: GET /coaches 列表 API [P0]
+## Task 3: POST /api/coach/list 列表 API [P0]
 
 **Files:**
 - Create: `backend/src/controllers/coach.ts`
@@ -38,12 +38,12 @@
 
 **Spec coverage:** REQ-001 Scenarios "正常浏览教练列表", "空状态", "申请离职中教练仍可见且无标签"
 
-- [ ] **RED:** Write failing tests — 200 with items array; 200 with empty array when no public coaches; includes status=4 and excludes status=0/2/3
-- [ ] **GREEN:** Implement `listCoaches` controller + Koa router `GET /coaches` (delegates status filter to Repository)
+- [ ] **RED:** Write failing tests — `POST /api/coach/list` returns 200 with items array when called with `{ page, pageSize }`; 200 with empty array when no public coaches; includes status=4 and excludes status=0/2/3
+- [ ] **GREEN:** Implement `listCoaches` controller + Koa router `POST /api/coach/list` (reads `page`/`pageSize` from request body, delegates status filter to Repository)
 - [ ] **REFACTOR:** Extract common pagination parameter parsing to avoid duplication with future endpoints
-- [ ] **COMMIT:** `feat(api): add GET /coaches list endpoint`
+- [ ] **COMMIT:** `feat(api): add POST /api/coach/list endpoint`
 
-## Task 4: GET /coaches/:id 详情 API [P0]
+## Task 4: POST /api/coach/detail 详情 API [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/coach.ts`
@@ -52,10 +52,10 @@
 
 **Spec coverage:** REQ-002 Scenarios "正常查看教练详情", "教练请假中", "申请离职中教练详情可见且无标签", "待审核、驳回或已离职教练不出现"
 
-- [ ] **RED:** Write failing tests — 200 with full info for status=1 (空闲中); 200 with realTimeStatus=请假中; 200 for status=4 (申请离职中，无标签); 404 for status=0, status=2, status=3 and non-existent id
-- [ ] **GREEN:** Implement `getCoachById` controller + route `GET /coaches/:id` + 404 error handling (delegates status filter to Repository)
+- [ ] **RED:** Write failing tests — `POST /api/coach/detail` returns 200 with full info for status=1 (空闲中) when called with `{ coachId }`; 200 with realTimeStatus=请假中; 200 for status=4 (申请离职中，无标签); 404 for status=0, status=2, status=3 and non-existent id
+- [ ] **GREEN:** Implement `getCoachById` controller + route `POST /api/coach/detail` + 404 error handling (reads `coachId` from request body, delegates status filter to Repository)
 - [ ] **REFACTOR:** Standardize `COACH_NOT_FOUND` error handling into a shared error handler or helper
-- [ ] **COMMIT:** `feat(api): add GET /coaches/:id detail endpoint with 404 handling`
+- [ ] **COMMIT:** `feat(api): add POST /api/coach/detail endpoint with 404 handling`
 
 ## Task 5: 微信小程序列表页 + 缓存 [P1]
 
@@ -66,15 +66,28 @@
 **Spec coverage:** REQ-001 Scenarios "正常浏览教练列表", "空状态", "申请离职中教练仍可见且无标签"
 
 - [ ] **RED:** Write failing tests — renders 5 coach cards on success; shows empty state text "暂无教练入驻，敬请期待" when no coaches; does not show resignation label for status=4 coaches
-- [ ] **GREEN:** Implement `CoachesPage` — fetch `/coaches`, Taro storage cache, empty state, loading state, hide any status label when `status=4`
+- [ ] **GREEN:** Implement `CoachesPage` — fetch `POST /api/coach/list`, Taro storage cache, empty state, loading state, hide any status label when `status=4`
 - [ ] **REFACTOR:** Extract `<CoachCard />` component and share `PUBLIC_COACH_STATUSES` constant from backend/shared to keep label logic in one place
 - [ ] **COMMIT:** `feat(miniapp): add coaches list page with storage cache`
+
+## Task 6: 微信小程序教练详情页交互（套餐 / 可约时间）[P1]
+
+**Files:**
+- Create: `miniapp-user/src/pages/coach-detail/index.tsx`
+- Test: `miniapp-user/src/pages/coach-detail/index.test.tsx`
+
+**Spec coverage:** REQ-003 Scenarios "点击套餐进入套餐详情", "点击可约时间预览进入预约页"
+
+- [ ] **RED:** Write failing tests — detail page renders 3 package cards and "更多" entry; navigates to package detail when a package card is tapped; navigates to booking page when "查看全部" is tapped
+- [ ] **GREEN:** Implement `CoachDetailPage` — fetch `POST /api/coach/detail`, show first 3 packages with "更多" button, show limited available-time preview with "查看全部" button
+- [ ] **REFACTOR:** Extract `<PackageCard />` and `<AvailabilityPreview />` components; page only fetches data and composes children
+- [ ] **COMMIT:** `feat(miniapp): add coach detail page with package and availability interactions`
 
 ---
 
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder（TBD / TODO / "实现 later"）
-- P0 必做（Task 1-4），P1 选做（Task 5）
+- P0 必做（Task 1-4），P1 选做（Task 5-6）

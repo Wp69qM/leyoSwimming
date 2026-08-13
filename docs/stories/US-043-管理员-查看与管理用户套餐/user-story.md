@@ -417,8 +417,10 @@ And   package 状态保持 frozen 不变
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 套餐管理列表页 Figma file URL | 🔲 待设计填写 | 🔲 待设计填写 |
-| 2 | 冻结/解冻确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 待设计填写 |
+| 1 | 套餐管理列表页 page-spec | [A-package-management-page.md](../../figma/page-spec/A-package-management-page.md) | ✅ |
+| 2 | 套餐详情页 page-spec | [A-package-detail-page.md](../../figma/page-spec/A-package-detail-page.md) | ✅ |
+| 3 | 套餐管理列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 冻结/解冻确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

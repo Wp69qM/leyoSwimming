@@ -2,7 +2,12 @@
 
 ## Overview
 
-正价套餐浏览流程：用户进入教练详情页点击「查看套餐」→ 后端校验教练状态可见性 → 读取标准套餐 + 参考单价 → 返回标准套餐列表与自定义课时入口开关 → 前端展示并跳转 US-020 下单。
+正价套餐浏览支持两个入口：
+
+- **入口 A（全局套餐列表）**：用户从首页/全部套餐进入，查看所有已上架套餐，按体验课/标准正价课/自定义分组。点击套餐卡片进入套餐详情页，详情页返回适配教练列表供 US-020 选择教练。
+- **入口 B（教练详情页）**：用户从教练详情页点击「查看套餐」，查看当前教练支持的标准套餐、体验课、自定义课时入口。点击套餐卡片进入套餐详情页，详情页返回当前教练信息。
+
+两个入口最终都跳转 US-020 完成下单。
 
 ## Data Model
 
@@ -11,49 +16,88 @@
 | 表 | 操作 | 关键字段 |
 |----|------|---------|
 | `coach` | 读 | `id`, `status`, `reference_price_per_hour` |
-| `standard_package` / `package_template` | 读 | `id`, `hours`, `price`, `validity_days`, `status` |
+| `package_template` | 读 | `id`, `package_mode`, `hours`, `price`, `validity_days`, `status` |
+| `coach_package_template`（或等效关联表） | 读 | `coach_id`, `package_template_id` |
 
-### standard_package 字段
+### package_template 字段
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | `id` | BIGINT | PK | — |
-| `hours` | INT | NOT NULL | 课时数（1/6/8/10） |
-| `price` | INT | NOT NULL | 价格（分） |
-| `validity_days` | INT | NOT NULL | 有效期天数 |
+| `package_mode` | VARCHAR | NOT NULL | `experience` / `standard` / `custom` |
+| `hours` | INT | — | 课时数（1/6/8/10），自定义可为空 |
+| `price` | INT | — | 价格（分），自定义可为空 |
+| `validity_days` | INT | — | 有效期天数 |
 | `status` | TINYINT | 默认 1 | 1=启用 0=禁用 |
 | `created_at` / `updated_at` | DATETIME | — | 时间戳 |
 
 ### 索引
 
 ```sql
-CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
+CREATE INDEX idx_package_template_status_mode ON package_template(status, package_mode);
+CREATE INDEX idx_coach_package_template_coach ON coach_package_template(coach_id, package_template_id);
 ```
 
 ## API Design
 
-### GET /api/coaches/{id}/packages
+### POST /api/packages/list
 
 - **鉴权**：否（游客可访问）
-- **Path**：`id` = 教练 ID
+- **Body**：`{}` 或分页参数
+- **Response 200**:
+  ```json
+  {
+    "packages": [
+      { "id": 1, "package_mode": "experience", "name": "体验课", "hours": 1, "price": 9900, "validity_days": 30 },
+      { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 },
+      { "id": 3, "package_mode": "custom", "name": "自定义课时", "hours": null, "price": null, "validity_days": null }
+    ]
+  }
+  ```
+
+### POST /api/coach/packages/list
+
+- **鉴权**：否（游客可访问）
+- **Body**：`{ "coach_id": 1 }`
 - **Response 200**:
   ```json
   {
     "coach_id": 1,
     "coach_status": 1,
     "reference_price": 20000,
-    "standard_packages": [
-      { "id": 1, "hours": 1, "price": 20000, "validity_days": 30 },
-      { "id": 2, "hours": 6, "price": 108000, "validity_days": 90 },
-      { "id": 3, "hours": 8, "price": 144000, "validity_days": 120 },
-      { "id": 4, "hours": 10, "price": 180000, "validity_days": 150 }
+    "packages": [
+      { "id": 1, "package_mode": "experience", "name": "体验课", "hours": 1, "price": 9900, "validity_days": 30 },
+      { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 }
     ],
     "custom_package_enabled": true,
     "custom_hours_min": 1,
     "custom_hours_max": 50
   }
   ```
-- **Response 404**: `{ code: COACH_NOT_FOUND }`（教练不存在或 `status ≠ 1` 或不可约）
+- **Response 404**: `{ code: COACH_NOT_FOUND }`
+
+### POST /api/packages/detail
+
+- **鉴权**：否（游客可访问）
+- **Body**：`{ "package_id": 2 }` 或 `{ "package_id": 2, "coach_id": 1 }`
+- **Response 200（全局入口，未传 coach_id）**:
+  ```json
+  {
+    "package": { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 },
+    "coaches": [
+      { "id": 1, "avatar_url": "...", "name": "教练 A", "rating": 4.8, "strokes": ["自由泳", "蛙泳"], "teaching_years": 5, "total_students": 120 },
+      { "id": 2, "avatar_url": "...", "name": "教练 B", "rating": 4.5, "strokes": ["蝶泳"], "teaching_years": 3, "total_students": 80 }
+    ]
+  }
+  ```
+- **Response 200（教练详情页入口，传入 coach_id）**:
+  ```json
+  {
+    "package": { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 },
+    "coach": { "id": 1, "avatar_url": "...", "name": "教练 A", "rating": 4.8, "strokes": ["自由泳", "蛙泳"], "teaching_years": 5, "total_students": 120 }
+  }
+  ```
+- **Response 404**: `{ code: PACKAGE_NOT_FOUND }`
 
 ### 业务规则
 
@@ -61,6 +105,8 @@ CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
 - `reference_price` 为空时 `custom_package_enabled = false`
 - 标准套餐仅返回 `package_template.status = active`（启用）的记录
 - 教练不可约（离职/冻结）时统一返回 404 `COACH_NOT_FOUND`
+- 全局列表不过滤教练，返回所有已上架套餐
+- 套餐详情页根据 `coach_id` 参数返回当前教练信息或适配教练列表
 
 ## Caching
 
@@ -73,6 +119,7 @@ CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
 | 指标 | 目标 |
 |------|------|
 | 套餐列表查询 P99 | < 200ms |
+| 套餐详情查询 P99 | < 200ms |
 
 ## Security
 
@@ -86,5 +133,5 @@ CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
 |----|------|------|
 | US-011 | 依赖 | 教练审核通过（status=1） |
 | US-012 | 依赖 | 教练参考单价 |
-| US-045 | 依赖 | 标准套餐配置 |
+| US-045 | 依赖 | 标准/自定义套餐配置 |
 | US-020 | 被依赖 | 购买正价套餐（从本 US 跳转下单） |

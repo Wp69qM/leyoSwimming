@@ -11,9 +11,9 @@
 
 **Spec coverage:** REQ-028-1 / REQ-028-2 / REQ-028-3 全部场景
 
-- [ ] **RED:** Write failing tests — approve updates order/package and creates transaction; reject sets order.status=退款被拒（7）, keeps package active and sets booking_frozen=false; channel failure keeps state; idempotent approval; non-admin forbidden
-- [ ] **GREEN:** Implement `RefundAdminService.approve()` and `RefundAdminService.reject()`
-- [ ] **REFACTOR:** Extract channel refund adapter and amount validator
+- [ ] **RED:** Write failing tests — approve updates order/package and creates transaction; approve with amount > refundable amount records audit log and updates refund amount; reject sets order.status=退款被拒（7）, keeps package active and sets booking_frozen=false; channel failure keeps state; idempotent approval; non-admin forbidden
+- [ ] **GREEN:** Implement `RefundAdminService.approve(amount?, remark?)` and `RefundAdminService.reject(reason)`
+- [ ] **REFACTOR:** Extract channel refund adapter and amount validator（only validates amount ≥ 0）
 - [ ] **COMMIT:** `feat(refund): add admin refund approval service`
 
 ## Task 2: Admin Refund List/Detail API [P0]
@@ -33,7 +33,7 @@
 - Modify: controller/route
 - Test: `backend/tests/controllers/refund-admin.test.ts`
 
-- [ ] **RED:** Write failing tests — 200 approve/reject; 400 duplicate; 400 invalid amount; 403 forbidden
+- [ ] **RED:** Write failing tests — 200 approve/reject; 400 duplicate; 400 negative amount; 403 forbidden
 - [ ] **GREEN:** Implement endpoints
 - [ ] **REFACTOR:** Extract admin action validation
 - [ ] **COMMIT:** `feat(api): add admin refund approve and reject endpoints`

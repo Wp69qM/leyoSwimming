@@ -2,7 +2,14 @@
 
 ## Overview
 
-正价套餐下单流程：选择套餐 → 协议确认 → 冲突/状态校验 → 创建待支付订单 → 跳转支付。
+正价套餐购买流程：
+- **标准套餐**：套餐详情页 → 选择/确认教练 → 确认订单页 → 支付页（US-025）。
+- **自定义套餐**：套餐详情页 → 选择/确认教练 → 自定义配置页 → 支付页（US-025）。
+
+- **入口 A（全局套餐列表）**：用户从首页/全部套餐进入套餐列表，点击套餐卡片进入套餐详情页；详情页底部展示横向滚动的适配教练竖向卡片（头像、姓名、评分、擅长泳姿、教龄、总学员数、参考单价），用户必须选择教练后才能点击「立即购买」。
+- **入口 B（教练详情页）**：用户从教练详情页点击套餐卡片进入套餐详情页；详情页底部展示当前教练横向自适应卡片（头像、姓名、评分、擅长泳姿、教龄、总学员数、参考单价），无需再次选择。
+- **标准套餐**：点击「立即购买」后进入确认订单页，展示教练横向自适应卡片、套餐信息、价格、协议勾选区；用户勾选协议并点击「确认订单」后创建待支付订单，前端跳转支付页。
+- **自定义套餐**：点击「立即购买」后进入自定义配置页，展示教练横向自适应卡片（含参考单价）、课时数量（默认 4/8/12/20，支持自定义输入）、有效期（默认 30/60/90/180 天）、学习泳姿（多选）、实时价格明细、协议勾选区；用户勾选协议并点击「提交订单」后创建待支付订单，前端跳转支付页。
 
 ## Data Model
 
@@ -12,11 +19,11 @@
 |----|------|---------|
 | `order` | 写 | `user_id`, `coach_id`, `course_type=1`, `standard_package_id`, `custom_hours`, `amount`, `status`, `expire_at` |
 | `agreement_sign` | 写 | `user_id`, `agreement_type`, `version`, `signed_at` |
-| `guardian_contact` | 写 | `user_id`, `phone`, `verified_at` |
-| `user` | 读 | `identity`, `birth_date` |
+| `user` | 读 | `identity`, `birth_date`, `guardian_phone` |
 | `package` | 读 | `status`, `coach_id` |
 | `coach` | 读 | `status`, `reference_price_per_hour` |
-| `standard_package` | 读 | `hours`, `price` |
+| `package_template` | 读 | `package_mode`, `status`, 模板快照字段；自定义套餐时读取 allowed_hours / allowed_valid_days / allowed_strokes |
+| `coach_package_template`（或关联表） | 读 | 入口 A 查询适配教练 |
 
 ### 索引
 
@@ -28,9 +35,9 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 
 ## API Design
 
-- `POST /api/orders/formal`：创建正价套餐订单（含未成年人监护人校验）
-- `GET /api/agreements/status`：查询协议签署状态
-- `POST /api/guardians/verify`：发送并校验监护人手机号短信验证码
+- `POST /api/packages/detail`：套餐详情页数据源（US-019 提供，复用）；返回套餐模板详情、适配教练列表（入口 A）/ 当前教练信息（入口 B），自定义套餐教练信息含 `reference_price_per_hour`
+- `POST /api/orders/formal`：创建正价套餐订单（含未成年人用户信息中监护人手机号存在性校验、自定义套餐参数范围校验）
+- `POST /api/agreements/status`：查询协议签署状态
 
 ## Caching
 
@@ -47,8 +54,9 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 - 登录鉴权
 - 同教练 active 套餐唯一性校验
 - 协议版本后端校验
-- 自定义课时范围校验
-- 未成年人监护人手机号短信校验与通知
+- 自定义套餐课时数/有效期/泳姿范围校验
+- 自定义套餐价格按课时数 × 参考单价实时计算
+- 未成年人用户信息中监护人手机号存在性校验
 
 ## Cross-US Dependencies
 

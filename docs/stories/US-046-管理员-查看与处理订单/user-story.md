@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：2 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-订单管理页](../../figma/page-spec/A-order-management-page.md) / [A-订单详情页](../../figma/page-spec/A-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -47,7 +47,7 @@
 4. 管理员点击某订单查看详情
 5. 系统展示订单信息、支付/退款信息、关联套餐、状态时间轴
 6. 若为退款订单且状态为「退款审批中」，管理员可执行：
-   - **通过退款**：填写/确认退款金额 → 系统校验金额 ≤ 可退金额 → 订单状态变为「退款处理中」→ 调用 Mock 退款渠道 → 回调成功后订单变为「已退款」，关联 package 变为 `refunded`
+   - **通过退款**：填写/确认退款金额（可退金额仅作为参考，管理员可基于业务场景调整，需 ≥ 0） → 订单状态变为「退款处理中」→ 调用 Mock 退款渠道 → 回调成功后订单变为「已退款」，关联 package 变为 `refunded`
    - **驳回退款**：填写驳回原因 → 订单状态变为「退款被拒」→ 关联 package 自动恢复为 `active`
 
 ### 4.2 退款订单的产生来源
@@ -59,7 +59,7 @@
 ### 4.3 异常分支
 
 - **分支 1**：订单状态非「退款审批中」却执行审批 → 返回 `ORDER_STATUS_INVALID`
-- **分支 2**：退款金额 > 可退金额 → 返回 `REFUND_AMOUNT_MISMATCH`
+- **分支 2**：退款金额 < 0 → 返回 `REFUND_AMOUNT_INVALID`
 - **分支 3**：驳回原因为空 → 返回 `REJECT_REASON_REQUIRED`
 - **分支 4**：管理员无权限 → 返回 HTTP 403
 
@@ -141,14 +141,13 @@ And   package.frozen_reason 清空
 And   学员收到驳回通知
 ```
 
-### 6.6 场景 6：退款金额超过可退金额
+### 6.6 场景 6：退款金额为负数
 
 ```gherkin
 Given 存在一笔 order.type='refund'，status='退款审批中' 的订单 R-004
-And   可退金额为 1000 元
-When  管理员将退款金额修改为 1200 元并点击「通过」
+When  管理员将退款金额修改为 -100 元并点击「通过」
 Then  系统返回 HTTP 400
-And   返回错误码 REFUND_AMOUNT_MISMATCH
+And   返回错误码 REFUND_AMOUNT_INVALID
 And   订单与套餐状态不变
 ```
 
@@ -289,7 +288,7 @@ And   订单状态不变
 - **幂等键**：`{admin_id}:{order_id}:approve-refund` / `{admin_id}:{order_id}:reject-refund`
 - **事务边界**：order 状态更新 + package 状态恢复在同一事务；Mock 渠道调用在事务外，失败走补偿
 - **MVP Hack**：购买与退款均通过 `MockPaymentProvider` 模拟，不调用真实微信/支付宝接口；购买即时成功，退款管理员通过后即时回调成功（或可控失败用于测试）
-- **金额调整**：管理员可在 `[0, 可退金额]` 范围内修改退款金额，修改后需记录 audit_log
+- **金额调整**：可退金额仅作为参考，管理员可基于业务场景调整实际退款金额（需 ≥ 0），修改后需记录 audit_log
 
 ---
 
@@ -299,9 +298,11 @@ And   订单状态不变
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 3 | 退款审批弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
+| 1 | 订单管理页 page-spec | [A-order-management-page.md](../../figma/page-spec/A-order-management-page.md) | ✅ |
+| 2 | 订单详情页 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
+| 3 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 5 | 退款审批弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -329,9 +330,9 @@ And   订单状态不变
 
 ### 14.3 退款金额允许管理员调整
 
-- 通过弹窗展示系统计算的可退金额
-- 管理员可在 `[0, 可退金额]` 范围内修改
-- 调整后需填写调整原因（若与系统计算不一致）
+- 通过弹窗展示系统计算的可退金额作为参考
+- 管理员可基于业务场景调整实际退款金额（需 ≥ 0）
+- 调整后需填写调整原因并记录 audit_log
 
 ### 14.4 页面级交互说明
 
@@ -358,6 +359,7 @@ And   订单状态不变
 |------|------|------|------|
 | v1.0 | 2026-07-30 | PM | 初版 |
 | v2.0 | 2026-08-12 | PM/开发 | 重构：明确 order 与 package 为独立实体；退款审批合并进订单管理；新增购买/退款订单类型；退款金额允许管理员修改；驳回后 package 自动恢复 active；更新 API 路径为 POST 风格；更新 Gherkin 场景与状态机 |
+| v2.1 | 2026-08-13 | PM | 放宽退款金额限制：可退金额仅作参考，管理员可调整实际退款金额（需 ≥ 0），移除 `[0, 可退金额]` 约束；§4.1/§4.3/§6.6/§12/§14.3 同步更新；错误码 `REFUND_AMOUNT_MISMATCH` 改为 `REFUND_AMOUNT_INVALID` |
 
 ---
 

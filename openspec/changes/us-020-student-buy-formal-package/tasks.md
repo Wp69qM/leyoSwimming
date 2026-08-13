@@ -6,9 +6,9 @@
 - Create: `backend/src/services/formal-purchase.ts`
 - Test: `backend/tests/services/formal-purchase.test.ts`
 
-**Spec coverage:** REQ-001 标准套餐、自定义课时、协议、教练冲突、教练不可用、未成年人监护人
+**Spec coverage:** REQ-001 标准套餐（教练详情页入口 / 全局列表入口）、自定义套餐（教练详情页入口 / 全局列表入口 / 配置项校验）、协议、教练冲突、教练不可用、未成年人监护人、教练必选（全局入口）
 
-- [ ] **RED:** Valid standard/custom orders; reject missing agreement / conflict / unavailable coach / missing guardian phone for minor
+- [ ] **RED:** Valid standard/custom orders from both entry points; reject missing agreement / conflict / unavailable coach / missing guardian phone in user profile for minor / coach not selected (global entry) / invalid custom package config
 - [ ] **GREEN:** Implement eligibility, amount calculation, order creation
 - [ ] **REFACTOR:** Extract eligibility rules and amount calculator
 - [ ] **COMMIT:** `feat(formal): add formal package purchase service`
@@ -24,7 +24,7 @@
 - [ ] **REFACTOR:** Share DTO schema
 - [ ] **COMMIT:** `feat(api): add POST /api/orders/formal`
 
-## Task 3: GET /api/agreements/status [P0]
+## Task 3: POST /api/agreements/status [P0]
 
 **Files:**
 - Modify: controller/route
@@ -33,7 +33,7 @@
 - [ ] **RED:** Returns required vs signed versions
 - [ ] **GREEN:** Implement endpoint
 - [ ] **REFACTOR:** Combine with agreement service
-- [ ] **COMMIT:** `feat(api): add GET /api/agreements/status`
+- [ ] **COMMIT:** `feat(api): add POST /api/agreements/status`
 
 ## Task 4: Idempotency & Validation [P1]
 
