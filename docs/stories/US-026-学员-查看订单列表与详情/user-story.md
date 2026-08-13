@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-订单列表页](../../figma/page-spec/U-order-list-page.md) / [U-订单详情页](../../figma/page-spec/U-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -272,8 +272,10 @@ And   仍展示购买时套餐快照与支付信息
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 订单列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 1 | 订单列表页 page-spec | [U-order-list-page.md](../../figma/page-spec/U-order-list-page.md) | ✅ |
+| 2 | 订单详情页 page-spec | [U-order-detail-page.md](../../figma/page-spec/U-order-detail-page.md) | ✅ |
+| 3 | 订单列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

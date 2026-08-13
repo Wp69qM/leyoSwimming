@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-我的套餐详情页](../../figma/page-spec/U-my-package-detail-page.md) / [U-退款申请页](../../figma/page-spec/U-refund-apply-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -338,8 +338,9 @@ And   不创建 refund_record
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 我的套餐详情页（含申请退款入口）Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 退款申请页/退款原因选择弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
+| 1 | 我的套餐详情页（含申请退款入口）page-spec | [U-my-package-detail-page.md](../../figma/page-spec/U-my-package-detail-page.md) | ✅ |
+| 2 | 退款申请页 page-spec | [U-refund-apply-page.md](../../figma/page-spec/U-refund-apply-page.md) | ✅ |
+| 3 | 退款申请页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：待重新估算（按新增字段与交互复杂度，建议 3~5 人天）
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-套餐配置页](../../figma/page-spec/A-package-config-page.md) / [A-套餐编辑弹窗](../../figma/page-spec/A-package-edit-modal.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -302,9 +302,10 @@ And   package_template 表不新增记录
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 套餐配置页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 套餐配置页关键 frame node-id | 🔲 待设计填写 | 🔲 |
-| 3 | 新增套餐弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
+| 1 | 套餐配置页 page-spec | [A-package-config-page.md](../../figma/page-spec/A-package-config-page.md) | ✅ |
+| 2 | 套餐编辑弹窗 page-spec | [A-package-edit-modal.md](../../figma/page-spec/A-package-edit-modal.md) | ✅ |
+| 3 | 套餐配置页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 新增套餐弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

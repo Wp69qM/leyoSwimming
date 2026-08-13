@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-套餐详情页](../../figma/page-spec/U-package-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -288,8 +288,8 @@ And   不创建订单
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 体验课购买页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 体验课购买页关键 frame node-id | 🔲 待设计填写 | 🔲 |
+| 1 | 体验课购买页 page-spec | [U-package-detail-page.md](../../figma/page-spec/U-package-detail-page.md) | ✅ |
+| 2 | 体验课购买页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

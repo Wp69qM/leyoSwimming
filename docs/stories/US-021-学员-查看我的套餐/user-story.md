@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-我的套餐页](../../figma/page-spec/U-my-package-page.md) / [U-我的套餐详情页](../../figma/page-spec/U-my-package-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -279,8 +279,9 @@ And   接口返回 HTTP 200
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 我的套餐页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 套餐卡片 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 1 | 我的套餐页 page-spec | [U-my-package-page.md](../../figma/page-spec/U-my-package-page.md) | ✅ |
+| 2 | 我的套餐详情页 page-spec | [U-my-package-detail-page.md](../../figma/page-spec/U-my-package-detail-page.md) | ✅ |
+| 3 | 我的套餐页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

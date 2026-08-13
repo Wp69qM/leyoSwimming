@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[U-支付页](../../figma/page-spec/U-payment-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -278,7 +278,7 @@ And   package 字段仍与订单快照一致
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 订单支付页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 1 | 订单支付页 page-spec | [U-payment-page.md](../../figma/page-spec/U-payment-page.md) | ✅ |
 | 2 | 支付成功页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单

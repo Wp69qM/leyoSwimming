@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-订单管理页](../../figma/page-spec/A-order-management-page.md) / [A-订单详情页](../../figma/page-spec/A-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -318,8 +318,10 @@ And   不修改任何退款/订单状态
 
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
-| 1 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 2 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 1 | 订单管理页 page-spec | [A-order-management-page.md](../../figma/page-spec/A-order-management-page.md) | ✅ |
+| 2 | 订单详情页 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
+| 3 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -336,7 +338,7 @@ And   不修改任何退款/订单状态
 
 ### 14.1 退款金额人工调整
 
-- 管理员可在系统计算金额基础上手动调整（范围 `[0, 可退金额]`）
+- 管理员可在系统计算金额基础上手动调整（实际退款金额需 ≥ 0，可退金额仅作参考）
 - 调整金额与调整原因写入 audit_log
 - 未调整时直接点击「通过」则使用系统计算金额
 
