@@ -83,8 +83,8 @@
 1. 管理员在「套餐管理」找到 active 或 expired 状态的 package
 2. 管理员点击「延期」
 3. 系统校验 package.status ∈ {active, expired} 且 available_count + reserved_count > 0
-4. 管理员选择新的 expire_at（必须晚于当前时间）
-5. 系统将 package.status 从 expired 更新为 active（若为 expired），并更新 expire_at
+4. 管理员选择新的 expire_at（必须晚于当前时间）并填写延期原因（必填，最多 200 字）
+5. 系统将 package.status 从 expired 更新为 active（若为 expired），更新 expire_at，并记录 extend_reason
 6. 系统记录审计日志
 7. 返回延期成功提示
 
@@ -93,11 +93,13 @@
 1. 管理员在「套餐管理」找到 active 状态的 package
 2. 管理员点击「退款」
 3. 系统校验 package.refund_enabled = true 且未超过 refund_valid_days
-4. 管理员填写退款原因并确认
-5. 系统创建退款订单 order.type='refund'，status='refund_pending'，purchase_order_id 指向原购买订单
-6. 系统创建 refund_record，status = 待审批，关联退款订单
-7. 系统将 package.status 更新为 frozen，frozen_reason = 'refund_pending'
-8. 系统返回创建成功提示，并提示管理员前往「订单管理」审批
+4. 系统展示退款信息弹窗：套餐名称、总课时、已消耗课时、剩余课时、到期时间、退款比例、系统计算的可退金额
+5. 管理员可修改退款金额（不得超过系统计算金额且不能小于 0），修改时需填写调整原因
+6. 管理员填写退款原因并确认
+7. 系统创建退款订单 order.type='refund'，status='refund_pending'，purchase_order_id 指向原购买订单，paid_amount 为填写的退款金额
+8. 系统创建 refund_record，status = 待审批，amount = 填写的退款金额，关联退款订单
+9. 系统将 package.status 更新为 frozen，frozen_reason = 'refund_pending'
+10. 系统返回创建成功提示，并提示管理员前往「订单管理」审批
 
 ### 4.7 异常分支
 
@@ -188,9 +190,10 @@ And   返回 HTTP 200 与提示"套餐已解冻"
 ```gherkin
 Given 管理员 M 已登录且具有套餐管理权限
 And   学员 S 的 package P1 当前 status = expired，available_count = 3，reserved_count = 0，expire_at = "2026-08-01"
-When  管理员 M 对 P1 点击「延期」并选择新的 expire_at = "2026-09-01"
+When  管理员 M 对 P1 点击「延期」，选择新的 expire_at = "2026-09-01"，并填写延期原因 "学员出差一个月"
 Then  package P1 的 status 更新为 active
 And   expire_at 更新为 "2026-09-01"
+And   extend_reason 更新为 "学员出差一个月"
 And   audit_log 新增 1 条 action='ADMIN_EXTEND_PACKAGE' 记录
 And   返回 HTTP 200 与提示"套餐已延期"
 ```
@@ -199,12 +202,15 @@ And   返回 HTTP 200 与提示"套餐已延期"
 
 ```gherkin
 Given 管理员 M 已登录且具有套餐管理权限
-And   学员 S 的 package P1 当前 status = active，refund_enabled = true，refund_valid_days = 30
+And   学员 S 的 package P1 当前 status = active，refund_enabled = true，refund_valid_days = 30，total_hours = 10，consumed_count = 2，paid_amount = 1800，refund_ratio = 1.0
 And   对应购买订单 O1 的 order_no = "P202608010001"
 And   不存在待处理退款订单
-When  管理员 M 对 P1 点击「退款」并填写原因="协商退款"
-Then  系统创建退款订单 O2，type = 'refund'，status = 'refund_pending'，purchase_order_id 指向 O1
-And   refund_record 创建，status = 待审批，关联 O2
+When  管理员 M 对 P1 点击「退款」
+And   系统展示可退金额 = 1800 × (10-2)/10 × 1.0 = 1440 元
+And   管理员 M 将退款金额修改为 1200 元并填写调整原因="协商一致"
+And   填写退款原因="协商退款"并确认
+Then  系统创建退款订单 O2，type = 'refund'，status = 'refund_pending'，purchase_order_id 指向 O1，paid_amount = 1200
+And   refund_record 创建，status = 待审批，amount = 1200，关联 O2
 And   package P1 的 status 更新为 frozen，frozen_reason = 'refund_pending'
 And   返回 HTTP 200 与提示"退款订单已生成，请前往订单管理审批"
 ```
@@ -296,8 +302,8 @@ And   package 状态保持 frozen 不变
 | 2 | `/api/admin/package/detail` | POST | 新增 | 查询套餐实例详情 |
 | 3 | `/api/admin/package/freeze` | POST | 新增 | 手动冻结套餐 |
 | 4 | `/api/admin/package/unfreeze` | POST | 新增 | 手动解冻套餐 |
-| 5 | `/api/admin/package/extend` | POST | 新增 | 手动延期套餐 |
-| 6 | `/api/admin/package/refund` | POST | 新增 | 发起退款，创建退款订单 |
+| 5 | `/api/admin/package/extend` | POST | 新增 | 手动延期套餐；请求体新增 `reason` 字段，必填，最多 200 字 |
+| 6 | `/api/admin/package/refund` | POST | 新增 | 发起退款，创建退款订单；支持管理员调整退款金额 |
 
 ### 7.3 状态机影响
 
@@ -338,12 +344,20 @@ And   package 状态保持 frozen 不变
 - **预期行为**：status 更新为 active，但 reserved_count 不自动恢复（历史上已释放的 reserved 不再补回）
 - **用户可见反馈**：详情页显示新的到期时间，状态变为 active
 
-### 8.5 边界场景 5：退款订单被驳回后套餐恢复
+### 8.5 边界场景 5：延期原因缺失或超长
+
+- **触发条件**：管理员提交延期时未填写原因，或原因超过 200 字
+- **预期行为**：前端拦截并提示；后端二次校验，返回 `INVALID_EXTENSION_REASON`（400）
+- **用户可见反馈**：提示"请输入延期原因，最多 200 字"
+
+### 8.6 边界场景 6：退款订单被驳回后套餐恢复
 
 - **触发条件**：管理员在「订单管理」驳回由本 US 发起的退款订单
 - **预期行为**：package.status 从 frozen 自动恢复为 active，frozen_reason 清空
 - **用户可见反馈**：套餐详情页状态恢复，可继续预约
 - **规则来源**：[US-046](../../stories/US-046-管理员-查看与处理订单/user-story.md)
+
+## 12. 备注
 
 ---
 
@@ -437,7 +451,7 @@ And   package 状态保持 frozen 不变
 ### 14.1 套餐管理与订单管理的职责边界
 
 - **背景**：退款涉及 package 和 order 两个实体，页面职责需清晰
-- **结论**：套餐管理页负责「发起退款」（创建退款订单并冻结套餐），订单管理页负责「审批/驳回退款」；退款金额调整、原路退回均在订单管理页完成
+- **结论**：套餐管理页负责「发起退款」（创建退款订单并冻结套餐），管理员可在发起时查看并调整退款金额；订单管理页负责「审批/驳回退款」及原路退回；若发起时已调整金额，订单管理页仍可在审批时再次调整
 - **影响范围**：两个页面的操作按钮与跳转逻辑
 
 ### 14.2 冻结原因选择
@@ -466,11 +480,11 @@ And   package 状态保持 frozen 不变
 | 交互 | 触发 | 反馈 | 备注 |
 |------|------|------|------|
 | 进入列表 | 菜单/面包屑 | 展示筛选区 + 表格 | 默认按创建时间倒序 |
-| 点击查看 | 列表操作列 | 跳转 A-套餐详情页 | 所有状态 |
+| 点击查看 | 列表操作列 | 弹出 A-套餐详情弹窗 | 所有状态 |
 | 点击冻结 | 列表/详情操作区 | 弹出原因选择 + 确认 | active 状态才可用 |
 | 点击解冻 | 列表/详情操作区 | 二次确认弹窗 | frozen 状态才可用 |
 | 点击延期 | 列表/详情操作区 | 弹出日期选择 | active/expired 状态才可用 |
-| 点击退款 | 列表/详情操作区 | 弹出原因填写弹窗 | active 状态且满足退款条件 |
+| 点击退款 | 列表/详情操作区 | 弹出退款信息填写弹窗，展示课时/金额信息，可编辑退款金额 | active 状态且满足退款条件 |
 | 套餐状态变更 | 管理员操作 | 列表/详情状态徽标实时更新 | 操作成功后刷新 |
 
 ---
@@ -494,6 +508,7 @@ And   package 状态保持 frozen 不变
 | v1.3 | 2026-07-31 | 开发 | P1-11 修复：§4.1 步骤 7 明确仅取消**未上课**的 booking（status ∈ {已预约, 待上课}），cancel_reason = 6（套餐冻结）；已完成 / 已取消 / 旷课的 booking 不受影响；同步 openspec spec.md REQ-001 |
 | v1.4 | 2026-07-31 | PM | §13 Figma 链接清理：预设占位 URL 改为 🔲 待设计填写，待设计师在 Figma Drafts 创建文件后回填真实链接 |
 | v2.0 | 2026-08-13 | PM | 扩展 US 范围：从「手动冻结/解冻套餐」扩展为「管理员-查看与管理用户套餐」；新增套餐列表/详情/延期/发起退款流程；明确套餐管理与订单管理职责边界；更新 API、验收标准、状态机、依赖关系 |
+| v2.1 | 2026-08-13 | PM | 延期流程新增 `extend_reason`：管理员必须填写延期原因，最多 200 字；同步 page-spec A-package-detail-page.md §3.8 |
 
 ---
 

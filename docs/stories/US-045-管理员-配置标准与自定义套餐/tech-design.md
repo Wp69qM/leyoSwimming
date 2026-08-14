@@ -18,6 +18,7 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `package_template` | 新增 | 标准套餐模板，字段见下 |
+| `package_template_coach` | 新增 | 标准套餐与教练多对多关联表，字段见下 |
 | `custom_package_config` | 新增 | 自定义套餐全局配置（允许课时范围 min/max、默认有效期、单价下限）|
 | `coach` | 读取 | 关联教练与 `reference_price` |
 
@@ -27,7 +28,6 @@
 |------|------|------|------|
 | `id` | BIGINT PK | AUTO_INCREMENT | 模板 ID |
 | `name` | VARCHAR(64) | UK, NOT NULL | 套餐名称 |
-| `coach_id` | BIGINT FK | IDX | 适用教练（单一教练绑定，一个模板对应一个教练；非多选） |
 | `total_hours` | INT | CHECK > 0 | 课时数 |
 | `valid_days` | INT | CHECK > 0 | 有效期天数 |
 | `price` | DECIMAL(10,2) | CHECK >= 0 | 售价 |
@@ -35,11 +35,24 @@
 | `created_at` | DATETIME | — | 创建时间 |
 | `updated_at` | DATETIME | — | 更新时间 |
 
-### 1.3 索引
+### 1.3 `package_template_coach` 字段
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| `id` | BIGINT PK | AUTO_INCREMENT | 关联 ID |
+| `package_template_id` | BIGINT FK | IDX, NOT NULL | 套餐模板 ID |
+| `coach_id` | BIGINT FK | IDX, NOT NULL | 教练 ID |
+| `reference_price_snapshot` | DECIMAL(10,2) | CHECK >= 0 | 保存时该教练的参考单价快照 |
+| `created_at` | DATETIME | — | 创建时间 |
+| `updated_at` | DATETIME | — | 更新时间 |
+
+### 1.4 索引
 
 ```sql
 CREATE UNIQUE INDEX idx_package_template_name ON package_template(name);
-CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, status);
+CREATE UNIQUE INDEX idx_package_template_coach_unique ON package_template_coach(package_template_id, coach_id);
+CREATE INDEX idx_package_template_coach_template ON package_template_coach(package_template_id);
+CREATE INDEX idx_package_template_coach_coach ON package_template_coach(coach_id);
 ```
 
 ---
@@ -49,7 +62,7 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 ### 2.1 GET /api/admin/package-templates
 
 - **鉴权**：管理员登录 + `package:read` 权限
-- **Query**：`page`, `size`, `coach_id`, `status`
+- **Query**：`page`, `size`, `coach_id`, `status`（`coach_id` 用于筛选包含指定教练的模板）
 - **Response 200**：`{ items: PackageTemplate[], total, page, size }`
 - **Response 403**：`{ error: 'FORBIDDEN' }`
 
@@ -57,7 +70,8 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 
 - **鉴权**：管理员登录 + `package:write` 权限
 - **幂等性**：`Idempotency-Key` 请求头
-- **Body**：`{ name, coach_id, total_hours, valid_days, price, status }`
+- **Body**：`{ name, coach_ids: number[], total_hours, valid_days, price, status }`
+- **业务规则**：`coach_ids` 必填且至少包含 1 个教练 ID；保存时同步写入 `package_template_coach` 关联表并记录 `reference_price_snapshot`
 - **Response 201**：创建后的模板对象
 - **Response 400**：`{ error: 'INVALID_PACKAGE_PARAM' }`
 - **Response 409**：`{ error: 'DUPLICATE_PACKAGE_NAME' }`
@@ -65,7 +79,8 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 ### 2.3 PUT /api/admin/package-templates/:id
 
 - **鉴权**：管理员登录 + `package:write` 权限
-- **Body**：`{ name, coach_id, total_hours, valid_days, price, status }`
+- **Body**：`{ name, coach_ids: number[], total_hours, valid_days, price, status }`
+- **业务规则**：`coach_ids` 必填且至少包含 1 个教练 ID；保存时按新集合覆盖 `package_template_coach` 关联表
 - **Response 200**：更新后的模板对象
 - **Response 404**：`{ error: 'TEMPLATE_NOT_FOUND' }`
 
@@ -147,6 +162,7 @@ package_template.status:
 |------|------|
 | 名称重复 | 409 + DUPLICATE_PACKAGE_NAME |
 | 课时数/价格非法 | 400 + INVALID_PACKAGE_PARAM |
+| 适用教练为空数组 | 400 + INVALID_PACKAGE_PARAM |
 | 无权限 | 403 + FORBIDDEN |
 | 模板不存在 | 404 + TEMPLATE_NOT_FOUND |
 | 已产生订单的模板删除 | 禁止物理删除，仅允许 inactive |
@@ -177,4 +193,5 @@ package_template.status:
 
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
+| v1.1 | 2026-08-13 | Dev | 适用教练由单一 `coach_id` 改为多对多关联表 `package_template_coach`；API Body 从 `coach_id` 改为 `coach_ids: number[]`；§1、§2、§8 同步调整 |
 | v1.0 | 2026-07-30 | Dev | 初版 |

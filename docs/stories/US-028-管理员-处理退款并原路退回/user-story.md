@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
-> **配套文档**：Figma：[A-订单管理页](../../figma/page-spec/A-order-management-page.md) / [A-订单详情页](../../figma/page-spec/A-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-订单管理页](../../figma/page-spec/A-order-management-page.md) / [A-订单详情弹窗](../../figma/page-spec/A-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -319,9 +319,9 @@ And   不修改任何退款/订单状态
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
 | 1 | 订单管理页 page-spec | [A-order-management-page.md](../../figma/page-spec/A-order-management-page.md) | ✅ |
-| 2 | 订单详情页 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
+| 2 | 订单详情弹窗 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
 | 3 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 订单详情弹窗 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -330,7 +330,7 @@ And   不修改任何退款/订单状态
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
 | **订单管理页** | 🔲 | 🔲 | 🔲 | 🔲 | 退款订单通过 type 筛选 |
-| **订单详情页** | — | 🔲 | 🔲 | 🔲 | 退款订单展示通过/驳回按钮 |
+| **订单详情弹窗** | — | 🔲 | 🔲 | 🔲 | 退款订单展示通过/驳回按钮 |
 
 ---
 

@@ -12,7 +12,7 @@ US-001 是只读 US，不修改任何实体状态。核心是 2 个公开 API + 
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `coach` | 列表 + 详情主表 | 列表：`id`, `name`, `gender`, `status`, `rating`, `years_of_teaching`, `teaching_strokes`, `real_time_status`；详情额外读取 `age`, `avatar_url`, `total_students`, `total_hours`, `bio`, `reference_price`, `phone`, `wechat_qr_url` |
+| `coach` | 列表 + 详情主表 | 列表：`id`, `name`, `status`, `rating`, `years_of_teaching`, `teaching_strokes`, `real_time_status`；详情额外读取 `gender`, `age`, `avatar_url`, `total_students`, `total_hours`, `bio`, `reference_price`, `phone`, `wechat_qr_url` |
 | `coach_certificate` | 详情页证书 | `coach_id`, `name`, `level` |
 | `coach_review` | 详情页评价 | `coach_id`, `rating`, `content`, `created_at` |
 | `coach_availability` | 详情页可约时间 | `coach_id`, `date`, `start_time`, `end_time` |
@@ -45,7 +45,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 - 排序：`rating DESC`
 - 过滤：`status IN (1, 4)`（status=0/2/3 不返回；status=4 不展示任何状态标签）
 - Response 200: `{ items: CoachListItem[], total, page, size }`
-- CoachListItem 字段：`id`, `name`, `gender`, `status`, `avatar`, `rating`, `yearsOfTeaching`, `teachingStrokes`, `realTimeStatus`
+- CoachListItem 字段：`id`, `name`, `status`, `avatar`, `rating`, `yearsOfTeaching`, `teachingStrokes`, `realTimeStatus`
 - 空列表也返回 200 + `items: []`
 
 ### POST /api/coach/detail（详情）

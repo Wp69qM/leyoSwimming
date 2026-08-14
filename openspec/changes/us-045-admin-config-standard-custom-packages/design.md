@@ -12,7 +12,8 @@ US-045 是管理员后台配置 US，核心新增 `package_template` 与 `custom
 
 | 表 | 用途 | 关键字段 |
 |----|------|---------|
-| `package_template` | 标准套餐模板 | id, name, coach_id, total_hours, valid_days, price, status |
+| `package_template` | 标准套餐模板 | id, name, total_hours, valid_days, price, status |
+| `package_template_coach` | 标准套餐与教练多对多关联 | id, package_template_id, coach_id, reference_price_snapshot |
 | `custom_package_config` | 自定义套餐规则 | min_hours, max_hours, default_valid_days, unit_price_floor |
 
 ### 读取表
@@ -25,7 +26,9 @@ US-045 是管理员后台配置 US，核心新增 `package_template` 与 `custom
 
 ```sql
 CREATE UNIQUE INDEX idx_package_template_name ON package_template(name);
-CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, status);
+CREATE UNIQUE INDEX idx_package_template_coach_unique ON package_template_coach(package_template_id, coach_id);
+CREATE INDEX idx_package_template_coach_template ON package_template_coach(package_template_id);
+CREATE INDEX idx_package_template_coach_coach ON package_template_coach(coach_id);
 ```
 
 ## API Design
@@ -33,7 +36,7 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 ### GET /api/admin/package-templates
 
 - 鉴权：管理员登录 + `package:read`
-- Query: `page`, `size`, `coach_id`, `status`
+- Query: `page`, `size`, `coach_id`, `status`（`coach_id` 筛选包含指定教练的模板）
 - Response 200: `{ items: PackageTemplate[], total, page, size }`
 - Response 403: `{ error: 'FORBIDDEN' }`
 
@@ -41,13 +44,15 @@ CREATE INDEX idx_package_template_coach_status ON package_template(coach_id, sta
 
 - 鉴权：管理员登录 + `package:write`
 - 幂等：`Idempotency-Key`
-- Body: `{ name, coach_id, total_hours, valid_days, price, status }`
+- Body: `{ name, coach_ids: number[], total_hours, valid_days, price, status }`
+- 规则：`coach_ids` 必填且长度 ≥ 1；保存时同步写入 `package_template_coach` 并记录 `reference_price_snapshot`
 - Response 201 / 400 / 409
 
 ### PUT /api/admin/package-templates/:id
 
 - 鉴权：管理员登录 + `package:write`
-- Body: `{ name, coach_id, total_hours, valid_days, price, status }`
+- Body: `{ name, coach_ids: number[], total_hours, valid_days, price, status }`
+- 规则：`coach_ids` 必填且长度 ≥ 1；保存时按新集合覆盖 `package_template_coach`
 - Response 200 / 404
 
 ### POST /api/admin/package-templates/:id/toggle-status

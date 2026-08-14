@@ -26,8 +26,8 @@
 
 | 表名 | 操作 | 字段 | 说明 |
 |------|------|------|------|
-| `coach` | 读 | `id`, `name`, `gender`, `status`, `rating`, `years_of_teaching`, `teaching_strokes`, `real_time_status` | 列表主表 |
-| `coach` | 读 | `age`, `avatar_url`, `total_students`, `total_hours`, `bio`, `reference_price`, `phone`, `wechat_qr_url` | 详情页补充字段 |
+| `coach` | 读 | `id`, `name`, `status`, `rating`, `years_of_teaching`, `teaching_strokes`, `real_time_status`, `avatar_url` | 列表主表 |
+| `coach` | 读 | `gender`, `age`, `total_students`, `total_hours`, `bio`, `reference_price`, `phone`, `wechat_qr_url` | 详情页补充字段 |
 | `coach_certificate` | 读 | `coach_id`, `cert_type`, `image_url`, `name`, `level` | 详情页个人形象照（`cert_type=PORTRAIT`）与证书列表 |
 | `coach_review` | 读 | `coach_id`, `rating`, `content`, `created_at` | 详情页评价列表 |
 | `coach_availability` | 读 | `coach_id`, `date`, `start_time`, `end_time` | 详情页可约时间 |
@@ -77,7 +77,6 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
     {
       "id": 1,
       "name": "王教练",
-      "gender": 1,
       "status": 1,
       "avatar": "https://cdn.example.com/avatar/1.jpg",
       "rating": 4.9,
@@ -292,4 +291,5 @@ coach.real_time_status（status=1 时正常展示；status=4 时仍返回但不�
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v0.1 | 2026-07-30 | Dev | 初版占位 |
+| v1.1 | 2026-08-13 | Dev | 调整教练列表接口：读取字段与 `CoachListItem` 响应中移除 `gender`；详情接口保留 `gender` |
 | v1.0 | 2026-07-30 | Dev | 完整填写：数据模型 / API / 状态机 / 缓存 / 性能 / 安全 / 跨 US 依赖 |

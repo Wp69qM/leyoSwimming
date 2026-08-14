@@ -61,6 +61,7 @@
 | status | VARCHAR(32) | IDX | active / frozen / exhausted / expired / refunded |
 | frozen_reason | VARCHAR(32) | IDX | NULL / coach_resigned / refund_pending / admin_frozen |
 | expire_at | DATETIME | IDX | |
+| extend_reason | VARCHAR(200) | | 管理员手动延期原因，最多 200 字 |
 | exhausted_at | DATETIME | | |
 | refunded_at | DATETIME | | |
 | version | INT | | 乐观锁 |
@@ -160,24 +161,31 @@
 ### 4.5 `POST /api/admin/package/extend`
 
 - **鉴权**：管理员 JWT，`MANAGE_PACKAGE`
-- **请求体**：`{ "packageId": 1, "newExpireAt": "2026-09-01T23:59:59", "version": 1 }`
+- **请求体**：`{ "packageId": 1, "newExpireAt": "2026-09-01T23:59:59", "reason": "学员出差一个月", "version": 1 }`
 - **响应 200**：`{ "message": "套餐已延期" }`
+- **业务规则**：
+  - `reason` 必填，长度 1~200 字符
+  - `newExpireAt` 必须晚于当前时间
 - **错误码**：
   - `ADMIN_PERMISSION_DENIED`（403）
   - `PACKAGE_NOT_FOUND`（404）
+  - `INVALID_EXTENSION_REASON`（400）
   - `PACKAGE_NOT_EXTENDABLE`（409）
   - `PACKAGE_CONCURRENTLY_UPDATED`（409）
 
 ### 4.6 `POST /api/admin/package/refund`
 
 - **鉴权**：管理员 JWT，`MANAGE_PACKAGE`
-- **请求体**：`{ "packageId": 1, "reason": "协商退款", "version": 1 }`
+- **请求体**：`{ "packageId": 1, "reason": "协商退款", "refundAmount": 1200.00, "adjustReason": "协商一致", "version": 1 }`
+  - `refundAmount`：管理员填写的退款金额，可选，默认使用系统计算金额；不得超过系统计算金额且不能小于 0
+  - `adjustReason`：金额调整原因，当 `refundAmount` 与系统计算金额不一致时必填
 - **响应 200**：`{ "message": "退款订单已生成，请前往订单管理审批", "orderNo": "R202608010001" }`
 - **错误码**：
   - `ADMIN_PERMISSION_DENIED`（403）
   - `PACKAGE_NOT_FOUND`（404）
   - `PACKAGE_STATUS_NOT_ALLOWED`（409）
   - `PACKAGE_NOT_REFUNDABLE`（409）
+  - `REFUND_AMOUNT_INVALID`（409）
   - `REFUND_PENDING_EXISTS`（409）
   - `PACKAGE_CONCURRENTLY_UPDATED`（409）
 
@@ -276,3 +284,4 @@
 | v1.0 | 2026-07-30 | Dev | 初版：仅覆盖冻结/解冻 |
 | v1.1 | 2026-07-31 | Dev | v3 评审 P0-1 修复：frozen_reason 字段类型从 TINYINT 改为 VARCHAR(32)，对齐 PRD §5.5.1.2 统一枚举 |
 | v2.0 | 2026-08-13 | Dev | 扩展为完整套餐管理：新增列表/详情/延期/发起退款 API；更新状态机、缓存、测试映射、跨 US 依赖 |
+| v2.1 | 2026-08-13 | Dev | 延期 API 新增 `reason` 字段；`package` 表新增 `extend_reason` 字段；新增错误码 `INVALID_EXTENSION_REASON` |

@@ -29,7 +29,8 @@
 
 - [ ] 5.1 Implement `POST /api/admin/package/extend`
 - [ ] 5.2 Validate package status ∈ {active, expired} and available + reserved > 0
-- [ ] 5.3 Update `expire_at` and status from expired to active when applicable
+- [ ] 5.3 Validate extension `reason` is present and ≤ 200 characters
+- [ ] 5.4 Update `expire_at`, `extend_reason`, and status from expired to active when applicable
 
 ## 6. Refund Request Implementation
 

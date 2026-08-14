@@ -56,15 +56,16 @@ The system MUST allow an admin to unfreeze a frozen package and restore it to ac
 
 ### Requirement: REQ-005 Admin shall extend an active or expired package
 
-The system MUST allow an admin to extend a package whose status is `active` or `expired` and whose `available_count + reserved_count > 0`. The new `expire_at` MUST be later than the current time.
+The system MUST allow an admin to extend a package whose status is `active` or `expired` and whose `available_count + reserved_count > 0`. The new `expire_at` MUST be later than the current time. The admin MUST provide an extension reason with a maximum length of 200 characters.
 
 #### Scenario: Extend expired package successfully
 
 - **GIVEN** admin M has package management permission
 - **AND** package P1 is expired with `available_count = 3`, `reserved_count = 0`, `expire_at = "2026-08-01"`
-- **WHEN** admin M extends P1 with newExpireAt "2026-09-01T23:59:59"
+- **WHEN** admin M extends P1 with newExpireAt "2026-09-01T23:59:59" and reason "学员出差一个月"
 - **THEN** `package.status` is updated to `active`
 - **AND** `expire_at` is updated to "2026-09-01T23:59:59"
+- **AND** `extend_reason` is updated to "学员出差一个月"
 - **AND** one `audit_log` entry with `action = 'ADMIN_EXTEND_PACKAGE'` is created
 - **AND** the API returns HTTP 200 with message "套餐已延期"
 

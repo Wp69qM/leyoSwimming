@@ -45,9 +45,9 @@
 1. 管理员进入「套餐配置」页面
 2. 系统展示标准套餐列表（含状态：上架/下架）
 3. 管理员点击「新增标准套餐」
-4. 系统弹出表单：名称、套餐模式（正价套餐/体验课）、适用教练、教学类型、泳姿、课时数、每节课时长、有效期（天）、原价、售价、是否支持退款、退款比例、退款有效期限制、标签、套餐描述、套餐展示图片、上下架状态
+4. 系统弹出表单：名称、套餐模式（正价套餐/体验课）、适用教练（可多选）、教学类型、泳姿、课时数、每节课时长、有效期（天）、原价、售价、是否支持退款、退款比例、退款有效期限制、标签、套餐描述、套餐展示图片、上下架状态
 5. 管理员填写并提交
-6. 系统校验字段合法后写入 `package_template` 表，`status='inactive'`（新增套餐默认未上架）
+6. 系统校验字段合法后写入 `package_template` 表及 `package_template_coach` 关联表，`status='inactive'`（新增套餐默认未上架）
 7. 返回列表并刷新
 
 ### 4.2 自定义套餐配置
@@ -65,8 +65,9 @@
 - **分支 2**：套餐名称重复 → 返回 `DUPLICATE_PACKAGE_NAME`
 - **分支 3**：管理员无权限 → 返回 HTTP 403
 - **分支 4**：退款比例不在 0~100 之间，或退款有效期限制 < 0 → 返回 `INVALID_PACKAGE_PARAM`
-- **分支 5**：上传图片格式非法或大小超限 → 返回 `INVALID_IMAGE_FILE`
-- **分支 6**：自定义标签长度超限或包含非法字符 → 返回 `INVALID_TAG_FORMAT`
+- **分支 5**：适用教练为空数组或未选择任何教练 → 返回 `INVALID_PACKAGE_PARAM`
+- **分支 6**：上传图片格式非法或大小超限 → 返回 `INVALID_IMAGE_FILE`
+- **分支 7**：自定义标签长度超限或包含非法字符 → 返回 `INVALID_TAG_FORMAT`
 
 ---
 
@@ -92,8 +93,9 @@
 ```gherkin
 Given 管理员已登录且具有套餐配置权限
 And   系统中不存在名称为"暑期 10 节课"的标准套餐
-When  管理员提交标准套餐：名称="暑期 10 节课", 套餐模式="正价套餐", 教学类型="一对一", 泳姿=[], 课时数=10, 每节课时长=60, 有效期=180 天, 原价=3600.00, 售价=3000.00, 是否支持退款=true, 退款比例=80, 退款有效期限制=30, 标签=["热销"], 套餐描述="<p>暑期特惠套餐</p>", 套餐展示图片=["https://cdn.example.com/a.jpg"], 状态=未上架
+When  管理员提交标准套餐：名称="暑期 10 节课", 套餐模式="正价套餐", 适用教练=[教练 A, 教练 B], 教学类型="一对一", 泳姿=[], 课时数=10, 每节课时长=60, 有效期=180 天, 原价=3600.00, 售价=3000.00, 是否支持退款=true, 退款比例=80, 退款有效期限制=30, 标签=["热销"], 套餐描述="<p>暑期特惠套餐</p>", 套餐展示图片=["https://cdn.example.com/a.jpg"], 状态=未上架
 Then  系统返回 HTTP 200 且 package_template 表新增 1 条记录
+And   package_template_coach 表新增 2 条记录，分别关联教练 A 与教练 B
 And   该记录 package_mode='standard'，status='inactive'，total_hours=10，duration_minutes=60，original_price=3600.00，price=3000.00
 And   前端列表展示"暑期 10 节课"且状态为"未上架"
 ```
@@ -162,10 +164,11 @@ And   package_template 表不新增记录
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `package_template` | 新增/修改 | 标准套餐模板表，字段：id, name, package_mode, coach_id, teaching_type, stroke_ids, total_hours, duration_minutes, valid_days, original_price, price, refund_enabled, refund_ratio, refund_valid_days, tags, description, images, status, created_at, updated_at |
+| 1 | `package_template` | 新增/修改 | 标准套餐模板表，字段：id, name, package_mode, teaching_type, stroke_ids, total_hours, duration_minutes, valid_days, original_price, price, refund_enabled, refund_ratio, refund_valid_days, tags, description, images, status, created_at, updated_at |
 | 2 | `package_template` | 读取 | 列表查询、详情查询 |
-| 3 | `coach` | 读取 | 关联教练与参考单价（自定义套餐总价 = 所选教练参考单价 × 课时数） |
-| 4 | `custom_package_config` | 新增/修改 | 全局仅一条记录，字段：id, min_hours, max_hours, default_valid_days, created_at, updated_at |
+| 3 | `package_template_coach` | 新增/修改 | 标准套餐与教练关联表，字段：id, package_template_id, coach_id, reference_price_snapshot, created_at, updated_at；一个模板可绑定多名教练 |
+| 4 | `coach` | 读取 | 关联教练与参考单价（自定义套餐总价 = 所选教练参考单价 × 课时数） |
+| 5 | `custom_package_config` | 新增/修改 | 全局仅一条记录，字段：id, min_hours, max_hours, default_valid_days, created_at, updated_at |
 
 ### 7.2 API 影响
 
@@ -340,7 +343,7 @@ And   package_template 表不新增记录
 |------|------|------|--------|----------|
 | 名称 | 文本 | 是 | — | 唯一，长度 1~50 |
 | 套餐模式 | 单选 | 是 | 正价套餐 | 可选：正价套餐 / 体验课；影响学员端购买流程与退款规则 |
-| 适用教练 | 单选 | 是 | — | 关联 `coach` 表 |
+| 适用教练 | 多选 | 是 | — | 至少选 1 项；关联 `coach` 表；绑定多名教练时，学员购买该套餐可在其中任选一名 |
 | 教学类型 | 单选 | 是 | 一对一 | 可选：一对一 / 一对二 / 一对三 |
 | 泳姿 | 多选 | 否 | 全部泳姿 | 不选时默认全部泳姿可用 |
 | 课时数 | 整数 | 是 | — | > 0 |
@@ -368,6 +371,18 @@ And   package_template 表不新增记录
 | 上传图片 | 选择文件 | 上传成功后回显 URL | 上传失败禁止提交 |
 | 添加自定义标签 | 输入回车 | 标签仅当前套餐可用 | 限制长度和字符 |
 
+### 14.5 适用教练多选绑定
+
+- **背景**：标准套餐原本设计为一个模板绑定一名教练，运营上不够灵活
+- **决策**：标准套餐模板支持绑定多名教练，通过 `package_template_coach` 关联表维护
+- **约束**：
+  - 每个模板至少绑定 1 名教练
+  - 保存时同步写入/更新关联表
+  - 学员购买该套餐时，可在绑定的教练列表中选择其中一名
+- **影响范围**：
+  - US-045：新增/编辑表单、数据表、API 参数、校验规则
+  - US-019 / US-020：学员端套餐列表/详情需展示可选教练，购买流程需选择教练
+
 ---
 
 ## 15. 设计评审记录
@@ -386,8 +401,9 @@ And   package_template 表不新增记录
 | v1.1 | 2026-07-31 | 开发 | P1-13 修复：§5 #4 修正误引（原引用"体验课 FIFO 扣减规则"与本 US 正价套餐配置无关，改为引用 §4.1 套餐类型定义）；§4.1 步骤 4 / §7.1 / §14.1 明确"适用教练"字段为「单一教练绑定」模式（一个模板对应一个教练，非多选） |
 | v1.2 | 2026-08-11 | 开发 | 需求细化：新增默认未上架；新增教学类型、泳姿、原价、每节课时长、退款配置、标签、富文本描述、套餐展示图片等字段；补充异常分支与边界场景；估时待重新评定 |
 | v1.3 | 2026-08-11 | 开发 | 自定义套餐规则移除 `unit_price_floor`；总价由所选教练参考单价 × 课时数计算 |
-| v1.4 | 2026-08-11 | 开发 | 明确自定义套餐不需要描述、图片、标签等营销字段 |
+| v1.6 | 2026-08-13 | PM | 适用教练由「单一教练绑定」改为「多教练绑定」：§4.1、§4.3、§6.1、§7.1、§14.3、§14.5 同步调整；新增 `package_template_coach` 关联表；影响 US-019 / US-020 学员端购买流程 |
 | v1.5 | 2026-08-11 | 开发 | 新增套餐模式字段（正价套餐/体验课）；明确上下架编辑规则（已上架仅可查看/下架，未上架可查看/编辑/上架）；明确已购套餐保存模板快照 |
+| v1.4 | 2026-08-11 | 开发 | 明确自定义套餐不需要描述、图片、标签等营销字段 |
 
 ---
 

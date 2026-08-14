@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：2 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
-> **配套文档**：Figma：[A-订单管理页](../../figma/page-spec/A-order-management-page.md) / [A-订单详情页](../../figma/page-spec/A-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[A-订单管理页](../../figma/page-spec/A-order-management-page.md) / [A-订单详情弹窗](../../figma/page-spec/A-order-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -45,7 +45,7 @@
 2. 系统展示订单列表，默认按创建时间倒序，每页 20 条
 3. 列表同时展示「购买订单」与「退款订单」，通过 `order.type` 区分
 4. 管理员点击某订单查看详情
-5. 系统展示订单信息、支付/退款信息、关联套餐、状态时间轴
+5. 系统展示订单信息、金额信息、支付/退款信息、关联套餐
 6. 若为退款订单且状态为「退款审批中」，管理员可执行：
    - **通过退款**：填写/确认退款金额（可退金额仅作为参考，管理员可基于业务场景调整，需 ≥ 0） → 订单状态变为「退款处理中」→ 调用 Mock 退款渠道 → 回调成功后订单变为「已退款」，关联 package 变为 `refunded`
    - **驳回退款**：填写驳回原因 → 订单状态变为「退款被拒」→ 关联 package 自动恢复为 `active`
@@ -94,7 +94,7 @@ And   返回 HTTP 200
 ```gherkin
 Given 系统中存在一笔 order.type='purchase'，status='已支付' 的订单 O-001
 When  管理员点击订单 O-001 查看详情
-Then  详情页展示订单信息、支付信息、关联套餐、状态时间轴
+Then  详情页展示订单信息、金额信息、支付信息、关联套餐
 And   不展示通过/驳回按钮
 And   返回 HTTP 200
 ```
@@ -299,9 +299,9 @@ And   订单状态不变
 | # | 内容 | 链接 / node-id | 状态 |
 |---|------|---------------|------|
 | 1 | 订单管理页 page-spec | [A-order-management-page.md](../../figma/page-spec/A-order-management-page.md) | ✅ |
-| 2 | 订单详情页 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
+| 2 | 订单详情弹窗 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
 | 3 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| 4 | 订单详情弹窗 Figma file URL | 🔲 待设计填写 | 🔲 |
 | 5 | 退款审批弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
@@ -311,7 +311,7 @@ And   订单状态不变
 | 页面 | 空状态 | 加载状态 | 错误状态 | 成功状态 | 备注 |
 |------|--------|---------|---------|---------|------|
 | **订单管理页** | 🔲 | 🔲 | 🔲 | 🔲 | 空状态提示"暂无订单" |
-| **订单详情页** | — | 🔲 | 🔲 | 🔲 | 购买订单仅查看；退款订单展示审批按钮 |
+| **订单详情弹窗** | — | 🔲 | 🔲 | 🔲 | 购买订单仅查看；退款订单展示审批按钮 |
 
 ---
 

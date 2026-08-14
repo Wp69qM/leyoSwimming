@@ -13,10 +13,11 @@
 ```gherkin
 Given 管理员已登录且具有套餐配置权限
 And   系统中不存在名称为"暑期 10 节课"的标准套餐
-When  管理员提交标准套餐：名称="暑期 10 节课", 课时数=10, 有效期=180 天, 售价=3000.00, 状态=上架
+When  管理员提交标准套餐：名称="暑期 10 节课", 适用教练=[教练 A, 教练 B], 课时数=10, 有效期=180 天, 售价=3000.00, 状态=未上架
 Then  系统返回 HTTP 200 且 package_template 表新增 1 条记录
-And   该记录 status='active'，total_hours=10，price=3000.00
-And   前端列表展示"暑期 10 节课"且状态为"上架"
+And   package_template_coach 表新增 2 条记录，分别关联教练 A 与教练 B
+And   该记录 status='inactive'，total_hours=10，price=3000.00
+And   前端列表展示"暑期 10 节课"且状态为"未上架"
 ```
 
 #### Scenario: 新增标准套餐时名称重复

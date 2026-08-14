@@ -53,7 +53,7 @@ describe('PackageTemplateRepository', () => {
     const repo = new PackageTemplateRepository();
     const tpl = await repo.create({
       name: '暑期 10 节课',
-      coach_id: 1,
+      coach_ids: [1],
       total_hours: 10,
       valid_days: 180,
       price: 3000.00,
@@ -116,14 +116,14 @@ git commit -m "feat(package-template): add migration and repository"
 describe('PackageTemplateRepository validation', () => {
   it('rejects duplicate name', async () => {
     const repo = new PackageTemplateRepository();
-    await repo.create({ name: '暑期 10 节课', coach_id: 1, total_hours: 10, valid_days: 180, price: 3000, status: 1 });
-    await expect(repo.create({ name: '暑期 10 节课', coach_id: 2, total_hours: 8, valid_days: 120, price: 2400, status: 1 }))
+    await repo.create({ name: '暑期 10 节课', coach_ids: [1], total_hours: 10, valid_days: 180, price: 3000, status: 1 });
+    await expect(repo.create({ name: '暑期 10 节课', coach_ids: [2], total_hours: 8, valid_days: 120, price: 2400, status: 1 }))
       .rejects.toThrow('DUPLICATE_PACKAGE_NAME');
   });
 
   it('rejects invalid total_hours and price', async () => {
     const repo = new PackageTemplateRepository();
-    await expect(repo.create({ name: '非法套餐', coach_id: 1, total_hours: 0, valid_days: 180, price: -100, status: 1 }))
+    await expect(repo.create({ name: '非法套餐', coach_ids: [1], total_hours: 0, valid_days: 180, price: -100, status: 1 }))
       .rejects.toThrow('INVALID_PACKAGE_PARAM');
   });
 });
