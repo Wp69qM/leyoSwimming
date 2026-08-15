@@ -1,6 +1,6 @@
 # US-025 学员支付套餐订单
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
@@ -158,9 +158,9 @@ And   package 字段仍与订单快照一致
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/orders/{order_id}/pay` | POST | 新增 | 创建 payment 流水，调用 MockPaymentProvider 模拟渠道支付；成功时即时返回，并异步回调 |
-| 2 | `/api/payments/mock/callback` | POST | 新增 | Mock 渠道回调接口（开发/测试环境使用），幂等更新 order/package；正式环境由真实渠道回调替代 |
-| 3 | `/api/orders/{order_id}` | POST | 读取 | 查询订单支付状态 |
+| 1 | `/api/order/pay` | POST | 新增 | 创建 payment 流水，调用 MockPaymentProvider 模拟渠道支付；JSON body 传入 `orderId`、`channel`；成功时即时返回，并异步回调 |
+| 2 | `/api/payment/mock-callback` | POST | 新增 | Mock 渠道回调接口（开发/测试环境使用），JSON body 传入 `orderId`、`channelTradeNo`、`amount`、`success`；幂等更新 order/package；正式环境由真实渠道回调替代 |
+| 3 | `/api/order/detail` | POST | 读取 | 查询订单支付状态；JSON body 传入 `orderId` |
 
 ### 7.3 状态机影响
 
@@ -263,7 +263,7 @@ And   package 字段仍与订单快照一致
 
 ## 12. 备注
 
-- **幂等键**：`idempotency_key = order_id:pay:{timestamp}:{nonce}`，按订单维度去重
+- **幂等键**：`idempotencyKey = orderId:pay:{timestamp}:{nonce}`，按订单维度去重
 - **事务边界**：支付流水状态更新 + order 状态更新 + package 创建 在同一事务
 - **快照字段**：package 创建必须仅读取 order 中已保存的快照字段（package_name, package_mode, coach_id, coach_name, teaching_type, stroke_ids, total_hours, duration_minutes, valid_days, original_price, paid_amount, refund_enabled, refund_ratio, refund_valid_days），禁止回查 package_template
 - **MVP Hack**：购买支付通过 `MockPaymentProvider` 模拟，不调用真实微信/支付宝 SDK；用户侧点击「确认支付」后即时返回成功，并由 Mock 渠道回调更新订单状态。购买订单 order.type = purchase，与 US-027/US-046 的退款订单共用 `order` 表，管理员可在 US-046 订单管理中查看与处理
@@ -276,10 +276,9 @@ And   package 字段仍与订单快照一致
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 订单支付页 page-spec | [U-payment-page.md](../../figma/page-spec/U-payment-page.md) | ✅ |
-| 2 | 支付成功页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -323,7 +322,7 @@ And   package 字段仍与订单快照一致
 | v1.1 | 2026-07-31 | PM | P1 修复：§8 增加支付超时与候补转正并发竞争边界场景，明确使用同一分布式锁 |
 | v1.2 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
 | v1.3 | 2026-08-12 | PM | 适配 US-045：package 创建使用订单快照字段；§6 Gherkin 补充快照字段断言；§8 增加支付期间模板被修改/下架边界场景；§7.1/§12 更新数据表影响与备注 |
-| v1.4 | 2026-08-13 | PM | 支付改为 Mock 方式：不调用真实微信/支付宝 SDK，使用 MockPaymentProvider + `/api/payments/mock/callback`；订单增加 order.type = purchase 以与 US-046 管理员订单管理连通；同步 §2/§4/§5/§6/§7/§9/§12/§14 |
+| v1.4 | 2026-08-13 | PM | 支付改为 Mock 方式：不调用真实微信/支付宝 SDK，使用 MockPaymentProvider + `/api/payment/mock-callback`；订单增加 order.type = purchase 以与 US-046 管理员订单管理连通；同步 §2/§4/§5/§6/§7/§9/§12/§14 |
 
 ---
 

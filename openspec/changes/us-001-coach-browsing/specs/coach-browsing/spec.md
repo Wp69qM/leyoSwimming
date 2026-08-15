@@ -30,7 +30,7 @@ And   展示文案"暂无教练入驻，敬请期待"
 
 ```gherkin
 Given 系统有 5 名已通过（status=1）教练
-When  游客请求第 2 页（size=10）
+When  游客请求第 2 页（pageSize=10）
 Then  返回空数组 + HTTP 200
 ```
 

@@ -31,32 +31,64 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 
 ## API Design
 
-### GET /api/admin/refunds
+> 退款订单复用 US-046 的订单管理接口查看列表与详情；本 US 仅新增审批相关接口。
 
-- 鉴权：管理员
-- Query: `page`, `size`, `status`
-- Response 200: `{ items, total, page, size }`
+### POST /api/admin/order/list
 
-### GET /api/admin/refunds/{refund_id}
+- 鉴权：管理员登录 + `order:read`
+- Request：
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20,
+    "status": "refund_pending",
+    "coachId": 1,
+    "userId": 10001,
+    "startDate": "2026-08-01",
+    "endDate": "2026-08-31"
+  }
+  ```
+- Response 200: `{ items: OrderListItem[], total, page, pageSize }`
 
-- 鉴权：管理员
-- Response 200: `{ refund_id, order, package, payment, amount, reason, status, audit_log }`
-- Response 404: `REFUND_NOT_FOUND`
+### POST /api/admin/order/detail
 
-### POST /api/admin/refunds/{refund_id}/approve
+- 鉴权：管理员登录 + `order:read`
+- Request：
+  ```json
+  {
+    "orderId": 1
+  }
+  ```
+- Response 200: `{ orderId, type, status, amount, package, payment, refundRecords, auditLog }`
+- Response 404: `ORDER_NOT_FOUND`
 
-- 鉴权：管理员
-- Request: `{ amount?: number, remark?: string }`
-- Response 200: `{ refund_id, refund_transaction_id, status }`
+### POST /api/admin/order/approve-refund
+
+- 鉴权：管理员登录 + `order:write`
+- Request：
+  ```json
+  {
+    "orderId": 1,
+    "amount": 144000,
+    "remark": "同意退款"
+  }
+  ```
+- Response 200: `{ orderId, refundTransactionId, status }`
 - Response 400: `INVALID_REFUND_AMOUNT | REFUND_ALREADY_PROCESSED`
 - Response 403: `FORBIDDEN`
-- Response 404: `REFUND_NOT_FOUND`
+- Response 404: `ORDER_NOT_FOUND`
 
-### POST /api/admin/refunds/{refund_id}/reject
+### POST /api/admin/order/reject-refund
 
-- 鉴权：管理员
-- Request: `{ reason: string }`
-- Response 200: `{ refund_id, status: "管理员驳回" }`
+- 鉴权：管理员登录 + `order:write`
+- Request：
+  ```json
+  {
+    "orderId": 1,
+    "reason": "不符合退款条件"
+  }
+  ```
+- Response 200: `{ orderId, status: "refund_rejected" }`
 - Response 400: `REFUND_ALREADY_PROCESSED`
 - Response 403: `FORBIDDEN`
 
@@ -64,7 +96,7 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 
 | 层 | Key | TTL | 失效策略 |
 |----|-----|-----|---------|
-| 退款列表 | `admin:refunds:{status}:{page}:{size}` | 60s | 审批/驳回后删除 |
+| 退款列表 | `admin:refunds:{status}:{page}:{pageSize}` | 60s | 审批/驳回后删除 |
 | 订单详情 | `order:detail:{order_id}` | 300s | order 状态变更后删除 |
 | package | `package:{package_id}` | 300s | package 状态变更后删除 |
 

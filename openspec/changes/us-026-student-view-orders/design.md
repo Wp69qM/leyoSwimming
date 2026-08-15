@@ -43,33 +43,48 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 
 ## API Design
 
-### GET /api/orders
+### POST /api/order/list
 
-- 鉴权：必须登录
-- Query: `page`, `size`, `status`
-- Response 200: `{ items: OrderListItem[], total, page, size }`
-  - `OrderListItem` 包含 `package_mode` 字段，前端映射为"正价"/"体验课"标签
-  - 待支付订单额外返回 `remaining_seconds` 与 `actions: ["cancel_pay", "go_pay"]`
+- **鉴权**：必须登录
+- **Request**:
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20,
+    "status": "pending"
+  }
+  ```
+- **Response 200**: `{ items: OrderListItem[], total, page, pageSize }`
+  - `OrderListItem` 包含 `packageMode` 字段，前端映射为"正价"/"体验课"标签
+  - 待支付订单额外返回 `remainingSeconds` 与 `actions: ["cancel_pay", "go_pay"]`
   - 退款中订单额外返回 `actions: ["cancel_refund"]`
-  - 已退款订单额外返回 `refund_reason`
+  - 已退款订单额外返回 `refundReason`
 
-### GET /api/orders/{order_id}
+### POST /api/order/detail
 
-- 鉴权：必须登录且为订单所有者
-- Response 200: `{ order_id, status, amount, package_snapshot, package, coach, payment, refund, refund_reject_reason, remaining_seconds, actions }`
-  - `package_snapshot` 为购买时模板快照字段，不受 package_template 后续变更影响
-  - 待支付订单返回 `remaining_seconds` 与 `actions: ["cancel_pay", "go_pay"]`
+- **鉴权**：必须登录且为订单所有者
+- **Request**:
+  ```json
+  {
+    "orderId": 1
+  }
+  ```
+- **Response 200**: `{ orderId, status, amount, package, coach, payment, refund, refundRejectReason, remainingSeconds, actions }`
+  - `package` 为购买时模板快照字段，不受 packageTemplate 后续变更影响
+  - 待支付订单返回 `remainingSeconds` 与 `actions: ["cancel_pay", "go_pay"]`
   - 退款中订单返回 `actions: ["cancel_refund"]`
-  - 退款被拒订单返回 `refund_reject_reason`
-- Response 403: `ORDER_ACCESS_DENIED`
-- Response 404: `ORDER_NOT_FOUND`
+  - 退款被拒订单返回 `refundRejectReason`
+- **Response 403**: `ORDER_ACCESS_DENIED`
+- **Response 404**: `ORDER_NOT_FOUND`
 
 ## Caching
 
 | 层 | Key | TTL | 失效策略 |
 |----|-----|-----|---------|
-| Redis 列表 | `orders:list:{user_id}:{page}:{size}:{status}` | 60s | order 状态变更时删除 |
-| Redis 详情 | `order:detail:{order_id}` | 300s | order/payment/refund 变更时删除 |
+| Redis 列表 | `orders:list:{user_id}:{page}:{pageSize}:{status}` | 60s | order 状态变更时删除 |
+| Redis 详情 | `order:detail:{user_id}:{order_id}` | 300s | order/payment/refund 变更时删除 |
+
+> **安全约束**：订单详情缓存 Key 必须包含 `user_id`，防止跨用户越权读取缓存。读缓存前先校验 `order.user_id = current_user.id`。
 
 ## Performance Targets
 

@@ -29,7 +29,11 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | U-套餐列表页 2 | https://www.calicat.cn/design/2083742072257646592?node-id=91ffe836-c71f-4165-89c5-643e0c63271b |
+| 主页面（正常状态） | U-套餐列表页-正常 3 | https://www.calicat.cn/design/2083742072257646592?node-id=741b644a-06da-40a9-964c-4731e4f72da5 |
+| 冲突态 | U-套餐列表页-冲突态 3 | https://www.calicat.cn/design/2083742072257646592?node-id=ce8c73ff-6443-418c-8366-67e18286480a |
+| 已购体验课 | U-套餐列表页-已购体验课 2 | https://www.calicat.cn/design/2083742072257646592?node-id=b2215ddb-93bd-40bf-b864-d89621b13950 |
+| 空状态 | U-套餐列表页-空状态 3 | https://www.calicat.cn/design/2083742072257646592?node-id=6c2d4e8b-0fde-49b6-80d6-9dd185d20ee6 |
+| 加载/骨架屏 | U-套餐列表页-骨架屏 3 | https://www.calicat.cn/design/2083742072257646592?node-id=9404ce07-52bb-49be-b73f-65c757970538 |
 
 ---
 ## 2. 用户身份与业务状态维度

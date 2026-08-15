@@ -12,7 +12,7 @@
 
 ```gherkin
 Given 系统中存在 3 笔已支付订单
-When  管理员进入订单管理页并选择"已支付"筛选
+When  管理员提交 POST /api/admin/order/list，请求体 { "status": "paid", "page": 1, "pageSize": 20 }
 Then  列表展示 3 笔订单，每行展示订单号、学员、教练、金额、状态
 And   返回 HTTP 200
 ```
@@ -21,13 +21,13 @@ And   返回 HTTP 200
 
 ### Requirement: REQ-002 管理员查看订单详情
 
-系统 MUST 提供管理员订单详情查询接口。系统 MUST 返回订单支付信息、关联套餐、退款记录及争议标记。
+系统 MUST 提供管理员订单详情查询接口。系统 MUST 返回订单支付信息、关联套餐、退款记录。
 
 #### Scenario: 管理员查看订单详情
 
 ```gherkin
 Given 系统中存在订单 O-001，状态为"已支付"
-When  管理员点击订单 O-001 查看详情
+When  管理员提交 POST /api/admin/order/detail，请求体 { "orderId": 1 }
 Then  详情页展示订单 O-001 的支付流水、套餐信息、退款记录
 And   返回 HTTP 200
 ```
@@ -35,8 +35,8 @@ And   返回 HTTP 200
 #### Scenario: 查看不存在的订单
 
 ```gherkin
-Given 系统中不存在 id=99999 的订单
-When  管理员查看该订单详情
+Given 系统中不存在 orderId=99999 的订单
+When  管理员提交 POST /api/admin/order/detail，请求体 { "orderId": 99999 }
 Then  系统返回 HTTP 404
 And   返回错误码 ORDER_NOT_FOUND
 ```
@@ -51,8 +51,8 @@ And   返回错误码 ORDER_NOT_FOUND
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-001，paid_amount=2000.00
-When  管理员批准该退款（阶段 1 受理）
-Then  系统返回 HTTP 202 Accepted
+When  管理员提交 POST /api/admin/order/approve-refund，请求体 { "orderId": 1, "amount": 2000.00, "remark": "同意退款" }
+Then  系统返回 HTTP 200
 And   order.status 更新为"退款处理中"
 And   package.status 保持 frozen
 And   生成退款记录 refund.amount=2000.00，refund_transaction.status="处理中"
@@ -74,10 +74,10 @@ And   向学员发送退款到账通知
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-002
-When  管理员拒绝退款并填写原因"未提供有效凭证"
+When  管理员提交 POST /api/admin/order/reject-refund，请求体 { "orderId": 2, "reason": "未提供有效凭证" }
 Then  系统返回 HTTP 200
 And   order.status 更新为"退款被拒"
-And   package.status 保持"active"
+And   package.status 恢复"active"
 And   学员端显示"退款未通过，原因为：未提供有效凭证"
 ```
 
@@ -85,7 +85,7 @@ And   学员端显示"退款未通过，原因为：未提供有效凭证"
 
 ```gherkin
 Given 存在一笔状态为"已取消"的订单 C-001
-When  管理员尝试批准该订单退款
+When  管理员提交 POST /api/admin/order/approve-refund，请求体 { "orderId": 3, "amount": 1000.00 }
 Then  系统返回 HTTP 400
 And   返回错误码 ORDER_STATUS_INVALID
 And   订单状态不变
@@ -95,7 +95,7 @@ And   订单状态不变
 
 ```gherkin
 Given 存在一笔状态为"退款审批中"的订单 R-003，paid_amount=1000.00
-When  管理员提交退款金额 1200.00
+When  管理员提交 POST /api/admin/order/approve-refund，请求体 { "orderId": 3, "amount": 1200.00 }
 Then  系统返回 HTTP 400
 And   返回错误码 REFUND_AMOUNT_MISMATCH
 And   提示"退款金额不能超过已支付金额"
@@ -103,72 +103,7 @@ And   提示"退款金额不能超过已支付金额"
 
 ---
 
-### Requirement: REQ-004 管理员标记争议退款（不改变订单状态）
-
-系统 MUST 允许管理员将订单标记为「争议退款」（管理员侧标记异常入口）。系统 MUST 记录 `order.dispute_flag=true` 与 `dispute_reason`；该操作 MUST 自动生成一条关联该订单的客服工单（`support_ticket`，类型=退款申诉），并通知学员；该操作 MUST **不改变订单当前状态**。
-
-> **区分说明**（v7 评审 P0 修复）：本 REQ 描述的是「管理员侧标记异常」操作，仅生成 support_ticket 工单，**不改变订单状态**；与 PRD §6.10 的「用户提交特殊原因申诉进入争议退款处理中」是不同流程，后者由用户端发起并自动转换 order.status → 争议退款处理中（状态 5）。争议退款处理中状态的状态机转换见 REQ-006。
-
-#### Scenario: 管理员标记订单为争议退款并生成客服工单（不改变订单状态）
-
-```gherkin
-Given 管理员 M 已登录且具有订单管理权限
-And   存在一笔状态为"已支付"的订单 D-001，order_id=10001
-And   学员 U 为订单 D-001 的购买者
-When  管理员 M 将订单 D-001 标记为争议退款并填写原因"学员对扣课时有异议"
-Then  系统返回 HTTP 200
-And   order.dispute_flag=true
-And   order.dispute_reason="学员对扣课时有异议"
-And   order.status 保持"已支付"不变（本操作不改状态机，区别于 PRD §6.10 用户申诉）
-And   support_ticket 表新增 1 条记录，type=3（退款申诉），order_id=10001，status=0（pending）
-And   学员 U 收到争议标记通知
-```
-
----
-
-### Requirement: REQ-006 争议退款处理中状态机（PRD §6.2.2 状态 5 + §6.10）
-
-系统 MUST 支持订单「争议退款处理中」状态（PRD §6.2.2 状态 5）。当用户提交特殊原因申诉（24h 内取消被教练拒绝 / 2h 阈值内特殊原因，PRD §6.10）时，系统 MUST 自动将 order.status 从「已支付」转换为「争议退款处理中」。管理员 MUST 在 3 工作日内给出处理结果：批准申诉时 MUST 将 order.status 转为「已退款」并释放课时 + 触发退款（PRD §6.10.3）；拒绝申诉时 MUST 将 order.status 回退至「已支付」并保持原状态，UI 提示原因。
-
-#### Scenario: 用户提交特殊原因申诉进入争议退款处理中
-
-```gherkin
-Given 学员已登录，存在一笔状态为"已支付"的订单 O-001
-And   学员在 2h 阈值内提交特殊原因申诉，附原因与证明材料（PRD §6.10.1）
-When  用户提交争议退款申诉
-Then  系统返回 HTTP 200
-And   order.status 更新为"争议退款处理中"（状态 5，PRD §6.2.2）
-And   package 关联冻结约课（不可新增预约，已预约课程自动取消并释放课时，PRD §3.6）
-And   通知管理员 3 工作日内处理（PRD §6.10.2）
-```
-
-#### Scenario: 管理员批准争议退款申诉
-
-```gherkin
-Given 管理员 M 已登录且具有订单管理权限
-And   存在一笔状态为"争议退款处理中"的订单 O-001
-When  管理员 M 批准争议退款申诉（PRD §6.10.3）
-Then  系统返回 HTTP 200
-And   order.status 更新为"已退款"（释放课时 + 触发退款）
-And   package.status 更新为 refunded
-And   学员收到退款到账通知
-```
-
-#### Scenario: 管理员拒绝争议退款申诉
-
-```gherkin
-Given 管理员 M 已登录且具有订单管理权限
-And   存在一笔状态为"争议退款处理中"的订单 O-001
-When  管理员 M 拒绝争议退款申诉并填写原因"申诉材料不足"（PRD §6.10.3）
-Then  系统返回 HTTP 200
-And   order.status 回退为"已支付"（保持原状态）
-And   package.status 恢复 active（约课能力恢复）
-And   学员端显示"申诉未通过，原因为：申诉材料不足"
-```
-
----
-
-### Requirement: REQ-005 管理员订单权限控制
+### Requirement: REQ-004 管理员订单权限控制
 
 系统 MUST 对订单接口进行权限控制。无 `order:read` / `order:write` 权限的管理员 MUST 无法调用对应接口。
 
@@ -176,7 +111,7 @@ And   学员端显示"申诉未通过，原因为：申诉材料不足"
 
 ```gherkin
 Given 管理员已登录但无"订单管理"权限
-When  管理员调用 GET /api/admin/v1/orders
+When  管理员调用 POST /api/admin/order/list
 Then  系统返回 HTTP 403
 And   返回错误码 FORBIDDEN
 ```

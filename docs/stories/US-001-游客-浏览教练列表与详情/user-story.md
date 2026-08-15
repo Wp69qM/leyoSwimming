@@ -1,6 +1,6 @@
 # US-001 游客浏览教练列表与详情
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
@@ -248,14 +248,12 @@ Then  跳转至该教练的预约页面
 
 ## 13. Figma 链接
 
-> 本节提供 Figma file URL 与关键 frame 引用。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
+> 本节提供 page-spec 链接。Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 教练列表页 page-spec | [U-coach-list-page.md](../../figma/page-spec/U-coach-list-page.md) | ✅ |
 | 2 | 教练详情页 page-spec | [U-coach-detail-page.md](../../figma/page-spec/U-coach-detail-page.md) | ✅ |
-| 3 | 教练列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 教练详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -314,7 +312,7 @@ Then  跳转至该教练的预约页面
 
 | 交互 | 触发 | 反馈 | 备注 |
 |------|------|------|------|
-| 列表分页 | 滚动到底部 | 自动加载下一页（loading skeleton） | size=10 |
+| 列表分页 | 滚动到底部 | 自动加载下一页（loading skeleton） | pageSize=10 |
 | 列表下拉刷新 | 下拉手势 | 顶部 spinner + 重新拉取 |  |
 | 卡片点击 | tap | 右滑入详情页 |  |
 | 详情页返回 | tap 返回按钮 | 左滑出回列表 |  |

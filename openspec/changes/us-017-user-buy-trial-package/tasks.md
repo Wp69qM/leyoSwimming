@@ -13,7 +13,7 @@
 - [ ] **REFACTOR:** Extract eligibility rules
 - [ ] **COMMIT:** `feat(trial): add purchase eligibility and order creation`
 
-## Task 2: POST /api/orders/trial [P0]
+## Task 2: POST /api/order/trial [P0]
 
 **Files:**
 - Create: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
@@ -22,7 +22,7 @@
 - [ ] **RED:** 201 valid; 400 duplicate/unavailable; 401 guest
 - [ ] **GREEN:** Implement endpoint
 - [ ] **REFACTOR:** Share DTO schema
-- [ ] **COMMIT:** `feat(api): add POST /api/orders/trial`
+- [ ] **COMMIT:** `feat(api): add POST /api/order/trial`
 
 ## Task 3: Payment Callback [P0]
 

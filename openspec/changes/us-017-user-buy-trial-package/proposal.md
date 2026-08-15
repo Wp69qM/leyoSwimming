@@ -4,7 +4,7 @@
 
 ## What Changes
 
-- 新增体验课下单接口 `POST /api/orders/trial`
+- 新增体验课下单接口 `POST /api/order/trial`
 - 新增支付调起与回调处理
 - 新增体验套餐创建逻辑（1 节/30 天，同用户唯一）
 - 新增订单 24h 超时取消任务
@@ -25,6 +25,6 @@
 ## Impact
 
 - **数据表**：新增 `order`、`package`、`payment`、`agreement_sign` 记录
-- **API**：新增 3 个端点
+- **API**：新增 4 个端点
 - **任务**：新增超时取消任务
 - **依赖**：依赖 US-004 / US-011；被 US-018 依赖

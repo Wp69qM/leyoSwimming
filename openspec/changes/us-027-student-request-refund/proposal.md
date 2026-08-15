@@ -4,8 +4,8 @@
 
 ## What Changes
 
-- 新增 `GET /api/packages/{package_id}/refund/check`：查询学员退款资格与可退金额计算过程
-- 新增 `POST /api/packages/{package_id}/refund`：学员从「我的套餐」详情页提交退款申请
+- 新增 `POST /api/package/refund-check`：查询学员退款资格与可退金额计算过程
+- 新增 `POST /api/package/refund`：学员从「我的套餐」详情页提交退款申请
 - 新增 `refund_record` 表记录退款申请（金额、原因类型、说明、状态）
 - 提交退款时事务内执行：创建 refund_record(status=待审批) + order.status → 退款审批中 + package.status → frozen(refund_pending) + 释放 reserved_count → 0 + 自动取消已预约课程 + 触发 US-024 候补转正
 - 通过 package.status = frozen(refund_pending) 禁止审批期间新增预约

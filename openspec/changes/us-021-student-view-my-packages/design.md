@@ -23,8 +23,55 @@ CREATE INDEX idx_package_user_type ON package(user_id, package_type);
 
 ## API Design
 
-- `GET /api/users/me/packages`：我的套餐列表（分组）
-- `GET /api/coach/v1/packages/{package_id}`：教练视角套餐使用详情页数据；校验当前教练为 package.coach_id 且与学员存在关联
+### POST /api/user/package/list
+
+- **鉴权**：必须登录
+- **Request**:
+  ```json
+  {
+    "status": "active"
+  }
+  ```
+- **Response 200**:
+  ```json
+  {
+    "active": { "items": [...], "summary": { "totalHours", "consumedHours", "availableHours" } },
+    "exhausted": { "items": [...] },
+    "expired": { "items": [...] },
+    "refunded": { "items": [...] },
+    "frozen": { "items": [...] }
+  }
+  ```
+
+### POST /api/coach/package/detail
+
+- **鉴权**：教练 JWT，`coach.status = 1`
+- **Request**:
+  ```json
+  {
+    "packageId": 1
+  }
+  ```
+- **Response 200**:
+  ```json
+  {
+    "packageId": 1,
+    "userId": 10001,
+    "userName": "张小明",
+    "packageMode": "standard",
+    "status": "active",
+    "totalHours": 10,
+    "availableHours": 8,
+    "reservedHours": 2,
+    "consumedHours": 2,
+    "expireAt": "2026-10-01T00:00:00Z",
+    "usageRecords": [
+      { "id": 1, "lessonId": 101, "consumedHours": 1, "consumedAt": "2026-08-10T10:00:00Z" }
+    ]
+  }
+  ```
+- **Response 403**: `{ code: FORBIDDEN }`（package 不属于当前教练）
+- **Response 404**: `{ code: PACKAGE_NOT_FOUND }`
 
 ## Caching
 

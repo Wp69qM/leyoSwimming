@@ -25,10 +25,30 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 
 ## API Design
 
-- `POST /api/orders/trial`：创建体验课订单（校验协议勾选）
-- `POST /api/orders/{id}/pay`：调起支付
-- `POST /api/payments/callback`：支付回调（事务内更新订单、创建套餐、记录协议签署、更新身份）
-- `GET /api/agreements/status`：查询用户协议签署状态
+### POST /api/order/trial
+
+- **鉴权**：需登录
+- **Request Body**: `{ coachId }`
+- **Response 201**: 订单信息（不含 package，套餐在支付回调成功时创建）
+- **Response 400**: `TRIAL_PACKAGE_EXISTS` / `COACH_UNAVAILABLE`
+
+### POST /api/order/pay
+
+- **鉴权**：需登录
+- **Request Body**: `{ orderId, channel }`
+- **Response 200**: 调起支付参数
+
+### POST /api/payment/mock-callback
+
+- **鉴权**：Mock 支付平台签名
+- **Request Body**: `{ orderId, channelTradeNo, amount, success }`
+- **Response 200**: 成功
+
+### POST /api/agreement/status
+
+- **鉴权**：需登录
+- **Request Body**: `{}`
+- **Response 200**: 用户各协议签署状态
 
 ## Caching
 

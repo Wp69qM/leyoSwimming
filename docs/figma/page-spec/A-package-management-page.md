@@ -34,7 +34,7 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | A-套餐管理页 | https://www.calicat.cn/design/2083742072257646592?node-id=41ed84ce-e06e-4357-83d0-569237e0b810 |
+| 主页面 | 套餐管理页 2 | https://www.calicat.cn/design/2083742072257646592?node-id=056a39f5-3503-45ba-8d12-5ab1cc733df3 |
 
 ---
 ## 2. 状态维度

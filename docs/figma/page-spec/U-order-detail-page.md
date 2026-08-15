@@ -27,7 +27,11 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | U-订单详情页 | https://www.calicat.cn/design/2083742072257646592?node-id=37b330ef-cc5b-45f7-b958-6bc74aacae5c |
+| 主页面/已支付状态 | U-订单详情页-已支付 | https://www.calicat.cn/design/2083742072257646592?node-id=0560f340-66cf-4708-8590-05207588b715 |
+| 待支付状态 | U-订单详情页-待支付 | https://www.calicat.cn/design/2083742072257646592?node-id=ef67a61e-847d-4ed6-a70d-c4463bdecb42 |
+| 退款处理中状态 | U-订单详情页-退款处理中 | https://www.calicat.cn/design/2083742072257646592?node-id=da6edccd-84ba-45a2-ad5a-b205bb03f10f |
+| 已退款状态 | U-订单详情页-已退款 | https://www.calicat.cn/design/2083742072257646592?node-id=f859e054-9af7-4bc7-8218-6e5862457f8c |
+| 已取消状态 | U-订单详情页-已取消 | https://www.calicat.cn/design/2083742072257646592?node-id=5e3cce3b-8c4d-42f8-932b-bc2da600f95e |
 
 ---
 ## 2. 用户身份与业务状态维度

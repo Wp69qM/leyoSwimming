@@ -12,17 +12,17 @@
 
 ```gherkin
 Given 学员已登录且名下有多笔订单
-And   订单 A 的 package_mode = "standard"，status = 已支付
-And   订单 B 的 package_mode = "experience"，status = 已退款，refund_reason = "个人原因"
-And   订单 C 的 package_mode = "standard"，status = 待支付，剩余有效期 23 小时 30 分
-And   订单 D 的 package_mode = "standard"，status = 退款中
+And   订单 A 的 packageMode = "standard"，status = 已支付
+And   订单 B 的 packageMode = "experience"，status = 已退款，refundReason = "个人原因"
+And   订单 C 的 packageMode = "standard"，status = 待支付，剩余有效期 23 小时 30 分
+And   订单 D 的 packageMode = "standard"，status = 退款中
 When  学员请求「我的订单」列表
 Then  系统返回 HTTP 200
 And   items 按 created_at 倒序包含所有订单
-And   每笔订单包含 order_id、amount、status
-And   每笔订单包含 package_mode 字段，"standard" 映射为"正价"，"experience" 映射为"体验课"
-And   已完成订单（已支付/已退款）包含 refund_reason（仅已退款）
-And   待支付订单包含 remaining_seconds 与 actions ["cancel_pay", "go_pay"]
+And   每笔订单包含 orderId、amount、status
+And   每笔订单包含 packageMode 字段，"standard" 映射为"正价"，"experience" 映射为"体验课"
+And   已完成订单（已支付/已退款）包含 refundReason（仅已退款）
+And   待支付订单包含 remainingSeconds 与 actions ["cancel_pay", "go_pay"]
 And   退款中订单包含 actions ["cancel_refund"]
 ```
 
@@ -55,13 +55,13 @@ Then  系统返回 HTTP 403，错误码 ORDER_ACCESS_DENIED
 
 ```gherkin
 Given 学员已登录且存在 order.status = 已支付的订单
-And   该订单快照字段：package_name = "蛙泳基础 10 节", package_mode = "standard", coach_name = "王教练", teaching_type = "1v1", total_hours = 10, duration_minutes = 60, valid_days = 90, original_price = 2000, paid_amount = 1800, refund_enabled = true, refund_ratio = 0.8, refund_valid_days = 30
-And   对应 package_template 后续已被管理员修改为其他内容
+And   该订单快照字段：packageName = "蛙泳基础 10 节", packageMode = "standard", coachName = "王教练", teachingType = "1v1", totalHours = 10, durationMinutes = 60, validDays = 90, originalPrice = 2000, paidAmount = 1800, refundEnabled = true, refundRatio = 0.8, refundValidDays = 30
+And   对应 packageTemplate 后续已被管理员修改为其他内容
 When  学员请求该订单详情
 Then  系统返回 HTTP 200
 And   详情包含订单号、金额、支付时间、状态标签
-And   套餐信息区包含购买时快照：package_name、package_mode（显示"正价"）、coach_name、teaching_type、total_hours、duration_minutes、valid_days、original_price、paid_amount、退款规则
-And   套餐信息取值不受 package_template 后续变更影响
+And   套餐信息区包含购买时快照：packageName、packageMode（显示"正价"）、coachName、teachingType、totalHours、durationMinutes、validDays、originalPrice、paidAmount、退款规则
+And   套餐信息取值不受 packageTemplate 后续变更影响
 ```
 
 #### Scenario: 查看待支付订单详情

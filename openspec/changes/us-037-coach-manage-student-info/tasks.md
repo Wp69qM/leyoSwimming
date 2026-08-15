@@ -6,10 +6,10 @@
 
 ## 2. Core Implementation
 
-- [ ] 2.1 Implement `GET /api/coach/v1/students` to list associated students with US-005 avatar_url, name, gender, age, is_minor — maps to REQ-001 / Scenario: Successful view of associated student profile
-- [ ] 2.2 Implement `GET /api/coach/v1/students/{id}/profile` to return complete profile (`user_profile` read-only + `coach_slice` without guardian fields) — maps to REQ-001 / Scenario: Successful view of associated student profile
-- [ ] 2.3 Implement `PUT /api/coach/v1/students/{id}/profile` with field validation, accepting only coach-slice fields (learning_strokes, swim_level, basics, notes) and ignoring US-005 fields — maps to REQ-003 / Scenario: Successful update of student info with notes
-- [ ] 2.4 Implement `GET /api/coach/v1/students/{id}/packages` to return associated package cards sorted by purchase time descending, displaying remaining hours only — maps to REQ-002 / Scenario: Successful view of associated package cards
+- [ ] 2.1 Implement `POST /api/coach/student/list` to list associated students with US-005 avatarUrl, name, gender, age, isMinor — maps to REQ-001 / Scenario: Successful view of associated student list
+- [ ] 2.2 Implement `POST /api/coach/student/detail` to return complete profile (`userProfile` read-only + `coachSlice`) for request body `{ "studentId" }` — maps to REQ-001 / Scenario: Successful view of associated student profile
+- [ ] 2.3 Implement `POST /api/coach/student/update` with field validation, accepting only coach-slice fields (`learningStrokes`, `swimLevel`, `basics`, `notes`) plus `studentId` and `idempotencyKey`, and ignoring US-005 fields — maps to REQ-003 / Scenario: Successful update of student info with notes
+- [ ] 2.4 Implement `POST /api/coach/student/package/list` to return associated package cards sorted by purchase time descending, displaying remaining hours only, for request body `{ "studentId" }` — maps to REQ-002 / Scenario: Successful view of associated package cards
 - [ ] 2.5 Enforce association check for profile and packages APIs and return NOT_ASSOCIATED_STUDENT — maps to REQ-004 / Scenario: Coach attempts to view/edit/list non-associated student
 - [ ] 2.6 Add protection against modifying US-005 user-owned fields — maps to REQ-005 / Scenario: Coach attempts to modify read-only US-005 fields
 
@@ -17,7 +17,7 @@
 
 - [ ] 3.1 Escape `notes` and `basics` fields to prevent XSS
 - [ ] 3.2 Write audit_log entry on every profile update with before/after JSON
-- [ ] 3.3 Implement idempotency middleware using `idempotency_key`
+- [ ] 3.3 Implement idempotency middleware using `idempotencyKey` from request body
 
 ## 4. Performance
 
@@ -33,7 +33,7 @@
 - [ ] 5.3 Add notes input field for coach to add/edit remarks
 - [ ] 5.4 Build package card component showing package name, mode, validity, status label, and remaining hours only
 - [ ] 5.5 Integrate save API and display validation errors
-- [ ] 5.6 On package card click, navigate to US-021 coach-view package usage detail page with `package_id`
+- [ ] 5.6 On package card click, navigate to US-021 coach-view package usage detail page with `packageId`
 
 ## 6. Verification
 

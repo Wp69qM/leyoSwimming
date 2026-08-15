@@ -13,7 +13,7 @@
 - [ ] **REFACTOR:** Extract eligibility rules
 - [ ] **COMMIT:** `feat(trial): add trial purchase eligibility and order creation`
 
-## Task 2: POST /api/orders/trial [P0]
+## Task 2: POST /api/order/trial [P0]
 
 **Files:**
 - Create: `backend/src/controllers/order.ts`
@@ -23,20 +23,49 @@
 - [ ] **RED:** 201 for valid; 400 for duplicate/unavailable coach; 401 for guest
 - [ ] **GREEN:** Implement endpoint with auth and validation
 - [ ] **REFACTOR:** Share order DTO schema
-- [ ] **COMMIT:** `feat(api): add POST /api/orders/trial`
+- [ ] **COMMIT:** `feat(api): add POST /api/order/trial`
 
-## Task 3: Payment Callback [P0]
+## Task 3: POST /api/order/pay [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
+- Test: `backend/tests/controllers/order.test.ts`
+
+**Spec coverage:** 发起 Mock 支付，返回支付参数
+
+- [ ] **RED:** 200 with mock payment params for valid order; 400 ORDER_EXPIRED; 404 ORDER_NOT_FOUND; 401 guest
+- [ ] **GREEN:** Implement endpoint calling `MockPaymentProvider.pay(orderId, channel)`
+- [ ] **REFACTOR:** Share payment creation logic with formal purchase flow
+- [ ] **COMMIT:** `feat(api): add POST /api/order/pay`
+
+## Task 4: POST /api/payment/mock-callback [P0]
 
 **Files:**
 - Create: `backend/src/services/payment-callback.ts`
-- Test: `backend/tests/services/payment-callback.test.ts`
+- Create/Modify: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
+- Test: `backend/tests/services/payment-callback.test.ts`, `backend/tests/controllers/order.test.ts`
 
-- [ ] **RED:** Callback updates order to paid, activates package, promotes user to student; idempotent
-- [ ] **GREEN:** Implement callback handler with signature verification
+**Spec coverage:** Mock 渠道回调入口 + 事务内更新订单/创建套餐/更新身份
+
+- [ ] **RED:** Controller returns 200 `{ code: "SUCCESS" }` on valid callback; service updates order to paid, activates package, promotes user to student; idempotent duplicate callback returns same response
+- [ ] **GREEN:** Implement `POST /api/payment/mock-callback` controller and callback handler with signature verification
 - [ ] **REFACTOR:** Extract payment provider adapter
-- [ ] **COMMIT:** `feat(payment): add trial payment callback`
+- [ ] **COMMIT:** `feat(api): add POST /api/payment/mock-callback`
 
-## Task 4: Timeout Cancel Job [P1]
+## Task 5: POST /api/agreement/status [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
+- Test: `backend/tests/controllers/order.test.ts`
+
+**Spec coverage:** 查询协议签署状态
+
+- [ ] **RED:** 200 with signed status for required agreements; 200 with unsigned flag when any agreement missing
+- [ ] **GREEN:** Implement endpoint to query 用户须知 / 健康承诺书 / 免责协议 sign status
+- [ ] **REFACTOR:** Share agreement status helper with trial purchase service
+- [ ] **COMMIT:** `feat(api): add POST /api/agreement/status`
+
+## Task 5: Timeout Cancel Job [P1]
 
 **Files:**
 - Create: `backend/src/jobs/cancel-unpaid-orders.ts`
@@ -51,6 +80,6 @@
 
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder

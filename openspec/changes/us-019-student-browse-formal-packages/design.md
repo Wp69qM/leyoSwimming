@@ -40,73 +40,93 @@ CREATE INDEX idx_coach_package_template_coach ON coach_package_template(coach_id
 
 ## API Design
 
-### POST /api/packages/list
+### POST /api/package/list
 
 - **鉴权**：否（游客可访问）
-- **Body**：`{}` 或分页参数
+- **Request**:
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20
+  }
+  ```
 - **Response 200**:
   ```json
   {
-    "packages": [
-      { "id": 1, "package_mode": "experience", "name": "体验课", "hours": 1, "price": 9900, "validity_days": 30 },
-      { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 },
-      { "id": 3, "package_mode": "custom", "name": "自定义课时", "hours": null, "price": null, "validity_days": null }
-    ]
+    "items": [
+      { "id": 1, "name": "体验课", "packageMode": "experience", "hours": 1, "price": 20000, "originalPrice": 30000, "teachingType": "one_on_one", "durationMinutes": 60, "validityDays": 30 },
+      { "id": 2, "name": "标准 6 节", "packageMode": "standard", "hours": 6, "price": 108000, "originalPrice": 120000, "teachingType": "one_on_one", "durationMinutes": 60, "validityDays": 90 }
+    ],
+    "total": 10,
+    "page": 1,
+    "pageSize": 20
   }
   ```
 
-### POST /api/coach/packages/list
+### POST /api/coach/package/list
 
 - **鉴权**：否（游客可访问）
-- **Body**：`{ "coach_id": 1 }`
+- **Request**:
+  ```json
+  {
+    "coachId": 1
+  }
+  ```
 - **Response 200**:
   ```json
   {
-    "coach_id": 1,
-    "coach_status": 1,
-    "reference_price": 20000,
-    "packages": [
-      { "id": 1, "package_mode": "experience", "name": "体验课", "hours": 1, "price": 9900, "validity_days": 30 },
-      { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 }
+    "coachId": 1,
+    "coachStatus": 1,
+    "referencePrice": 20000,
+    "standardPackages": [
+      { "id": 1, "hours": 1, "price": 20000, "validityDays": 30 },
+      { "id": 2, "hours": 6, "price": 108000, "validityDays": 90 },
+      { "id": 3, "hours": 8, "price": 144000, "validityDays": 120 },
+      { "id": 4, "hours": 10, "price": 180000, "validityDays": 150 }
     ],
-    "custom_package_enabled": true,
-    "custom_hours_min": 1,
-    "custom_hours_max": 50
+    "customPackageEnabled": true,
+    "customHoursMin": 1,
+    "customHoursMax": 50
   }
   ```
 - **Response 404**: `{ code: COACH_NOT_FOUND }`
 
-### POST /api/packages/detail
+### POST /api/package/detail
 
 - **鉴权**：否（游客可访问）
-- **Body**：`{ "package_id": 2 }` 或 `{ "package_id": 2, "coach_id": 1 }`
-- **Response 200（全局入口，未传 coach_id）**:
+- **Request**:
   ```json
   {
-    "package": { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 },
-    "coaches": [
-      { "id": 1, "avatar_url": "...", "name": "教练 A", "rating": 4.8, "strokes": ["自由泳", "蛙泳"], "teaching_years": 5, "total_students": 120 },
-      { "id": 2, "avatar_url": "...", "name": "教练 B", "rating": 4.5, "strokes": ["蝶泳"], "teaching_years": 3, "total_students": 80 }
-    ]
+    "packageId": 1,
+    "coachId": 1
   }
   ```
-- **Response 200（教练详情页入口，传入 coach_id）**:
+- **Response 200**:
   ```json
   {
-    "package": { "id": 2, "package_mode": "standard", "name": "标准 6 节", "hours": 6, "price": 108000, "validity_days": 90 },
-    "coach": { "id": 1, "avatar_url": "...", "name": "教练 A", "rating": 4.8, "strokes": ["自由泳", "蛙泳"], "teaching_years": 5, "total_students": 120 }
+    "id": 1,
+    "name": "标准 6 节",
+    "packageMode": "standard",
+    "hours": 6,
+    "price": 108000,
+    "originalPrice": 120000,
+    "teachingType": "one_on_one",
+    "durationMinutes": 60,
+    "validityDays": 90,
+    "refundPolicySummary": "未消费全额退",
+    "applicableCoaches": [
+      { "coachId": 1, "name": "教练 A", "avatarUrl": "..." }
+    ]
   }
   ```
 - **Response 404**: `{ code: PACKAGE_NOT_FOUND }`
 
 ### 业务规则
 
-- 仅返回 `coach.status = 1`（已通过且可约）的教练
-- `reference_price` 为空时 `custom_package_enabled = false`
-- 标准套餐仅返回 `package_template.status = active`（启用）的记录
-- 教练不可约（离职/冻结）时统一返回 404 `COACH_NOT_FOUND`
-- 全局列表不过滤教练，返回所有已上架套餐
-- 套餐详情页根据 `coach_id` 参数返回当前教练信息或适配教练列表
+- 仅返回 `coach.status IN (1, 4)` 的教练
+- `referencePrice` 为空时 `customPackageEnabled = false`
+- 标准套餐仅返回 `status = 1`（启用）的记录
+- `applicableCoaches` 在未传 `coachId` 时返回全部适配教练；传入 `coachId` 时仅返回当前教练信息
 
 ## Caching
 

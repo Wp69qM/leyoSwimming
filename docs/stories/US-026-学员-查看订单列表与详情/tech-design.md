@@ -34,16 +34,31 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 
 ## 2. API 设计
 
-### 2.1 GET /api/orders
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/order/list
 
 - **鉴权**：必须登录
-- **Query**: `page`, `size`, `status`
-- **Response 200**: `{ items: OrderListItem[], total, page, size }`
+- **Request**:
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20,
+    "status": "pending"
+  }
+```
+- **Response 200**: `{ items: OrderListItem[], total, page, pageSize }`
 
-### 2.2 GET /api/orders/{order_id}
+### 2.2 POST /api/order/detail
 
 - **鉴权**：必须登录且为订单所有者
-- **Response 200**: `{ order_id, status, amount, package, coach, payment, refund }`
+- **Request**:
+  ```json
+  {
+    "orderId": 1
+  }
+  ```
+- **Response 200**: `{ orderId, status, amount, package, coach, payment, refund }`
 - **Response 403**: `ORDER_ACCESS_DENIED`
 - **Response 404**: `ORDER_NOT_FOUND`
 
@@ -55,7 +70,7 @@ CREATE INDEX idx_order_user_created ON order(user_id, created_at DESC);
 
 | 层 | Key | TTL | 失效策略 |
 |----|-----|-----|---------|
-| Redis 订单列表 | `orders:list:{user_id}:{page}:{size}:{status}` | 60s | order 状态变更时删除 |
+| Redis 订单列表 | `orders:list:{user_id}:{page}:{pageSize}:{status}` | 60s | order 状态变更时删除 |
 | Redis 订单详情 | `order:detail:{user_id}:{order_id}` | 300s | order/payment/refund 变更时删除 |
 
 > **安全约束**：订单详情缓存 Key 必须包含 `user_id`，防止跨用户越权读取缓存。读缓存前先校验 `order.user_id = current_user.id`。

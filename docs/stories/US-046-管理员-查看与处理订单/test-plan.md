@@ -18,12 +18,11 @@
 |------|------|--------|--------------|
 | 1 | Order Repository 查询与退款状态校验 | P0 | §6.1, §6.2, §6.6 |
 | 2 | Refund Service 批准/拒绝退款 | P0 | §6.3, §6.5, §6.7 |
-| 3 | GET /api/admin/orders 列表 API | P0 | §6.1 |
-| 4 | GET /api/admin/orders/:id 详情 API | P0 | §6.2 |
-| 5 | POST /api/admin/orders/:id/approve-refund | P0 | §6.3, §6.6, §6.7 |
-| 6 | POST /api/admin/orders/:id/reject-refund | P0 | §6.5 |
-| 7 | POST /api/admin/orders/:id/mark-dispute | P0 | §6.8 |
-| 8 | 订单缓存与幂等 | P1 | §6.1, §6.3 |
+| 3 | POST /api/admin/order/list 列表 API | P0 | §6.1 |
+| 4 | POST /api/admin/order/detail 详情 API | P0 | §6.2 |
+| 5 | POST /api/admin/order/approve-refund | P0 | §6.3, §6.6, §6.7 |
+| 6 | POST /api/admin/order/reject-refund | P0 | §6.5 |
+| 7 | 订单缓存与幂等 | P1 | §6.1, §6.3 |
 
 ---
 
@@ -46,7 +45,7 @@ import { AdminOrderRepository } from '../../src/repositories/adminOrder';
 describe('AdminOrderRepository', () => {
   it('lists orders with pagination and status filter', async () => {
     const repo = new AdminOrderRepository();
-    const result = await repo.list({ page: 1, size: 20, status: 2 }); // 2=已支付
+    const result = await repo.list({ page: 1, pageSize: 20, status: 2 }); // 2=已支付
     expect(result.items.length).toBeLessThanOrEqual(20);
   });
 
@@ -73,7 +72,7 @@ describe('AdminOrderRepository', () => {
 
 ---
 
-### Task 3: GET /api/admin/orders 列表 API [P0]
+### Task 3: POST /api/admin/order/list 列表 API [P0]
 
 **Files:**
 - Create: `backend/src/controllers/admin/order.ts`
@@ -82,11 +81,11 @@ describe('AdminOrderRepository', () => {
 
 **对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1管理员查看订单列表与详情)
 
-- [ ] **Step 1-6**: 实现列表查询；commit：`feat(admin): add GET /orders`
+- [ ] **Step 1-6**: 实现列表查询；commit：`feat(admin): add POST /api/admin/order/list`
 
 ---
 
-### Task 4: GET /api/admin/orders/:id 详情 API [P0]
+### Task 4: POST /api/admin/order/detail 详情 API [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/admin/order.ts`
@@ -95,11 +94,11 @@ describe('AdminOrderRepository', () => {
 
 **对应 GWT**：[§6.2 场景 2](./user-story.md#62-场景-2管理员查看订单详情)
 
-- [ ] **Step 1-6**: 实现详情查询；commit：`feat(admin): add GET /orders/:id`
+- [ ] **Step 1-6**: 实现详情查询；commit：`feat(admin): add POST /api/admin/order/detail`
 
 ---
 
-### Task 5: POST /api/admin/orders/:id/approve-refund [P0]
+### Task 5: POST /api/admin/order/approve-refund [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/admin/order.ts`
@@ -108,11 +107,11 @@ describe('AdminOrderRepository', () => {
 
 **对应 GWT**：[§6.3 场景 3](./user-story.md#63-场景-3管理员批准退款受理成功)、[§6.6 场景 6](./user-story.md#66-场景-6管理员对非退款审批中订单执行退款)、[§6.7 场景 7](./user-story.md#67-场景-7退款金额超过已支付金额)
 
-- [ ] **Step 1-6**: 实现批准退款接口；commit：`feat(admin): add approve-refund endpoint`
+- [ ] **Step 1-6**: 实现批准退款接口；commit：`feat(admin): add POST /api/admin/order/approve-refund`
 
 ---
 
-### Task 6: POST /api/admin/orders/:id/reject-refund [P0]
+### Task 6: POST /api/admin/order/reject-refund [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/admin/order.ts`
@@ -121,24 +120,11 @@ describe('AdminOrderRepository', () => {
 
 **对应 GWT**：[§6.5 场景 5](./user-story.md#65-场景-5管理员拒绝退款)
 
-- [ ] **Step 1-6**: 实现拒绝退款接口；commit：`feat(admin): add reject-refund endpoint`
+- [ ] **Step 1-6**: 实现拒绝退款接口；commit：`feat(admin): add POST /api/admin/order/reject-refund`
 
 ---
 
-### Task 7: POST /api/admin/orders/:id/mark-dispute [P0]
-
-**Files:**
-- Modify: `backend/src/controllers/admin/order.ts`
-- Modify: `backend/src/routes/admin/order.ts`
-- Modify: `backend/tests/controllers/admin/order.test.ts`
-
-**对应 GWT**：[§6.8 场景 8](./user-story.md#68-场景-8管理员标记订单为争议退款并生成客服工单)
-
-- [ ] **Step 1-6**: 实现标记争议退款接口，校验订单状态、写入 `order.dispute_flag` / `dispute_reason`、生成 `support_ticket`、通知学员；commit：`feat(admin): add mark-dispute endpoint`
-
----
-
-### Task 8: 订单缓存与幂等 [P1]
+### Task 7: 订单缓存与幂等 [P1]
 
 **Files:**
 - Modify: `backend/src/repositories/adminOrder.ts`
@@ -153,7 +139,7 @@ describe('AdminOrderRepository', () => {
 
 ## 3. 任务执行纪律
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6 → 7
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder
 - P0 必做，P1 视进度

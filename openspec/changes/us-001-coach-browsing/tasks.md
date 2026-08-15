@@ -12,7 +12,7 @@
 **Spec coverage:** REQ-001 Scenarios "正常浏览教练列表", "申请离职中教练仍可见且无标签"
 
 - [ ] **RED:** Write failing tests — `findPublicList` returns active coaches sorted by rating DESC with pagination; includes status=4 coaches and excludes status=0/2/3
-- [ ] **GREEN:** Implement `CoachRepository.findPublicList({ page, size })` — extract `PUBLIC_COACH_STATUSES = [1, 4]` and use `WHERE status IN (1, 4) ORDER BY rating DESC LIMIT/OFFSET`
+- [ ] **GREEN:** Implement `CoachRepository.findPublicList({ page, pageSize })` — extract `PUBLIC_COACH_STATUSES = [1, 4]` and use `WHERE status IN (1, 4) ORDER BY rating DESC LIMIT/OFFSET`
 - [ ] **REFACTOR:** Move `PUBLIC_COACH_STATUSES` to module-level constant and reuse it in list query and count query
 - [ ] **COMMIT:** `feat(coach): add public list query with rating sort and status filter`
 

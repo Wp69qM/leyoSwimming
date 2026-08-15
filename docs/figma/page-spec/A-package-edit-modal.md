@@ -29,7 +29,8 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | 🔲 待设计填写 | 🔲 待设计填写 |
+| 新增模式 | 新增标准套餐弹窗 | https://www.calicat.cn/design/2083742072257646592?node-id=7b86c5c2-bfac-4f8e-9f66-c65fd943040b |
+| 编辑模式 | 编辑标准套餐弹窗 | https://www.calicat.cn/design/2083742072257646592?node-id=ec3b9b05-da16-4bf6-a9e9-a5b8c65baa1b |
 
 ***
 

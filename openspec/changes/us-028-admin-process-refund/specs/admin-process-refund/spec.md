@@ -4,18 +4,18 @@
 
 ## ADDED Requirements
 
-### Requirement: REQ-028-1 管理员查看退款申请列表与详情
+### Requirement: REQ-028-1 管理员通过 US-046 订单接口查看退款申请列表与详情
 
-系统 MUST 提供管理端退款申请列表与详情接口，仅允许具有退款管理权限的管理员访问。列表 MUST 支持按状态筛选与分页，详情 MUST 展示订单、套餐消耗、支付渠道及可退金额计算过程。
+系统 MUST 提供退款订单列表与详情查询能力，复用 US-046 的 `/api/admin/order/list` 与 `/api/admin/order/detail`，仅允许具有退款管理权限的管理员访问。列表 MUST 支持按状态筛选与分页，详情 MUST 展示订单、套餐消耗、支付渠道及可退金额计算过程。
 
 #### Scenario: 正常查看退款列表
 
 ```gherkin
 Given 管理员已登录
-And   存在 2 条待审批退款申请
-When  管理员请求退款列表
+And   存在 2 条待审批退款订单，order.status = 退款审批中
+When  管理员请求 POST /api/admin/order/list，请求体 { "status": "refund_pending", "page": 1, "pageSize": 20 }
 Then  系统返回 2 条记录
-And   每条记录包含 refund_id、order_id、amount、status
+And   每条记录包含 orderId、type、status、amount
 And   HTTP 状态码 = 200
 ```
 
@@ -23,7 +23,7 @@ And   HTTP 状态码 = 200
 
 ```gherkin
 Given 普通学员已登录
-When  学员请求管理端退款列表
+When  学员请求 POST /api/admin/order/list
 Then  系统返回 HTTP 403，错误码 FORBIDDEN
 ```
 
@@ -35,12 +35,12 @@ Then  系统返回 HTTP 403，错误码 FORBIDDEN
 
 ```gherkin
 Given 管理员已登录
-And   存在 refund.status = 待审批，amount = 1440 分的退款申请
-And   对应 order.status = 退款审批中，package.status = frozen（refund_pending），package.booking_frozen = true
+And   存在 order.status = 退款审批中，paid_amount = 1440 分的订单
+And   对应 package.status = frozen（refund_pending），package.booking_frozen = true
 And   原支付渠道为微信支付
-When  管理员批准该退款并将金额调整为 1500 分（大于可退金额）
+When  管理员提交 POST /api/admin/order/approve-refund，请求体 { "orderId": 1, "amount": 1500, "remark": "协商退款" }
 Then  系统记录 audit_log 含调整原因
-And   refund_record.amount 与退款订单 paid_amount 更新为 1500 分
+And   refund_record.amount 更新为 1500 分
 And   系统创建 refund_transaction.status = 处理中
 And   order.status = 退款处理中
 And   package.status = frozen（refund_pending，保持）
@@ -56,7 +56,7 @@ And   HTTP 状态码 = 200
 
 ```gherkin
 Given 订单已退款成功，order.status = 已退款，package.status = refunded
-When  管理员再次批准同一退款
+When  管理员再次提交 POST /api/admin/order/approve-refund，请求体 { "orderId": 1 }
 Then  系统返回 HTTP 200
 And   不重复创建 refund_transaction
 And   order.status 仍为已退款
@@ -67,10 +67,10 @@ And   package.status 仍为 refunded
 
 ```gherkin
 Given 管理员已登录
-And   存在 refund.status = 待审批，amount = 1440 分的退款申请
-And   对应 order.status = 退款审批中，package.status = frozen（refund_pending），package.booking_frozen = true
+And   存在 order.status = 退款审批中，paid_amount = 1440 分的订单
+And   对应 package.status = frozen（refund_pending），package.booking_frozen = true
 And   微信退款接口返回失败
-When  管理员批准该退款
+When  管理员提交 POST /api/admin/order/approve-refund，请求体 { "orderId": 1, "amount": 1440 }
 Then  系统创建 refund_transaction.status = 失败
 And   order.status = 退款审批中
 And   package.status = frozen（refund_pending，保持）
@@ -87,10 +87,9 @@ And   HTTP 状态码 = 200
 
 ```gherkin
 Given 管理员已登录
-And   存在 refund.status = 待审批
-And   order.status = 退款审批中
+And   存在 order.status = 退款审批中
 And   package.status = frozen（refund_pending）
-When  管理员驳回该退款并填写原因"资料不足"
+When  管理员提交 POST /api/admin/order/reject-refund，请求体 { "orderId": 1, "reason": "资料不足" }
 Then  order.status = 退款被拒（7）
 And   package.status = active（解冻，frozen_reason 清空）
 And   package.booking_frozen = false

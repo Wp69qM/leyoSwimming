@@ -44,7 +44,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
   - `pageSize`（int，默认 10，最大 50）
 - 排序：`rating DESC`
 - 过滤：`status IN (1, 4)`（status=0/2/3 不返回；status=4 不展示任何状态标签）
-- Response 200: `{ items: CoachListItem[], total, page, size }`
+- Response 200: `{ items: CoachListItem[], total, page, pageSize }`
 - CoachListItem 字段：`id`, `name`, `status`, `avatar`, `rating`, `yearsOfTeaching`, `teachingStrokes`, `realTimeStatus`
 - 空列表也返回 200 + `items: []`
 
@@ -64,7 +64,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
 
 | 层 | Key | TTL | 失效策略 |
 |----|-----|-----|---------|
-| Redis（列表）| `coaches:list:page:{page}:size:{size}` | 60s | coach.status / real_time_status 变更时 MQ 广播失效 |
+| Redis（列表）| `coaches:list:page:{page}:pageSize:{pageSize}` | 60s | coach.status / real_time_status 变更时 MQ 广播失效 |
 | Redis（详情）| `coach:detail:{id}` | 300s | coach / certificate / review / availability 变更时失效 |
 | 小程序本地 | `Taro.setStorageSync('coaches_list')` | 首次进入先展示缓存 → 后台静默刷新 | — |
 

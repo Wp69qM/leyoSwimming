@@ -26,7 +26,7 @@
 - [ ] **REFACTOR:** Extract notification helper
 - [ ] **COMMIT:** `feat(refund): add refund submission service`
 
-## Task 3: Refund APIs [P0]
+## Task 3: POST /api/package/refund-check & POST /api/package/refund [P0]
 
 **Files:**
 - Create: `backend/src/controllers/refund.ts`, `backend/src/routes/refund.ts`
@@ -34,10 +34,10 @@
 
 **Spec coverage:** 2 个 API 端点
 
-- [ ] **RED:** GET /refund/check returns 200 with eligibility; POST /refund returns 201; 400 for each error code; 401 guest; 403 non-owner
+- [ ] **RED:** POST /api/package/refund-check returns 200 with eligibility; POST /api/package/refund returns 201; 400 for each error code; 401 guest; 403 non-owner
 - [ ] **GREEN:** Implement endpoints
 - [ ] **REFACTOR:** Share DTO
-- [ ] **COMMIT:** `feat(api): add refund endpoints`
+- [ ] **COMMIT:** `feat(api): add POST /api/package/refund-check and POST /api/package/refund`
 
 ---
 

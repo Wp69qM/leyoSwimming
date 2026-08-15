@@ -1,0 +1,9 @@
+﻿{
+  "content": [
+    {
+      "text": "{\"result\":{\"canvas_list\":[{\"canvas_id\":\"2083742072270229504\",\"name\":\"用户侧\"},{\"canvas_id\":\"ea7ec847-47bc-492e-a4b0-d86d9190d702\",\"name\":\"教练侧\"},{\"canvas_id\":\"907e32fc-e559-4013-afc5-9c8144f18cc6\",\"name\":\"后台管理侧\"}]},\"status\":\"success\"}",
+      "type": "text"
+    }
+  ],
+  "isError": false
+}

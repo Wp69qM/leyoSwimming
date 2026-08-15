@@ -4,12 +4,12 @@
 
 ## What Changes
 
-- 新增 `POST /api/packages/list` 查询全局已上架套餐列表（首页/全部套餐入口）
-- 新增 `POST /api/coach/packages/list` 查询指定教练的套餐选项（教练详情页入口）
-- 新增 `POST /api/packages/detail` 查询单个套餐模板详情，返回适配教练列表（全局入口）或当前教练信息（教练详情页入口）
+- 新增 `POST /api/package/list` 查询全局已上架套餐列表（首页/全部套餐入口）
+- 新增 `POST /api/coach/package/list` 查询指定教练的套餐选项（教练详情页入口）
+- 新增 `POST /api/package/detail` 查询单个套餐模板详情，返回适配教练列表（全局入口）或当前教练信息（教练详情页入口）
 - 新增标准套餐/体验课/自定义套餐读取（管理员配置）
 - 新增教练参考单价读取与自定义课时入口开关
-- 新增教练状态可见性校验（仅 `coach.status = 1` 可浏览）
+- 新增教练状态可见性校验（仅 `coach.status IN (1, 4)` 可浏览）
 - 新增标准套餐模板过滤（`package_template.status = active`）
 - 新增当前教练可约性校验（未离职、未冻结）
 - 新增 5 分钟缓存与限流防护

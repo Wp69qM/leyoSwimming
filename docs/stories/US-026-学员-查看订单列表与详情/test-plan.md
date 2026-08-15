@@ -13,16 +13,16 @@
 - [ ] **REFACTOR:** Extract reusable order DTO mapper
 - [ ] **COMMIT:** `feat(order): add order query service`
 
-## Task 2: GET /api/orders & GET /api/orders/{id} [P0]
+## Task 2: POST /api/order/list & POST /api/order/detail [P0]
 
 **Files:**
 - Create: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
 - Test: `backend/tests/controllers/order.test.ts`
 
-- [ ] **RED:** Write failing tests — 200 list with pagination; 200 detail; 403 forbidden; 404 not found; 401 guest
+- [ ] **RED:** Write failing tests — 200 list with pagination (POST /api/order/list); 200 detail (POST /api/order/detail); 403 forbidden; 404 not found; 401 guest
 - [ ] **GREEN:** Implement controllers + routes
 - [ ] **REFACTOR:** Share pagination parsing
-- [ ] **COMMIT:** `feat(api): add order list and detail endpoints`
+- [ ] **COMMIT:** `feat(api): add POST /api/order/list and POST /api/order/detail`
 
 ## Task 3: 微信小程序订单列表/详情页 [P1]
 

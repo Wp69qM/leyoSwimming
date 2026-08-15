@@ -25,7 +25,8 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 | ---------- | --------------- | ------ |
-| 主页面 | C-我的学员列表页 | https:www.calicat.cn/design/2083742072257646592?node-id=37dbffc0-47ce-4616-936f-2b8d14bd6a0f |
+| 活跃学员 Tab | C-我的学员列表页-活跃学员 | https://www.calicat.cn/design/2083742072257646592?node-id=42c37cb6-14b3-40c2-80ab-6010d0b17706 |
+| 历史学员 Tab | C-我的学员列表页-历史学员 | https://www.calicat.cn/design/2083742072257646592?node-id=08dd7f40-a8d0-4bfd-93de-2213b4dde5d9 |
 
 ---
 

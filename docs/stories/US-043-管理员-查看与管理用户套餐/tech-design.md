@@ -125,7 +125,7 @@
     "expireAtStart": "2026-08-01",
     "expireAtEnd": "2026-09-01",
     "page": 1,
-    "size": 20
+    "pageSize": 20
   }
   ```
 - **响应 200**：分页列表

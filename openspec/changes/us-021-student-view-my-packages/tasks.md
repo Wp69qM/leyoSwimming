@@ -13,7 +13,7 @@
 - [ ] **REFACTOR:** Extract status group mapper
 - [ ] **COMMIT:** `feat(package): add my packages query service`
 
-## Task 2: GET /api/users/me/packages [P0]
+## Task 2: POST /api/user/package/list [P0]
 
 **Files:**
 - Create: `backend/src/controllers/my-packages.ts`, `backend/src/routes/my-packages.ts`
@@ -22,7 +22,7 @@
 - [ ] **RED:** 200 grouped list; 200 empty; 401 guest
 - [ ] **GREEN:** Implement endpoint
 - [ ] **REFACTOR:** Share auth middleware
-- [ ] **COMMIT:** `feat(api): add GET /api/users/me/packages`
+- [ ] **COMMIT:** `feat(api): add POST /api/user/package/list`
 
 ## Task 3: Coach-view package usage detail [P1]
 
@@ -34,7 +34,7 @@
 **Spec coverage:** REQ-004 教练视角套餐使用详情页
 
 - [ ] **RED:** Returns package snapshot, summary, student mini-card, and booking history for coach-owned package; 403 for non-associated package
-- [ ] **GREEN:** Implement `CoachPackageDetailService.findByIdForCoach` and `GET /api/coach/v1/packages/{package_id}`
+- [ ] **GREEN:** Implement `CoachPackageDetailService.findByIdForCoach` and `POST /api/coach/package/detail`
 - [ ] **REFACTOR:** Share package snapshot mapper with user view
 - [ ] **COMMIT:** `feat(package): add coach-view package usage detail`
 

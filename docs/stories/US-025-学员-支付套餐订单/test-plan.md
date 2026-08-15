@@ -13,7 +13,7 @@
 - [ ] **REFACTOR:** Extract `MockPaymentProvider` to encapsulate channel-specific mock transaction generation
 - [ ] **COMMIT:** `feat(payment): add mock payment creation and callback handler`
 
-## Task 2: POST /api/orders/{order_id}/pay [P0]
+## Task 2: POST /api/order/pay [P0]
 
 **Files:**
 - Create: `backend/src/controllers/payment.ts`, `backend/src/routes/payment.ts`
@@ -21,10 +21,10 @@
 
 **Spec coverage:** Mock 支付结果返回、订单过期校验、渠道校验
 
-- [ ] **RED:** Write failing tests — 200 with mock payment result (`payment_id`, `channel_trade_no`, `status`); 400 ORDER_EXPIRED; 404 ORDER_NOT_FOUND; 401 guest
+- [ ] **RED:** Write failing tests — 200 with mock payment result (`orderId`, `paymentId`, `channelTradeNo`, `status`); 400 ORDER_EXPIRED; 404 ORDER_NOT_FOUND; 401 guest
 - [ ] **GREEN:** Implement controller + route; call `MockPaymentProvider.pay(...)` and trigger mock callback
 - [ ] **REFACTOR:** Share order ownership validation
-- [ ] **COMMIT:** `feat(api): add POST /orders/{id}/pay`
+- [ ] **COMMIT:** `feat(api): add POST /api/order/pay`
 
 ## Task 3: 支付回调接口 [P0]
 
@@ -35,11 +35,24 @@
 **Spec coverage:** Mock 支付回调、幂等、金额校验
 
 - [ ] **RED:** Write failing tests — 200 `{ code: "SUCCESS" }` on valid mock callback; duplicate callback returns same response; amount mismatch returns error
-- [ ] **GREEN:** Implement `POST /api/payments/mock/callback` with idempotency check and transaction
+- [ ] **GREEN:** Implement `POST /api/payment/mock-callback` with idempotency check and transaction
 - [ ] **REFACTOR:** Extract callback payload validation and order/package update into service methods
-- [ ] **COMMIT:** `feat(api): add mock payment callback`
+- [ ] **COMMIT:** `feat(api): add POST /api/payment/mock-callback`
 
-## Task 4: 订单过期定时任务 [P1]
+## Task 4: POST /api/order/detail [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
+- Test: `backend/tests/controllers/order.test.ts`
+
+**Spec coverage:** 支付结果轮询与订单状态查询
+
+- [ ] **RED:** 200 with order status, paidAt, and package snapshot; 404 ORDER_NOT_FOUND; 401 guest; 403 when order does not belong to current user
+- [ ] **GREEN:** Implement endpoint; accept `orderId` in JSON body; return status for polling
+- [ ] **REFACTOR:** Share order response DTO with pay callback
+- [ ] **COMMIT:** `feat(api): add POST /api/order/detail`
+
+## Task 5: 订单过期定时任务 [P1]
 
 **Files:**
 - Create: `backend/src/jobs/expire-unpaid-orders.ts`
@@ -52,7 +65,7 @@
 - [ ] **REFACTOR:** Extract schedule configuration
 - [ ] **COMMIT:** `feat(job): expire unpaid orders after 24h`
 
-## Task 5: 微信小程序支付页 [P1]
+## Task 6: 微信小程序支付页 [P1]
 
 **Files:**
 - Create: `miniapp-user/src/pages/order-pay/index.tsx`
@@ -60,7 +73,7 @@
 
 **Spec coverage:** 支付方式选择、调用 Mock 支付 API、支付结果轮询
 
-- [ ] **RED:** Write failing tests — renders payment methods; calls `POST /api/orders/{order_id}/pay`; polls order status
+- [ ] **RED:** Write failing tests — renders payment methods; calls `POST /api/order/pay`; polls order status
 - [ ] **GREEN:** Implement page; on confirm, call mock pay API and poll order status until paid/cancelled
 - [ ] **REFACTOR:** Extract `<PaymentMethodSelector />`
 - [ ] **COMMIT:** `feat(miniapp): add order payment page`
@@ -69,6 +82,6 @@
 
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2 → 3 → 4 → 5
+- 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder

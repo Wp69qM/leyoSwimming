@@ -1,6 +1,6 @@
 # US-026 学员查看订单列表与详情
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
@@ -163,8 +163,8 @@ And   仍展示购买时套餐快照与支付信息
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/orders` | GET | 新增 | 当前用户订单列表（分页）|
-| 2 | `/api/orders/{order_id}` | GET | 新增 | 订单详情 |
+| 1 | `/api/order/list` | POST | 新增 | 当前用户订单列表（分页）；JSON body 传入 `page`、`pageSize`、`status` |
+| 2 | `/api/order/detail` | POST | 新增 | 订单详情；JSON body 传入 `orderId` |
 
 ### 7.3 状态机影响
 
@@ -261,7 +261,7 @@ And   仍展示购买时套餐快照与支付信息
 
 - **性能要求**：订单列表查询 P99 < 200ms，详情查询 P99 < 100ms
 - **缓存策略**：列表页使用 Redis 缓存 60s，详情页缓存 300s；缓存 key 以 order 快照字段版本号为后缀，避免模板变更后缓存污染
-- **分页**：默认 page=1，size=10
+- **分页**：默认 page=1，pageSize=10
 - **快照字段**：订单列表与详情中的套餐信息必须取自 order 快照字段（package_name, package_mode, coach_name, teaching_type, total_hours, duration_minutes, valid_days, original_price, paid_amount, refund_enabled, refund_ratio, refund_valid_days），禁止实时查询 package_template
 
 ---
@@ -270,12 +270,10 @@ And   仍展示购买时套餐快照与支付信息
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 订单列表页 page-spec | [U-order-list-page.md](../../figma/page-spec/U-order-list-page.md) | ✅ |
 | 2 | 订单详情页 page-spec | [U-order-detail-page.md](../../figma/page-spec/U-order-detail-page.md) | ✅ |
-| 3 | 订单列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 订单详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

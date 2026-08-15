@@ -56,53 +56,65 @@
 
 ## 4. API 设计
 
-> 所有接口遵循项目统一约定：POST 方法，参数通过 JSON body 传递。下表为简化描述，实际路径按 `/api/{module}/{resource}/{action}` 风格实现。
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
 
-### 4.1 `GET /api/coach/v1/students`
+### 4.1 POST /api/coach/student/list
 
 - **鉴权**：教练 JWT，`coach.status = 1`
 - **功能**：获取与当前教练存在关联的学员列表
+- **请求体**：
+  ```json
+  {
+    "tab": "active"
+  }
+  ```
 - **响应 200**：
   ```json
   {
     "students": [
       {
-        "student_user_id": 10001,
-        "avatar_url": "https://cdn.example.com/avatar.jpg",
+        "studentUserId": 10001,
+        "avatarUrl": "https://cdn.example.com/avatar.jpg",
         "name": "张小明",
         "gender": "male",
         "age": 25,
-        "is_minor": true,
-        "updated_at": "2026-07-30T10:00:00Z"
+        "isMinor": true,
+        "updatedAt": "2026-07-30T10:00:00Z"
       }
     ]
   }
   ```
 - **错误码**：`AUTH_FORBIDDEN`（403）
 
-### 4.2 `GET /api/coach/v1/students/{student_id}/profile`
+### 4.2 POST /api/coach/student/detail
 
 - **鉴权**：教练 JWT
 - **功能**：获取某学员完整资料（US-005 自主档案 + 教练视角切片）
+- **请求体**：
+  ```json
+  {
+    "studentId": 10001
+  }
+  ```
 - **响应 200**：
   ```json
   {
-    "student_user_id": 10001,
-    "user_profile": {
-      "avatar_url": "https://cdn.example.com/avatar.jpg",
+    "studentUserId": 10001,
+    "userProfile": {
+      "avatarUrl": "https://cdn.example.com/avatar.jpg",
       "name": "张 swimmer",
-      "phone_masked": "138****8000",
+      "phoneMasked": "138****8000",
       "age": 25,
       "gender": "male",
-      "has_swim_basis": true,
-      "swim_strokes": "蛙泳/自由泳",
-      "swim_years": "3年",
-      "personal_desc": "想提高自由泳",
-      "is_minor": true
+      "hasSwimBasis": true,
+      "swimStrokes": "蛙泳/自由泳",
+      "swimYears": "3年",
+      "personalDesc": "想提高自由泳",
+      "isMinor": true
     },
-    "coach_slice": {
-      "learning_strokes": "自由泳",
-      "swim_level": 2,
+    "coachSlice": {
+      "learningStrokes": "自由泳",
+      "swimLevel": 2,
       "basics": "怕水，需循序渐进",
       "notes": "学员水性较好，可加快进度"
     }
@@ -110,18 +122,19 @@
   ```
 - **错误码**：`NOT_ASSOCIATED_STUDENT`（403）
 
-### 4.3 `PUT /api/coach/v1/students/{student_id}/profile`
+### 4.3 POST /api/coach/student/update
 
 - **鉴权**：教练 JWT
-- **功能**：更新教练视角切片；US-005 自主档案字段（name/phone/age/gender/avatar_url/is_minor 等）即使传入也忽略，不修改 `user` 表
+- **功能**：更新教练视角切片；US-005 自主档案字段（name/phone/age/gender/avatarUrl/isMinor 等）即使传入也忽略，不修改 `user` 表
 - **请求体**：
   ```json
   {
-    "learning_strokes": "自由泳",
-    "swim_level": 2,
+    "studentId": 10001,
+    "learningStrokes": "自由泳",
+    "swimLevel": 2,
     "basics": "怕水，需循序渐进",
     "notes": "学员水性较好，可加快进度",
-    "idempotency_key": "coach:1:student:10001:ts:1753879200000"
+    "idempotencyKey": "coach:1:student:10001:ts:1753879200000"
   }
   ```
 - **响应 200**：`{ "message": "保存成功" }`
@@ -130,37 +143,43 @@
   - `READONLY_USER_PROFILE`（400）：若请求体包含 US-005 只读字段且被后端严格拒绝时使用
   - `IDEMPOTENCY_DUPLICATE`（409）
 
-### 4.4 `GET /api/coach/v1/students/{student_id}/packages`
+### 4.4 POST /api/coach/student/package/list
 
 - **鉴权**：教练 JWT
 - **功能**：获取该学员与当前教练关联的 package 列表，用于详情页「关联套餐」卡片区
+- **请求体**：
+  ```json
+  {
+    "studentId": 10001
+  }
+  ```
 - **业务规则**：
-  - 仅返回 `package.coach_id = 当前教练 coach_id` 且 `package.user_id = student_id` 的记录
-  - 按购买时间（`created_at`）倒序排列
-  - 状态标签映射：`active` 且 `consumed_count = 0` → 未使用；`active` 且 `consumed_count > 0` → 使用中；`exhausted` → 已使用；`expired` → 已过期；`refunded` → 已退款；`frozen` → 已冻结
+  - 仅返回 `package.coachId = 当前教练 coachId` 且 `package.userId = studentId` 的记录
+  - 按购买时间（`createdAt`）倒序排列
+  - 状态标签映射：`active` 且 `consumedCount = 0` → 未使用；`active` 且 `consumedCount > 0` → 使用中；`exhausted` → 已使用；`expired` → 已过期；`refunded` → 已退款；`frozen` → 已冻结
 - **响应 200**：
   ```json
   {
     "packages": [
       {
-        "package_id": 20001,
-        "package_name": "10 节私教课",
-        "package_mode": "standard",
+        "packageId": 20001,
+        "packageName": "10 节私教课",
+        "packageMode": "standard",
         "status": "active",
-        "status_label": "使用中",
-        "valid_start": "2026-07-01",
-        "valid_end": "2026-09-29",
-        "remaining_hours": 4
+        "statusLabel": "使用中",
+        "validStart": "2026-07-01",
+        "validEnd": "2026-09-29",
+        "remainingHours": 4
       },
       {
-        "package_id": 20002,
-        "package_name": "新人体验课",
-        "package_mode": "experience",
+        "packageId": 20002,
+        "packageName": "新人体验课",
+        "packageMode": "experience",
         "status": "exhausted",
-        "status_label": "已使用",
-        "valid_start": "2026-06-01",
-        "valid_end": "2026-06-30",
-        "remaining_hours": 0
+        "statusLabel": "已使用",
+        "validStart": "2026-06-01",
+        "validEnd": "2026-06-30",
+        "remainingHours": 0
       }
     ]
   }
@@ -187,21 +206,21 @@
 
 ## 7. 性能指标
 
-- `GET /api/coach/v1/students` P99 < 200ms（含缓存命中）
-- `GET /api/coach/v1/students/{id}/profile` P99 < 150ms
-- `GET /api/coach/v1/students/{id}/packages` P99 < 150ms
-- `PUT /api/coach/v1/students/{id}/profile` P99 < 300ms
-- 列表接口支持 coach_id 索引，单页默认 20 条
-- 套餐列表接口支持 `(coach_id, user_id)` 联合索引
+- `POST /api/coach/student/list` P99 < 200ms（含缓存命中）
+- `POST /api/coach/student/detail` P99 < 150ms
+- `POST /api/coach/student/package/list` P99 < 150ms
+- `POST /api/coach/student/update` P99 < 300ms
+- 列表接口支持 coachId 索引，单页默认 20 条
+- 套餐列表接口支持 `(coachId, userId)` 联合索引
 
 ---
 
 ## 8. 安全
 
-- 接口必须校验 JWT 中的 coach_id 与请求中隐含的 coach_id 一致
+- 接口必须校验 JWT 中的 coachId 与请求中隐含的 coachId 一致
 - `notes` / `basics` 字段入库前进行 HTML 转义，防止 XSS
 - 操作写入 `audit_log`，记录 before/after JSON 与 IP
-- PUT 接口必须忽略 US-005 自主档案字段，防止教练通过接口绕过前端修改学员资料
+- 更新接口必须忽略 US-005 自主档案字段，防止教练通过接口绕过前端修改学员资料
 - 套餐列表接口必须校验教练与学员的关联关系，防止越权查看他人套餐
 
 ---
@@ -238,4 +257,4 @@
 |------|------|------|------|
 | v1.0 | 2026-08-04 | PM | 初版 |
 | v2.0 | 2026-08-12 | PM | 移除未成年人及监护人字段维护：未成年人信息统一由 US-005 维护，`coach_student_profile` 不再包含 `is_minor`、`guardian_name`、`guardian_phone`；PUT/GET 接口同步移除相关字段与校验 |
-| v2.1 | 2026-08-12 | PM | 新增 `/api/coach/v1/students/{student_id}/packages` 接口定义，用于学员详情页「关联套餐」卡片区；明确套餐详情页由 US-021 教练视角承接；更新缓存、性能、安全与测试映射 |
+| v2.1 | 2026-08-12 | PM | 新增 `/api/coach/student/package/list` 接口定义，用于学员详情页「关联套餐」卡片区；明确套餐详情页由 US-021 教练视角承接；更新缓存、性能、安全与测试映射 |

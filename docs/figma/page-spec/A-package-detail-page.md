@@ -29,7 +29,11 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主弹窗 | AD-套餐详情弹窗-PRD版 | https://www.calicat.cn/design/2083742072257646592?node-id=4ee12ddc-2be3-4451-a068-01dea90d8fec |
+| 主弹窗 | 套餐详情弹窗 3 | https://www.calicat.cn/design/2083742072257646592?node-id=61ee854d-2743-446f-8418-ffffa3bafadc |
+| 冻结确认弹窗 | 冻结确认弹窗 2 | https://www.calicat.cn/design/2083742072257646592?node-id=702974fc-7d65-46f2-9021-37b3c632705f |
+| 解冻确认弹窗 | 解冻确认弹窗 2 | https://www.calicat.cn/design/2083742072257646592?node-id=b57badcc-eab1-4f72-ba36-ec354ad41370 |
+| 延期弹窗 | 延期弹窗 2 | https://www.calicat.cn/design/2083742072257646592?node-id=020aa205-19bb-4dea-b0b8-64a092c8c0aa |
+| 退款原因弹窗 | 退款原因弹窗 2 | https://www.calicat.cn/design/2083742072257646592?node-id=b94fa017-0490-4cd7-b50e-3ac1261e410e |
 
 ---
 

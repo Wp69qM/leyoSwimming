@@ -1,6 +1,6 @@
 # US-021 学员查看我的套餐
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
@@ -199,8 +199,8 @@ And   接口返回 HTTP 200
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/users/me/packages` | GET | 新增 | 我的套餐列表 |
-| 2 | `/api/coach/v1/packages/{package_id}` | GET | 新增 | 教练视角套餐使用详情页数据；需校验 package 属于当前教练 |
+| 1 | `/api/user/package/list` | POST | 新增 | 我的套餐列表；JSON body 可传 `status` 筛选，默认返回全部状态分组 |
+| 2 | `/api/coach/package/detail` | POST | 新增 | 教练视角套餐使用详情页数据；JSON body 传入 `packageId`，需校验 package 属于当前教练 |
 
 ### 7.3 状态机影响
 
@@ -277,11 +277,10 @@ And   接口返回 HTTP 200
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 我的套餐页 page-spec | [U-my-package-page.md](../../figma/page-spec/U-my-package-page.md) | ✅ |
 | 2 | 我的套餐详情页 page-spec | [U-my-package-detail-page.md](../../figma/page-spec/U-my-package-detail-page.md) | ✅ |
-| 3 | 我的套餐页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -312,7 +311,7 @@ And   接口返回 HTTP 200
   - A. 在 US-037 内独立实现教练视角详情页
   - B. 由 US-021 统一承接教练视角套餐使用详情页
 - **结论**：选择 B，由 US-021 统一承接。教练视角详情页与学员视角共用信息架构（套餐快照、统计摘要、使用记录），但入口不同、权限不同、不提供购买/加课入口
-- **影响范围**：US-021 新增 `/api/coach/v1/packages/{package_id}` 接口与 `C-套餐使用详情页`；US-037 仅提供入口与卡片
+- **影响范围**：US-021 新增 `/api/coach/package/detail` 接口与 `C-套餐使用详情页`；US-037 仅提供入口与卡片
 
 ---
 

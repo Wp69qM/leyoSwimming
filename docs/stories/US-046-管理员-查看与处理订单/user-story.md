@@ -1,6 +1,6 @@
 # US-046 管理员查看与处理订单
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：2 人天
 > **作者**：PM　|　**最后更新**：2026-08-12
@@ -189,10 +189,10 @@ And   订单状态不变
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/admin/orders/list` | POST | 新增 | 订单列表查询（分页、筛选、排序） |
-| 2 | `/api/admin/orders/detail` | POST | 新增 | 订单详情 |
-| 3 | `/api/admin/orders/approve-refund` | POST | 新增 | 通过退款订单 |
-| 4 | `/api/admin/orders/reject-refund` | POST | 新增 | 驳回退款订单 |
+| 1 | `/api/admin/order/list` | POST | 新增 | 订单列表查询（分页、筛选、排序）；JSON body 传入 `page`、`pageSize`、`status`、`coachId`、`userId`、`startDate`、`endDate` |
+| 2 | `/api/admin/order/detail` | POST | 新增 | 订单详情；JSON body 传入 `orderId` |
+| 3 | `/api/admin/order/approve-refund` | POST | 新增 | 通过退款订单；JSON body 传入 `orderId`、`amount`、`remark` |
+| 4 | `/api/admin/order/reject-refund` | POST | 新增 | 驳回退款订单；JSON body 传入 `orderId`、`reason` |
 
 > 按项目 API 规范，统一使用 POST，参数通过 JSON body 传递。
 
@@ -285,7 +285,7 @@ And   订单状态不变
 
 ## 12. 备注
 
-- **幂等键**：`{admin_id}:{order_id}:approve-refund` / `{admin_id}:{order_id}:reject-refund`
+- **幂等键**：`{adminId}:{orderId}:approve-refund` / `{adminId}:{orderId}:reject-refund`
 - **事务边界**：order 状态更新 + package 状态恢复在同一事务；Mock 渠道调用在事务外，失败走补偿
 - **MVP Hack**：购买与退款均通过 `MockPaymentProvider` 模拟，不调用真实微信/支付宝接口；购买即时成功，退款管理员通过后即时回调成功（或可控失败用于测试）
 - **金额调整**：可退金额仅作为参考，管理员可基于业务场景调整实际退款金额（需 ≥ 0），修改后需记录 audit_log
@@ -296,13 +296,10 @@ And   订单状态不变
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 订单管理页 page-spec | [A-order-management-page.md](../../figma/page-spec/A-order-management-page.md) | ✅ |
 | 2 | 订单详情弹窗 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
-| 3 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 订单详情弹窗 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 5 | 退款审批弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

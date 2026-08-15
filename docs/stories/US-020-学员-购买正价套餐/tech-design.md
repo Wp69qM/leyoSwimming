@@ -47,29 +47,61 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 
 ## 2. API 设计
 
-### 2.1 POST /api/orders/formal
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/order/formal
 
 - **鉴权**：必须登录
 - **Request**:
   ```json
   {
-    "coach_id": "uuid",
-    "standard_package_id": "uuid | null",
-    "custom_hours": 12,
-    "agreement_versions": {
-      "user_notice": "v3",
+    "coachId": 1,
+    "packageTemplateId": 1,
+    "customHours": 12,
+    "validDays": 60,
+    "strokeIds": [1, 2],
+    "agreementVersions": {
+      "userNotice": "v3",
       "health": "v1",
       "disclaimer": "v1"
     }
   }
   ```
-- **Response 201**: `{ order_id, amount, expire_at }`
-- **Response 400**: `{ code: AGREEMENT_REQUIRED | COACH_CONFLICT | COACH_UNAVAILABLE | INVALID_HOURS }`
+- **Response 201**: `{ orderId, amount, expireAt }`
+- **Response 400**: `{ code: AGREEMENT_REQUIRED | COACH_CONFLICT | COACH_UNAVAILABLE | INVALID_HOURS | GUARDIAN_PHONE_REQUIRED }`
 
-### 2.2 GET /api/agreements/status
+### 2.2 POST /api/agreement/status
 
 - **鉴权**：必须登录
-- **Response 200**: `{ user_notice: { required_version, signed_version }, health, disclaimer }`
+- **Request**: `{}`
+- **Response 200**:
+  ```json
+  {
+    "userNotice": { "requiredVersion": "v3", "signedVersion": "v3" },
+    "health": { "requiredVersion": "v1", "signedVersion": null },
+    "disclaimer": { "requiredVersion": "v1", "signedVersion": "v1" }
+  }
+  ```
+
+### 2.3 POST /api/guardian/verify（MVP 后启用）
+
+- **鉴权**：必须登录
+- **Request**:
+  ```json
+  {
+    "guardianPhone": "13800138000",
+    "verificationCode": "123456"
+  }
+  ```
+- **Response 200**: `{ verified: true }`
+- **Response 400**: `{ code: GUARDIAN_PHONE_REQUIRED | INVALID_VERIFICATION_CODE }`
+
+> **MVP 说明**：本接口在 MVP 阶段仅做占位，购买流程中仅校验 `guardianPhone` 已填写，不真正发送短信验证码。
+
+### 2.4 依赖接口（其他 US 实现，本 US 引用）
+
+- **`POST /api/package/detail`**：套餐详情页数据源，由 US-019 实现；本 US 在确认订单页复用其返回的模板快照与教练信息。
+- **`POST /api/order/pay`**：调起 Mock 支付，由 US-025 实现；本 US 创建待支付订单后跳转至 US-025 支付页。
 
 ## 3. 状态机
 
@@ -125,4 +157,4 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 | 版本 | 日期 | 变更 |
 |------|------|------|
 | v1.0 | 2026-07-30 | 初版 |
-| v1.1 | 2026-07-31 | P1-9 修复：§2.1 POST /api/orders/formal 的 Response 400 错误码列表补充 `GUARDIAN_PHONE_REQUIRED`（原仅在 user-story.md §4.2 分支 4 与 §6.4 场景 4 出现，tech-design 漏列）；§8 测试映射同步补充对应测试方法 |
+| v1.1 | 2026-07-31 | P1-9 修复：§2.1 POST /api/order/formal 的 Response 400 错误码列表补充 `GUARDIAN_PHONE_REQUIRED`（原仅在 user-story.md §4.2 分支 4 与 §6.4 场景 4 出现，tech-design 漏列）；§8 测试映射同步补充对应测试方法 |

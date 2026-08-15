@@ -21,10 +21,13 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
 
-
-
-
+| 页面/状态 | Calicat Frame | 链接 |
+| ------ | --------------- | ------ |
+| 成人学员 | C-学员详情页-成人 | https://www.calicat.cn/design/2083742072257646592?node-id=d4803855-f619-4d7f-a9cd-6eab73fd4ac1 |
+| 未成年学员 | C-学员详情页-未成年 | https://www.calicat.cn/design/2083742072257646592?node-id=ed1f1ee9-4418-4ba1-89f9-11b6e40af5ec |
+| 关联套餐空状态 | C-学员详情页-套餐空状态 | https://www.calicat.cn/design/2083742072257646592?node-id=29038762-fde4-4246-92a1-c19913d675a3 |
 
 ## 2. 教练状态维度
 

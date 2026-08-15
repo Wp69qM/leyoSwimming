@@ -47,6 +47,86 @@
 6. **请求体使用 `reasonDetail` 而非 `reason`**
    - 理由：管理员手动冻结时 frozen_reason 固定写入 `admin_frozen`，细分原因写入 audit_log.remark
 
+## API Design
+
+> 统一使用 POST，URL 按 `/api/admin/package/{action}`，参数通过 JSON body 传递。
+
+### POST /api/admin/package/list
+
+- 鉴权：管理员 JWT，`MANAGE_PACKAGE`
+- Request：
+  ```json
+  {
+    "status": "active",
+    "packageMode": "standard",
+    "keyword": "套餐编号/用户/教练",
+    "expireAtStart": "2026-08-01",
+    "expireAtEnd": "2026-09-01",
+    "page": 1,
+    "pageSize": 20
+  }
+  ```
+- Response 200：分页列表 `{ items, total, page, pageSize }`
+
+### POST /api/admin/package/detail
+
+- 鉴权：管理员 JWT，`MANAGE_PACKAGE`
+- Request：`{ "packageId": 1 }`
+- Response 200：套餐详情（含购买时快照、购买时间、到期时间、课时消耗、冻结原因、关联订单、上课记录、操作日志）
+
+### POST /api/admin/package/freeze
+
+- 鉴权：管理员 JWT，`MANAGE_PACKAGE`
+- Request：`{ "packageId": 1, "reasonDetail": "投诉处理中", "version": 1 }`
+- Response 200：`{ "message": "套餐已冻结" }`
+- 错误码：
+  - `ADMIN_PERMISSION_DENIED`（403）
+  - `PACKAGE_NOT_FOUND`（404）
+  - `PACKAGE_NOT_ACTIVE`（409）
+  - `PACKAGE_CONCURRENTLY_UPDATED`（409）
+
+### POST /api/admin/package/unfreeze
+
+- 鉴权：管理员 JWT，`MANAGE_PACKAGE`
+- Request：`{ "packageId": 1, "version": 1 }`
+- Response 200：`{ "message": "套餐已解冻" }`
+- 错误码：
+  - `ADMIN_PERMISSION_DENIED`（403）
+  - `PACKAGE_NOT_FOUND`（404）
+  - `PACKAGE_NOT_FROZEN`（409）
+  - `PACKAGE_CONCURRENTLY_UPDATED`（409）
+
+### POST /api/admin/package/extend
+
+- 鉴权：管理员 JWT，`MANAGE_PACKAGE`
+- Request：`{ "packageId": 1, "newExpireAt": "2026-09-01T23:59:59", "reason": "学员出差一个月", "version": 1 }`
+- Response 200：`{ "message": "套餐已延期" }`
+- 业务规则：
+  - `reason` 必填，长度 1~200 字符
+  - `newExpireAt` 必须晚于当前时间
+- 错误码：
+  - `ADMIN_PERMISSION_DENIED`（403）
+  - `PACKAGE_NOT_FOUND`（404）
+  - `INVALID_EXTENSION_REASON`（400）
+  - `PACKAGE_NOT_EXTENDABLE`（409）
+  - `PACKAGE_CONCURRENTLY_UPDATED`（409）
+
+### POST /api/admin/package/refund
+
+- 鉴权：管理员 JWT，`MANAGE_PACKAGE`
+- Request：`{ "packageId": 1, "reason": "协商退款", "refundAmount": 1200.00, "adjustReason": "协商一致", "version": 1 }`
+  - `refundAmount`：管理员填写的退款金额，可选，默认使用系统计算金额；不得超过系统计算金额且不能小于 0
+  - `adjustReason`：金额调整原因，当 `refundAmount` 与系统计算金额不一致时必填
+- Response 200：`{ "message": "退款订单已生成，请前往订单管理审批", "orderNo": "R202608010001" }`
+- 错误码：
+  - `ADMIN_PERMISSION_DENIED`（403）
+  - `PACKAGE_NOT_FOUND`（404）
+  - `PACKAGE_STATUS_NOT_ALLOWED`（409）
+  - `PACKAGE_NOT_REFUNDABLE`（409）
+  - `REFUND_AMOUNT_INVALID`（409）
+  - `REFUND_PENDING_EXISTS`（409）
+  - `PACKAGE_CONCURRENTLY_UPDATED`（409）
+
 ## Risks / Trade-offs
 
 - **[Risk]** 冻结导致学员即将开始的课程被取消 → **Mitigation**: 对 30 分钟内开始的课程增加二次确认，并通知学员/教练

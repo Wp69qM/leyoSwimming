@@ -59,43 +59,113 @@ CREATE INDEX idx_package_template_coach_coach ON package_template_coach(coach_id
 
 ## 2. API 设计
 
-### 2.1 GET /api/admin/package-templates
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/admin/package-template/list
 
 - **鉴权**：管理员登录 + `package:read` 权限
-- **Query**：`page`, `size`, `coach_id`, `status`（`coach_id` 用于筛选包含指定教练的模板）
-- **Response 200**：`{ items: PackageTemplate[], total, page, size }`
+- **Request**：
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20,
+    "coachId": 1,
+    "status": "active"
+  }
+  ```
+  - `coachId` 用于筛选包含指定教练的模板
+- **Response 200**：`{ items: PackageTemplate[], total, page, pageSize }`
 - **Response 403**：`{ error: 'FORBIDDEN' }`
 
-### 2.2 POST /api/admin/package-templates
+### 2.2 POST /api/admin/package-template/add
 
 - **鉴权**：管理员登录 + `package:write` 权限
 - **幂等性**：`Idempotency-Key` 请求头
-- **Body**：`{ name, coach_ids: number[], total_hours, valid_days, price, status }`
-- **业务规则**：`coach_ids` 必填且至少包含 1 个教练 ID；保存时同步写入 `package_template_coach` 关联表并记录 `reference_price_snapshot`
+- **Request**：
+  ```json
+  {
+    "name": "标准 6 节",
+    "coachIds": [1, 2],
+    "totalHours": 6,
+    "validDays": 90,
+    "price": 108000,
+    "status": "active",
+    "teachingType": "one_on_one",
+    "durationMinutes": 60
+  }
+  ```
+- **业务规则**：`coachIds` 必填且至少包含 1 个教练 ID；保存时同步写入 `package_template_coach` 关联表并记录 `referencePriceSnapshot`
 - **Response 201**：创建后的模板对象
 - **Response 400**：`{ error: 'INVALID_PACKAGE_PARAM' }`
 - **Response 409**：`{ error: 'DUPLICATE_PACKAGE_NAME' }`
 
-### 2.3 PUT /api/admin/package-templates/:id
+### 2.3 POST /api/admin/package-template/update
 
 - **鉴权**：管理员登录 + `package:write` 权限
-- **Body**：`{ name, coach_ids: number[], total_hours, valid_days, price, status }`
-- **业务规则**：`coach_ids` 必填且至少包含 1 个教练 ID；保存时按新集合覆盖 `package_template_coach` 关联表
+- **Request**：
+  ```json
+  {
+    "packageTemplateId": 1,
+    "name": "标准 6 节",
+    "coachIds": [1, 2],
+    "totalHours": 6,
+    "validDays": 90,
+    "price": 108000,
+    "status": "active",
+    "teachingType": "one_on_one",
+    "durationMinutes": 60
+  }
+  ```
+- **业务规则**：`coachIds` 必填且至少包含 1 个教练 ID；保存时按新集合覆盖 `package_template_coach` 关联表
 - **Response 200**：更新后的模板对象
 - **Response 404**：`{ error: 'TEMPLATE_NOT_FOUND' }`
 
-### 2.4 POST /api/admin/package-templates/:id/toggle-status
+### 2.4 POST /api/admin/package-template/toggle-status
 
 - **鉴权**：管理员登录 + `package:write` 权限
-- **Body**：`{ status: 0 | 1 }`
+- **Request**：
+  ```json
+  {
+    "packageTemplateId": 1
+  }
+  ```
+- **业务规则**：在 `active` 与 `inactive` 之间切换
 - **Response 200**：更新后的模板对象
 
-### 2.5 PUT /api/admin/package-templates/custom-config
+### 2.5 POST /api/admin/package-template/detail
+
+- **鉴权**：管理员登录 + `package:read` 权限
+- **Request**：
+  ```json
+  {
+    "packageTemplateId": 1
+  }
+  ```
+- **Response 200**：模板详情对象（含 `coachIds`）
+- **Response 404**：`{ error: 'TEMPLATE_NOT_FOUND' }`
+
+### 2.6 POST /api/admin/package-template/custom-config
 
 - **鉴权**：管理员登录 + `package:write` 权限
-- **Body**：`{ min_hours, max_hours, default_valid_days, unit_price_floor }`
+- **Request**：
+  ```json
+  {
+    "minHours": 1,
+    "maxHours": 50,
+    "defaultValidDays": 60,
+    "unitPriceFloor": 10000
+  }
+  ```
 - **Response 200**：更新后的全局配置对象
 - **Response 400**：`{ error: 'INVALID_CUSTOM_PACKAGE_CONFIG' }`
+
+### 2.7 POST /api/admin/image/upload
+
+- **鉴权**：管理员登录 + `package:write` 权限
+- **Content-Type**：`multipart/form-data`
+- **请求参数**：`files: File[]`
+- **Response 200**：`{ urls: string[] }`
+- **Response 400**：`{ error: 'INVALID_IMAGE' }`
 
 ---
 

@@ -27,7 +27,10 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | U-教练详情页 3 | https://www.calicat.cn/design/ea7ec847-47bc-492e-a4b0-d86d9190d702?node-id=b9b8c723-1de1-45da-8f78-31895926141a |
+| 主页面（游客状态） | U-教练详情页-游客 | https://www.calicat.cn/design/2083742072257646592?node-id=74edeff7-9969-4606-925e-f04912b86969 |
+| 学员状态 | U-教练详情页-学员 | https://www.calicat.cn/design/2083742072257646592?node-id=2c7c2722-d55e-4f84-b3b0-34b4a34692f0 |
+| 未设参考单价 | U-教练详情页-未设参考单价 | https://www.calicat.cn/design/2083742072257646592?node-id=7da5cf17-6299-4c8f-ae65-d6b51b6559b2 |
+| 可约时间空状态 | U-教练详情页-可约时间空状态 | https://www.calicat.cn/design/2083742072257646592?node-id=5351a8af-d5fd-437d-a5e2-832d17e30c57 |
 
 ---
 

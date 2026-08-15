@@ -23,6 +23,17 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+| ------ | --------------- | ------ |
+| 正价课 | C-套餐使用详情页-正价课 | https://www.calicat.cn/design/2083742072257646592?node-id=8cf3ad0d-a402-4b5c-8eaa-b361500c3d7f |
+| 体验课 | C-套餐使用详情页-体验课 | https://www.calicat.cn/design/2083742072257646592?node-id=7401c059-b544-4fbd-972a-f1f9a5831a58 |
+| 使用记录空状态 | C-套餐使用详情页-记录空状态 | https://www.calicat.cn/design/2083742072257646592?node-id=1bc34689-4333-4d23-ba64-042473fd85fd |
+| 无权查看空状态 | C-套餐使用详情页-无权查看 | https://www.calicat.cn/design/2083742072257646592?node-id=1adbed6e-35ac-4971-ae85-7476d708b107 |
+| 加载中/骨架屏 | C-套餐使用详情页-骨架屏 | https://www.calicat.cn/design/2083742072257646592?node-id=44f9bd5f-e73e-4d6d-94e4-d539878506c4 |
+| 错误状态 | C-套餐使用详情页-错误状态 | https://www.calicat.cn/design/2083742072257646592?node-id=3d365375-2a7b-43c5-872e-b194a0710e25 |
+
 ## 2. 教练与套餐状态维度
 
 ### 2.1 适用身份

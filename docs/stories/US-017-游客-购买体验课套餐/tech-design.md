@@ -46,22 +46,32 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 
 ## 2. API 设计
 
-### 2.1 POST /api/orders/trial
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递。
+
+### 2.1 POST /api/order/trial
 
 - **鉴权**：需登录
-- **Request**: `{ coach_id }`
+- **Request**: `{ coachId }`
 - **Response 201**: 订单信息（不含 package，套餐在支付回调成功时创建）
 - **Response 400**: `TRIAL_PACKAGE_EXISTS` / `COACH_UNAVAILABLE`
 
-### 2.2 POST /api/orders/{id}/pay
+### 2.2 POST /api/order/pay
 
 - **鉴权**：需登录
+- **Request**: `{ orderId, channel }`
 - **Response 200**: 调起支付参数
 
-### 2.3 POST /api/payments/callback
+### 2.3 POST /api/payment/mock-callback
 
-- **鉴权**：支付平台签名
+- **鉴权**：Mock 支付平台签名
+- **Request**: `{ orderId, channelTradeNo, amount, success }`
 - **Response 200**: 成功
+
+### 2.4 POST /api/agreement/status
+
+- **鉴权**：需登录
+- **Request**: `{}`
+- **Response 200**: 用户各协议签署状态
 
 ## 3. 状态机
 

@@ -13,7 +13,7 @@
 - [ ] **REFACTOR:** Extract eligibility rules and amount calculator
 - [ ] **COMMIT:** `feat(formal): add formal package purchase service`
 
-## Task 2: POST /api/orders/formal [P0]
+## Task 2: POST /api/order/formal [P0]
 
 **Files:**
 - Create: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`
@@ -22,9 +22,9 @@
 - [ ] **RED:** 201 valid; 400 for each error code; 401 guest
 - [ ] **GREEN:** Implement endpoint
 - [ ] **REFACTOR:** Share DTO schema
-- [ ] **COMMIT:** `feat(api): add POST /api/orders/formal`
+- [ ] **COMMIT:** `feat(api): add POST /api/order/formal`
 
-## Task 3: POST /api/agreements/status [P0]
+## Task 3: POST /api/agreement/status [P0]
 
 **Files:**
 - Modify: controller/route
@@ -33,7 +33,7 @@
 - [ ] **RED:** Returns required vs signed versions
 - [ ] **GREEN:** Implement endpoint
 - [ ] **REFACTOR:** Combine with agreement service
-- [ ] **COMMIT:** `feat(api): add POST /api/agreements/status`
+- [ ] **COMMIT:** `feat(api): add POST /api/agreement/status`
 
 ## Task 4: Idempotency & Validation [P1]
 

@@ -34,43 +34,62 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 
 ## 2. API 设计
 
-### 2.1 GET /api/admin/orders
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/admin/order/list
 
 - 鉴权：管理员登录 + `order:read`
-- Query：`page`, `size`, `status`, `coach_id`, `user_id`, `start_date`, `end_date`
-- Response 200：`{ items: OrderListItem[], total, page, size }`
+- Request：
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20,
+    "status": "refund_pending",
+    "coachId": 1,
+    "userId": 10001,
+    "startDate": "2026-08-01",
+    "endDate": "2026-08-31"
+  }
+  ```
+- Response 200：`{ items: OrderListItem[], total, page, pageSize }`
 
-### 2.2 GET /api/admin/orders/:id
+### 2.2 POST /api/admin/order/detail
 
 - 鉴权：管理员登录 + `order:read`
-- Response 200：订单详情含 refund_records
+- Request：
+  ```json
+  {
+    "orderId": 1
+  }
+  ```
+- Response 200：订单详情含 refundRecords
 - Response 404：`{ error: 'ORDER_NOT_FOUND' }`
 
-### 2.3 POST /api/admin/orders/:id/approve-refund
+### 2.3 POST /api/admin/order/approve-refund
 
 - 鉴权：管理员登录 + `order:write`
-- Body：`{ amount, remark }`
+- Request：
+  ```json
+  {
+    "orderId": 1,
+    "amount": 144000,
+    "remark": "同意退款"
+  }
+  ```
 - Response 200 / 400 / 409
 - 错误码：`ORDER_STATUS_INVALID`, `REFUND_AMOUNT_MISMATCH`
 
-### 2.4 POST /api/admin/orders/:id/reject-refund
+### 2.4 POST /api/admin/order/reject-refund
 
 - 鉴权：管理员登录 + `order:write`
-- Body：`{ reason }`
+- Request：
+  ```json
+  {
+    "orderId": 1,
+    "reason": "不符合退款条件"
+  }
+  ```
 - Response 200 / 400
-
-### 2.5 POST /api/admin/orders/:id/mark-dispute
-
-- 鉴权：管理员登录 + `order:write`
-- Body：`{ reason }`
-- Response 200 / 400 / 404
-- 业务逻辑：
-  - 校验订单存在且状态允许标记（非已退款/已取消终态）
-  - 设置 `order.dispute_flag = true` 与 `order.dispute_reason = reason`
-  - 自动生成 `support_ticket` 记录：type=3（退款申诉），order_id 关联当前订单，status=0（pending），title="订单争议：{order_no}"，content=reason
-  - 通知学员
-  - 写入 `audit_log`
-- 与 US-049 边界：本 US 负责生成工单，US-049 负责工单的后续分配、回复与关闭
 
 ---
 
@@ -78,9 +97,6 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
 
 ```
 order.status:
-  已支付 ──[用户提交特殊原因申诉，PRD §6.10]──→ 争议退款处理中
-  争议退款处理中 ──[管理员批准退款]──→ 已退款（终态）
-  争议退款处理中 ──[管理员拒绝申诉]──→ 已支付
   退款审批中 ──[管理员批准（阶段1受理）]──→ 退款处理中
   退款处理中 ──[渠道退款成功回调（阶段2成功）]──→ 已退款（终态）
   退款处理中 ──[渠道退款失败（阶段2失败）]──→ 退款审批中（回滚，重试队列）
@@ -93,7 +109,7 @@ package.status:
 
 > **对齐说明**（P1 修复）：本 US 状态机已对齐 US-028 P1 修复的两阶段退款时序与 PRD §6.2.2 v11.1 新增的「8 - 退款处理中」状态。原"退款审批中 → 已退款"的单步转换已废弃。
 >
-> **争议退款处理中状态说明**（v1.2 半落地修复）：状态机图补全 PRD §6.2.2 状态 5「争议退款处理中」与 PRD §6.10 转换路径——用户提交特殊原因申诉时由「已支付」进入「争议退款处理中」，管理员批准则 → 已退款，管理员拒绝则 → 已支付。注意：管理员通过 §2.5 mark-dispute 接口对退款审批中订单打 dispute_flag 不触发状态机转换，仅在 support_ticket 中记录申诉，订单仍保持退款审批中。
+> **争议退款处理中状态说明**（v1.2 半落地修复）：状态机图补全 PRD §6.2.2 状态 5「争议退款处理中」与 PRD §6.10 转换路径——用户提交特殊原因申诉时由「已支付」进入「争议退款处理中」，管理员批准则 → 已退款，管理员拒绝则 → 已支付。本 US 不提供 mark-dispute 接口；争议退款处理流程由 US-049 客服工单承接。
 
 ---
 

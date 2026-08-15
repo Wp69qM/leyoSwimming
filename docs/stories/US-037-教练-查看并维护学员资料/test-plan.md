@@ -26,11 +26,11 @@
 
 ### Task 2：列表与详情接口
 
-- [ ] **2.1 RED**：编写 `GET /api/coach/v1/students` 返回关联学员列表的失败测试（含 US-005 头像、姓名、性别、年龄、是否未成年人）
-- [ ] **2.2 RED**：编写 `GET /api/coach/v1/students/{id}/profile` 返回完整资料（US-005 自主档案 + 教练切片）的失败测试
-- [ ] **2.3 GREEN**：实现两个 GET 接口及关联校验
+- [ ] **2.1 RED**：编写 `POST /api/coach/student/list` 返回关联学员列表的失败测试（含 US-005 头像、姓名、性别、年龄、是否未成年人）
+- [ ] **2.2 RED**：编写 `POST /api/coach/student/detail`（JSON body 传 studentId）返回完整资料（US-005 自主档案 + 教练切片）的失败测试
+- [ ] **2.3 GREEN**：实现两个 POST 接口及关联校验
 - [ ] **2.4 REFACTOR**：统一列表/详情的脱敏输出；拆分 `user_profile` 与 `coach_slice`
-- [ ] **2.5 COMMIT**：`feat(us-037): coach student list and profile detail with us005 readonly fields`
+- [ ] **2.5 COMMIT**：`feat(us-037): add POST /api/coach/student/list and POST /api/coach/student/detail`
 
 **对应**：user-story.md 场景 1、场景 4、tech-design §4.1 / §4.2
 
@@ -38,15 +38,15 @@
 
 - [ ] **3.1 RED**：编写正常更新学员并添加沟通备注的失败测试
 - [ ] **3.2 RED**：编写 US-005 只读字段不可修改的失败测试
-- [ ] **3.3 GREEN**：实现 PUT 接口、忽略 US-005 字段
+- [ ] **3.3 GREEN**：实现 `POST /api/coach/student/update`、忽略 US-005 字段
 - [ ] **3.4 REFACTOR**：将校验逻辑抽到 validator
-- [ ] **3.5 COMMIT**：`feat(us-037): update student profile with validation and readonly guard`
+- [ ] **3.5 COMMIT**：`feat(us-037): add POST /api/coach/student/update with validation and readonly guard`
 
 **对应**：user-story.md 场景 2、场景 3、tech-design §4.3
 
 ### Task 4：关联套餐列表接口
 
-- [ ] **4.1 RED**：编写 `GET /api/coach/v1/students/{id}/packages` 返回关联 package 卡片的失败测试
+- [ ] **4.1 RED**：编写 `POST /api/coach/student/package/list` 返回关联 package 卡片的失败测试
 - [ ] **4.2 RED**：编写套餐列表按购买时间倒序、状态标签映射的失败测试
 - [ ] **4.3 RED**：编写套餐列表越权访问的失败测试
 - [ ] **4.4 GREEN**：实现 packages 接口与关联校验
@@ -59,7 +59,7 @@
 
 - [ ] **5.1 RED**：编写非关联学员 403 失败测试
 - [ ] **5.2 RED**：编写并发保存幂等测试
-- [ ] **5.3 GREEN**：实现 `idempotency_key` 去重与越权拦截
+- [ ] **5.3 GREEN**：实现 `idempotencyKey` 去重与越权拦截
 - [ ] **5.4 REFACTOR**：封装 idempotency 拦截器
 - [ ] **5.5 COMMIT**：`feat(us-037): authorization and idempotency for profile update`
 

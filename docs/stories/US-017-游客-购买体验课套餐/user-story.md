@@ -1,6 +1,6 @@
 # US-017 游客购买体验课套餐
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
@@ -188,10 +188,10 @@ And   不创建订单
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/orders/trial` | POST | 新增 | 创建体验课订单（校验协议勾选，仅创建待支付订单，不创建套餐） |
-| 2 | `/api/orders/{id}/pay` | POST | 新增 | 发起支付 |
-| 3 | `/api/payments/callback` | POST | 新增 | 支付回调（事务内：更新订单+创建套餐+记录协议签署+更新身份） |
-| 4 | `/api/agreements/status` | GET | 新增 | 查询用户《用户须知》《健康承诺书》《免责协议》签署状态 |
+| 1 | `/api/order/trial` | POST | 新增 | 创建体验课订单；JSON body 传入 `coachId`（校验协议勾选，仅创建待支付订单，不创建套餐） |
+| 2 | `/api/order/pay` | POST | 新增 | 发起支付；JSON body 传入 `orderId`、`channel`（0=微信 Mock / 1=支付宝 Mock） |
+| 3 | `/api/payment/mock-callback` | POST | 新增 | Mock 支付回调；JSON body 传入 `orderId`、`channelTradeNo`、`amount`、`success`（事务内：更新订单+创建套餐+记录协议签署+更新身份） |
+| 4 | `/api/agreement/status` | POST | 新增 | 查询用户《用户须知》《健康承诺书》《免责协议》签署状态 |
 
 ### 7.3 状态机影响
 
@@ -286,10 +286,9 @@ And   不创建订单
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
-| 1 | 体验课购买页 page-spec | [U-package-detail-page.md](../../figma/page-spec/U-package-detail-page.md) | ✅ |
-| 2 | 体验课购买页 Figma file URL | 🔲 待设计填写 | 🔲 |
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
+| 1 | 体验课套餐详情页 page-spec | [U-package-detail-page.md](../../figma/page-spec/U-package-detail-page.md) | ✅ |
 
 ### 13.1 状态截图清单
 

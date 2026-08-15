@@ -87,7 +87,7 @@ CREATE INDEX idx_coach_status_rating ON coach(status, rating DESC);
   ],
   "total": 42,
   "page": 1,
-  "size": 10
+  "pageSize": 10
 }
 ```
 
@@ -199,7 +199,7 @@ coach.real_time_status（status=1 时正常展示；status=4 时仍返回但不�
 | 维度 | 策略 |
 |------|------|
 | 缓存层 | Redis |
-| Key | `coaches:list:page:{page}:size:{size}` |
+| Key | `coaches:list:page:{page}:pageSize:{pageSize}` |
 | TTL | 60s（教练状态变化频繁，TTL 不宜过长） |
 | 失效 | `coach.status` 或 `coach.real_time_status` 变更时通过 MQ 广播失效 |
 | 穿透 | 空列表也缓存 30s，避免 DB 空查 |

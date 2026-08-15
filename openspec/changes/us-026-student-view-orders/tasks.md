@@ -10,12 +10,12 @@
 
 **Spec coverage:** REQ-026-1 / REQ-026-2 全部场景
 
-- [ ] **RED:** Write failing tests — list orders by user sorted by created_at desc with package_mode tag and status-specific fields (remaining_seconds/actions for pending, cancel_refund action for refunding, refund_reason for refunded); detail returns order snapshot + current package + coach + payment + refund + refund_reject_reason; reject other user's order; detail unaffected by package_template changes after purchase
-- [ ] **GREEN:** Implement `OrderQueryService.list(userId, pagination, status)` and `OrderQueryService.detail(userId, orderId)`; list returns package_mode, remaining_seconds, actions, refund_reason per status; detail returns package_snapshot from order and does not read package_template
+- [ ] **RED:** Write failing tests — list orders by user sorted by created_at desc with packageMode tag and status-specific fields (remainingSeconds/actions for pending, cancel_refund action for refunding, refundReason for refunded); detail returns order snapshot (package) + coach + payment + refund + refundRejectReason; reject other user's order; detail unaffected by packageTemplate changes after purchase
+- [ ] **GREEN:** Implement `OrderQueryService.list(userId, pagination, status)` and `OrderQueryService.detail(userId, orderId)`; list returns packageMode, remainingSeconds, actions, refundReason per status; detail returns package snapshot from order and does not read packageTemplate
 - [ ] **REFACTOR:** Extract reusable order DTO mapper
 - [ ] **COMMIT:** `feat(order): add order query service`
 
-## Task 2: GET /api/orders & GET /api/orders/{id} [P0]
+## Task 2: POST /api/order/list & POST /api/order/detail [P0]
 
 **Files:**
 - Create: `backend/src/controllers/order.ts`, `backend/src/routes/order.ts`

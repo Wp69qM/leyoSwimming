@@ -39,32 +39,64 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 
 ## 2. API 设计
 
-### 2.1 GET /api/admin/refunds
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。退款订单复用 US-046 的订单管理接口，不再单独设计 `/api/admin/refund/*`。
 
-- **鉴权**：管理员
-- **Query**: `page`, `size`, `status`
-- **Response 200**: `{ items: RefundListItem[], total, page, size }`
+### 2.1 POST /api/admin/order/list
 
-### 2.2 GET /api/admin/refunds/{refund_id}
+- **鉴权**：管理员登录 + `order:read`
+- **Request**：
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20,
+    "status": "refund_pending",
+    "coachId": 1,
+    "userId": 10001,
+    "startDate": "2026-08-01",
+    "endDate": "2026-08-31"
+  }
+  ```
+- **Response 200**: `{ items: OrderListItem[], total, page, pageSize }`
 
-- **鉴权**：管理员
-- **Response 200**: `{ refund_id, order, package, payment, amount, reason, status, audit_log }`
-- **Response 404**: `REFUND_NOT_FOUND`
+### 2.2 POST /api/admin/order/detail
 
-### 2.3 POST /api/admin/refunds/{refund_id}/approve
+- **鉴权**：管理员登录 + `order:read`
+- **Request**：
+  ```json
+  {
+    "orderId": 1
+  }
+  ```
+- **Response 200**: `{ orderId, type, status, amount, package, payment, refundRecords, auditLog }`
+- **Response 404**: `ORDER_NOT_FOUND`
 
-- **鉴权**：管理员
-- **Request**: `{ amount?: number, remark?: string }`
-- **Response 200**: `{ refund_id, refund_transaction_id, status }`
+### 2.3 POST /api/admin/order/approve-refund
+
+- **鉴权**：管理员登录 + `order:write`
+- **Request**: 
+  ```json
+  {
+    "orderId": 1,
+    "amount": 144000,
+    "remark": "同意退款"
+  }
+  ```
+- **Response 200**: `{ orderId, refundTransactionId, status }`
 - **Response 400**: `INVALID_REFUND_AMOUNT | REFUND_ALREADY_PROCESSED`
 - **Response 403**: `FORBIDDEN`
-- **Response 404**: `REFUND_NOT_FOUND`
+- **Response 404**: `ORDER_NOT_FOUND`
 
-### 2.4 POST /api/admin/refunds/{refund_id}/reject
+### 2.4 POST /api/admin/order/reject-refund
 
-- **鉴权**：管理员
-- **Request**: `{ reason: string }`
-- **Response 200**: `{ refund_id, status: "管理员驳回" }`
+- **鉴权**：管理员登录 + `order:write`
+- **Request**: 
+  ```json
+  {
+    "orderId": 1,
+    "reason": "不符合退款条件"
+  }
+  ```
+- **Response 200**: `{ orderId, status: "refund_rejected" }`
 - **Response 400**: `REFUND_ALREADY_PROCESSED`
 - **Response 403**: `FORBIDDEN`
 
@@ -102,7 +134,7 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 
 - 订单详情缓存：`order:detail:{order_id}`，状态变更后删除
 - package 缓存：`package:{package_id}`，状态变更后删除
-- 退款列表缓存：`admin:refunds:{status}:{page}:{size}`，TTL 60s，审批后删除
+- 退款列表缓存：`admin:refunds:{status}:{page}:{pageSize}`，TTL 60s，审批后删除
 
 ## 5. 性能
 

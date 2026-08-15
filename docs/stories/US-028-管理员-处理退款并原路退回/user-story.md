@@ -1,6 +1,6 @@
 # US-028 管理员处理退款并原路退回
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
@@ -201,10 +201,10 @@ And   不修改任何退款/订单状态
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/admin/orders/list` | POST | 读取 | 订单列表查询（含退款订单；分页、筛选、排序；详见 US-046） |
-| 2 | `/api/admin/orders/detail` | POST | 读取 | 订单详情（含退款订单详情；详见 US-046） |
-| 3 | `/api/admin/orders/approve-refund` | POST | 新增 | 通过退款订单；支持管理员修改退款金额；触发 Mock 退款渠道 |
-| 4 | `/api/admin/orders/reject-refund` | POST | 新增 | 驳回退款订单；package 自动恢复 active |
+| 1 | `/api/admin/order/list` | POST | 读取 | 订单列表查询（含退款订单；分页、筛选、排序；JSON body 传入 `page`、`pageSize`、`status`、`coachId`、`userId`、`startDate`、`endDate`；详见 US-046） |
+| 2 | `/api/admin/order/detail` | POST | 读取 | 订单详情（含退款订单详情；JSON body 传入 `orderId`；详见 US-046） |
+| 3 | `/api/admin/order/approve-refund` | POST | 新增 | 通过退款订单；JSON body 传入 `orderId`、`amount`、`remark`；支持管理员修改退款金额；触发 Mock 退款渠道 |
+| 4 | `/api/admin/order/reject-refund` | POST | 新增 | 驳回退款订单；JSON body 传入 `orderId`、`reason`；package 自动恢复 active |
 
 ### 7.3 状态机影响
 
@@ -316,12 +316,10 @@ And   不修改任何退款/订单状态
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 订单管理页 page-spec | [A-order-management-page.md](../../figma/page-spec/A-order-management-page.md) | ✅ |
 | 2 | 订单详情弹窗 page-spec | [A-order-detail-page.md](../../figma/page-spec/A-order-detail-page.md) | ✅ |
-| 3 | 订单管理页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 订单详情弹窗 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

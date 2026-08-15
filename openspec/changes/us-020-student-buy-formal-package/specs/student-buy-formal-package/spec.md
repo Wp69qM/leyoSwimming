@@ -117,7 +117,7 @@ And   系统已开启自定义课时
 And   用户名下无其他教练的 active 套餐
 When  用户在自定义套餐配置页选择课时数量 100
 And   用户点击「提交订单」
-Then  系统返回 HTTP 400，错误码 INVALID_CUSTOM_PACKAGE_CONFIG
+Then  系统返回 HTTP 400，错误码 INVALID_HOURS
 And   不创建订单
 ```
 

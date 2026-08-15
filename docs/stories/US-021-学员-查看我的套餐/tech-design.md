@@ -35,19 +35,57 @@ CREATE INDEX idx_package_user_type ON package(user_id, package_type);
 
 ## 2. API 设计
 
-### 2.1 GET /api/users/me/packages
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/user/package/list
 
 - **鉴权**：必须登录
+- **Request**:
+  ```json
+  {
+    "status": "active"
+  }
+  ```
 - **Response 200**:
   ```json
   {
-    "active": { "items": [...], "summary": { "total", "consumed", "available" } },
+    "active": { "items": [...], "summary": { "totalHours", "consumedHours", "availableHours" } },
     "exhausted": { "items": [...] },
     "expired": { "items": [...] },
     "refunded": { "items": [...] },
     "frozen": { "items": [...] }
   }
   ```
+
+### 2.2 POST /api/coach/package/detail
+
+- **鉴权**：教练 JWT，`coach.status = 1`
+- **Request**:
+  ```json
+  {
+    "packageId": 1
+  }
+  ```
+- **Response 200**:
+  ```json
+  {
+    "packageId": 1,
+    "userId": 10001,
+    "userName": "张小明",
+    "packageMode": "standard",
+    "status": "active",
+    "totalHours": 10,
+    "availableHours": 8,
+    "reservedHours": 2,
+    "consumedHours": 2,
+    "expireAt": "2026-10-01T00:00:00Z",
+    "usageRecords": [
+      { "id": 1, "lessonId": 101, "consumedHours": 1, "consumedAt": "2026-08-10T10:00:00Z" }
+    ]
+  }
+  ```
+- **Response 403**: `{ code: FORBIDDEN }`（package 不属于当前教练）
+- **Response 404**: `{ code: PACKAGE_NOT_FOUND }`
 
 ## 3. 状态机
 

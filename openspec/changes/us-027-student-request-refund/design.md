@@ -44,54 +44,56 @@ CREATE UNIQUE INDEX uk_refund_idempotent ON refund_record(order_id, status) WHER
 
 ## API Design
 
-### GET /api/packages/{package_id}/refund/check
+### POST /api/package/refund-check
 
-- **鉴权**：必须登录，且为套餐所属学员
+- **鉴权**：必须登录（套餐所属用户）
+- **Request**:
+  ```json
+  {
+    "packageId": 1
+  }
+  ```
 - **Response 200**:
   ```json
   {
     "eligible": true,
-    "refund_amount": 144000,
+    "refundAmount": 144000,
     "calculation": {
-      "paid_amount": 180000,
-      "total_hours": 10,
-      "consumed_count": 2,
+      "paidAmount": 180000,
+      "totalHours": 10,
+      "consumedCount": 2,
       "formula": "180000 × (10-2)/10"
     },
-    "reason_codes": [
+    "reasonCodes": [
       { "code": 1, "label": "教练原因" },
       { "code": 2, "label": "个人原因" },
       { "code": 3, "label": "平台原因" }
     ]
   }
   ```
-- **Response 400**: `{ code: "PACKAGE_NOT_FOUND" | "PACKAGE_ALREADY_REFUNDED" | "PACKAGE_EXHAUSTED_NOT_REFUNDABLE" | "PACKAGE_FROZEN" | "REFUND_IN_PROGRESS" | "REFUND_NOT_SUPPORTED" | "REFUND_EXPIRED" }`
-- **Response 401**: 未登录
-- **Response 403**: 非套餐所属用户
+- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | PACKAGE_NOT_FOUND }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozenReason ≠ coach_resigned）
 
-### POST /api/packages/{package_id}/refund
+### POST /api/package/refund
 
-- **鉴权**：必须登录，且为套餐所属学员
+- **鉴权**：必须登录（套餐所属用户）
 - **Request**:
   ```json
   {
-    "reason_type": 2,
-    "reason_detail": "时间冲突，无法继续学习"
+    "packageId": 1,
+    "reasonType": 2,
+    "reasonDetail": "时间冲突，无法继续学习"
   }
   ```
-- **Response 201**: `{ "refund_id": 12345, "status": "待审批" }`
-- **Response 400**: `{ code: "REFUND_IN_PROGRESS" | "PACKAGE_ALREADY_REFUNDED" | "PACKAGE_EXHAUSTED_NOT_REFUNDABLE" | "PACKAGE_FROZEN" | "PACKAGE_NOT_FOUND" | "REFUND_NOT_SUPPORTED" | "REFUND_EXPIRED" | "INVALID_REASON_TYPE" }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
-- **Response 401**: 未登录
-- **Response 403**: 非套餐所属用户
+- **Response 201**: `{ refundOrderId: 10086, status: "refund_pending" }`
+- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | REFUND_NOT_SUPPORTED | REFUND_EXPIRED | PACKAGE_EXHAUSTED_NOT_REFUNDABLE }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozenReason ≠ coach_resigned）
 
 ### 业务规则
 
-- 退款金额 = `paid_amount × (total_hours - consumed_count) / total_hours`（PRD §6.4.2），向下取整到分
-- 教练离职场景：`package.status = frozen AND package.frozen_reason = coach_resigned` 时，退款金额 = `paid_amount`（100% 全额退款，PRD §6.4.5）；提交后 package.frozen_reason 转为 refund_pending，但历史值保留为 coach_resigned 用于金额计算
-- `package.status` 必须 ∈ {active, expired}，或 = frozen 且 frozen_reason = coach_resigned；exhausted 返回 `PACKAGE_EXHAUSTED_NOT_REFUNDABLE`；frozen 非教练离职原因时返回 `PACKAGE_FROZEN`
-- 已存在 `status=0`（待审批）的 refund_record → 返回 `REFUND_IN_PROGRESS`
-- 提交后 `package.status` → frozen（frozen_reason='refund_pending'，PRD §5.5.1.2），释放全部 reserved_count → 0，自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消，PRD §6.3.1），触发 US-024 候补转正
-- `reason_type` 必须 ∈ {1, 2, 3}，否则返回 `INVALID_REASON_TYPE`
+- 退款金额 = `paidAmount × (totalHours - consumedCount) / totalHours`（§6.4.2）
+- `package.status` 必须 ∈ {active, exhausted, expired}，或 = frozen 且 frozenReason = coach_resigned；否则拒绝
+- 提交后 package.status → frozen（frozenReason='refund_pending'，PRD §5.5.1.2），立即释放 reservedCount → 0，自动取消已预约课程（booking.status → 已取消，cancelReason=1 学员取消，PRD §6.3.1），触发 US-024 候补转正
+- 教练离职场景：保留 frozenReason 历史值为 coach_resigned 用于 100% 退款计算
+- 已存在 status=待审批 的 refund_record → 拒绝（REFUND_IN_PROGRESS）
 
 ## State Machine
 
@@ -109,16 +111,16 @@ refund_record: (无) ──[学员提交]──→ 待审批
 
 | 缓存 | Key | TTL | 失效策略 |
 |------|-----|-----|---------|
-| 退款资格检查结果 | `refund:check:{package_id}` | 30s | 套餐状态变更时主动删除；提交退款后立即删除 |
+| 退款资格检查结果 | `refund:check:{packageId}` | 30s | 套餐状态变更时主动删除；提交退款后立即删除 |
 
-缓存仅缓存 eligible + refund_amount + calculation，不缓存 reason_codes（静态数据由前端字典维护）。
+缓存仅缓存 eligible + refundAmount + calculation，不缓存 reasonCodes（静态数据由前端字典维护）。
 
 ## Performance Targets
 
 | 指标 | 目标 |
 |------|------|
 | 退款申请接口（POST）P99 | < 300ms |
-| 退款资格检查接口（GET）P99 | < 200ms |
+| 退款资格检查接口（POST）P99 | < 200ms |
 | 退款资格检查缓存命中率 | ≥ 70%（同一用户多次查看） |
 
 ## Security

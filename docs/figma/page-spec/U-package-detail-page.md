@@ -29,8 +29,13 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | U-套餐详情页 | https://www.calicat.cn/design/2083742072257646592?node-id=b4179121-e6a9-427a-8333-a751d5784f68 |
-| 自定义课时 | U-套餐详情页-自定义课时 2 | https://www.calicat.cn/design/2083742072257646592?node-id=4e6feb83-c99e-4e7f-9edd-8a1c0dcd4620 |
+| 正价课 | U-套餐详情页-正价课 | https://www.calicat.cn/design/2083742072257646592?node-id=6e63137f-c830-48a6-9337-5ebff6d04ca5 |
+| 体验课 | U-套餐详情页-体验课 | https://www.calicat.cn/design/2083742072257646592?node-id=b30b4ec5-401b-4146-9883-574b999e0e1a |
+| 冲突态 | U-套餐详情页-冲突态 | https://www.calicat.cn/design/2083742072257646592?node-id=d6ece490-4a4f-4779-9d65-30e9c2825b98 |
+| 空状态 | U-套餐详情页-空状态 | https://www.calicat.cn/design/2083742072257646592?node-id=8695c78c-e2ad-44c9-8eda-9d4823f961d5 |
+| 骨架屏 | U-套餐详情页-骨架屏 | https://www.calicat.cn/design/2083742072257646592?node-id=873361c8-5e76-4eb9-b2a7-ec54391d9cf5 |
+| 教练选择 | U-套餐详情页-教练选择 2 | https://www.calicat.cn/design/2083742072257646592?node-id=e34fa42c-838f-47ca-b779-e9a690fd04d3 |
+| 自定义课时 | U-套餐详情页-自定义课时 3 | https://www.calicat.cn/design/2083742072257646592?node-id=f05e91b0-5980-4c76-8347-57108c77800c |
 
 ---
 ## 2. 用户身份与业务状态维度

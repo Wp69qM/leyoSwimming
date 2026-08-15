@@ -13,7 +13,20 @@
 - [ ] **REFACTOR:** Extract coach status visibility rule
 - [ ] **COMMIT:** `feat(package): add coach package browsing service`
 
-## Task 2: GET /api/coaches/:id/packages [P0]
+## Task 2: POST /api/package/list [P0]
+
+**Files:**
+- Create: `backend/src/controllers/package.ts`, `backend/src/routes/package.ts`
+- Test: `backend/tests/controllers/package.test.ts`
+
+**Spec coverage:** API 端点 + 错误码
+
+- [ ] **RED:** 200 with all active packages grouped by packageMode; 200 empty when no active templates
+- [ ] **GREEN:** Implement endpoint; filter by `status = 'active'` and group by `packageMode`
+- [ ] **REFACTOR:** Share list query with coach package service
+- [ ] **COMMIT:** `feat(api): add POST /api/package/list`
+
+## Task 3: POST /api/coach/package/list [P0]
 
 **Files:**
 - Create: `backend/src/controllers/coach-package.ts`, `backend/src/routes/coach-package.ts`
@@ -21,15 +34,28 @@
 
 **Spec coverage:** API 端点 + 错误码
 
-- [ ] **RED:** 200 with packages; 404 for invalid coach; empty standard list returns custom entry only
-- [ ] **GREEN:** Implement endpoint
+- [ ] **RED:** 200 with packages; 404 for invalid coach; empty standard list returns custom entry only (coachId passed in JSON body)
+- [ ] **GREEN:** Implement endpoint; read coachId from JSON body
 - [ ] **REFACTOR:** Share DTO with service
-- [ ] **COMMIT:** `feat(api): add GET /api/coaches/:id/packages`
+- [ ] **COMMIT:** `feat(api): add POST /api/coach/package/list`
+
+## Task 4: POST /api/package/detail [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/package.ts`, `backend/src/routes/package.ts`
+- Test: `backend/tests/controllers/package.test.ts`
+
+**Spec coverage:** API 端点 + 下架校验
+
+- [ ] **RED:** 200 with template detail and coach list when packageId valid; 404 PACKAGE_NOT_FOUND when inactive or missing
+- [ ] **GREEN:** Implement endpoint; accept optional `coachId` in JSON body; return current coach info when provided
+- [ ] **REFACTOR:** Share detail DTO with package list
+- [ ] **COMMIT:** `feat(api): add POST /api/package/detail`
 
 ---
 
 ## Execution Discipline
 
-- 严格顺序：Task 1 → 2
+- 严格顺序：Task 1 → 2 → 3 → 4
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder

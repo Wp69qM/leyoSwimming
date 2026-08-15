@@ -4,9 +4,9 @@ US-020 完成了正价套餐下单，但订单仍处于待支付状态。MVP 阶
 
 ## What Changes
 
-- 新增 `POST /api/orders/{order_id}/pay`：创建 Mock 支付流水并返回 `payment_id` + `channel_trade_no`
-- 新增 `POST /api/payments/mock/callback`：Mock 渠道异步回调（开发/测试环境），幂等更新 order/package
-- 新增 `POST /api/orders/{order_id}`：查询订单支付状态
+- 新增 `POST /api/order/pay`：创建 Mock 支付流水并返回 `paymentId` + `channelTradeNo`
+- 新增 `POST /api/payment/mock-callback`：Mock 渠道异步回调（开发/测试环境），幂等更新 order/package
+- 新增 `POST /api/order/detail`：查询订单支付状态
 - 新增 `payment` 表记录支付流水与幂等键
 - `order` 表增加 `type = purchase`，与 US-046 退款订单区分，管理员可在订单管理中查看 mock-paid 订单
 - 支付成功事务内更新 order.status → 已支付；使用订单中已快照的模板字段创建 package.status → active，不实时查询 package_template

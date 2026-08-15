@@ -28,7 +28,11 @@
 
 | 页面/状态 | Calicat Frame | 链接 |
 |----------|---------------|------|
-| 主页面 | U-订单确认页 | https://www.calicat.cn/design/2083742072257646592?node-id=d53b5fa3-bba6-4791-8079-5c09dc2ef376 |
+| 主页面 | U-订单确认页-正价课 | https://www.calicat.cn/design/2083742072257646592?node-id=2de452b1-6820-4493-8150-86f3af11b60c |
+| 体验课 | U-订单确认页-体验课 | https://www.calicat.cn/design/2083742072257646592?node-id=4785ca78-b832-44b0-b6f6-cc23970a7e74 |
+| 未成年 | U-订单确认页-未成年 | https://www.calicat.cn/design/2083742072257646592?node-id=85ceb72f-b367-485b-9f2c-4fbac8e3340c |
+| 冲突态 | U-订单确认页-冲突态 | https://www.calicat.cn/design/2083742072257646592?node-id=d74b385b-11e9-4da1-84e0-84a4e380d3d7 |
+| 已下架 | U-订单确认页-已下架 | https://www.calicat.cn/design/2083742072257646592?node-id=bffb2da6-6801-4eca-821b-25e2a1299485 |
 
 ---
 ## 2. 用户身份与业务状态维度

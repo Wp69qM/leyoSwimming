@@ -13,27 +13,27 @@
 - [ ] **REFACTOR:** Extract channel refund adapter and amount validator
 - [ ] **COMMIT:** `feat(refund): add admin refund approval service`
 
-## Task 2: GET /api/admin/refunds & /api/admin/refunds/{id} [P0]
+## Task 2: POST /api/admin/order/list & POST /api/admin/order/detail [P0]
 
 **Files:**
-- Create: `backend/src/controllers/refund-admin.ts`, `backend/src/routes/refund-admin.ts`
-- Test: `backend/tests/controllers/refund-admin.test.ts`
+- Reuse: US-046 `backend/src/controllers/admin/order.ts`, `backend/src/routes/admin/order.ts`
+- Test: `backend/tests/controllers/admin/order.test.ts`（追加退款订单场景）
 
-- [ ] **RED:** Write failing tests — 200 list with pagination; 200 detail; 403 non-admin; 404 not found
-- [ ] **GREEN:** Implement controllers + routes
+- [ ] **RED:** Write failing tests — 200 list with pagination filtered by `type='refund'`; 200 detail for refund order; 403 non-admin; 404 not found
+- [ ] **GREEN:** 在 US-046 order controller 中支持 `type='refund'` 过滤与详情查询
 - [ ] **REFACTOR:** Share pagination and admin auth middleware
-- [ ] **COMMIT:** `feat(api): add admin refund list and detail endpoints`
+- [ ] **COMMIT:** `feat(api): reuse POST /api/admin/order/list and POST /api/admin/order/detail for refund orders`
 
-## Task 3: POST /api/admin/refunds/{id}/approve & /reject [P0]
+## Task 3: POST /api/admin/order/approve-refund & POST /api/admin/order/reject-refund [P0]
 
 **Files:**
-- Modify: controller/route
-- Test: `backend/tests/controllers/refund-admin.test.ts`
+- Modify: US-046 `backend/src/controllers/admin/order.ts`, `backend/src/routes/admin/order.ts`
+- Test: `backend/tests/controllers/admin/order.test.ts`（追加退款审批场景）
 
-- [ ] **RED:** Write failing tests — 200 approve with transaction; 200 reject; 400 duplicate; 400 invalid amount; 403 forbidden
-- [ ] **GREEN:** Implement approval/rejection endpoints
+- [ ] **RED:** Write failing tests — 200 approve refund with transaction; 200 reject refund; 400 duplicate; 400 invalid amount; 403 forbidden
+- [ ] **GREEN:** 在 US-046 order controller 中实现退款批准/驳回接口
 - [ ] **REFACTOR:** Extract admin action validation
-- [ ] **COMMIT:** `feat(api): add admin refund approve and reject endpoints`
+- [ ] **COMMIT:** `feat(api): reuse POST /api/admin/order/approve-refund and POST /api/admin/order/reject-refund`
 
 ## Task 4: Channel Refund Adapter & Retry Job [P1]
 

@@ -1,6 +1,6 @@
 # US-043 管理员-查看与管理用户套餐
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：2 人天
 > **作者**：PM　|　**最后更新**：2026-08-13
@@ -393,7 +393,7 @@ And   package 状态保持 frozen 不变
 ### 11.1 字段完整性
 
 - [x] 15 个章节全部填写
-- [x] 无"待定"/"TBD"占位符（除 Figma 链接状态待设计填写）
+- [x] 无"待定"/"TBD"占位符
 - [x] 错误码明确（ADMIN_PERMISSION_DENIED / PACKAGE_NOT_ACTIVE / PACKAGE_NOT_FROZEN）
 
 ### 11.2 业务规则
@@ -429,12 +429,10 @@ And   package 状态保持 frozen 不变
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 套餐管理列表页 page-spec | [A-package-management-page.md](../../figma/page-spec/A-package-management-page.md) | ✅ |
 | 2 | 套餐详情页 page-spec | [A-package-detail-page.md](../../figma/page-spec/A-package-detail-page.md) | ✅ |
-| 3 | 套餐管理列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 冻结/解冻确认弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

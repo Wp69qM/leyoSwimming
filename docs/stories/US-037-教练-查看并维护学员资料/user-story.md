@@ -1,10 +1,10 @@
 # US-037 教练查看并维护学员资料（含未成年人）
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：1 人天
 > **作者**：PM　|　**最后更新**：2026-08-04
-> **配套文档**：Figma：[待设计填写]　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
+> **配套文档**：Figma：[C-学员列表页](../../figma/page-spec/C-student-list-page.md) / [C-学员详情页](../../figma/page-spec/C-student-detail-page.md) / [C-套餐详情页](../../figma/page-spec/C-package-detail-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)
 
 ---
 
@@ -179,10 +179,10 @@ And   点击卡片仍可进入详情页查看历史资料
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/coach/v1/students` | GET | 新增 | 教练获取关联学员列表（展示 US-005 头像、姓名、性别、年龄、是否未成年人；支持 `tab=active|history` 筛选） |
-| 2 | `/api/coach/v1/students/{student_id}/profile` | GET | 新增 | 教练获取某学员完整资料：US-005 自主档案（只读）+ 教练视角切片 |
-| 3 | `/api/coach/v1/students/{student_id}/profile` | PUT | 新增 | 教练更新信息切片（不包含 US-005 只读字段） |
-| 4 | `/api/coach/v1/students/{student_id}/packages` | GET | 新增 | 教练获取该学员与当前教练关联的 package 列表，用于详情页「关联套餐」卡片区 |
+| 1 | `/api/coach/student/list` | POST | 新增 | 教练获取关联学员列表；JSON body 传入 `tab`（`active|history`，默认 `active`）；展示 US-005 头像、姓名、性别、年龄、是否未成年人 |
+| 2 | `/api/coach/student/detail` | POST | 新增 | 教练获取某学员完整资料：US-005 自主档案（只读）+ 教练视角切片；JSON body 传入 `studentId` |
+| 3 | `/api/coach/student/update` | POST | 新增 | 教练更新信息切片（不包含 US-005 只读字段）；JSON body 传入 `studentId`、`learningStrokes`、`swimLevel`、`basics`、`notes`、`idempotencyKey` |
+| 4 | `/api/coach/student/package/list` | POST | 新增 | 教练获取该学员与当前教练关联的 package 列表，用于详情页「关联套餐」卡片区；JSON body 传入 `studentId` |
 
 ### 7.3 状态机影响
 
@@ -197,7 +197,7 @@ And   点击卡片仍可进入详情页查看历史资料
 ### 8.1 边界场景 1：并发编辑同一学员资料
 
 - **触发条件**：教练在 A、B 两个设备上同时编辑同一学员并保存
-- **预期行为**：后端以 `coach_id + student_id` 为幂等键去重，第二次请求返回与第一次相同结果，不生成重复记录；若字段冲突，以后到请求的完整提交为准并记录审计日志
+- **预期行为**：后端以 `coachId + studentId` 为幂等键去重，第二次请求返回与第一次相同结果，不生成重复记录；若字段冲突，以后到请求的完整提交为准并记录审计日志
 - **用户可见反馈**：两次均提示「保存成功」
 
 ### 8.2 边界场景 2：教练输入 XSS 脚本
@@ -250,7 +250,7 @@ And   点击卡片仍可进入详情页查看历史资料
 ### 11.1 字段完整性
 
 - [x] 16 个章节全部填写
-- [x] 无"待定"/"TBD"占位符（除 Figma 链接状态待设计填写）
+- [x] 无"待定"/"TBD"占位符
 - [x] 错误码明确（NOT_ASSOCIATED_STUDENT / READONLY_USER_PROFILE）
 
 ### 11.2 业务规则
@@ -276,7 +276,7 @@ And   点击卡片仍可进入详情页查看历史资料
 
 ## 12. 备注
 
-- **幂等键**：`Idempotency-Key: coach:{coach_id}:student:{student_id}:ts:{updated_at_ms}`
+- **幂等键**：`idempotencyKey: coach:{coachId}:student:{studentId}:ts:{updatedAtMs}`
 - **事务边界**：查询关联关系 + 写入 `coach_student_profile` + 写入 `audit_log` 在同一本地事务
 - **性能要求**：列表接口 P99 < 200ms，详情/保存接口 P99 < 300ms
 - **合规**：本 US 不存储 guardian_phone；如需查看未成年人信息，从 US-005 读取并按 US-005 的加密与脱敏规则处理
@@ -287,14 +287,11 @@ And   点击卡片仍可进入详情页查看历史资料
 
 > Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 我的学员列表页 page-spec | [C-student-list-page.md](../../figma/page-spec/C-student-list-page.md) | ✅ |
 | 2 | 学员详情/编辑页 page-spec | [C-student-detail-page.md](../../figma/page-spec/C-student-detail-page.md) | ✅ |
 | 3 | 套餐使用详情页 page-spec | [C-package-detail-page.md](../../figma/page-spec/C-package-detail-page.md) | ✅ |
-| 4 | 我的学员列表页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 5 | 学员详情/编辑页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 6 | 套餐使用详情页 Figma file URL | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 
@@ -315,14 +312,14 @@ And   点击卡片仍可进入详情页查看历史资料
 - **背景**：教练需要查看学员完整档案，但不能覆盖学员自行维护的基础资料
 - **选项**：A. 直接修改 user 表；B. 独立 coach_student_profile 表
 - **结论**：选择 B，教练修改仅写入 coach_student_profile，user 表只读
-- **影响范围**：教练端学员详情页、后端 PUT /api/coach/v1/students/{id}/profile
+- **影响范围**：教练端学员详情页、后端 POST /api/coach/student/update
 
 ### 14.2 US-005 字段在教练端只读
 
 - **背景**：US-005 中的头像、姓名、手机号、年龄、性别、游泳基础等属于学员自主档案
 - **选项**：A. 教练可编辑；B. 教练仅查看
 - **结论**：选择 B，教练端展示 US-005 字段但不可编辑；如需修改，引导学员在「我的 → 个人资料」中自行维护
-- **影响范围**：教练端学员详情页、后端 PUT 接口忽略 US-005 字段
+- **影响范围**：教练端学员详情页、后端 POST /api/coach/student/update 忽略 US-005 字段
 
 ### 14.3 未成年人标识入口
 
@@ -376,7 +373,7 @@ And   点击卡片仍可进入详情页查看历史资料
 | v2.1 | 2026-08-12 | PM | 调整教练端学员列表卡片展示字段：移除手机号脱敏，新增性别、年龄 |
 | v2.2 | 2026-08-12 | PM | 我的学员列表增加「活跃学员」/「历史学员」Tab 分类；活跃学员卡片展示活跃套餐标签（体验课、正价套餐 x N）；新增场景 4（历史学员 Tab）；更新 API / 交互矩阵 / 业务规则 |
 | v2.3 | 2026-08-12 | PM | 修正未成年人信息维护方案为方案 B：统一由学员在 US-005 维护，教练不维护监护人信息；教练视角切片移除 is_minor / guardian 字段；删除场景 3/4/5；调整异常分支与交互矩阵；更新业务规则与数据表说明 |
-| v2.4 | 2026-08-12 | PM | 学员详情页新增「关联套餐」卡片区：展示该学员与当前教练的所有 package 实例，含套餐名称、模式、有效期、状态标签、已用/总课时；支持点击卡片进入套餐使用详情页；新增 API `/api/coach/v1/students/{student_id}/packages`；场景 1 扩展套餐卡片断言；新增 §14.5 设计决策 |
+| v2.4 | 2026-08-12 | PM | 学员详情页新增「关联套餐」卡片区：展示该学员与当前教练的所有 package 实例，含套餐名称、模式、有效期、状态标签、已用/总课时；支持点击卡片进入套餐使用详情页；新增 API `/api/coach/student/package/list`；场景 1 扩展套餐卡片断言；新增 §14.5 设计决策 |
 | v2.5 | 2026-08-12 | PM | 明确套餐使用详情页为独立页面，由 US-021 教练视角统一承接；关联套餐卡片仅展示剩余课时，不再展示已用/总课时；§4.1、§5 规则 9、§6.1、§13、§14.5 同步调整 |
 
 ---

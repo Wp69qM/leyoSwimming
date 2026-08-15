@@ -36,34 +36,95 @@ CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
 
 ## 2. API 设计
 
-### 2.1 GET /api/coaches/{id}/packages
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/package/list
 
 - **鉴权**：否（游客可访问）
-- **Path**：`id` = 教练 ID
+- **Request**:
+  ```json
+  {
+    "page": 1,
+    "pageSize": 20
+  }
+```
 - **Response 200**:
   ```json
   {
-    "coach_id": 1,
-    "coach_status": 1,
-    "reference_price": 20000,
-    "standard_packages": [
-      { "id": 1, "hours": 1, "price": 20000, "validity_days": 30 },
-      { "id": 2, "hours": 6, "price": 108000, "validity_days": 90 },
-      { "id": 3, "hours": 8, "price": 144000, "validity_days": 120 },
-      { "id": 4, "hours": 10, "price": 180000, "validity_days": 150 }
+    "items": [
+      { "id": 1, "name": "体验课", "packageMode": "experience", "hours": 1, "price": 20000, "originalPrice": 30000, "teachingType": "one_on_one", "durationMinutes": 60, "validityDays": 30 },
+      { "id": 2, "name": "标准 6 节", "packageMode": "standard", "hours": 6, "price": 108000, "originalPrice": 120000, "teachingType": "one_on_one", "durationMinutes": 60, "validityDays": 90 }
     ],
-    "custom_package_enabled": true,
-    "custom_hours_min": 1,
-    "custom_hours_max": 50
+    "total": 10,
+    "page": 1,
+    "pageSize": 20
+  }
+  ```
+
+### 2.2 POST /api/coach/package/list
+
+- **鉴权**：否（游客可访问）
+- **Request**:
+  ```json
+  {
+    "coachId": 1
+  }
+  ```
+- **Response 200**:
+  ```json
+  {
+    "coachId": 1,
+    "coachStatus": 1,
+    "referencePrice": 20000,
+    "standardPackages": [
+      { "id": 1, "hours": 1, "price": 20000, "validityDays": 30 },
+      { "id": 2, "hours": 6, "price": 108000, "validityDays": 90 },
+      { "id": 3, "hours": 8, "price": 144000, "validityDays": 120 },
+      { "id": 4, "hours": 10, "price": 180000, "validityDays": 150 }
+    ],
+    "customPackageEnabled": true,
+    "customHoursMin": 1,
+    "customHoursMax": 50
   }
   ```
 - **Response 404**: `{ code: COACH_NOT_FOUND }`（教练不存在或 status ∉ {1, 4}）
 
-### 2.2 业务规则
+### 2.3 POST /api/package/detail
+
+- **鉴权**：否（游客可访问）
+- **Request**:
+  ```json
+  {
+    "packageId": 1,
+    "coachId": 1
+  }
+  ```
+- **Response 200**:
+  ```json
+  {
+    "id": 1,
+    "name": "标准 6 节",
+    "packageMode": "standard",
+    "hours": 6,
+    "price": 108000,
+    "originalPrice": 120000,
+    "teachingType": "one_on_one",
+    "durationMinutes": 60,
+    "validityDays": 90,
+    "refundPolicySummary": "未消费全额退",
+    "applicableCoaches": [
+      { "coachId": 1, "name": "教练 A", "avatarUrl": "..." }
+    ]
+  }
+  ```
+- **Response 404**: `{ code: PACKAGE_NOT_FOUND }`（模板不存在、已下架或 packageMode 不匹配）
+
+### 2.4 业务规则
 
 - 仅返回 `coach.status IN (1, 4)` 的教练
-- `reference_price` 为空时 `custom_package_enabled = false`
+- `referencePrice` 为空时 `customPackageEnabled = false`
 - 标准套餐仅返回 `status = 1`（启用）的记录
+- `applicableCoaches` 在未传 `coachId` 时返回全部适配教练；传入 `coachId` 时仅返回当前教练信息
 
 ---
 

@@ -1,6 +1,6 @@
 # US-019 学员浏览正价套餐
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：0.5 人天
 > **作者**：PM　|　**最后更新**：2026-07-30
@@ -195,9 +195,9 @@ And   接口返回 HTTP 200
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/packages/list` | POST | 新增 | 首页全局套餐列表：查询所有已上架套餐，按 `package_mode` 区分 |
-| 2 | `/api/coach/packages/list` | POST | 新增 | 教练详情页套餐列表：JSON body 传入 `coach_id`，查询当前教练支持的正价套餐、体验课、自定义入口 |
-| 3 | `/api/packages/detail` | POST | 新增 | 查询单个套餐模板详情：JSON body 传入 `package_id`，可选 `coach_id`；返回套餐详情、适配教练列表（未传 coach_id 时）/ 当前教练信息（传入 coach_id 时），模板下架时返回 404 |
+| 1 | `/api/package/list` | POST | 新增 | 首页全局套餐列表：查询所有已上架套餐，按 `packageMode` 区分 |
+| 2 | `/api/coach/package/list` | POST | 新增 | 教练详情页套餐列表：JSON body 传入 `coachId`，查询当前教练支持的正价套餐、体验课、自定义入口 |
+| 3 | `/api/package/detail` | POST | 新增 | 查询单个套餐模板详情：JSON body 传入 `packageId`，可选 `coachId`；返回套餐详情、适配教练列表（未传 coachId 时）/ 当前教练信息（传入 coachId 时），模板下架时返回 404 |
 
 ### 7.3 状态机影响
 
@@ -263,7 +263,7 @@ US-019 是只读 US，不修改任何实体状态。
 ### 11.1 字段完整性
 
 - [x] 15 个章节全部填写
-- [x] 无"待定"/"TBD"占位符（除 Figma 链接状态待设计填写）
+- [x] 无"待定"/"TBD"占位符
 - [x] 业务规则引用明确
 
 ### 11.2 业务规则
@@ -288,7 +288,7 @@ US-019 是只读 US，不修改任何实体状态。
 ## 12. 备注
 
 - **缓存**：标准套餐列表缓存 5 分钟（管理员配置变更时主动失效）
-- **幂等**：GET 接口天然幂等
+- **幂等**：POST 接口通过无状态查询天然幂等
 - **性能要求**：套餐列表接口 P99 < 200ms
 
 ---
@@ -297,12 +297,10 @@ US-019 是只读 US，不修改任何实体状态。
 
 > Figma **设计系统规范**见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 套餐列表页 page-spec | [U-package-list-page.md](../../figma/page-spec/U-package-list-page.md) | ✅ |
 | 2 | 套餐详情页 page-spec | [U-package-detail-page.md](../../figma/page-spec/U-package-detail-page.md) | ✅ |
-| 3 | 套餐浏览页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 套餐卡片 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

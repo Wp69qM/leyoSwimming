@@ -35,9 +35,9 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 
 ## API Design
 
-- `POST /api/packages/detail`：套餐详情页数据源（US-019 提供，复用）；返回套餐模板详情、适配教练列表（入口 A）/ 当前教练信息（入口 B），自定义套餐教练信息含 `reference_price_per_hour`
-- `POST /api/orders/formal`：创建正价套餐订单（含未成年人用户信息中监护人手机号存在性校验、自定义套餐参数范围校验）
-- `POST /api/agreements/status`：查询协议签署状态
+- `POST /api/package/detail`：套餐详情页数据源（US-019 提供，复用）；返回套餐模板详情、适配教练列表（入口 A）/ 当前教练信息（入口 B），自定义套餐教练信息含 `reference_price_per_hour`
+- `POST /api/order/formal`：创建正价套餐订单（含未成年人用户信息中监护人手机号存在性校验、自定义套餐参数范围校验）
+- `POST /api/agreement/status`：查询协议签署状态
 
 ## Caching
 

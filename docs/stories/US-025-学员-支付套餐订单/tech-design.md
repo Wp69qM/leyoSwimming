@@ -67,12 +67,15 @@ CREATE INDEX idx_package_order ON package(order_id);
 
 ## 2. API 设计
 
-### 2.1 POST /api/orders/{order_id}/pay
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/order/pay
 
 - **鉴权**：必须登录且为订单所有者
 - **Request**:
   ```json
   {
+    "orderId": 1,
     "channel": 0
   }
   ```
@@ -80,8 +83,8 @@ CREATE INDEX idx_package_order ON package(order_id);
 - **Response 200**:
   ```json
   {
-    "payment_id": "P-001",
-    "channel_trade_no": "MOCK-WX-202608130001",
+    "paymentId": "P-001",
+    "channelTradeNo": "MOCK-WX-202608130001",
     "status": "success"
   }
   ```
@@ -90,18 +93,18 @@ CREATE INDEX idx_package_order ON package(order_id);
 - **实现说明**：
   - 校验订单归属、状态、有效期
   - 创建 payment 流水（status=待支付）
-  - 调用 `MockPaymentProvider.pay(order, channel)` 生成 `channel_trade_no` 并即时返回支付成功
-  - 由 MockProvider 异步调用 `POST /api/payments/mock/callback` 完成 order/package 更新；或直接在当前事务后触发回调
+  - 调用 `MockPaymentProvider.pay(order, channel)` 生成 `channelTradeNo` 并即时返回支付成功
+  - 由 MockProvider 异步调用 `POST /api/payment/mock-callback` 完成 order/package 更新；或直接在当前事务后触发回调
 
-### 2.2 POST /api/payments/mock/callback
+### 2.2 POST /api/payment/mock-callback
 
 - **鉴权**：内部接口；开发/测试环境使用，生产环境禁用或替换为真实渠道回调
 - **Request**:
   ```json
   {
     "channel": 0,
-    "order_id": "O-001",
-    "channel_trade_no": "MOCK-WX-202608130001",
+    "orderId": 1,
+    "channelTradeNo": "MOCK-WX-202608130001",
     "amount": 180000,
     "success": true
   }
@@ -109,16 +112,31 @@ CREATE INDEX idx_package_order ON package(order_id);
 - **Response 200**: `{ code: "SUCCESS" }`
 - **业务逻辑**：
   - 校验 payment 存在且金额一致
-  - 幂等：同一 `channel_trade_no` 仅处理一次
-  - 事务内更新 payment.status=成功、order.status=已支付、paid_at=now，并基于 order 快照创建 package.status=active
+  - 幂等：同一 `channelTradeNo` 仅处理一次
+  - 事务内更新 payment.status=成功、order.status=已支付、paidAt=now，并基于 order 快照创建 package.status=active
   - 异步触发用户身份重算
   - 失败时也返回 200，避免 Mock 渠道重试；异常记录日志并进入补偿队列
 
-### 2.3 POST /api/orders/{order_id}
+### 2.3 POST /api/order/detail
 
 - **鉴权**：必须登录且为订单所有者
-- **Request**: `{ order_id }`（参数通过 JSON body 传递）
-- **Response 200**: `{ order_id, type, status, amount, paid_at, package_id }`
+- **Request**:
+  ```json
+  {
+    "orderId": 1
+  }
+  ```
+- **Response 200**:
+  ```json
+  {
+    "orderId": 1,
+    "type": "purchase",
+    "status": "paid",
+    "amount": 180000,
+    "paidAt": "2026-08-13T10:00:00Z",
+    "packageId": 1
+  }
+  ```
 
 ## 3. 状态机
 

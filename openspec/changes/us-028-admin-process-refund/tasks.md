@@ -16,27 +16,31 @@
 - [ ] **REFACTOR:** Extract channel refund adapter and amount validator（only validates amount ≥ 0）
 - [ ] **COMMIT:** `feat(refund): add admin refund approval service`
 
-## Task 2: Admin Refund List/Detail API [P0]
+## Task 2: Admin Refund Approve/Reject API [P0]
 
 **Files:**
 - Create: `backend/src/controllers/refund-admin.ts`, `backend/src/routes/refund-admin.ts`
 - Test: `backend/tests/controllers/refund-admin.test.ts`
 
-- [ ] **RED:** Write failing tests — 200 list with pagination; 200 detail; 403 non-admin; 404 not found
-- [ ] **GREEN:** Implement controller + route
-- [ ] **REFACTOR:** Share pagination and admin auth middleware
-- [ ] **COMMIT:** `feat(api): add admin refund list and detail endpoints`
+**Spec coverage:** REQ-028-2 / REQ-028-3
 
-## Task 3: Admin Approve/Reject API [P0]
-
-**Files:**
-- Modify: controller/route
-- Test: `backend/tests/controllers/refund-admin.test.ts`
-
-- [ ] **RED:** Write failing tests — 200 approve/reject; 400 duplicate; 400 negative amount; 403 forbidden
-- [ ] **GREEN:** Implement endpoints
+- [ ] **RED:** Write failing tests — 200 approve/reject; 400 duplicate; 400 negative amount; 403 forbidden; 404 order not found
+- [ ] **GREEN:** Implement `POST /api/admin/order/approve-refund` and `POST /api/admin/order/reject-refund`
 - [ ] **REFACTOR:** Extract admin action validation
 - [ ] **COMMIT:** `feat(api): add admin refund approve and reject endpoints`
+
+## Task 3: Refund Order List/Detail Integration [P0]
+
+**Files:**
+- 复用 US-046 的 `backend/src/controllers/admin-order.ts` 与对应路由
+- Test: `backend/tests/controllers/admin-order.test.ts`
+
+**Spec coverage:** REQ-028-1
+
+- [ ] **RED:** Write failing tests — 200 list filtered by `status=refund_pending`; 200 detail includes `refundRecords`; 403 non-admin; 404 order not found
+- [ ] **GREEN:** Ensure US-046 order list/detail endpoints support refund status filter and refund details
+- [ ] **REFACTOR:** Share order detail assembly between US-028 and US-046
+- [ ] **COMMIT:** `feat(api): align refund order list/detail with US-046`
 
 ## Task 4: Channel Refund Adapter & Retry Job [P1]
 

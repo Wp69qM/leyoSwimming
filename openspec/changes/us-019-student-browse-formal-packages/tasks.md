@@ -8,12 +8,12 @@
 
 **Spec coverage:** REQ-001 标准套餐列表、参考单价、自定义课时入口开关、教练状态可见性校验
 
-- [ ] **RED:** Return standard packages + reference price for valid coach (status=1); return custom_package_enabled=false when reference_price is null; return COACH_NOT_FOUND for status ≠ 1 or not bookable; return empty standard_packages when no active package template
-- [ ] **GREEN:** Implement query with coach status filter (=1) + package_template.status=active filter
+- [ ] **RED:** Return standard packages + reference price for valid coach (status=1); return customPackageEnabled=false when referencePrice is null; return COACH_NOT_FOUND for status ∉ {1, 4} or not bookable; return empty standardPackages when no active package template
+- [ ] **GREEN:** Implement query with coach status filter IN (1, 4) + package_template.status=active filter
 - [ ] **REFACTOR:** Extract coach status visibility rule into shared helper
 - [ ] **COMMIT:** `feat(package): add coach package browsing service`
 
-## Task 2: GET /api/coaches/:id/packages [P0]
+## Task 2: POST /api/coach/package/list [P0]
 
 **Files:**
 - Create: `backend/src/controllers/coach-package.ts`, `backend/src/routes/coach-package.ts`
@@ -21,10 +21,10 @@
 
 **Spec coverage:** API 端点 + HTTP 状态码 + 错误码
 
-- [ ] **RED:** 200 with full payload for valid coach; 200 with custom_package_enabled=false when no reference price; 200 with empty standard_packages array when no enabled package; 404 COACH_NOT_FOUND for invisible coach
+- [ ] **RED:** 200 with full payload for valid coach; 200 with customPackageEnabled=false when no reference price; 200 with empty standardPackages array when no enabled package; 404 COACH_NOT_FOUND for invisible coach
 - [ ] **GREEN:** Implement endpoint calling coach-package service
 - [ ] **REFACTOR:** Share response DTO schema between controller and service
-- [ ] **COMMIT:** `feat(api): add GET /api/coaches/:id/packages`
+- [ ] **COMMIT:** `feat(api): add POST /api/coach/package/list`
 
 ## Task 3: Cache & Rate Limit [P1]
 

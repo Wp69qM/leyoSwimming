@@ -22,12 +22,14 @@
 |------|------|--------|--------------|
 | 1 | 创建 PackageTemplate 表迁移与 Repository | P0 | §6.1, §6.2 |
 | 2 | 新增标准套餐 Repository 方法 | P0 | §6.1, §6.3, §6.4 |
-| 3 | GET /api/admin/package-templates 列表 API | P0 | §6.1 |
-| 4 | POST /api/admin/package-templates 新增 API | P0 | §6.1, §6.3, §6.4 |
-| 5 | PUT /api/admin/package-templates/:id 编辑与上下架 API | P0 | §6.2 |
-| 6 | Redis 缓存与失效策略 | P1 | §6.1, §6.2 |
-| 7 | 管理员权限中间件校验 | P0 | §6.6 |
-| 8 | 自定义套餐规则配置 | P0 | §6.3 |
+| 3 | POST /api/admin/package-template/list 列表 API | P0 | §6.1 |
+| 4 | POST /api/admin/package-template/add 新增 API | P0 | §6.1, §6.3, §6.4 |
+| 5 | POST /api/admin/package-template/detail 详情 API | P0 | §6.2 |
+| 6 | POST /api/admin/image/upload 图片上传 API | P0 | §6.1, §6.2 |
+| 7 | POST /api/admin/package-template/update 编辑 API & POST /api/admin/package-template/toggle-status 上下架 API | P0 | §6.2 |
+| 8 | Redis 缓存与失效策略 | P1 | §6.1, §6.2 |
+| 9 | 管理员权限中间件校验 | P0 | §6.6 |
+| 10 | 自定义套餐规则配置 | P0 | §6.3 |
 
 ---
 
@@ -53,15 +55,15 @@ describe('PackageTemplateRepository', () => {
     const repo = new PackageTemplateRepository();
     const tpl = await repo.create({
       name: '暑期 10 节课',
-      coach_ids: [1],
-      total_hours: 10,
-      valid_days: 180,
+      coachIds: [1],
+      totalHours: 10,
+      validDays: 180,
       price: 3000.00,
       status: 1,
     });
     expect(tpl.id).toBeGreaterThan(0);
     expect(tpl.status).toBe(1);
-    expect(tpl.total_hours).toBe(10);
+    expect(tpl.totalHours).toBe(10);
   });
 });
 ```
@@ -90,7 +92,7 @@ Expected: PASS
 
 - [ ] **Step 5: REFACTOR — 提取字段校验**
 
-- 将 `total_hours > 0` 和 `price >= 0` 校验下沉到 Repository 或 Service
+- 将 `totalHours > 0` 和 `price >= 0` 校验下沉到 Repository 或 Service
 
 - [ ] **Step 6: COMMIT**
 
@@ -116,14 +118,14 @@ git commit -m "feat(package-template): add migration and repository"
 describe('PackageTemplateRepository validation', () => {
   it('rejects duplicate name', async () => {
     const repo = new PackageTemplateRepository();
-    await repo.create({ name: '暑期 10 节课', coach_ids: [1], total_hours: 10, valid_days: 180, price: 3000, status: 1 });
-    await expect(repo.create({ name: '暑期 10 节课', coach_ids: [2], total_hours: 8, valid_days: 120, price: 2400, status: 1 }))
+    await repo.create({ name: '暑期 10 节课', coachIds: [1], totalHours: 10, validDays: 180, price: 3000, status: 1 });
+    await expect(repo.create({ name: '暑期 10 节课', coachIds: [2], totalHours: 8, validDays: 120, price: 2400, status: 1 }))
       .rejects.toThrow('DUPLICATE_PACKAGE_NAME');
   });
 
-  it('rejects invalid total_hours and price', async () => {
+  it('rejects invalid totalHours and price', async () => {
     const repo = new PackageTemplateRepository();
-    await expect(repo.create({ name: '非法套餐', coach_ids: [1], total_hours: 0, valid_days: 180, price: -100, status: 1 }))
+    await expect(repo.create({ name: '非法套餐', coachIds: [1], totalHours: 0, validDays: 180, price: -100, status: 1 }))
       .rejects.toThrow('INVALID_PACKAGE_PARAM');
   });
 });
@@ -133,7 +135,7 @@ describe('PackageTemplateRepository validation', () => {
 
 ---
 
-### Task 3: GET /api/admin/package-templates 列表 API [P0]
+### Task 3: POST /api/admin/package-template/list 列表 API [P0]
 
 **Files:**
 - Create: `backend/src/controllers/admin/packageTemplate.ts`
@@ -142,11 +144,11 @@ describe('PackageTemplateRepository validation', () => {
 
 **对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1管理员新增标准套餐成功)
 
-- [ ] **Step 1-6**: 实现列表查询、分页、按 coach/status 过滤，测试 200 返回；commit message `feat(admin): add GET /package-templates`
+- [ ] **Step 1-6**: 实现列表查询、分页（page/pageSize）、按 coach/status 过滤，测试 200 返回；commit message `feat(admin): add POST /api/admin/package-template/list`
 
 ---
 
-### Task 4: POST /api/admin/package-templates 新增 API [P0]
+### Task 4: POST /api/admin/package-template/add 新增 API [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/admin/packageTemplate.ts`
@@ -155,11 +157,11 @@ describe('PackageTemplateRepository validation', () => {
 
 **对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1管理员新增标准套餐成功)、[§6.3 场景 3](./user-story.md#63-场景-3新增标准套餐时名称重复)、[§6.4 场景 4](./user-story.md#64-场景-4新增标准套餐参数非法)
 
-- [ ] **Step 1-6**: 实现新增接口，覆盖 201 / 400 / 409；commit message `feat(admin): add POST /package-templates`
+- [ ] **Step 1-6**: 实现新增接口，覆盖 201 / 400 / 409；commit message `feat(admin): add POST /api/admin/package-template/add`
 
 ---
 
-### Task 5: PUT /api/admin/package-templates/:id 编辑与上下架 API [P0]
+### Task 5: POST /api/admin/package-template/detail 详情 API [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/admin/packageTemplate.ts`
@@ -168,11 +170,85 @@ describe('PackageTemplateRepository validation', () => {
 
 **对应 GWT**：[§6.2 场景 2](./user-story.md#62-场景-2管理员编辑标准套餐并下架)
 
-- [ ] **Step 1-6**: 实现编辑与 toggle-status，覆盖 200 / 404；commit message `feat(admin): add PUT /package-templates/:id`
+- [ ] **Step 1: RED — 写失败测试**
+
+```typescript
+// backend/tests/controllers/admin/packageTemplate.test.ts
+describe('POST /api/admin/package-template/detail', () => {
+  it('returns template detail for existing template', async () => {
+    const created = await repo.create({ name: '暑期 10 节课', coachIds: [1], totalHours: 10, validDays: 180, price: 3000, status: 'inactive' });
+    const res = await request(app)
+      .post('/api/admin/package-template/detail')
+      .send({ packageTemplateId: created.id })
+      .expect(200);
+    expect(res.body.data.name).toBe('暑期 10 节课');
+    expect(res.body.data.coachIds).toEqual([1]);
+  });
+
+  it('returns 404 for non-existent template', async () => {
+    await request(app)
+      .post('/api/admin/package-template/detail')
+      .send({ packageTemplateId: 99999 })
+      .expect(404);
+  });
+});
+```
+
+- [ ] **Step 2-6**: 实现详情查询接口，JSON body 传入 `packageTemplateId`，返回模板详情与关联教练列表；commit message `feat(admin): add POST /api/admin/package-template/detail`
 
 ---
 
-### Task 6: Redis 缓存与失效策略 [P1]
+### Task 6: POST /api/admin/image/upload 图片上传 API [P0]
+
+**Files:**
+- Create: `backend/src/controllers/admin/image.ts`
+- Create: `backend/src/routes/admin/image.ts`
+- Test: `backend/tests/controllers/admin/image.test.ts`
+
+**对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1管理员新增标准套餐成功)、[§6.2 场景 2](./user-story.md#62-场景-2管理员编辑标准套餐并下架)
+
+- [ ] **Step 1: RED — 写失败测试**
+
+```typescript
+// backend/tests/controllers/admin/image.test.ts
+describe('POST /api/admin/image/upload', () => {
+  it('returns uploaded image URLs for valid images', async () => {
+    const res = await request(app)
+      .post('/api/admin/image/upload')
+      .attach('images', Buffer.from('fake-image'), 'test.png')
+      .expect(200);
+    expect(res.body.data.urls).toHaveLength(1);
+    expect(res.body.data.urls[0]).toMatch(/^https?:\/\//);
+  });
+
+  it('returns 400 for invalid file type', async () => {
+    await request(app)
+      .post('/api/admin/image/upload')
+      .attach('images', Buffer.from('not-an-image'), 'test.txt')
+      .expect(400);
+  });
+});
+```
+
+- [ ] **Step 2-6**: 实现图片上传接口，校验格式与大小，返回 URL 列表；commit message `feat(admin): add POST /api/admin/image/upload`
+
+---
+
+### Task 7: POST /api/admin/package-template/update 编辑 API & POST /api/admin/package-template/toggle-status 上下架 API [P0]
+
+**Files:**
+- Modify: `backend/src/controllers/admin/packageTemplate.ts`
+- Modify: `backend/src/routes/admin/packageTemplate.ts`
+- Modify: `backend/tests/controllers/admin/packageTemplate.test.ts`
+
+**对应 GWT**：[§6.2 场景 2](./user-story.md#62-场景-2管理员编辑标准套餐并下架)
+
+- [ ] **Step 1-6 (update)**: 实现 `POST /api/admin/package-template/update` 编辑接口，覆盖 200 / 400 / 404；commit message `feat(admin): add POST /api/admin/package-template/update`
+- [ ] **Step 7-12 (toggle-status)**: 实现 `POST /api/admin/package-template/toggle-status` 上下架接口，覆盖 200 / 404；commit message `feat(admin): add POST /api/admin/package-template/toggle-status`
+
+---
+
+### Task 8: Redis 缓存与失效策略 [P1]
 
 **Files:**
 - Modify: `backend/src/repositories/packageTemplate.ts`
@@ -185,7 +261,7 @@ describe('PackageTemplateRepository validation', () => {
 
 ---
 
-### Task 7: 管理员权限中间件校验 [P0]
+### Task 9: 管理员权限中间件校验 [P0]
 
 **Files:**
 - Modify: `backend/src/middlewares/adminAuth.ts`
@@ -197,7 +273,7 @@ describe('PackageTemplateRepository validation', () => {
 
 ---
 
-### Task 8: 自定义套餐规则配置 [P0]
+### Task 10: 自定义套餐规则配置 [P0]
 
 **Files:**
 - Modify: `backend/src/controllers/admin/packageTemplate.ts`
@@ -206,17 +282,17 @@ describe('PackageTemplateRepository validation', () => {
 
 **对应 GWT**：[§6.3 场景 3](./user-story.md#63-场景-3管理员配置自定义套餐规则成功)
 
-- [ ] **Step 1-6**: 实现 PUT /api/admin/package-templates/custom-config，覆盖 200 / 400；commit message `feat(admin): add custom package config endpoint`
+- [ ] **Step 1-6**: 实现 `POST /api/admin/package-template/custom-config`，覆盖 200 / 400；commit message `feat(admin): add POST /api/admin/package-template/custom-config`
 
 ---
 
 ## 3. 任务执行纪律
 
-- **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4 → Task 5 → Task 6 → Task 7 → Task 8
+- **严格顺序**：Task 1 → Task 2 → Task 3 → Task 4 → Task 5 → Task 6 → Task 7 → Task 8 → Task 9 → Task 10
 - **每步必须可见**：Step 1（RED）→ Step 2（看失败）→ Step 3（GREEN）→ Step 4（看通过）→ Step 5（REFACTOR）→ Step 6（COMMIT）
 - **不允许 placeholder**：任何 "TBD" / "TODO" / "实现 later" / "类似 Task N" = 立即返工
-- **每个 Task 结束 = 1 次 commit**：禁止跨 Task 累积 commit
-- **P0 必做 / P1 选做**：MVP 阶段先完成 P0（Task 1-5, 7），P1（Task 6）视进度决定
+- **每个 Task 结束 = 1 次 commit**：禁止跨 Task 累积 commit（Task 7 含 2 个独立 API，拆分为 2 次 commit）
+- **P0 必做 / P1 选做**：MVP 阶段先完成 P0（Task 1-7, 9-10），P1（Task 8）视进度决定
 - **GWT 覆盖**：每个 Task 头部必须明确「对应 GWT」场景编号
 
 ---
@@ -235,3 +311,4 @@ describe('PackageTemplateRepository validation', () => {
 |------|------|------|------|
 | v1.0 | 2026-07-30 | Dev | 初版：7 个 task 覆盖 5 个 GWT 场景 |
 | v1.1 | 2026-07-31 | Dev | 增加 Task 8 覆盖自定义套餐规则配置 |
+| v1.2 | 2026-08-14 | Dev | 增加 Task 5 标准套餐详情 API、Task 6 图片上传 API，补齐 §7.2 API 影响表 |

@@ -1,6 +1,6 @@
 # US-045 管理员配置标准与自定义套餐
 
-> **状态**：[REVIEW]（评审中）
+> **状态**：[APPROVAL]（已通过）
 > **优先级**：[MVP]
 > **估时**：待重新估算（按新增字段与交互复杂度，建议 3~5 人天）
 > **作者**：PM　|　**最后更新**：2026-07-30
@@ -150,7 +150,7 @@ And   提示"课时数必须大于 0，售价不能为负数"
 
 ```gherkin
 Given 管理员已登录但角色无"套餐配置"权限
-When  管理员调用 POST /api/admin/package-templates
+When  管理员调用 POST /api/admin/package-template/add
 Then  系统返回 HTTP 403
 And   返回错误码 FORBIDDEN
 And   package_template 表不新增记录
@@ -174,13 +174,13 @@ And   package_template 表不新增记录
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|
-| 1 | `/api/admin/package-templates` | GET | 新增 | 管理员获取标准套餐列表 |
-| 2 | `/api/admin/package-templates` | POST | 新增 | 管理员新增标准套餐 |
-| 3 | `/api/admin/package-templates/:id` | PUT | 新增 | 管理员编辑标准套餐 |
-| 4 | `/api/admin/package-templates/:id/toggle-status` | POST | 新增 | 上下架切换（`active` ↔ `inactive`） |
-| 5 | `/api/admin/package-templates/:id` | GET | 新增 | 管理员获取标准套餐详情 |
-| 6 | `/api/admin/package-templates/custom-config` | PUT | 新增 | 自定义套餐全局规则配置 |
-| 7 | `/api/admin/upload/image` | POST | 新增 | 套餐展示图片上传（返回 URL 列表） |
+| 1 | `/api/admin/package-template/list` | POST | 新增 | 管理员获取标准套餐列表；JSON body 传入 `page`、`pageSize`、`coachId`、`status` |
+| 2 | `/api/admin/package-template/add` | POST | 新增 | 管理员新增标准套餐；JSON body 传入套餐字段，其中 `coachIds` 必填且至少 1 个 |
+| 3 | `/api/admin/package-template/update` | POST | 新增 | 管理员编辑标准套餐；JSON body 传入 `packageTemplateId` 与套餐字段 |
+| 4 | `/api/admin/package-template/toggle-status` | POST | 新增 | 上下架切换（`active` ↔ `inactive`）；JSON body 传入 `packageTemplateId` |
+| 5 | `/api/admin/package-template/detail` | POST | 新增 | 管理员获取标准套餐详情；JSON body 传入 `packageTemplateId` |
+| 6 | `/api/admin/package-template/custom-config` | POST | 新增 | 自定义套餐全局规则配置；JSON body 传入 `minHours`、`maxHours`、`defaultValidDays`、`unitPriceFloor` |
+| 7 | `/api/admin/image/upload` | POST | 新增 | 套餐展示图片上传（返回 URL 列表） |
 
 ### 7.3 状态机影响
 
@@ -268,7 +268,7 @@ And   package_template 表不新增记录
 ### 11.1 字段完整性
 
 - [x] 15 个章节全部填写
-- [x] 无"待定"/"TBD"占位符（除 Figma 链接待设计填写）
+- [x] 无"待定"/"TBD"占位符
 - [x] 错误码明确（INVALID_PACKAGE_PARAM / DUPLICATE_PACKAGE_NAME / FORBIDDEN）
 
 ### 11.2 业务规则
@@ -293,7 +293,7 @@ And   package_template 表不新增记录
 
 ## 12. 备注
 
-- **幂等键**：POST /api/admin/package-templates 使用 `Idempotency-Key` 防止重复提交
+- **幂等键**：POST /api/admin/package-template/add 使用 body 字段 `idempotencyKey` 防止重复提交
 - **事务边界**：套餐模板写入与教练参考单价读取不在同一事务，模板保存后异步刷新缓存
 - **性能要求**：套餐列表接口 P99 < 300ms
 
@@ -303,12 +303,10 @@ And   package_template 表不新增记录
 
 > Figma **设计系统规范**（token / 组件 / 状态徽标 / 4 态模板 / 文案）见 [docs/figma/README.md](../../figma/README.md)。
 
-| # | 内容 | 链接 / node-id | 状态 |
-|---|------|---------------|------|
+| # | 内容 | 链接 | 状态 |
+|---|------|------|------|
 | 1 | 套餐配置页 page-spec | [A-package-config-page.md](../../figma/page-spec/A-package-config-page.md) | ✅ |
 | 2 | 套餐编辑弹窗 page-spec | [A-package-edit-modal.md](../../figma/page-spec/A-package-edit-modal.md) | ✅ |
-| 3 | 套餐配置页 Figma file URL | 🔲 待设计填写 | 🔲 |
-| 4 | 新增套餐弹窗 frame node-id | 🔲 待设计填写 | 🔲 |
 
 ### 13.1 状态截图清单
 

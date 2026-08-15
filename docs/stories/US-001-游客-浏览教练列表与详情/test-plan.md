@@ -49,7 +49,7 @@ import { CoachRepository } from '../../src/repositories/coach';
 describe('CoachRepository.findPublicList', () => {
   it('returns active coaches sorted by rating DESC with pagination', async () => {
     const repo = new CoachRepository();
-    const result = await repo.findPublicList({ page: 1, size: 10 });
+    const result = await repo.findPublicList({ page: 1, pageSize: 10 });
 
     expect(result.items).toBeInstanceOf(Array);
     expect(result.items.length).toBeLessThanOrEqual(10);
@@ -61,7 +61,7 @@ describe('CoachRepository.findPublicList', () => {
 
   it('includes status=4 coaches and excludes status=0/2/3 coaches', async () => {
     const repo = new CoachRepository();
-    const result = await repo.findPublicList({ page: 1, size: 10 });
+    const result = await repo.findPublicList({ page: 1, pageSize: 10 });
     const statuses = result.items.map(c => c.status);
 
     expect(statuses).toContain(1);
@@ -83,17 +83,17 @@ Expected: FAIL with `Cannot find module '../../src/repositories/coach'`
 ```typescript
 // backend/src/repositories/coach.ts
 export const PUBLIC_COACH_STATUSES = [1, 4];
-export interface ListParams { page: number; size: number; }
+export interface ListParams { page: number; pageSize: number; }
 export interface CoachListItem { id: number; name: string; rating: number; status: number; }
 
 export class CoachRepository {
   async findPublicList(params: ListParams): Promise<{ items: CoachListItem[]; total: number }> {
-    const offset = (params.page - 1) * params.size;
+    const offset = (params.page - 1) * params.pageSize;
     return {
       items: await db('coach')
         .whereIn('status', PUBLIC_COACH_STATUSES)  // 已通过（1）+ 申请离职中（4）
         .orderBy('rating', 'desc')                 // 评分降序
-        .limit(params.size)
+        .limit(params.pageSize)
         .offset(offset)
         .select('id', 'name', 'rating', 'status'),
       total: await db('coach').whereIn('status', PUBLIC_COACH_STATUSES).count('id as count').first(),
@@ -298,7 +298,7 @@ const coachRepo = new CoachRepository();
 
 export async function listCoaches(ctx) {
   const { page = 1, pageSize = 10 } = ctx.request.body || {};
-  const result = await coachRepo.findPublicList({ page: Number(page), size: Number(pageSize) });
+  const result = await coachRepo.findPublicList({ page: Number(page), pageSize: Number(pageSize) });
   ctx.body = result;
 }
 

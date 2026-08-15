@@ -23,6 +23,16 @@
 
 ---
 
+## 1.1 Calicat 设计稿链接
+
+| 页面/状态 | Calicat Frame | 链接 |
+|----------|---------------|------|
+| 主页面 | U-自定义套餐配置页-正常 | https://www.calicat.cn/design/2083742072257646592?node-id=ff5458ce-7aae-4c9a-9196-f959c29082c3 |
+| 未成年 | U-自定义套餐配置页-未成年 | https://www.calicat.cn/design/2083742072257646592?node-id=95bc70ea-ba67-4d70-85bc-d22b3625543d |
+| 冲突态 | U-自定义套餐配置页-冲突态 | https://www.calicat.cn/design/2083742072257646592?node-id=44bbd398-ed98-4fbf-a912-a488f941d7e2 |
+
+---
+
 ## 2. 用户身份与业务状态维度
 
 > **本节是 Page Spec 根基**。先定义"谁可能看到这个页面"以及"以什么业务状态看到"。

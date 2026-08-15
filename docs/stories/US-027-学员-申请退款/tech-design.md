@@ -40,41 +40,50 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 
 ## 2. API 设计
 
-### 2.1 GET /api/packages/{package_id}/refund/check
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### 2.1 POST /api/package/refund-check
 
 - **鉴权**：必须登录（套餐所属用户）
+- **Request**:
+  ```json
+  {
+    "packageId": 1
+  }
+  ```
 - **Response 200**:
   ```json
   {
     "eligible": true,
-    "refund_amount": 144000,
+    "refundAmount": 144000,
     "calculation": {
-      "paid_amount": 180000,
-      "total_hours": 10,
-      "consumed_count": 2,
+      "paidAmount": 180000,
+      "totalHours": 10,
+      "consumedCount": 2,
       "formula": "180000 × (10-2)/10"
     },
-    "reason_codes": [
+    "reasonCodes": [
       { "code": 1, "label": "教练原因" },
       { "code": 2, "label": "个人原因" },
       { "code": 3, "label": "平台原因" }
     ]
   }
   ```
-- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | PACKAGE_NOT_FOUND }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
+- **Response 400**: `{ code: PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | PACKAGE_NOT_FOUND }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozenReason ≠ coach_resigned）
 
-### 2.2 POST /api/packages/{package_id}/refund
+### 2.2 POST /api/package/refund
 
 - **鉴权**：必须登录（套餐所属用户）
 - **Request**:
   ```json
   {
-    "reason_type": 2,
-    "reason_detail": "时间冲突，无法继续学习"
+    "packageId": 1,
+    "reasonType": 2,
+    "reasonDetail": "时间冲突，无法继续学习"
   }
   ```
-- **Response 201**: `{ refund_id, status: "待审批" }`
-- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | REFUND_NOT_SUPPORTED | REFUND_EXPIRED | PACKAGE_EXHAUSTED_NOT_REFUNDABLE }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozen_reason ≠ coach_resigned）
+- **Response 201**: `{ refundOrderId: 10086, status: "refund_pending" }`
+- **Response 400**: `{ code: REFUND_IN_PROGRESS | PACKAGE_ALREADY_REFUNDED | PACKAGE_FROZEN | REFUND_NOT_SUPPORTED | REFUND_EXPIRED | PACKAGE_EXHAUSTED_NOT_REFUNDABLE }`（PACKAGE_FROZEN 仅当 package.status = frozen 且 frozenReason ≠ coach_resigned）
 
 ### 2.3 业务规则
 
@@ -102,7 +111,7 @@ refund_record: 无 ──[学员提交]──→ 待审批
 
 | 缓存 | 键 | TTL | 失效策略 |
 |------|----|-----|---------|
-| 退款资格检查 | `refund:check:{package_id}` | 30s | 套餐状态变更时失效 |
+| 退款资格检查 | `refund:check:{packageId}` | 30s | 套餐状态变更时失效 |
 
 ---
 
@@ -118,7 +127,7 @@ refund_record: 无 ──[学员提交]──→ 待审批
 ## 6. 安全
 
 - 登录鉴权 + 套餐归属校验（仅套餐所属用户可申请）
-- 幂等键：`{user_id}:{package_id}:refund`
+- 幂等键：`{userId}:{packageId}:refund`
 - 事务包裹：reserved 释放 + booking 取消 + package.status → frozen(refund_pending) + refund_record 创建 + order 状态更新在同一事务（PRD §3.6 / §6.3.1），任一失败回滚
 
 ---

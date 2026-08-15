@@ -21,7 +21,7 @@ Then  订单状态 = 已支付
 And   package.status = active，package_type = 0，available = 1，total_hours = 1
 And   系统记录 agreement_sign 版本号与签署时间
 And   用户身份变为学员
-And   接口返回 HTTP 200
+And   接口返回 HTTP 201
 ```
 
 #### Scenario: 游客未勾选《用户须知》

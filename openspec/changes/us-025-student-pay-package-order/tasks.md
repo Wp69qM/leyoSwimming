@@ -16,16 +16,16 @@
 - [ ] **REFACTOR:** Extract `MockPaymentProvider` to encapsulate channel-specific mock transaction generation
 - [ ] **COMMIT:** `feat(payment): add mock payment creation and callback handler`
 
-## Task 2: POST /api/orders/{order_id}/pay [P0]
+## Task 2: POST /api/order/pay [P0]
 
 **Files:**
 - Create: `backend/src/controllers/payment.ts`, `backend/src/routes/payment.ts`
 - Test: `backend/tests/controllers/payment.test.ts`
 
-- [ ] **RED:** Write failing tests — 200 with mock payment result (`payment_id`, `channel_trade_no`, `status`); 400 ORDER_EXPIRED; 404 ORDER_NOT_FOUND; 401 guest
+- [ ] **RED:** Write failing tests — 200 with mock payment result (`paymentId`, `channelTradeNo`, `status`); 400 ORDER_EXPIRED; 404 ORDER_NOT_FOUND; 401 guest
 - [ ] **GREEN:** Implement controller + route; call `MockPaymentProvider.pay(...)` and trigger mock callback
 - [ ] **REFACTOR:** Share order ownership validation
-- [ ] **COMMIT:** `feat(api): add POST /orders/{id}/pay`
+- [ ] **COMMIT:** `feat(api): add POST /api/order/pay`
 
 ## Task 3: 支付回调接口 [P0]
 
@@ -34,7 +34,7 @@
 - Test: `backend/tests/controllers/payment.test.ts`
 
 - [ ] **RED:** Write failing tests — 200 `{ code: "SUCCESS" }` on valid mock callback; duplicate callback returns same response; amount mismatch returns error
-- [ ] **GREEN:** Implement `POST /api/payments/mock/callback` with idempotency check and transaction
+- [ ] **GREEN:** Implement `POST /api/payment/mock-callback` with idempotency check and transaction
 - [ ] **REFACTOR:** Extract callback payload validation and order/package update into service methods
 - [ ] **COMMIT:** `feat(api): add mock payment callback`
 
@@ -55,7 +55,7 @@
 - Create: `miniapp-user/src/pages/order-pay/index.tsx`
 - Test: `miniapp-user/src/pages/order-pay/index.test.tsx`
 
-- [ ] **RED:** Write failing tests — renders payment methods; calls `POST /api/orders/{order_id}/pay`; polls order status
+- [ ] **RED:** Write failing tests — renders payment methods; calls `POST /api/order/pay`; polls order status
 - [ ] **GREEN:** Implement page; on confirm, call mock pay API and poll order status until paid/cancelled
 - [ ] **REFACTOR:** Extract `<PaymentMethodSelector />`
 - [ ] **COMMIT:** `feat(miniapp): add order payment page`

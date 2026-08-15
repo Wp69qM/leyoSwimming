@@ -49,6 +49,114 @@
    - 理由：我的学员列表访问频率中等，缓存可降低 DB 压力
    - TTL 5 分钟，权衡一致性与性能
 
+## API Design
+
+> 统一使用 POST，URL 按 `/api/{module}/{resource}/{action}`，参数通过 JSON body 传递，字段使用小驼峰。
+
+### POST /api/coach/student/list
+
+- 鉴权：教练 JWT，`coach.status = 1`
+- Request：
+  ```json
+  { "tab": "active" }
+  ```
+- Response 200：
+  ```json
+  {
+    "students": [
+      {
+        "studentUserId": 10001,
+        "avatarUrl": "https://cdn.example.com/avatar.jpg",
+        "name": "张小明",
+        "gender": "male",
+        "age": 25,
+        "isMinor": true,
+        "updatedAt": "2026-07-30T10:00:00Z"
+      }
+    ]
+  }
+  ```
+- 错误码：`AUTH_FORBIDDEN`（403）
+
+### POST /api/coach/student/detail
+
+- 鉴权：教练 JWT
+- Request：
+  ```json
+  { "studentId": 10001 }
+  ```
+- Response 200：
+  ```json
+  {
+    "studentUserId": 10001,
+    "userProfile": {
+      "avatarUrl": "https://cdn.example.com/avatar.jpg",
+      "name": "张 swimmer",
+      "phoneMasked": "138****8000",
+      "age": 25,
+      "gender": "male",
+      "hasSwimBasis": true,
+      "swimStrokes": "蛙泳/自由泳",
+      "swimYears": "3年",
+      "personalDesc": "想提高自由泳",
+      "isMinor": true
+    },
+    "coachSlice": {
+      "learningStrokes": "自由泳",
+      "swimLevel": 2,
+      "basics": "怕水，需循序渐进",
+      "notes": "学员水性较好，可加快进度"
+    }
+  }
+  ```
+- 错误码：`NOT_ASSOCIATED_STUDENT`（403）
+
+### POST /api/coach/student/update
+
+- 鉴权：教练 JWT
+- Request：
+  ```json
+  {
+    "studentId": 10001,
+    "learningStrokes": "自由泳",
+    "swimLevel": 2,
+    "basics": "怕水，需循序渐进",
+    "notes": "学员水性较好，可加快进度",
+    "idempotencyKey": "coach:1:student:10001:ts:1753879200000"
+  }
+  ```
+- Response 200：`{ "message": "保存成功" }`
+- 错误码：
+  - `NOT_ASSOCIATED_STUDENT`（403）
+  - `READONLY_USER_PROFILE`（400）
+  - `IDEMPOTENCY_DUPLICATE`（409）
+
+### POST /api/coach/student/package/list
+
+- 鉴权：教练 JWT
+- Request：
+  ```json
+  { "studentId": 10001 }
+  ```
+- Response 200：
+  ```json
+  {
+    "packages": [
+      {
+        "packageId": 20001,
+        "packageName": "10 节私教课",
+        "packageMode": "standard",
+        "status": "active",
+        "statusLabel": "使用中",
+        "validStart": "2026-07-01",
+        "validEnd": "2026-09-29",
+        "remainingHours": 4
+      }
+    ]
+  }
+  ```
+- 错误码：`NOT_ASSOCIATED_STUDENT`（403）
+
 ## Risks / Trade-offs
 
 - **[Risk]** 教练误标记未成年人导致监护人信息缺失 → **Mitigation**: 未成年人信息由 US-005 维护，教练端仅只读展示，前端无编辑入口
