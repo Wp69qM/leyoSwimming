@@ -19,7 +19,7 @@
 | `order_id` | PK |
 | `user_id` | FK |
 | `coach_id` | FK |
-| `course_type` | 0=体验 |
+| `package_mode` | 'experience'=体验 |
 | `status` | 待支付/已支付/已取消/... |
 | `amount` | 实付金额 |
 | `created_at` | |
@@ -32,7 +32,7 @@
 | `package_id` | PK |
 | `user_id` | FK |
 | `coach_id` | FK |
-| `package_type` | 0=体验 |
+| `package_mode` | 'experience'=体验 |
 | `total_hours` | 1 |
 | `available_count` | 1 |
 | `status` | active |
@@ -53,7 +53,7 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 - **鉴权**：需登录
 - **Request**: `{ coachId }`
 - **Response 201**: 订单信息（不含 package，套餐在支付回调成功时创建）
-- **Response 400**: `TRIAL_PACKAGE_EXISTS` / `COACH_UNAVAILABLE`
+- **Response 400**: `AGREEMENT_REQUIRED` / `TRIAL_PACKAGE_EXISTS` / `COACH_UNAVAILABLE` / `TRIAL_PACKAGE_INACTIVE`
 
 ### 2.2 POST /api/order/pay
 
@@ -122,3 +122,6 @@ CREATE INDEX idx_package_user_type_status ON package(user_id, package_type, stat
 |------|------|------|------|
 | v1.0 | 2026-07-30 | 开发 | 初版 |
 | v1.1 | 2026-07-31 | 开发 | 同步 user-story v1.1 P0 修复：§2.1 Response 201 由"订单+套餐信息"改为"订单信息（不含 package，套餐在支付回调成功时创建）"；§3 状态机 package 转换补充触发条件"支付回调成功（US-025），非订单创建时预创建"，user 转换补充"与套餐创建同一事务" |
+| v1.2 | 2026-08-15 | AI | 三件套一致性修复：§1.1 order/package 表字段由 course_type/package_type 统一为 package_mode='experience'；§2.1 /api/order/trial Response 400 错误码补充 AGREEMENT_REQUIRED、TRIAL_PACKAGE_INACTIVE |
+
+---

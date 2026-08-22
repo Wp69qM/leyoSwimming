@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import type { AdminUserDetail } from '@/types/api';
 import { getUserDetail } from '@/api/userManagement';
 import { formatDateTime, maskPhone } from '@/utils/format';

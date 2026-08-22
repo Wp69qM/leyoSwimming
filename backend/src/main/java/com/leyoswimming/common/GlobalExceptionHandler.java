@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,9 +18,29 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(BusinessException.class)
-  public ApiResponse<Void> handleBusiness(BusinessException ex) {
+  public ResponseEntity<ApiResponse<Void>> handleBusiness(BusinessException ex) {
     log.warn("Business exception: code={}, message={}", ex.getErrorCode().getCode(), ex.getMessage());
-    return ApiResponse.error(ex.getErrorCode().getCode(), ex.getMessage());
+    HttpStatus status = resolveBusinessStatus(ex.getErrorCode());
+    return ResponseEntity.status(status)
+        .body(ApiResponse.error(ex.getErrorCode().getCode(), ex.getMessage()));
+  }
+
+  private HttpStatus resolveBusinessStatus(ErrorCode errorCode) {
+    int code = errorCode.getCode();
+    if (code == ErrorCode.FORBIDDEN.getCode()
+        || code == ErrorCode.ADMIN_PERMISSION_DENIED.getCode()) {
+      return HttpStatus.FORBIDDEN;
+    }
+    if (code == ErrorCode.RESOURCE_NOT_FOUND.getCode()
+        || code == ErrorCode.PACKAGE_NOT_FOUND.getCode()
+        || code == ErrorCode.ORDER_NOT_FOUND.getCode()
+        || code == ErrorCode.ADMIN_NOT_FOUND.getCode()
+        || code == ErrorCode.USER_NOT_FOUND.getCode()
+        || code == ErrorCode.COACH_NOT_FOUND.getCode()
+        || code == ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND.getCode()) {
+      return HttpStatus.NOT_FOUND;
+    }
+    return HttpStatus.CONFLICT;
   }
 
   @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})

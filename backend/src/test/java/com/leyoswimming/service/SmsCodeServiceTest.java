@@ -49,7 +49,7 @@ class SmsCodeServiceTest {
     when(valueOperations.increment(any())).thenReturn(1L);
     when(redisTemplate.expire(any(), any())).thenReturn(true);
     when(redisTemplate.delete(any(String.class))).thenReturn(true);
-    smsCodeService = new SmsCodeService(smsCodeMapper, smsSender, redisTemplate, phoneEncryptor);
+    smsCodeService = new SmsCodeService(smsCodeMapper, smsSender, redisTemplate, phoneEncryptor, "123456");
   }
 
   @Test

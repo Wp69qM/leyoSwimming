@@ -63,7 +63,7 @@ public class FileStorageService {
     }
   }
 
-  private String validate(MultipartFile file) {
+  public String validate(MultipartFile file) {
     if (file == null || file.isEmpty()) {
       throw new BusinessException(ErrorCode.BAD_REQUEST);
     }

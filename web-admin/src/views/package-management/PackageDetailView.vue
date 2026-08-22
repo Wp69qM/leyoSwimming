@@ -9,6 +9,7 @@ import type {
 } from '@/types/api';
 import { getPackageDetail } from '@/api/packageManagement';
 import { formatDateTime } from '@/utils/format';
+import { getTeachingTypeLabel } from './constants';
 
 const route = useRoute();
 const router = useRouter();
@@ -177,7 +178,9 @@ onMounted(() => {
           </div>
           <div class="detail-item">
             <span class="label">课程类型</span>
-            <span class="value">{{ pkg.courseType || '-' }}</span>
+            <span class="value">{{
+              getTeachingTypeLabel(pkg.teachingType || undefined)
+            }}</span>
           </div>
           <div class="detail-item">
             <span class="label">总课时</span>

@@ -1,0 +1,51 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "870419e7-ad68-4076-9af5-4183624b2858",
+  "page_name": "U-订单列表页",
+  "colors": {
+    "background": "#F5F7FA",
+    "surface": "#FFFFFF",
+    "primary": "#1890FF",
+    "primaryDark": "#0050B3",
+    "textPrimary": "#262626",
+    "textSecondary": "#8C8C8C",
+    "textTertiary": "#BFBFBF",
+    "success": "#52C41A",
+    "successBg": "#F6FFED",
+    "warning": "#FAAD14",
+    "warningBg": "#FFFBE6",
+    "error": "#FF4D4F",
+    "danger": "#FF6B35",
+    "dangerDark": "#FA541C",
+    "divider": "#F0F0F0",
+    "avatarBg": "#E6F7FF"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 17, "fontWeight": 500, "lineHeight": 1.2 },
+    "tabSelected": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "tabNormal": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "cardTitle": { "fontSize": 16, "fontWeight": 500, "lineHeight": 1.2 },
+    "cardMeta": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "cardPrice": { "fontSize": 18, "fontWeight": 700, "lineHeight": 1.2 },
+    "orderNo": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "badge": { "fontSize": 10, "fontWeight": 400, "lineHeight": 1.2 },
+    "button": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "countdown": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24
+  },
+  "radius": {
+    "card": 12,
+    "button": 8,
+    "badge": 10,
+    "avatar": 24
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)"
+  }
+}

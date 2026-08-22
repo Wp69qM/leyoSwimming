@@ -94,7 +94,7 @@
 2. 管理员点击「退款」
 3. 系统校验 package.refund_enabled = true 且未超过 refund_valid_days
 4. 系统展示退款信息弹窗：套餐名称、总课时、已消耗课时、剩余课时、到期时间、退款比例、系统计算的可退金额
-5. 管理员可修改退款金额（不得超过系统计算金额且不能小于 0），修改时需填写调整原因
+5. 管理员可修改退款金额（可大于系统计算金额，仅不能小于 0），修改时需填写调整原因
 6. 管理员填写退款原因并确认
 7. 系统创建退款订单 order.type='refund'，status='refund_pending'，purchase_order_id 指向原购买订单，paid_amount 为填写的退款金额
 8. 系统创建 refund_record，status = 待审批，amount = 填写的退款金额，关联退款订单
@@ -103,7 +103,7 @@
 
 ### 4.7 异常分支
 
-- **分支 1**：管理员无权限 → 返回 `ADMIN_PERMISSION_DENIED`
+- **分支 1**：管理员无权限 → 返回 HTTP 403，错误码 `FORBIDDEN`
 - **分支 2**：冻结时 package.status ≠ active → 返回 `PACKAGE_NOT_ACTIVE`
 - **分支 3**：解冻时 package.status ≠ frozen → 返回 `PACKAGE_NOT_FROZEN`
 - **分支 4**：延期时 package.status ∉ {active, expired} 或 available_count + reserved_count = 0 → 返回 `PACKAGE_NOT_EXTENDABLE`
@@ -220,7 +220,7 @@ And   返回 HTTP 200 与提示"退款订单已生成，请前往订单管理审
 ```gherkin
 Given 管理员 M2 已登录但无套餐管理权限
 When  管理员 M2 调用套餐管理相关接口
-Then  返回错误码 ADMIN_PERMISSION_DENIED
+Then  返回错误码 FORBIDDEN
 And   HTTP 状态码 403
 And   package 状态不发生变更
 ```
@@ -394,7 +394,7 @@ And   package 状态保持 frozen 不变
 
 - [x] 15 个章节全部填写
 - [x] 无"待定"/"TBD"占位符
-- [x] 错误码明确（ADMIN_PERMISSION_DENIED / PACKAGE_NOT_ACTIVE / PACKAGE_NOT_FROZEN）
+- [x] 错误码明确（FORBIDDEN / PACKAGE_NOT_ACTIVE / PACKAGE_NOT_FROZEN / PACKAGE_NOT_EXTENDABLE / PACKAGE_NOT_REFUNDABLE / REFUND_PENDING_EXISTS / INVALID_EXTENSION_REASON / PACKAGE_CONCURRENTLY_UPDATED）
 
 ### 11.2 业务规则
 
@@ -404,7 +404,7 @@ And   package 状态保持 frozen 不变
 
 ### 11.3 验收标准
 
-- [x] 2 正常 + 3 异常 = 5 个 GWT 场景
+- [x] 6 正常 + 6 异常 = 12 个 GWT 场景
 - [x] 每个 Then 含具体状态码 / DB 字段值
 - [x] 业务规则可被验证
 

@@ -1,0 +1,71 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_ids": {
+    "normal": "ff5458ce-7aae-4c9a-9196-f959c29082c3",
+    "minor": "95bc70ea-ba67-4d70-85bc-d22b3625543d",
+    "conflict": "44bbd398-ed98-4fbf-a912-a488f941d7e2"
+  },
+  "page_name": "U-自定义套餐配置页",
+  "colors": {
+    "pageBg": "#f5f7fa",
+    "primary": "#1890ff",
+    "primaryDark": "#0050b3",
+    "primaryLight": "#e6f7ff",
+    "cardBg": "#ffffff",
+    "textPrimary": "#262626",
+    "textSecondary": "#4e5969",
+    "textTertiary": "#868c9c",
+    "textTitle": "#1d2129",
+    "textDisabled": "#bfbfbf",
+    "border": "#e8e8e8",
+    "divider": "#f0f0f0",
+    "selectedBg": "#eff6ff",
+    "price": "#ff4d4f",
+    "warning": "#faad14",
+    "warningBg": "#fffbe6",
+    "warningText": "#ad6800",
+    "success": "#52c41a",
+    "link": "#1890ff",
+    "iconDefault": "#8c8c8c",
+    "iconArrow": "#bfbfbf",
+    "white": "#ffffff"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "sectionTitle": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "bodySemi": { "fontSize": 14, "fontWeight": 600, "lineHeight": 1.2 },
+    "caption": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "captionSemi": { "fontSize": 13, "fontWeight": 600, "lineHeight": 1.2 },
+    "small": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "tiny": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "priceLarge": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "priceUnit": { "fontSize": 12, "fontWeight": 600, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "pageHorizontal": 16,
+    "pageTop": 12,
+    "cardGap": 12,
+    "cardPadding": 16,
+    "sectionTitleGap": 8,
+    "optionGap": 12,
+    "safeBottom": 34
+  },
+  "radius": {
+    "card": 12,
+    "button": 22,
+    "option": 8,
+    "tag": 18,
+    "checkbox": 2,
+    "avatar": 24
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottomBar": "0 -1px 0 rgba(240,240,240,1), 0 -4px 12px rgba(0,0,0,0.04)"
+  }
+}

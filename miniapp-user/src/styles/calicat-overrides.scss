@@ -1,0 +1,235 @@
+// Calicat 设计 Token 覆盖
+// 视觉实现唯一来源：Calicat 设计稿图层数据
+
+// 页面背景
+$calicat-page-bg: #f5f7fa;
+
+// 主色（状态栏 / NavBar 渐变）
+$calicat-primary: #1890ff;
+$calicat-primary-dark: #0050b3;
+
+// 体验课套餐卡片
+$calicat-experience-start: #ff6b35;
+$calicat-experience-end: #fa541c;
+$calicat-experience-shadow: 0 4px 12px rgb(255 107 53 / 35%);
+
+// 正价套餐卡片
+$calicat-card-bg: #fff;
+$calicat-card-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+$calicat-card-radius: 12px;
+$calicat-radius-notice: 8px;
+
+// 标签
+$calicat-standard-tag-bg: #e6f7ff;
+$calicat-standard-tag-text: #1890ff;
+$calicat-hot-tag-bg: #fff1f0;
+$calicat-hot-tag-text: #ff4d4f;
+$calicat-recommend-tag-bg: #fff7e6;
+$calicat-recommend-tag-text: #fa8c16;
+$calicat-tag-radius: 10px;
+
+// 文字
+$calicat-text-primary: #262626;
+$calicat-text-secondary: #4e5969;
+$calicat-text-tertiary: #868c9c;
+$calicat-text-title: #1d2129;
+$calicat-text-disabled: #bfbfbf;
+$calicat-text-price: #ff6b35;
+$calicat-sale-price: #ff6b35;
+$calicat-nav-bar-text: #fff;
+$calicat-link: #1890ff;
+
+// 图标
+$calicat-icon-default: #8c8c8c;
+$calicat-icon-arrow: #bfbfbf;
+
+// 通用
+$calicat-white: #fff;
+$calicat-success: #52c41a;
+$calicat-success-dark: #389e0d;
+$calicat-success-bg: #f6ffed;
+$calicat-warning: #faad14;
+$calicat-warning-orange: #fa8c16;
+$calicat-warning-bg: #fffbe6;
+$calicat-warning-text: #ad6800;
+$calicat-rest-bg: #fff7e6;
+$calicat-rest-text: #faad14;
+$calicat-offduty-bg: #f5f5f5;
+$calicat-offduty-text: #8c8c8c;
+$calicat-skill-tag-text: #8c8c8c;
+$calicat-danger: #ff4d4f;
+$calicat-danger-bg: #fff1f0;
+$calicat-divider: #f0f0f0;
+$calicat-avatar-placeholder-bg: #e6f7ff;
+$calicat-tag-default-bg: #f5f5f5;
+$calicat-tag-success-bg: #f6ffed;
+$calicat-tag-success-text: #52c41a;
+$calicat-tag-standard-bg: #e6f7ff;
+$calicat-tag-standard-text: #1890ff;
+$calicat-tag-experience-bg: #fff7e6;
+$calicat-tag-experience-text: #fa8c16;
+
+// 自定义课时入口
+$calicat-custom-border: #1890ff;
+$calicat-custom-icon-bg: #e6f7ff;
+
+// 订单确认页
+$calicat-text-price-red: #ff4d4f;
+$calicat-bottom-bar-shadow-strong: 0 -8px 24px rgb(0 0 0 / 12%);
+$calicat-border: #e8e8e8;
+$calicat-sort-bar-shadow: 0 1px 0 #f0f0f0;
+$calicat-input-bg: #f5f5f5;
+
+// 教练详情页头部
+$calicat-header-gradient-start: #1890ff;
+$calicat-header-gradient-mid: #096dd9;
+$calicat-header-gradient-end: #0050b3;
+$calicat-star-header: #ffd666;
+$calicat-header-divider: rgb(255 255 255 / 30%);
+$calicat-header-badge-bg: rgb(255 255 255 / 20%);
+$calicat-gender-tag-bg: rgb(255 255 255 / 25%);
+$calicat-cert-bg: rgb(255 255 255 / 20%);
+$calicat-cert-height: 22px;
+$calicat-cert-radius: 11px;
+
+// 参考单价
+$calicat-price-icon-bg: #fff2e8;
+$calicat-price-icon-color: #ff6b35;
+
+// 可约时间
+$calicat-time-slot-height: 30px;
+$calicat-time-slot-radius: 14px;
+$calicat-time-slot-border: #1890ff;
+
+// 评价标签
+$calicat-review-tag-height: 26px;
+$calicat-review-tag-radius: 13px;
+$calicat-button-radius: 8px;
+$calicat-option-selected-bg: #eff6ff;
+
+// 详情页主信息卡
+$calicat-standard-card-start: #1890ff;
+$calicat-standard-card-end: #0050b3;
+$calicat-standard-card-shadow: 0 4px 12px rgb(24 144 255 / 35%);
+$calicat-card-primary-text: #fff;
+$calicat-card-secondary-text: rgb(255 255 255 / 80%);
+$calicat-card-tertiary-text: rgb(255 255 255 / 50%);
+
+// 订单列表页
+$calicat-order-card-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+$calicat-order-card-radius: 12px;
+$calicat-order-tab-active: #1890ff;
+$calicat-order-tab-normal: #8c8c8c;
+$calicat-order-countdown: #ff6b35;
+$calicat-order-avatar-bg: #e6f7ff;
+$calicat-order-avatar-text: #1890ff;
+
+// 详情页内容卡片
+$calicat-section-card-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+$calicat-section-card-radius: 12px;
+$calicat-content-text: #595959;
+$calicat-info-icon-bg: #eff6ff;
+$calicat-info-icon: #1890ff;
+$calicat-notice-icon-bg: #fefce8;
+$calicat-notice-icon: #faad14;
+$calicat-star-icon: #faad14;
+$calicat-coach-avatar-bg: #eff6ff;
+$calicat-coach-avatar-text: #1890ff;
+$calicat-avatar-orange-bg: #fff2e8;
+$calicat-avatar-orange-text: #fa8c16;
+$calicat-avatar-green-bg: #f6ffed;
+$calicat-avatar-green-text: #52c41a;
+$calicat-avatar-cyan-bg: #e6fffb;
+$calicat-avatar-cyan-text: #13c2c2;
+$calicat-bottom-bar-shadow:
+  0 -1px 0 rgb(240 240 240),
+  0 -4px 12px rgb(0 0 0 / 8%);
+$calicat-button-shadow: 0 4px 12px rgb(24 144 255 / 35%);
+
+// 间距
+$calicat-page-horizontal: 16px;
+$calicat-page-top: 8px;
+$calicat-page-bottom: 24px;
+$calicat-card-padding: 16px;
+$calicat-section-gap: 24px;
+$calicat-card-gap: 12px;
+$calicat-card-inner-gap: 12px;
+$calicat-section-title-gap: 8px;
+$calicat-detail-bottom-height: 78px;
+$calicat-bottom-bar-height: 78px;
+$calicat-safe-bottom: 34px;
+$calicat-bottom-bar-padding-top: 10px;
+$calicat-bottom-bar-padding-bottom: calc(10px + $calicat-safe-bottom);
+
+// 我的套餐页
+$calicat-my-package-summary-gradient: linear-gradient(
+  90deg,
+  #1890ff 0%,
+  #0050b3 100%
+);
+$calicat-my-package-summary-padding: 20px;
+$calicat-my-package-coach-resigned-notice-bg: #fffbe6;
+$calicat-my-package-coach-resigned-notice-icon: #faad14;
+$calicat-my-package-coach-resigned-notice-text: #ad6800;
+$calicat-my-package-section-title: #262626;
+$calicat-my-package-count-bg: #f5f5f5;
+$calicat-my-package-count-text: #8c8c8c;
+
+// AI 助理页（U-AI助理页）
+$calicat-ai-page-bg: #f5f7fa;
+$calicat-ai-nav-gradient: linear-gradient(90deg, #1890ff 0%, #0050b3 100%);
+$calicat-ai-nav-text: #fff;
+$calicat-ai-nav-button-bg: rgb(255 255 255 / 20%);
+$calicat-ai-avatar-ring: rgb(96 165 250 / 30%);
+$calicat-ai-avatar-placeholder-bg: #dbeafe;
+$calicat-ai-online-dot: #22c55e;
+$calicat-ai-user-bubble-gradient: linear-gradient(
+  135deg,
+  #1890ff 0%,
+  #0050b3 100%
+);
+$calicat-ai-user-bubble-text: #fff;
+$calicat-ai-assistant-bubble-bg: #fff;
+$calicat-ai-assistant-bubble-text: #1d2129;
+$calicat-ai-assistant-bubble-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+$calicat-ai-quick-card-bg: #fff;
+$calicat-ai-quick-card-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+$calicat-ai-quick-card-radius: 16px;
+$calicat-ai-quick-icon-size: 40px;
+$calicat-ai-quick-icon-radius: 12px;
+$calicat-ai-quick-icon-blue-bg: #eff6ff;
+$calicat-ai-quick-icon-orange-bg: #fff7ed;
+$calicat-ai-quick-icon-purple-bg: #faf5ff;
+$calicat-ai-quick-icon-green-bg: #f0fdf4;
+$calicat-ai-quick-icon-cyan-bg: #ecfeff;
+$calicat-ai-quick-icon-red-bg: #fef2f2;
+$calicat-ai-recommendation-card-bg: #fff;
+$calicat-ai-recommendation-card-border: #e5e6eb;
+$calicat-ai-recommendation-card-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+$calicat-ai-recommendation-card-radius: 12px;
+$calicat-ai-coach-tag-bg: #e6f7ff;
+$calicat-ai-coach-tag-text: #1890ff;
+$calicat-ai-package-tag-bg: #fff7e6;
+$calicat-ai-package-tag-text: #fa8c16;
+$calicat-ai-reason-bg: #f5f7fa;
+$calicat-ai-reason-text: #4e5969;
+$calicat-ai-package-reason-bg: #fff7e6;
+$calicat-ai-package-reason-text: #d46b08;
+$calicat-ai-rating-text: #faad14;
+$calicat-ai-price-text: #f5222d;
+$calicat-ai-suggested-question-bg: #fff;
+$calicat-ai-suggested-question-border: #e5e6eb;
+$calicat-ai-suggested-question-radius: 16px;
+$calicat-ai-input-bg: #f5f7fa;
+$calicat-ai-input-border: #e5e7eb;
+$calicat-ai-input-radius: 22px;
+$calicat-ai-send-btn-disabled: #e5e6eb;
+$calicat-ai-send-btn-size: 40px;
+$calicat-ai-loading-dot-1: #1890ff;
+$calicat-ai-loading-dot-2: #40a9ff;
+$calicat-ai-loading-dot-3: #91caff;
+$calicat-ai-drawer-shadow: 0 -4px 24px rgb(0 0 0 / 8%);
+$calicat-ai-drawer-radius: 16px;
+$calicat-ai-current-session-bg: #f0f7ff;
+$calicat-ai-current-session-tag-bg: #e6f7ff;
+$calicat-ai-current-session-tag-text: #1890ff;

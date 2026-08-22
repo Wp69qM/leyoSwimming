@@ -1,0 +1,143 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "741b644a-06da-40a9-964c-4731e4f72da5",
+  "page_name": "U-套餐列表页",
+  "last_synced_at": "2026-08-16T11:59:00+08:00",
+  "colors": {
+    "pageBackground": "#F5F7FA",
+    "statusBarStart": "#1890FF",
+    "statusBarEnd": "#0050B3",
+    "navBarText": "#FFFFFF",
+    "experienceCardStart": "#FF6B35",
+    "experienceCardEnd": "#FA541C",
+    "experienceCardShadow": "rgba(255, 107, 53, 0.35)",
+    "standardCardBackground": "#FFFFFF",
+    "standardCardShadow": "rgba(0, 0, 0, 0.08)",
+    "standardTagBackground": "#E6F7FF",
+    "standardTagText": "#1890FF",
+    "hotTagBackground": "#FFF1F0",
+    "hotTagText": "#FF4D4F",
+    "recommendTagBackground": "#FFF7E6",
+    "recommendTagText": "#FA8C16",
+    "primaryText": "#262626",
+    "secondaryText": "#8C8C8C",
+    "disabledText": "#BFBFBF",
+    "priceText": "#FF6B35",
+    "iconDefault": "#8C8C8C",
+    "iconArrow": "#BFBFBF",
+    "customEntryBorder": "#1890FF",
+    "customEntryIconBg": "#E6F7FF",
+    "customEntryIcon": "#1890FF",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "navTitle": {
+      "fontSize": 17,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "sectionTitle": {
+      "fontSize": 16,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "cardTitle": {
+      "fontSize": 18,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "experienceTitle": {
+      "fontSize": 20,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "experienceSubtitle": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "tagText": {
+      "fontSize": 11,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "infoText": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "price": {
+      "fontSize": 24,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "originalPrice": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "customEntryTitle": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "customEntrySubtitle": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    }
+  },
+  "spacing": {
+    "pageHorizontal": 16,
+    "pageBottom": 24,
+    "cardPadding": 20,
+    "sectionGap": 24,
+    "cardGap": 12,
+    "innerGap": 8,
+    "infoGap": 16,
+    "tagGap": 8,
+    "priceGap": 8
+  },
+  "radius": {
+    "card": 12,
+    "tag": 10,
+    "button": 17,
+    "icon": 22,
+    "customEntry": 12
+  },
+  "shadows": {
+    "experienceCard": "0 4px 12px rgba(255, 107, 53, 0.35)",
+    "standardCard": "0 2px 8px rgba(0, 0, 0, 0.08)",
+    "customEntry": "0 2px 8px rgba(0, 0, 0, 0.08)"
+  },
+  "icons": {
+    "source": "remixicon",
+    "back": "\uea64",
+    "signal": "\uf134",
+    "battery": "\ueaaf",
+    "validity": "\uf20f",
+    "teachingType": "\uf263",
+    "duration": "\uf215",
+    "arrowRight": "\uea6e",
+    "customPackage": "\uf0e6"
+  },
+  "screenshots": {
+    "normal": "src/assets/calicat/screenshots/U-package-list-normal.png",
+    "conflict": "src/assets/calicat/screenshots/U-package-list-conflict.png",
+    "experiencePurchased": "src/assets/calicat/screenshots/U-package-list-experience-purchased.png",
+    "empty": "src/assets/calicat/screenshots/U-package-list-empty.png",
+    "skeleton": "src/assets/calicat/screenshots/U-package-list-skeleton.png"
+  },
+  "exported_assets": []
+}

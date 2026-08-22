@@ -85,6 +85,12 @@ public class Coach {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private Integer priceChangeCountToday = 0;
 
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private java.math.BigDecimal rating;
+
+  @TableField(updateStrategy = FieldStrategy.IGNORED)
+  private String realtimeStatus;
+
   @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
   private List<CoachCertificate> certificates;
 

@@ -1,9 +1,9 @@
-@import '@/styles/variables.scss';
+@use '@/styles/variables.scss' as *;
 
 .reference-price {
   min-height: 100vh;
-  padding: 32rpx;
-  padding-bottom: 96rpx;
+  padding: 16rpx;
+  padding-bottom: 48rpx;
   background-color: #F5F7FA;
   box-sizing: border-box;
 
@@ -19,18 +19,18 @@
   }
 
   &__info-card {
-    padding: 32rpx;
-    margin-bottom: 32rpx;
+    padding: 16rpx;
+    margin-bottom: 16rpx;
     background-color: #E6F7FF;
-    border-radius: 24rpx;
+    border-radius: 12rpx;
     box-sizing: border-box;
   }
 
   &__info-title {
     display: block;
-    margin-bottom: 16rpx;
+    margin-bottom: 8rpx;
     color: #0050B3;
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 600;
     line-height: 1.2;
   }
@@ -38,24 +38,24 @@
   &__info-content {
     display: block;
     color: #262626;
-    font-size: 24rpx;
+    font-size: 12rpx;
     line-height: 1.6;
   }
 
   &__card {
-    padding: 32rpx;
-    margin-bottom: 32rpx;
+    padding: 16rpx;
+    margin-bottom: 16rpx;
     background-color: #ffffff;
-    border-radius: 24rpx;
-    box-shadow: 0 4rpx 24rpx 0 rgba(0, 0, 0, 0.04);
+    border-radius: 12rpx;
+    box-shadow: 0 2rpx 12rpx 0 rgba(0, 0, 0, 0.04);
     box-sizing: border-box;
   }
 
   &__card-title {
     display: block;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
     color: #262626;
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 600;
     line-height: 1.2;
   }
@@ -63,25 +63,25 @@
   &__input-row {
     display: flex;
     align-items: center;
-    margin-bottom: 16rpx;
+    margin-bottom: 8rpx;
   }
 
   &__input {
     flex: 1;
-    height: 88rpx;
-    padding: 0 24rpx;
+    height: 44rpx;
+    padding: 0 12rpx;
     color: #262626;
-    font-size: 32rpx;
+    font-size: 16rpx;
     background-color: #F5F7FA;
-    border-radius: 16rpx;
+    border-radius: 8rpx;
     border: 1px solid #E8E8E8;
     box-sizing: border-box;
   }
 
   &__unit {
-    margin-left: 16rpx;
+    margin-left: 8rpx;
     color: #8C8C8C;
-    font-size: 28rpx;
+    font-size: 14rpx;
   }
 
   &__hint-row {
@@ -92,12 +92,12 @@
 
   &__range-hint {
     color: #8C8C8C;
-    font-size: 24rpx;
+    font-size: 12rpx;
   }
 
   &__remaining {
     color: #FAAD14;
-    font-size: 24rpx;
+    font-size: 12rpx;
 
     &--zero {
       color: #FF4D4F;
@@ -106,9 +106,9 @@
 
   &__error {
     display: block;
-    margin-top: 16rpx;
+    margin-top: 8rpx;
     color: #FF4D4F;
-    font-size: 24rpx;
+    font-size: 12rpx;
     line-height: 1.4;
   }
 
@@ -121,7 +121,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20rpx 0;
+    padding: 10rpx 0;
     border-bottom: 1px solid #f0f0f0;
 
     &:last-child {
@@ -131,7 +131,7 @@
 
   &__preview-label {
     color: #262626;
-    font-size: 28rpx;
+    font-size: 14rpx;
   }
 
   &__preview-price-wrap {
@@ -141,32 +141,32 @@
 
   &__preview-price {
     color: #262626;
-    font-size: 36rpx;
+    font-size: 18rpx;
     font-weight: 600;
     line-height: 1.2;
   }
 
   &__preview-unit {
-    margin-left: 8rpx;
+    margin-left: 4rpx;
     color: #8C8C8C;
-    font-size: 24rpx;
+    font-size: 12rpx;
   }
 
   &__preview-placeholder {
     color: #BFBFBF;
-    font-size: 28rpx;
+    font-size: 14rpx;
   }
 
   &__save {
     width: 100%;
-    max-width: 686rpx;
-    height: 96rpx;
-    line-height: 96rpx;
-    margin: 48rpx auto 0;
+    max-width: 343rpx;
+    height: 48rpx;
+    line-height: 48rpx;
+    margin: 24rpx auto 0;
     color: #ffffff;
-    font-size: 32rpx;
+    font-size: 16rpx;
     background: linear-gradient(90deg, #40a9ff 0%, #1890ff 100%);
-    border-radius: 16rpx;
+    border-radius: 8rpx;
     border: none;
 
     &:active {

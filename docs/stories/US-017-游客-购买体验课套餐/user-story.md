@@ -101,7 +101,7 @@ And   不创建 package（套餐在支付成功后才激活）
 And   接口返回 HTTP 201 与支付参数
 When  游客完成支付，支付回调到达
 Then  订单状态 = 已支付
-And   package.status = active，package_type = 0，available = 1，total_hours = 1，expire_at = 30 天后
+And   package.status = active，package_mode = 'experience'，available = 1，total_hours = 1，expire_at = 30 天后
 And   package 保存模板 T 的快照字段（package_name、package_mode='experience'、coach_id、coach_name、teaching_type、duration_minutes、valid_days=30、original_price、paid_amount、refund_enabled、refund_ratio、refund_valid_days）
 And   用户身份变为学员
 And   接口返回 HTTP 200
@@ -177,7 +177,7 @@ And   不创建订单
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `order` | 新增 | 体验课订单，course_type=0，初始 status=待支付 |
+| 1 | `order` | 新增 | 体验课订单，package_mode='experience'，初始 status=待支付 |
 | 2 | `package_template` | 读 | 按 `package_mode='experience'` 且 `status='active'` 查询体验课模板 |
 | 3 | `package` | 新增（支付成功后） | 体验套餐，保存模板快照字段，status=active，expire_at=30 天后 |
 | 4 | `payment` | 新增 | 支付流水 |
@@ -331,6 +331,7 @@ And   不创建订单
 | v1.4 | 2026-08-01 | PM | §13.1 四态标记统一为 🔲，删除样式描述，添加四态要求说明 |
 | v1.5 | 2026-08-12 | PM | 适配 US-045：§3/§4.1/§4.2/§5/§6/§7.1 增加 package_template 状态校验、模板快照字段及 TRIAL_PACKAGE_INACTIVE 异常分支 |
 | v1.6 | 2026-08-13 | PM | 正文同步 v1.3 意图：§3/§4.1/§4.2/§5/§6/§7.1/§7.2/§12 补充《健康承诺书》《免责协议》签署要求，统一错误码 AGREEMENT_REQUIRED；§2/§4.1 细化体验课购买入口（首页卡片、全部套餐列表、教练详情页可选套餐）与展示规则 |
+| v1.7 | 2026-08-15 | AI | 三件套一致性修复：§6.1 package 实例字段由 package_type=0 统一为 package_mode='experience'；§7.1 order 表字段由 course_type=0 统一为 package_mode='experience' |
 
 ---
 

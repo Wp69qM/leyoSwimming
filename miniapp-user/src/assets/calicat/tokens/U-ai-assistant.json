@@ -1,0 +1,414 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "d05e78e9-daee-4a12-9ecf-991b992f1d69",
+  "page_name": "U-AI助理页",
+  "last_synced_at": "2026-08-17T00:00:00+08:00",
+  "source_frames": [
+    {
+      "name": "U-AI助理-初始状态",
+      "node_id": "d05e78e9-daee-4a12-9ecf-991b992f1d69"
+    },
+    {
+      "name": "U-AI助理-聊天状态",
+      "node_id": "5364cc07-83b7-4b8f-add5-0adad815b75e"
+    },
+    {
+      "name": "U-AI助理-加载状态",
+      "node_id": "8e6057a1-bb3f-43a7-b899-62b34decd184"
+    },
+    {
+      "name": "U-AI助理-历史会话抽屉",
+      "node_id": "d5f695b1-2725-4309-a7a0-787def5ef5fe"
+    },
+    {
+      "name": "U-AI助理-套餐推荐对话",
+      "node_id": "3db85d5b-5445-42ed-a7f7-f30f066997a4"
+    }
+  ],
+  "colors": {
+    "pageBackground": "#F5F7FA",
+    "navGradientStart": "#1890FF",
+    "navGradientEnd": "#0050B3",
+    "navText": "#FFFFFF",
+    "navButtonBackground": "rgba(255, 255, 255, 0.2)",
+    "primary": "#1890FF",
+    "primaryDark": "#0050B3",
+    "primaryLight": "#40A9FF",
+    "onlineDot": "#22C55E",
+    "white": "#FFFFFF",
+    "titleText": "#1D2129",
+    "primaryText": "#262626",
+    "secondaryText": "#4E5969",
+    "tertiaryText": "#86909C",
+    "placeholderText": "#C9CDD4",
+    "disabledText": "#BFBFBF",
+    "divider": "#F0F0F0",
+    "cardBorder": "#E5E6EB",
+    "cardBackground": "#FFFFFF",
+    "cardShadow": "rgba(0, 0, 0, 0.06)",
+    "quickCardShadow": "rgba(0, 0, 0, 0.05)",
+    "userBubbleStart": "#1890FF",
+    "userBubbleEnd": "#0050B3",
+    "userBubbleText": "#FFFFFF",
+    "assistantBubbleBackground": "#FFFFFF",
+    "assistantBubbleText": "#1D2129",
+    "coachTagBackground": "#E6F7FF",
+    "coachTagText": "#1890FF",
+    "packageTagBackground": "#FFF7E6",
+    "packageTagText": "#FA8C16",
+    "reasonBackground": "#F5F7FA",
+    "reasonText": "#4E5969",
+    "packageReasonBackground": "#FFF7E6",
+    "packageReasonText": "#D46B08",
+    "ratingStar": "#FAAD14",
+    "ratingText": "#FAAD14",
+    "priceText": "#F5222D",
+    "buttonPrimaryBackground": "#1890FF",
+    "buttonPrimaryText": "#FFFFFF",
+    "inputBackground": "#F5F7FA",
+    "inputBorder": "#E5E7EB",
+    "sendButtonDisabled": "#E5E6EB",
+    "suggestedQuestionBorder": "#E5E6EB",
+    "suggestedQuestionIcon": "#1890FF",
+    "drawerShadow": "rgba(0, 0, 0, 0.08)",
+    "currentSessionBackground": "#F0F7FF",
+    "currentSessionTagBackground": "#E6F7FF",
+    "currentSessionTagText": "#1890FF",
+    "loadingDot1": "#1890FF",
+    "loadingDot2": "#40A9FF",
+    "loadingDot3": "#91CAFF",
+    "quickIconBlueBackground": "#EFF6FF",
+    "quickIconOrangeBackground": "#FFF7ED",
+    "quickIconPurpleBackground": "#FAF5FF",
+    "quickIconGreenBackground": "#F0FDF4",
+    "quickIconCyanBackground": "#ECFEFF",
+    "quickIconRedBackground": "#FEF2F2",
+    "quickIconOrange": "#F97316",
+    "quickIconGreen": "#22C55E",
+    "quickIconCyan": "#06B6D4",
+    "quickIconRed": "#EF4444",
+    "avatarRing": "rgba(96, 165, 250, 0.3)",
+    "avatarPlaceholderBackground": "#DBEAFE",
+    "userAvatarBackground": "#D9D9D9",
+    "genderMaleBackground": "#F0F5FF",
+    "genderMaleText": "#2F54EB",
+    "genderFemaleBackground": "#FFF1F0",
+    "genderFemaleText": "#F5222D",
+    "skillTagBackground": "#F5F7FA",
+    "skillTagText": "#4E5969"
+  },
+  "typography": {
+    "statusBarTime": {
+      "fontSize": 15,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "navButton": {
+      "fontSize": 13,
+      "fontWeight": 500,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Medium"
+    },
+    "navTitle": {
+      "fontSize": 18,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "welcomeTitle": {
+      "fontSize": 22,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "welcomeSubtitle": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "sectionTitle": {
+      "fontSize": 15,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "refreshText": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "quickEntryTitle": {
+      "fontSize": 14,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "quickEntrySubtitle": {
+      "fontSize": 11,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "quickIcon": {
+      "fontSize": 20,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "remixicon"
+    },
+    "messageText": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.5,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "cardTypeTag": {
+      "fontSize": 11,
+      "fontWeight": 500,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Medium"
+    },
+    "cardCoachName": {
+      "fontSize": 15,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "cardPackageName": {
+      "fontSize": 15,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "cardPrice": {
+      "fontSize": 18,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "cardMeta": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "cardReason": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.5,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "cardButton": {
+      "fontSize": 13,
+      "fontWeight": 500,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Medium"
+    },
+    "suggestedQuestion": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "inputPlaceholder": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "disclaimer": {
+      "fontSize": 11,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "historyTitle": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "historyItemTitle": {
+      "fontSize": 14,
+      "fontWeight": 500,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Medium"
+    },
+    "historyItemTime": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "historyCurrentTag": {
+      "fontSize": 11,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    }
+  },
+  "spacing": {
+    "pageHorizontal": 16,
+    "pageTop": 0,
+    "pageBottom": 24,
+    "statusBarHeight": 44,
+    "navBarHeight": 48,
+    "chatAreaPadding": 16,
+    "mainContentTopPadding": 48,
+    "mainContentBottomPadding": 24,
+    "welcomeTitleTop": 20,
+    "quickSectionTop": 32,
+    "quickSectionTitleBottom": 16,
+    "quickRowGap": 12,
+    "quickCardGap": 12,
+    "quickCardPadding": 16,
+    "quickCardHeight": 72,
+    "quickIconSize": 40,
+    "quickIconGap": 12,
+    "messageGap": 10,
+    "messageGroupGap": 20,
+    "bubblePaddingVertical": 12,
+    "bubblePaddingHorizontal": 14,
+    "recommendationCardGap": 12,
+    "recommendationCardPadding": 14,
+    "recommendationCardRadius": 12,
+    "recommendationInnerGap": 10,
+    "suggestedQuestionsGap": 8,
+    "suggestedQuestionPaddingVertical": 8,
+    "suggestedQuestionPaddingHorizontal": 14,
+    "bottomAreaPaddingTop": 12,
+    "bottomAreaPaddingBottom": 20,
+    "inputContainerHeight": 48,
+    "inputContainerPaddingHorizontal": 16,
+    "inputContainerRadius": 22,
+    "sendButtonSize": 40,
+    "safeAreaHeight": 34,
+    "drawerRadius": 16,
+    "drawerItemPaddingVertical": 14,
+    "drawerItemPaddingHorizontal": 16,
+    "drawerItemGap": 4
+  },
+  "radius": {
+    "page": 0,
+    "navButton": 9999,
+    "avatar": 9999,
+    "avatarLarge": 9999,
+    "welcomeBubble": [12, 12, 12, 4],
+    "userBubble": [12, 12, 4, 12],
+    "assistantBubble": [12, 12, 12, 4],
+    "quickCard": 16,
+    "quickIcon": 12,
+    "recommendationCard": 12,
+    "typeTag": 4,
+    "genderTag": 4,
+    "skillTag": 4,
+    "reasonBlock": 8,
+    "actionButton": 8,
+    "suggestedQuestion": 16,
+    "inputContainer": 22,
+    "sendButton": 9999,
+    "drawer": [16, 16, 0, 0],
+    "drawerCloseButton": 14,
+    "drawerCurrentTag": 4
+  },
+  "shadows": {
+    "statusBar": "none",
+    "assistantBubble": "0 2px 8px rgba(0, 0, 0, 0.04)",
+    "recommendationCard": "0 2px 8px rgba(0, 0, 0, 0.06)",
+    "quickCard": "0 1px 2px rgba(0, 0, 0, 0.05)",
+    "drawer": "0 -4px 24px rgba(0, 0, 0, 0.08)",
+    "avatar": "0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 15px rgba(0, 0, 0, 0.1)"
+  },
+  "icons": {
+    "source": "remixicon",
+    "newSession": "\uea13",
+    "history": "\uf1bf",
+    "close": "\ueb66",
+    "send": "\uf0d9",
+    "sendDisabled": "\uf0d9",
+    "inputIcon": "\uec80",
+    "disclaimer": "\uf080",
+    "coach": "\uf476",
+    "package": "\uf023",
+    "star": "\uf186",
+    "schedule": "\uf1bf",
+    "class": "\uf2ce",
+    "suggested": "\uf0c5",
+    "refresh": "\uf063",
+    "chevronRight": "\ueaa6"
+  },
+  "screenshots": {
+    "initial": "src/assets/calicat/screenshots/U-ai-assistant-initial.png",
+    "chat": "src/assets/calicat/screenshots/U-ai-assistant-chat.png",
+    "loading": "src/assets/calicat/screenshots/U-ai-assistant-loading.png",
+    "history": "src/assets/calicat/screenshots/U-ai-assistant-history.png",
+    "recommend": "src/assets/calicat/screenshots/U-ai-assistant-recommend.png"
+  },
+  "exported_assets": [
+    {
+      "name": "leyo-avatar-small",
+      "type": "image",
+      "format": "jpg",
+      "target_path": "src/assets/calicat/images/leyo-avatar-small.jpg",
+      "usage": "聊天状态 leyo 头像（41x40 / 29x28）"
+    },
+    {
+      "name": "leyo-avatar-large",
+      "type": "image",
+      "format": "jpg",
+      "target_path": "src/assets/calicat/images/leyo-avatar-large.jpg",
+      "usage": "初始状态页面中央欢迎头像（80x80 外圈）"
+    },
+    {
+      "name": "icon-new-session",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-new-session.svg",
+      "usage": "顶部「新会话」按钮图标（remixicon U+EA13，白色）"
+    },
+    {
+      "name": "icon-history",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-history.svg",
+      "usage": "顶部「历史」按钮图标（remixicon U+F1BF，白色）"
+    },
+    {
+      "name": "icon-send",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-send.svg",
+      "usage": "底部发送按钮图标（remixicon U+F0D9，白色）"
+    },
+    {
+      "name": "icon-input",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-input.svg",
+      "usage": "输入框左侧占位图标（remixicon U+EC80，#C9CDD4）"
+    },
+    {
+      "name": "icon-suggested",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-suggested.svg",
+      "usage": "建议追问标签左侧图标（remixicon U+F0C5，#1890FF）"
+    },
+    {
+      "name": "icon-coach",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-coach.svg",
+      "usage": "教练推荐卡片类型标签图标（remixicon U+F476，#1890FF）"
+    },
+    {
+      "name": "icon-package",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-package.svg",
+      "usage": "套餐推荐卡片类型标签图标（remixicon U+F023，#FA8C16）"
+    }
+  ]
+}

@@ -19,6 +19,11 @@ spring:
       password: ${REDIS_PASSWORD:}
       database: ${REDIS_DATABASE:0}
 
+mybatis-plus:
+  global-config:
+    db-config:
+      table-format: "`%s`"
+
 leyo:
   jwt:
     secret: ${JWT_SECRET}
@@ -26,5 +31,10 @@ leyo:
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   phone-encryption:
     key: ${PHONE_ENCRYPTION_KEY}
+  id-card-encryption:
+    key: ${ID_CARD_ENCRYPTION_KEY}
   sms:
     mock-enabled: false
+  ai-service:
+    base-url: ${AI_SERVICE_BASE_URL}
+    internal-api-token: ${INTERNAL_API_TOKEN}

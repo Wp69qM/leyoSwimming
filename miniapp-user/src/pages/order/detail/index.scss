@@ -1,0 +1,675 @@
+@use '@/styles/calicat-overrides' as *;
+
+.order-detail-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $calicat-page-bg;
+}
+
+.order-detail-page__header {
+  background-color: $calicat-white;
+}
+
+.order-detail-page__header--skeleton {
+  background-color: $calicat-primary;
+}
+
+.order-detail-page__status-bar {
+  width: 100%;
+}
+
+.order-detail-page__navbar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $calicat-page-horizontal;
+}
+
+.order-detail-page__back {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-detail-page__back-icon {
+  color: $calicat-text-primary;
+  font-size: 20px;
+}
+
+.order-detail-page__title {
+  font-size: 17px;
+  font-weight: 600;
+  color: $calicat-text-primary;
+  line-height: 1.2;
+}
+
+.order-detail-page__navbar-placeholder {
+  width: 32px;
+}
+
+.order-detail-page__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.order-detail-page__content--loading {
+  padding: $calicat-page-horizontal;
+  gap: $calicat-card-gap;
+}
+
+.order-detail-page__content--center {
+  align-items: center;
+  justify-content: center;
+  padding: $calicat-page-horizontal;
+}
+
+.order-detail-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: $calicat-card-gap;
+  padding: $calicat-card-gap $calicat-page-horizontal
+    calc($calicat-bottom-bar-height + $calicat-card-gap);
+}
+
+// Status Header
+.order-detail-header {
+  padding: 28px $calicat-page-horizontal 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-detail-header__main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.order-detail-header__icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgb(255 255 255 / 20%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.order-detail-header__icon {
+  font-size: 32px;
+  color: $calicat-white;
+}
+
+.order-detail-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-detail-header__status {
+  font-size: 20px;
+  font-weight: 700;
+  color: $calicat-white;
+  line-height: 1.2;
+}
+
+.order-detail-header__amount {
+  font-size: 36px;
+  font-weight: 700;
+  color: $calicat-white;
+  line-height: 1.2;
+}
+
+.order-detail-header__desc {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background-color: rgb(255 255 255 / 20%);
+}
+
+.order-detail-header__desc-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: $calicat-white;
+  line-height: 1.4;
+}
+
+// Card
+.order-detail-card {
+  background-color: $calicat-card-bg;
+  border-radius: $calicat-card-radius;
+  box-shadow: $calicat-card-shadow;
+  padding: $calicat-card-padding;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-detail-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-detail-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: $calicat-text-primary;
+  line-height: 1.2;
+}
+
+.order-detail-card__tag {
+  padding: 2px 8px;
+  border-radius: 9px;
+  background-color: $calicat-tag-default-bg;
+}
+
+.order-detail-card__tag-text {
+  font-size: 10px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  line-height: 1.2;
+}
+
+.order-detail-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-detail-info-row__label {
+  font-size: 13px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.order-detail-info-row__value {
+  font-size: 13px;
+  font-weight: 400;
+  color: $calicat-text-primary;
+  line-height: 1.4;
+  text-align: right;
+  word-break: break-all;
+}
+
+.order-detail-info-row__value--highlight {
+  color: $calicat-text-price;
+  font-weight: 600;
+}
+
+// Package Usage Card
+.package-usage-card__coach {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.package-usage-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.package-usage-card__avatar--placeholder {
+  background-color: $calicat-coach-avatar-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.package-usage-card__avatar-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: $calicat-coach-avatar-text;
+}
+
+.package-usage-card__coach-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.package-usage-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.package-usage-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: $calicat-text-primary;
+}
+
+.package-usage-card__desc {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+}
+
+.package-status-tag {
+  padding: 2px 8px;
+  border-radius: $calicat-tag-radius;
+}
+
+.package-status-tag__text {
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.package-status-tag--active {
+  background-color: $calicat-tag-success-bg;
+
+  .package-status-tag__text {
+    color: $calicat-tag-success-text;
+  }
+}
+
+.package-status-tag--expired,
+.package-status-tag--frozen,
+.package-status-tag--exhausted {
+  background-color: $calicat-tag-default-bg;
+
+  .package-status-tag__text {
+    color: $calicat-text-secondary;
+  }
+}
+
+.package-usage-card__hours {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 12px 0;
+  margin-top: 4px;
+  border-top: 1px solid $calicat-divider;
+  border-bottom: 1px solid $calicat-divider;
+}
+
+.package-usage-card__hour-item {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.package-usage-card__hour-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+}
+
+.package-usage-card__hour-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: $calicat-text-primary;
+}
+
+.package-usage-card__hour-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+}
+
+.package-usage-card__validity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.package-usage-card__validity-icon {
+  font-size: 14px;
+  color: $calicat-icon-default;
+}
+
+.package-usage-card__validity-text {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+}
+
+// Notice
+.order-detail-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.order-detail-notice--expired {
+  background-color: $calicat-warning-bg;
+}
+
+.order-detail-notice--warning {
+  background-color: $calicat-info-icon-bg;
+}
+
+.order-detail-notice__icon {
+  font-size: 16px;
+  color: $calicat-warning;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.order-detail-notice__text {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  line-height: 1.5;
+}
+
+// Refund Progress
+.refund-progress {
+  margin-top: 4px;
+}
+
+.refund-progress__track {
+  position: relative;
+  height: 2px;
+  background-color: $calicat-divider;
+  border-radius: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.refund-progress__bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    $calicat-primary 0%,
+    $calicat-primary-dark 100%
+  );
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+.refund-progress__node {
+  position: relative;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: $calicat-card-bg;
+  border: 2px solid $calicat-divider;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refund-progress__node--active {
+  border-color: $calicat-primary;
+  background-color: $calicat-primary;
+}
+
+.refund-progress__node--failed {
+  border-color: $calicat-danger;
+  background-color: $calicat-danger;
+}
+
+.refund-progress__node-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: $calicat-text-secondary;
+  line-height: 1;
+}
+
+.refund-progress__node--active .refund-progress__node-text,
+.refund-progress__node--failed .refund-progress__node-text {
+  color: $calicat-white;
+}
+
+.refund-progress__labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.refund-progress__label {
+  font-size: 11px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  text-align: center;
+  width: 48px;
+}
+
+.refund-progress__desc {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: $calicat-info-icon-bg;
+}
+
+.refund-progress__desc-icon {
+  font-size: 16px;
+  color: $calicat-info-icon;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.refund-progress__desc-text {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  line-height: 1.5;
+}
+
+// Refund Amount Info
+.refund-amount-info__box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: $calicat-page-bg;
+}
+
+.refund-amount-info__formula {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.refund-amount-info__icon {
+  font-size: 16px;
+  color: $calicat-warning;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.refund-amount-info__formula-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: $calicat-text-primary;
+  line-height: 1.5;
+}
+
+.refund-amount-info__example {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  line-height: 1.5;
+}
+
+.refund-amount-info__tip {
+  font-size: 12px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  line-height: 1.5;
+}
+
+.refund-amount-info__tip--highlight {
+  color: $calicat-warning-orange;
+}
+
+// Bottom Action Bar
+.order-detail-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: $calicat-white;
+  box-shadow: $calicat-bottom-bar-shadow;
+  padding: 12px $calicat-page-horizontal $calicat-safe-bottom;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  z-index: 10;
+}
+
+.order-detail-bottom-bar__primary {
+  min-width: 140px;
+  height: 46px;
+  border-radius: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    90deg,
+    $calicat-primary 0%,
+    $calicat-primary-dark 100%
+  );
+  box-shadow: $calicat-button-shadow;
+}
+
+.order-detail-bottom-bar__primary-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: $calicat-white;
+}
+
+.order-detail-bottom-bar__secondary {
+  min-width: 100px;
+  height: 46px;
+  border-radius: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $calicat-white;
+  border: 1px solid $calicat-border;
+}
+
+.order-detail-bottom-bar__secondary-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: $calicat-text-primary;
+}
+
+// Skeleton
+.order-detail-skeleton {
+  background: linear-gradient(
+    90deg,
+    $calicat-divider 25%,
+    $calicat-border 50%,
+    $calicat-divider 75%
+  );
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: order-detail-skeleton-loading 1.5s infinite;
+}
+
+@keyframes order-detail-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.order-detail-skeleton--title {
+  width: 80px;
+  height: 20px;
+}
+
+.order-detail-skeleton--header {
+  height: 160px;
+  border-radius: 0 0 $calicat-card-radius $calicat-card-radius;
+}
+
+.order-detail-skeleton--card {
+  height: 180px;
+}
+
+// Empty / Error State
+.order-detail-empty__illustration {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: $calicat-info-icon-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.order-detail-empty__icon {
+  font-size: 56px;
+  color: $calicat-info-icon;
+}
+
+.order-detail-empty__text {
+  font-size: 15px;
+  font-weight: 400;
+  color: $calicat-text-secondary;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.order-detail-empty__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.order-detail-empty__btn {
+  min-width: 120px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    90deg,
+    $calicat-primary 0%,
+    $calicat-primary-dark 100%
+  );
+  padding: 0 20px;
+}
+
+.order-detail-empty__btn--secondary {
+  background: $calicat-white;
+  border: 1px solid $calicat-border;
+}
+
+.order-detail-empty__btn-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: $calicat-white;
+}
+
+.order-detail-empty__btn--secondary .order-detail-empty__btn-text {
+  color: $calicat-text-primary;
+}

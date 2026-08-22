@@ -3,6 +3,7 @@ package com.leyoswimming.config;
 import com.leyoswimming.common.ErrorCode;
 import com.leyoswimming.security.AdminAuthenticationFilter;
 import com.leyoswimming.security.CoachAuthenticationFilter;
+import com.leyoswimming.security.InternalAuthFilter;
 import com.leyoswimming.security.UserAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,7 @@ public class SecurityConfig {
   private final AdminAuthenticationFilter adminAuthenticationFilter;
   private final UserAuthenticationFilter userAuthenticationFilter;
   private final CoachAuthenticationFilter coachAuthenticationFilter;
+  private final InternalAuthFilter internalAuthFilter;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,11 +37,23 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/user/auth/logout", "/api/coach/auth/logout")
                     .authenticated()
                     .requestMatchers(
+                        "/api/coach/list",
+                        "/api/coach/detail",
+                        "/api/coach/package/list",
+                        "/api/package/list",
+                        "/api/package/detail")
+                    .permitAll()
+                    .requestMatchers("/api/internal/ai/**")
+                    .permitAll()
+                    .requestMatchers("/api/ai-assistant/chat", "/api/ai-assistant/session/create")
+                    .permitAll()
+                    .requestMatchers(
                         "/api/admin/auth/**",
                         "/api/user/auth/**",
                         "/api/coach/auth/**",
                         "/api/common/sms/**",
                         "/api/common/policy/**",
+                        "/api/payment/mock-callback",
                         "/uploads/**",
                         "/health",
                         "/error")
@@ -54,6 +68,8 @@ public class SecurityConfig {
                     .hasRole("COACH")
                     .anyRequest()
                     .authenticated())
+        .addFilterBefore(
+            internalAuthFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             adminAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(

@@ -15,7 +15,7 @@ public class AdminPermissionHelper {
 
   public static final String ROLE_SUPER_ADMIN = "super_admin";
   public static final String ROLE_ADMIN = "admin";
-  public static final String ROLE_COACH_MANAGER = "COACH_MANAGER";
+  public static final String ROLE_COACH_MANAGER = "coach_manager";
 
   public static final String PERM_USER_READ = "USER:READ";
   public static final String PERM_USER_WRITE = "USER:WRITE";

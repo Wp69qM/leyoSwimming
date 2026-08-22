@@ -1,0 +1,561 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.package-detail {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+  padding-bottom: calc($calicat-detail-bottom-height + $calicat-safe-bottom);
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  &__back {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    font-size: 24px;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__navbar-placeholder {
+    width: 26px;
+  }
+
+  &__content {
+    padding: 16px 16px 24px;
+  }
+}
+
+.main-info-card {
+  padding: $calicat-card-padding;
+  border-radius: $calicat-card-radius;
+  box-shadow: $calicat-standard-card-shadow;
+
+  &--standard {
+    background: linear-gradient(
+      90deg,
+      $calicat-standard-card-start 0%,
+      $calicat-standard-card-end 100%
+    );
+  }
+
+  &--experience {
+    background: linear-gradient(
+      90deg,
+      $calicat-experience-start 0%,
+      $calicat-experience-end 100%
+    );
+    box-shadow: $calicat-experience-shadow;
+  }
+
+  &__badge {
+    align-self: flex-start;
+    height: 22px;
+    padding: 0 12px;
+    border-radius: 11px;
+    background-color: rgb(255 255 255 / 20%);
+    display: flex;
+    align-items: center;
+  }
+
+  &__badge-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: $calicat-card-primary-text;
+  }
+
+  &__name {
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-card-primary-text;
+    line-height: 1.2;
+  }
+
+  &__tags {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__tag {
+    height: 20px;
+    padding: 0 10px;
+    border-radius: 10px;
+    background-color: rgb(255 255 255 / 20%);
+    display: flex;
+    align-items: center;
+  }
+
+  &__tag-text {
+    font-size: 11px;
+    color: $calicat-card-primary-text;
+  }
+
+  &__info-row {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__info-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__info-icon {
+    font-size: 14px;
+    color: $calicat-card-secondary-text;
+  }
+
+  &__info-text {
+    font-size: 13px;
+    color: $calicat-card-secondary-text;
+  }
+
+  &__strokes {
+    margin-top: 10px;
+    font-size: 13px;
+    color: $calicat-card-secondary-text;
+  }
+
+  &__price-row {
+    margin-top: 16px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  &__price {
+    font-size: 28px;
+    font-weight: 700;
+    color: $calicat-card-primary-text;
+    line-height: 1;
+  }
+
+  &__original-price {
+    font-size: 14px;
+    color: $calicat-card-tertiary-text;
+    text-decoration: line-through;
+    margin-bottom: 2px;
+  }
+
+  &__unit {
+    font-size: 14px;
+    color: $calicat-card-secondary-text;
+    margin-bottom: 2px;
+  }
+}
+
+.section-card {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: $calicat-section-card-radius;
+  background-color: $calicat-white;
+  box-shadow: $calicat-section-card-shadow;
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 24px;
+  }
+
+  &__list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__desc {
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $calicat-content-text;
+  }
+
+  &__images {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  &__image {
+    width: 100px;
+    height: 80px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+}
+
+.content-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  &__icon-wrap {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background-color: $calicat-info-icon-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    font-size: 14px;
+    color: $calicat-info-icon;
+  }
+
+  &__text {
+    flex: 1;
+    padding-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $calicat-content-text;
+  }
+}
+
+.notice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  &__icon-wrap {
+    padding: 2px 0;
+  }
+
+  &__icon {
+    font-size: 12px;
+    color: $calicat-notice-icon;
+    background-color: $calicat-notice-icon-bg;
+    border-radius: 4px;
+    padding: 2px;
+  }
+
+  &__text {
+    flex: 1;
+    padding-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $calicat-content-text;
+  }
+}
+
+.coach-selection {
+  &__list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    overflow-x: auto;
+  }
+}
+
+.coach-card {
+  width: 104px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background-color: $calicat-page-bg;
+  border: 1px solid transparent;
+
+  &--selected {
+    border-color: $calicat-primary;
+    background-color: $calicat-standard-tag-bg;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    flex-shrink: 0;
+
+    &--placeholder {
+      background-color: $calicat-coach-avatar-bg;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &__avatar-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-coach-avatar-text;
+  }
+
+  &__name {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__rating {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__star {
+    font-size: 12px;
+    color: $calicat-star-icon;
+  }
+
+  &__rating-text {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+  }
+
+  &__stats {
+    margin-top: 2px;
+    font-size: 11px;
+    color: $calicat-text-secondary;
+    white-space: nowrap;
+  }
+
+  &__price {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $calicat-text-price;
+  }
+}
+
+.selected-coach {
+  &__card {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    flex-shrink: 0;
+
+    &--placeholder {
+      background-color: $calicat-coach-avatar-bg;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &__avatar-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-coach-avatar-text;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__name {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__star {
+    font-size: 14px;
+    color: $calicat-star-icon;
+  }
+
+  &__meta-text {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__strokes {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__arrow {
+    font-size: 20px;
+    color: $calicat-icon-arrow;
+  }
+}
+
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 34px;
+  background-color: $calicat-white;
+  box-shadow: $calicat-bottom-bar-shadow;
+
+  &__price-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+  }
+
+  &__subtext {
+    margin-top: 2px;
+    font-size: 12px;
+    color: $calicat-text-secondary;
+  }
+
+  &__button {
+    width: 151px;
+    height: 44px;
+    border-radius: 8px;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+    box-shadow: $calicat-button-shadow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--disabled {
+      background: $calicat-text-disabled;
+      box-shadow: none;
+    }
+  }
+
+  &__button-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+}
+
+.package-detail-empty,
+.package-detail-error {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 160px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__action,
+  &__retry {
+    margin-top: 16px;
+    padding: 8px 24px;
+    border-radius: 20px;
+    background-color: $calicat-primary;
+    font-size: 14px;
+    color: $calicat-white;
+  }
+
+  &__text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    text-align: center;
+    padding: 0 40px;
+  }
+}
+
+.package-detail--skeleton {
+  .skeleton-main-card {
+    height: 260px;
+    border-radius: $calicat-card-radius;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+
+  .skeleton-section {
+    margin-top: 12px;
+    height: 160px;
+    border-radius: $calicat-section-card-radius;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

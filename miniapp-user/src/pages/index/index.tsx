@@ -59,7 +59,7 @@ export default function Index() {
             />
           </View>
           <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>{'专业游泳约课，从这里开始'}</Text>
+          <Text className='splash__slogan'>专业游泳约课，从这里开始</Text>
           <View className='splash__loading'>
             <View className='splash__loading-dot' />
             <Text className='splash__loading-text'>加载中…</Text>
@@ -81,7 +81,7 @@ export default function Index() {
             />
           </View>
           <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>{'专业游泳约课，从这里开始'}</Text>
+          <Text className='splash__slogan'>专业游泳约课，从这里开始</Text>
           <View className='splash__error'>
             <View className='splash__error-illustration' />
             <Text className='splash__error-text'>网络异常，请重试</Text>
@@ -108,7 +108,7 @@ export default function Index() {
             />
           </View>
           <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>{'专业游泳约课，从这里开始'}</Text>
+          <Text className='splash__slogan'>专业游泳约课，从这里开始</Text>
         </View>
       </View>
     </View>

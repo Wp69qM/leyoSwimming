@@ -1,7 +1,7 @@
 .resignation-ticket {
   min-height: 100vh;
   background: #F5F7FA;
-  padding: 24rpx 32rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 16rpx calc(64rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 
   &__progress {
@@ -9,10 +9,10 @@
     align-items: flex-start;
     justify-content: space-between;
     background: #FFFFFF;
-    border-radius: 24rpx;
-    padding: 32rpx 24rpx;
-    margin-bottom: 32rpx;
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+    border-radius: 12rpx;
+    padding: 16rpx 12rpx;
+    margin-bottom: 16rpx;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
   }
 
   &__progress-step {
@@ -24,14 +24,14 @@
   }
 
   &__progress-dot {
-    width: 40rpx;
-    height: 40rpx;
+    width: 20rpx;
+    height: 20rpx;
     border-radius: 50%;
     background: #F5F5F5;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12rpx;
+    margin-bottom: 6rpx;
 
     &--active {
       background: #1890FF;
@@ -39,17 +39,17 @@
   }
 
   &__progress-number {
-    font-size: 22rpx;
+    font-size: 11rpx;
     color: #BFBFBF;
   }
 
   &__progress-check {
-    font-size: 22rpx;
+    font-size: 11rpx;
     color: #FFFFFF;
   }
 
   &__progress-label {
-    font-size: 22rpx;
+    font-size: 11rpx;
     color: #8C8C8C;
     text-align: center;
     white-space: nowrap;
@@ -62,10 +62,10 @@
 
   &__progress-line {
     position: absolute;
-    top: 20rpx;
+    top: 10rpx;
     right: -50%;
     width: 100%;
-    height: 2rpx;
+    height: 1rpx;
     background: #E8E8E8;
 
     &--active {
@@ -75,41 +75,41 @@
 
   &__section-title {
     display: block;
-    font-size: 32rpx;
+    font-size: 16rpx;
     font-weight: 600;
     color: #262626;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__list {
     display: flex;
     flex-direction: column;
-    gap: 24rpx;
+    gap: 12rpx;
   }
 
   &__card {
     background: #FFFFFF;
-    border-radius: 24rpx;
-    padding: 32rpx;
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+    border-radius: 12rpx;
+    padding: 16rpx;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
   }
 
   &__card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12rpx;
+    margin-bottom: 6rpx;
   }
 
   &__student-name {
-    font-size: 32rpx;
+    font-size: 16rpx;
     font-weight: 600;
     color: #262626;
   }
 
   &__status-tag {
-    padding: 4rpx 16rpx;
-    border-radius: 999rpx;
+    padding: 2rpx 8rpx;
+    border-radius: 500rpx;
 
     &--active {
       background: #F6FFED;
@@ -121,7 +121,7 @@
   }
 
   &__status-text {
-    font-size: 22rpx;
+    font-size: 11rpx;
 
     &--active {
       color: #52C41A;
@@ -134,19 +134,19 @@
 
   &__package-info {
     display: block;
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #8C8C8C;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__selector {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 96rpx;
-    padding: 0 24rpx;
-    border: 2rpx solid #E8E8E8;
-    border-radius: 16rpx;
+    height: 48rpx;
+    padding: 0 12rpx;
+    border: 1rpx solid #E8E8E8;
+    border-radius: 8rpx;
 
     &--selected {
       border-color: #1890FF;
@@ -158,7 +158,7 @@
   }
 
   &__selector-text {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #262626;
 
     &--placeholder {
@@ -167,35 +167,35 @@
   }
 
   &__selector-arrow {
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #BFBFBF;
   }
 
   &__transfer {
     display: flex;
     align-items: center;
-    margin-top: 24rpx;
-    padding: 16rpx;
+    margin-top: 12rpx;
+    padding: 8rpx;
     background: #F5F7FA;
-    border-radius: 16rpx;
+    border-radius: 8rpx;
   }
 
   &__transfer-label {
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 500;
     color: #262626;
-    margin-right: 16rpx;
+    margin-right: 8rpx;
     flex-shrink: 0;
   }
 
   &__transfer-input {
     flex: 1;
-    height: 72rpx;
+    height: 36rpx;
     background: #FFFFFF;
-    border: 2rpx solid #E8E8E8;
-    border-radius: 16rpx;
-    padding: 0 24rpx;
-    font-size: 28rpx;
+    border: 1rpx solid #E8E8E8;
+    border-radius: 8rpx;
+    padding: 0 12rpx;
+    font-size: 14rpx;
     color: #262626;
 
     &::placeholder {
@@ -208,34 +208,34 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-top: 120rpx;
+    margin-top: 60rpx;
     background: #FFFFFF;
-    border-radius: 24rpx;
-    padding: 64rpx 32rpx;
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+    border-radius: 12rpx;
+    padding: 32rpx 16rpx;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
   }
 
   &__empty-title {
-    font-size: 32rpx;
+    font-size: 16rpx;
     font-weight: 600;
     color: #262626;
-    margin-bottom: 12rpx;
+    margin-bottom: 6rpx;
   }
 
   &__empty-desc {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #8C8C8C;
-    margin-bottom: 32rpx;
+    margin-bottom: 16rpx;
   }
 
   &__empty-btn {
-    width: 240rpx;
-    height: 72rpx;
-    line-height: 72rpx;
+    width: 120rpx;
+    height: 36rpx;
+    line-height: 36rpx;
     background: #1890FF;
     color: #FFFFFF;
-    font-size: 28rpx;
-    border-radius: 16rpx;
+    font-size: 14rpx;
+    border-radius: 8rpx;
 
     &::after {
       border: none;
@@ -253,19 +253,19 @@
 
   &__loading-text,
   &__error-text {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #8C8C8C;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__error-btn {
-    width: 240rpx;
-    height: 72rpx;
-    line-height: 72rpx;
+    width: 120rpx;
+    height: 36rpx;
+    line-height: 36rpx;
     background: #1890FF;
     color: #FFFFFF;
-    font-size: 28rpx;
-    border-radius: 16rpx;
+    font-size: 14rpx;
+    border-radius: 8rpx;
 
     &::after {
       border: none;
@@ -274,13 +274,13 @@
 
   &__error-tip {
     background: #FFF1F0;
-    border-radius: 16rpx;
-    padding: 24rpx 32rpx;
-    margin-top: 24rpx;
+    border-radius: 8rpx;
+    padding: 12rpx 16rpx;
+    margin-top: 12rpx;
   }
 
   &__error-tip-text {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #FF4D4F;
   }
 
@@ -292,10 +292,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 112rpx;
-    padding: 0 32rpx calc(0rpx + env(safe-area-inset-bottom));
+    height: 56rpx;
+    padding: 0 16rpx calc(1rpx + env(safe-area-inset-bottom));
     background: #FFFFFF;
-    box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
   }
 
   &__footer-info {
@@ -304,19 +304,19 @@
   }
 
   &__footer-count {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #262626;
   }
 
   &__submit {
-    width: 240rpx;
-    height: 88rpx;
-    line-height: 88rpx;
+    width: 120rpx;
+    height: 44rpx;
+    line-height: 44rpx;
     background: linear-gradient(135deg, #FF4D4F 0%, #CF1322 100%);
     color: #FFFFFF;
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 500;
-    border-radius: 16rpx;
+    border-radius: 8rpx;
 
     &--disabled {
       background: #F5F5F5;

@@ -152,7 +152,6 @@ And   package 字段仍与订单快照一致
 | 3 | `package` | 新增 | 支付成功后创建 active 课时包，字段全部取自 order 快照，不实时查询 package_template |
 | 4 | `user` | 读取/触发 | 身份重算为学员 |
 | 5 | `agreement_sign` | 读取 | 校验协议已签署 |
-| 6 | `package_template` | 读取 | 下单时校验 template.status = active；支付回调阶段不再依赖 template 当前状态 |
 
 ### 7.2 API 影响
 

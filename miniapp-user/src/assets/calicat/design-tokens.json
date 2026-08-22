@@ -1,0 +1,65 @@
+{
+  "file_id": "2083742072257646592",
+  "frames": {
+    "my-package-detail-active": "c078a664-74f0-4502-98c4-d5f5d392e9d8",
+    "my-package-detail-frozen": "d6aec02d-9fd0-4620-9169-c85fcd54ab18",
+    "my-package-detail-expired": "943d8596-aaab-4238-90a8-03d511f5f2d4"
+  },
+  "page_name": "U-我的套餐详情页",
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "card_bg": "#FFFFFF",
+    "text_primary": "#262626",
+    "text_secondary": "#8C8C8C",
+    "text_disabled": "#BFBFBF",
+    "primary": "#1890FF",
+    "price": "#FF6B35",
+    "success": "#52C41A",
+    "warning": "#FAAD14",
+    "danger": "#FF4D4F",
+    "divider": "#F0F0F0",
+    "standard_tag_bg": "#E6F7FF",
+    "standard_tag_text": "#1890FF",
+    "success_tag_bg": "#F6FFED",
+    "success_tag_text": "#52C41A",
+    "danger_tag_bg": "#FFF1F0",
+    "danger_tag_text": "#FF4D4F",
+    "danger_icon_bg": "#FFF1F0",
+    "used_hours": "#FA8C16",
+    "remaining_hours": "#1890FF"
+  },
+  "typography": {
+    "page_title": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "card_title": { "fontSize": 18, "fontWeight": 700, "lineHeight": 1.2 },
+    "section_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "stat_number": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "stat_label": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "price": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "price_label": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "original_price": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "info_label": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "info_value": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "tag": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "status_tag": { "fontSize": 12, "fontWeight": 600, "lineHeight": 1.2 },
+    "button": { "fontSize": 13, "fontWeight": 600, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "page_horizontal": 16,
+    "page_top": 12,
+    "page_bottom": 120,
+    "card_padding": 16,
+    "card_gap": 12,
+    "section_gap": 12,
+    "info_row_gap": 10,
+    "stat_gap": 12
+  },
+  "radius": {
+    "card": 12,
+    "tag": 10,
+    "button": 16,
+    "icon": 18
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)"
+  }
+}

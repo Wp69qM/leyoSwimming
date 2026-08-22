@@ -18,6 +18,7 @@ const MENU_ITEMS: MenuItem[] = [
   {
     label: '我的套餐',
     iconClass: 'mine__menu-icon--package',
+    url: '/pages/package/mine/index',
     requireAuth: true,
   },
   {
@@ -103,8 +104,9 @@ export default function MinePage() {
       return;
     }
     if (item.url) {
-      Taro.navigateTo({ url: item.url }).catch(() => {
-        Taro.switchTab({ url: item.url });
+      const url = item.url;
+      Taro.navigateTo({ url }).catch(() => {
+        Taro.switchTab({ url });
       });
       return;
     }

@@ -21,9 +21,9 @@
 | Task | 标题 | 优先级 | 对应 GWT 场景 |
 |------|------|--------|--------------|
 | 1 | 创建 PackageTemplate 表迁移与 Repository | P0 | §6.1, §6.2 |
-| 2 | 新增标准套餐 Repository 方法 | P0 | §6.1, §6.3, §6.4 |
-| 3 | POST /api/admin/package-template/list 列表 API | P0 | §6.1 |
-| 4 | POST /api/admin/package-template/add 新增 API | P0 | §6.1, §6.3, §6.4 |
+**| 2 | 新增标准套餐 Repository 校验方法 | P0 | §6.4, §6.5 |**
+| 3 | POST /api/admin/package-template/list 列表 API | P0 | §6.1, §6.2 |
+| 4 | POST /api/admin/package-template/add 新增 API | P0 | §6.1, §6.4, §6.5, §6.6 |
 | 5 | POST /api/admin/package-template/detail 详情 API | P0 | §6.2 |
 | 6 | POST /api/admin/image/upload 图片上传 API | P0 | §6.1, §6.2 |
 | 7 | POST /api/admin/package-template/update 编辑 API & POST /api/admin/package-template/toggle-status 上下架 API | P0 | §6.2 |
@@ -109,7 +109,7 @@ git commit -m "feat(package-template): add migration and repository"
 - Modify: `backend/src/repositories/packageTemplate.ts`
 - Modify: `backend/tests/repositories/packageTemplate.test.ts`
 
-**对应 GWT**：[§6.3 场景 3](./user-story.md#63-场景-3新增标准套餐时名称重复)、[§6.4 场景 4](./user-story.md#64-场景-4新增标准套餐参数非法)
+**对应 GWT**：[§6.4 场景 4](./user-story.md#64-场景-4新增标准套餐时名称重复)、[§6.5 场景 5](./user-story.md#65-场景-5新增标准套餐参数非法)
 
 - [ ] **Step 1: RED — 写失败测试**
 
@@ -155,7 +155,7 @@ describe('PackageTemplateRepository validation', () => {
 - Modify: `backend/src/routes/admin/packageTemplate.ts`
 - Modify: `backend/tests/controllers/admin/packageTemplate.test.ts`
 
-**对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1管理员新增标准套餐成功)、[§6.3 场景 3](./user-story.md#63-场景-3新增标准套餐时名称重复)、[§6.4 场景 4](./user-story.md#64-场景-4新增标准套餐参数非法)
+**对应 GWT**：[§6.1 场景 1](./user-story.md#61-场景-1管理员新增标准套餐成功)、[§6.4 场景 4](./user-story.md#64-场景-4新增标准套餐时名称重复)、[§6.5 场景 5](./user-story.md#65-场景-5新增标准套餐参数非法)、[§6.6 场景 6](./user-story.md#66-场景-6无权限管理员访问配置接口)
 
 - [ ] **Step 1-6**: 实现新增接口，覆盖 201 / 400 / 409；commit message `feat(admin): add POST /api/admin/package-template/add`
 

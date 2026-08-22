@@ -1,0 +1,458 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.order-list-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $calicat-page-bg;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 $calicat-page-horizontal;
+  }
+
+  &__back {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    font-size: 20px;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-nav-bar-text;
+    line-height: 1.2;
+  }
+
+  &__navbar-placeholder {
+    width: 32px;
+  }
+
+  &__tabs {
+    position: sticky;
+    top: calc(44px + var(--status-bar-height, 20px));
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px $calicat-page-horizontal;
+    background-color: $calicat-white;
+    box-shadow: 0 1px 0 $calicat-divider;
+  }
+
+  &__tab {
+    position: relative;
+    padding: 8px 4px;
+  }
+
+  &__tab-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: $calicat-order-tab-normal;
+    line-height: 1.2;
+
+    &--active {
+      font-weight: 500;
+      color: $calicat-order-tab-active;
+    }
+  }
+
+  &__tab--active::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background-color: $calicat-order-tab-active;
+    border-radius: 2px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    padding: $calicat-card-gap $calicat-page-horizontal $calicat-page-bottom;
+
+    &--skeleton {
+      gap: $calicat-card-gap;
+    }
+  }
+
+  &__footer {
+    padding: 16px 0;
+    text-align: center;
+  }
+
+  &__footer-text {
+    font-size: 12px;
+    color: $calicat-text-tertiary;
+    line-height: 1.2;
+  }
+
+  &__footer-error {
+    padding: 8px 0;
+  }
+
+  &__footer-error-text {
+    font-size: 12px;
+    color: $calicat-danger;
+    line-height: 1.2;
+  }
+}
+
+.order-card {
+  background-color: $calicat-white;
+  border-radius: $calicat-order-card-radius;
+  box-shadow: $calicat-order-card-shadow;
+  padding: $calicat-card-padding;
+  margin-bottom: $calicat-card-gap;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__no {
+    font-size: 12px;
+    color: $calicat-text-tertiary;
+    line-height: 1.2;
+  }
+
+  &__divider {
+    height: 1px;
+    background-color: $calicat-divider;
+    margin: 12px 0;
+  }
+
+  &__body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: $calicat-order-avatar-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__avatar-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: $calicat-order-avatar-text;
+    line-height: 1.2;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__name {
+    font-size: 16px;
+    font-weight: 500;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__coach,
+  &__hours {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__time {
+    font-size: 12px;
+    color: $calicat-text-tertiary;
+    line-height: 1.2;
+  }
+
+  &__amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  &__amount-label {
+    font-size: 10px;
+    color: $calicat-text-tertiary;
+    line-height: 1.2;
+  }
+
+  &__amount-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: $calicat-text-price;
+    line-height: 1.2;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  &__btn {
+    min-width: 80px;
+    padding: 6px 14px;
+    border-radius: $calicat-button-radius;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__btn--primary {
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+    box-shadow: $calicat-button-shadow;
+  }
+
+  &__btn--secondary {
+    background-color: $calicat-white;
+    border: 1px solid $calicat-divider;
+  }
+
+  &__btn-text {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
+
+    &--primary {
+      color: $calicat-white;
+    }
+
+    &--secondary {
+      color: $calicat-text-secondary;
+    }
+  }
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+
+  &__text {
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  &--pulse {
+    animation: status-badge-pulse 2s infinite;
+  }
+}
+
+@keyframes status-badge-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(24 144 255 / 30%);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgb(24 144 255 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgb(24 144 255 / 0%);
+  }
+}
+
+.package-mode-tag {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: $calicat-tag-default-bg;
+  flex-shrink: 0;
+
+  &__text {
+    font-size: 10px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+}
+
+.countdown-tag {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #fff7e6;
+
+  &__icon {
+    font-size: 10px;
+    color: #fa8c16;
+  }
+
+  &__text {
+    font-size: 10px;
+    color: #fa8c16;
+    line-height: 1.2;
+  }
+
+  &--urgent {
+    background-color: #fff1f0;
+  }
+
+  &--urgent &__icon,
+  &--urgent &__text {
+    color: #ff4d4f;
+  }
+}
+
+.order-list-empty,
+.order-list-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $calicat-page-horizontal;
+
+  &__illustration {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: $calicat-info-icon-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  &__icon {
+    font-size: 40px;
+    color: $calicat-info-icon;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 500;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  &__desc {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
+
+  &__text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    line-height: 1.4;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  &__btn {
+    min-width: 120px;
+    padding: 10px 24px;
+    border-radius: 20px;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+    box-shadow: $calicat-button-shadow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__btn-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: $calicat-white;
+    line-height: 1.2;
+  }
+}
+
+.order-card-skeleton {
+  height: 160px;
+  border-radius: $calicat-order-card-radius;
+  background: linear-gradient(
+    90deg,
+    $calicat-divider 25%,
+    $calicat-border 50%,
+    $calicat-divider 75%
+  );
+  background-size: 200% 100%;
+  animation: order-list-skeleton-loading 1.5s infinite;
+}
+
+@keyframes order-list-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

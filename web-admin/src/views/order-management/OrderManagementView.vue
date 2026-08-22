@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ref, reactive, onMounted, watch } from 'vue';
+import { ElMessage } from 'element-plus';
 import type { AdminOrderListItem, OrderType, OrderStatus } from '@/types/api';
-import {
-  getOrderList,
-  approveRefund,
-  rejectRefund,
-} from '@/api/orderManagement';
+import { getOrderList } from '@/api/orderManagement';
 import { formatDateTime } from '@/utils/format';
-
-const router = useRouter();
+import OrderDetailModal from './OrderDetailModal.vue';
+import { orderTypeMap, orderStatusMap, formatOrderAmount } from './constants';
+import { useRefundApproval } from './composables/useRefundApproval';
 
 const typeOptions = [
   { label: '全部', value: '' },
@@ -36,36 +32,6 @@ const paymentMethodOptions = [
   { label: '支付宝', value: 'alipay' },
 ];
 
-const orderTypeMap: Record<
-  OrderType,
-  { label: string; color: string; bgColor: string }
-> = {
-  purchase: { label: '购买订单', color: '#1890FF', bgColor: '#E6F7FF' },
-  refund: { label: '退款订单', color: '#FA541C', bgColor: '#FFF2E8' },
-};
-
-const orderStatusMap: Record<
-  OrderStatus,
-  { label: string; color: string; bgColor: string }
-> = {
-  pending_payment: { label: '待支付', color: '#FAAD14', bgColor: '#FFFBE6' },
-  paid: { label: '已支付', color: '#52C41A', bgColor: '#F6FFED' },
-  cancelled: { label: '已取消', color: '#8C8C8C', bgColor: '#F5F5F5' },
-  refund_pending: { label: '退款审批中', color: '#FAAD14', bgColor: '#FFFBE6' },
-  refund_processing: {
-    label: '退款处理中',
-    color: '#1890FF',
-    bgColor: '#E6F7FF',
-  },
-  refunded: { label: '已退款', color: '#52C41A', bgColor: '#F6FFED' },
-  rejected: { label: '退款被拒', color: '#FF4D4F', bgColor: '#FFF1F0' },
-  dispute_processing: {
-    label: '争议处理中',
-    color: '#722ED1',
-    bgColor: '#F9F0FF',
-  },
-};
-
 const queryForm = reactive({
   type: '',
   status: '',
@@ -81,11 +47,11 @@ const error = ref(false);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
+const detailVisible = ref(false);
+const activeOrderId = ref<number | undefined>(undefined);
 
-function formatAmount(amount: string | undefined): string {
-  if (amount === undefined || amount === null) return '-';
-  return `¥${Number(amount).toFixed(2)}`;
-}
+const { approve: approveRefund, reject: rejectRefund } =
+  useRefundApproval(fetchList);
 
 function formatPackage(row: AdminOrderListItem): string {
   if (!row.packageId) return '-';
@@ -144,77 +110,36 @@ function handlePageChange(current: number) {
 }
 
 function openDetail(row: AdminOrderListItem) {
-  router.push(`/order-management/detail/${row.orderId}`);
+  activeOrderId.value = row.orderId;
+  detailVisible.value = true;
 }
 
-function openCancel(row: AdminOrderListItem) {
+function handleDetailSuccess() {
+  fetchList();
+}
+
+function switchDetailOrder(orderId: number) {
+  activeOrderId.value = orderId;
+}
+
+function openCancel() {
   ElMessage.info('取消订单功能即将上线');
 }
 
-async function openApprove(row: AdminOrderListItem) {
-  try {
-    const { value } = await ElMessageBox.prompt(
-      '请输入实际退款金额（可低于系统计算金额）',
-      '通过退款申请',
-      {
-        confirmButtonText: '确认通过',
-        cancelButtonText: '取消',
-        inputType: 'text',
-        inputValue: row.paidAmount,
-        inputPattern: /^\d+(\.\d{1,2})?$/,
-        inputErrorMessage: '请输入有效的金额，最多两位小数',
-        type: 'warning',
-      }
-    );
-    const { value: adjustReason } = await ElMessageBox.prompt(
-      '请输入调整原因（未调整可填“无”）',
-      '退款金额调整原因',
-      {
-        confirmButtonText: '提交',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '请输入调整原因',
-      }
-    );
-    await approveRefund({
-      orderId: row.orderId,
-      refundAmount: value.trim(),
-      adjustReason: adjustReason.trim(),
-    });
-    ElMessage.success('退款申请已通过');
-    fetchList();
-  } catch (err) {
-    if (err instanceof Error && err.message !== 'cancel') {
-      ElMessage.error(err.message);
-    }
-  }
+function openApprove(row: AdminOrderListItem) {
+  const defaultAmount = row.calculatedRefundAmount ?? row.paidAmount;
+  approveRefund({ orderId: row.orderId, defaultAmount });
 }
 
-async function openReject(row: AdminOrderListItem) {
-  try {
-    const { value } = await ElMessageBox.prompt(
-      '请输入驳回原因，学员将收到该原因',
-      '驳回退款申请',
-      {
-        confirmButtonText: '确认驳回',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '请输入驳回原因',
-        type: 'warning',
-      }
-    );
-    await rejectRefund({
-      orderId: row.orderId,
-      rejectedReason: value.trim(),
-    });
-    ElMessage.success('退款申请已驳回，关联套餐已恢复为 active');
-    fetchList();
-  } catch (err) {
-    if (err instanceof Error && err.message !== 'cancel') {
-      ElMessage.error(err.message);
-    }
-  }
+function openReject(row: AdminOrderListItem) {
+  rejectRefund({ orderId: row.orderId });
 }
+
+watch(detailVisible, (val) => {
+  if (!val) {
+    activeOrderId.value = undefined;
+  }
+});
 
 onMounted(() => {
   fetchList();
@@ -368,7 +293,7 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="金额" align="right" width="120">
           <template #default="{ row }">
-            {{ formatAmount(row.paidAmount) }}
+            {{ formatOrderAmount(row.paidAmount) }}
           </template>
         </el-table-column>
         <el-table-column label="状态" align="center" width="120">
@@ -434,6 +359,13 @@ onMounted(() => {
         />
       </div>
     </div>
+
+    <OrderDetailModal
+      v-model:visible="detailVisible"
+      :order-id="activeOrderId"
+      @success="handleDetailSuccess"
+      @open:order="switchDetailOrder"
+    />
   </div>
 </template>
 

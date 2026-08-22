@@ -6,8 +6,10 @@ import type {
   AdminPackageDetail,
   AdminPackageDetailRequest,
   AdminPackageFreezeRequest,
+  AdminPackageUnfreezeRequest,
   AdminPackageExtendRequest,
   AdminPackageRefundRequest,
+  AdminPackageOperationResponse,
 } from '@/types/api';
 
 export function getPackageList(
@@ -28,32 +30,32 @@ export function getPackageDetail(
 
 export function freezePackage(
   data: AdminPackageFreezeRequest
-): Promise<ApiResponse<void>> {
+): Promise<ApiResponse<AdminPackageOperationResponse>> {
   return request.post('/admin/package/freeze', data) as Promise<
-    ApiResponse<void>
+    ApiResponse<AdminPackageOperationResponse>
   >;
 }
 
-export function unfreezePackage(data: {
-  packageId: number;
-}): Promise<ApiResponse<void>> {
+export function unfreezePackage(
+  data: AdminPackageUnfreezeRequest
+): Promise<ApiResponse<AdminPackageOperationResponse>> {
   return request.post('/admin/package/unfreeze', data) as Promise<
-    ApiResponse<void>
+    ApiResponse<AdminPackageOperationResponse>
   >;
 }
 
 export function extendPackage(
   data: AdminPackageExtendRequest
-): Promise<ApiResponse<void>> {
+): Promise<ApiResponse<AdminPackageOperationResponse>> {
   return request.post('/admin/package/extend', data) as Promise<
-    ApiResponse<void>
+    ApiResponse<AdminPackageOperationResponse>
   >;
 }
 
 export function refundPackage(
   data: AdminPackageRefundRequest
-): Promise<ApiResponse<void>> {
+): Promise<ApiResponse<AdminPackageOperationResponse>> {
   return request.post('/admin/package/refund', data) as Promise<
-    ApiResponse<void>
+    ApiResponse<AdminPackageOperationResponse>
   >;
 }

@@ -1,0 +1,76 @@
+{
+  "file_id": "2083742072257646592",
+  "source": "Calicat design drafts + project memory constraints",
+  "pages": {
+    "A-package-management-page": {
+      "frame_id": "056a39f5-3503-45ba-8d12-5ab1cc733df3",
+      "screenshot": "src/assets/calicat/screenshots/a-package-management-page.png"
+    },
+    "A-package-detail-modal": {
+      "frame_id": "61ee854d-2743-446f-8418-ffffa3bafadc",
+      "screenshot": "src/assets/calicat/screenshots/a-package-detail-modal.png"
+    },
+    "A-order-management-page": {
+      "frame_id": "d785902a-6fdb-4b0c-99b5-6231fdadb439",
+      "screenshot": "src/assets/calicat/screenshots/a-order-management-page.png"
+    },
+    "A-order-detail-modal": {
+      "frame_id": "4da77580-7a0e-4613-9668-e0bd5aed001d",
+      "screenshot": "src/assets/calicat/screenshots/a-order-detail-modal.png",
+      "note": "Project memory specifies modal width 560px; Calicat frame width is 720px. Using 560px per approved spec."
+    }
+  },
+  "colors": {
+    "primary": "#3B82F6",
+    "primaryDark": "#165DFF",
+    "primaryLight": "#EFF6FF",
+    "success": "#00B42A",
+    "successDot": "#22C55E",
+    "warning": "#FF7D00",
+    "warningBg": "#FFF7ED",
+    "danger": "#F53F3F",
+    "pageBg": "#F0F2F5",
+    "white": "#FFFFFF",
+    "textPrimary": "#1D2129",
+    "textSecondary": "#4E5969",
+    "textTertiary": "#86909C",
+    "textDisabled": "#C9CDD4",
+    "border": "#E5E7EB",
+    "tableHeaderBg": "#F9FAFB",
+    "tagStandardBg": "#EFF6FF",
+    "tagStandardText": "#165DFF",
+    "tagExperienceBg": "#FFF7ED",
+    "tagExperienceText": "#FF7D00"
+  },
+  "typography": {
+    "pageTitle": { "fontSize": 20, "fontWeight": 600, "lineHeight": 28 },
+    "cardTitle": { "fontSize": 16, "fontWeight": 600, "lineHeight": 24 },
+    "sectionTitle": { "fontSize": 14, "fontWeight": 600, "lineHeight": 22 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 22 },
+    "secondary": { "fontSize": 13, "fontWeight": 400, "lineHeight": 20 },
+    "tag": { "fontSize": 12, "fontWeight": 400, "lineHeight": 20 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 32
+  },
+  "radius": {
+    "card": 12,
+    "button": 8,
+    "input": 8,
+    "tag": 4,
+    "modal": 16
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0, 0, 0, 0.06)",
+    "modal": "0 8px 32px rgba(0, 0, 0, 0.12)"
+  },
+  "modal": {
+    "packageDetailWidth": "720px",
+    "orderDetailWidth": "560px",
+    "maxHeight": "80vh"
+  }
+}

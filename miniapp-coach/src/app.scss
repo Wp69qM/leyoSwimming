@@ -1,8 +1,36 @@
-@import './styles/variables.scss';
+@use './styles/variables.scss' as *;
 
 page,
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
   color: $text-color-primary;
   background-color: $bg-color;
+}
+
+// H5 下 Taro Input 内部 .weui-input 高度默认固定，导致与外框不同高、文字不居中
+.weui-input,
+.weui-textarea {
+  height: 100%;
+}
+
+// H5 宽屏居中：web 上只在中间展示 375px 内容，移动端保持全屏
+@media (width >= 768px) {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    background-color: $bg-color;
+  }
+
+  #app {
+    // 大写 PX 跳过 pxtransform，确保任何屏幕下都固定为 375px
+    max-width: 375PX;
+    margin: 0 auto;
+    min-height: 100%;
+    background-color: $bg-color-white;
+    box-shadow: 0 0 20px rgb(0 0 0 / 5%);
+  }
 }

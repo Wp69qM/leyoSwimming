@@ -21,4 +21,9 @@ public interface PackageMapper extends BaseMapper<CoursePackage> {
   @Select(
       "SELECT COUNT(DISTINCT user_id) FROM `package` WHERE coach_id = #{coachId} AND status = 'active'")
   Long countActiveStudentsByCoachId(@Param("coachId") Long coachId);
+
+  @Select(
+      "SELECT * FROM `package` WHERE user_id = #{userId} AND package_mode = 'experience' "
+          + "AND status IN ('active', 'exhausted') ORDER BY id DESC LIMIT 1")
+  CoursePackage findExperiencePackageByUserId(@Param("userId") Long userId);
 }

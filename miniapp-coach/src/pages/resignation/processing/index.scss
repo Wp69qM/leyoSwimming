@@ -1,96 +1,96 @@
 .resignation-processing {
   min-height: 100vh;
   background: #F5F7FA;
-  padding: 48rpx 32rpx;
+  padding: 24rpx 16rpx;
   box-sizing: border-box;
 
   &__status {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 64rpx;
+    margin-bottom: 32rpx;
   }
 
   &__icon {
-    width: 160rpx;
-    height: 160rpx;
+    width: 80rpx;
+    height: 80rpx;
     border-radius: 50%;
     background: #FFFBE6;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 32rpx;
+    margin-bottom: 16rpx;
   }
 
   &__icon-symbol {
-    font-size: 80rpx;
+    font-size: 40rpx;
     color: #FAAD14;
   }
 
   &__title {
-    font-size: 40rpx;
+    font-size: 20rpx;
     font-weight: 500;
     color: #262626;
-    margin-bottom: 16rpx;
+    margin-bottom: 8rpx;
   }
 
   &__subtitle {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #8C8C8C;
   }
 
   &__card {
     background: #FFFFFF;
-    border-radius: 24rpx;
-    padding: 32rpx;
-    margin-bottom: 48rpx;
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+    border-radius: 12rpx;
+    padding: 16rpx;
+    margin-bottom: 24rpx;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
   }
 
   &__card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__card-title {
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 600;
     color: #262626;
   }
 
   &__status-tag {
-    padding: 4rpx 16rpx;
-    border-radius: 999rpx;
+    padding: 2rpx 8rpx;
+    border-radius: 500rpx;
     background: #FFFBE6;
   }
 
   &__status-tag-text {
-    font-size: 22rpx;
+    font-size: 11rpx;
     color: #FAAD14;
   }
 
   &__ticket-no {
     display: block;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #8C8C8C;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__current-progress {
     display: block;
-    font-size: 32rpx;
+    font-size: 16rpx;
     font-weight: 500;
     color: #262626;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__meta {
     display: block;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #8C8C8C;
-    margin-bottom: 12rpx;
+    margin-bottom: 6rpx;
 
     &:last-child {
       margin-bottom: 0;
@@ -98,20 +98,20 @@
   }
 
   &__tips {
-    margin-bottom: 64rpx;
+    margin-bottom: 32rpx;
   }
 
   &__tips-title {
     display: block;
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 600;
     color: #262626;
-    margin-bottom: 16rpx;
+    margin-bottom: 8rpx;
   }
 
   &__tips-content {
     display: block;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #8C8C8C;
     line-height: 1.6;
   }
@@ -124,14 +124,14 @@
 
   &__primary-btn {
     width: 100%;
-    height: 96rpx;
-    line-height: 96rpx;
+    height: 48rpx;
+    line-height: 48rpx;
     background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
     color: #FFFFFF;
-    font-size: 32rpx;
+    font-size: 16rpx;
     font-weight: 500;
-    border-radius: 16rpx;
-    margin-bottom: 32rpx;
+    border-radius: 8rpx;
+    margin-bottom: 16rpx;
 
     &::after {
       border: none;
@@ -139,7 +139,7 @@
   }
 
   &__link {
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 500;
     color: #1890FF;
   }
@@ -155,19 +155,19 @@
 
   &__loading-text,
   &__error-text {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #8C8C8C;
-    margin-bottom: 24rpx;
+    margin-bottom: 12rpx;
   }
 
   &__error-btn {
-    width: 240rpx;
-    height: 72rpx;
-    line-height: 72rpx;
+    width: 120rpx;
+    height: 36rpx;
+    line-height: 36rpx;
     background: #1890FF;
     color: #FFFFFF;
-    font-size: 28rpx;
-    border-radius: 16rpx;
+    font-size: 14rpx;
+    border-radius: 8rpx;
 
     &::after {
       border: none;

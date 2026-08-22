@@ -25,31 +25,31 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 88rpx;
+    width: 44rpx;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   &__navbar-back-icon {
-    font-size: 48rpx;
+    font-size: 24rpx;
     color: #262626;
     line-height: 1;
   }
 
   &__navbar-title {
-    font-size: 34rpx;
+    font-size: 17rpx;
     font-weight: 500;
     color: #262626;
   }
 
   &__content {
-    padding: 16rpx 32rpx 48rpx;
+    padding: 16rpx 16rpx 24rpx;
   }
 
   &__card {
     background-color: #fff;
-    border-radius: 24rpx;
+    border-radius: 12rpx;
     box-shadow: 0 4rpx 16rpx rgb(0 0 0 / 6%);
     overflow: hidden;
   }
@@ -58,8 +58,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 112rpx;
-    padding: 0 32rpx;
+    height: 56rpx;
+    padding: 0 16rpx;
     border-bottom: 1rpx solid #f0f0f0;
 
     &:last-child {
@@ -77,10 +77,10 @@
   }
 
   &__icon {
-    width: 48rpx;
-    height: 48rpx;
+    width: 24rpx;
+    height: 24rpx;
     border-radius: 12rpx;
-    margin-right: 24rpx;
+    margin-right: 12rpx;
     flex-shrink: 0;
 
     &--security {
@@ -97,12 +97,12 @@
   }
 
   &__label {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #262626;
   }
 
   &__arrow {
     color: #bfbfbf;
-    font-size: 36rpx;
+    font-size: 18rpx;
   }
 }

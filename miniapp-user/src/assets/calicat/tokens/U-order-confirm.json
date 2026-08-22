@@ -1,0 +1,55 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "2de452b1-6820-4493-8150-86f3af11b60c",
+  "page_name": "U-订单确认页",
+  "colors": {
+    "pageBg": "#F5F7FA",
+    "cardBg": "#FFFFFF",
+    "primary": "#1890FF",
+    "primaryDark": "#0050B3",
+    "price": "#FF4D4F",
+    "salePrice": "#FF6B35",
+    "textPrimary": "#262626",
+    "textSecondary": "#8C8C8C",
+    "textTertiary": "#BFBFBF",
+    "success": "#52C41A",
+    "successBg": "#F6FFED",
+    "border": "#E8E8E8",
+    "divider": "#F0F0F0",
+    "avatarPlaceholderBg": "#E6F7FF",
+    "link": "#1890FF"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "cardTitle": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "bodySemi": { "fontSize": 14, "fontWeight": 600, "lineHeight": 1.2 },
+    "caption": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "tag": { "fontSize": 11, "fontWeight": 600, "lineHeight": 1.2 },
+    "statusBadge": { "fontSize": 10, "fontWeight": 400, "lineHeight": 1.2 },
+    "priceLarge": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "priceMedium": { "fontSize": 20, "fontWeight": 700, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "pageHorizontal": 16,
+    "pageTop": 8,
+    "cardPadding": 16,
+    "cardGap": 12,
+    "sectionInnerGap": 12,
+    "bottomBarPaddingTop": 10,
+    "bottomBarPaddingBottom": 34
+  },
+  "radius": {
+    "card": 12,
+    "button": 8,
+    "tag": 10,
+    "statusBadge": 9,
+    "avatar": 24,
+    "checkbox": 2
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottomBar": "0 -8px 24px rgba(0,0,0,0.12)",
+    "primaryButton": "0 4px 12px rgba(24,144,255,0.35)"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "file_id": "2083742072257646592",
+  "frames": {
+    "order-list-main": "870419e7-ad68-4076-9af5-4183624b2858",
+    "order-list-all": "9608559e-56cd-4a23-ae00-1a0320f3f13c",
+    "order-list-pending": "7f35bd65-2dbd-461b-a145-e30e2350de34",
+    "order-list-empty": "383904a6-2018-4598-9f05-0855a2632c2f"
+  },
+  "page_name": "U-订单列表页",
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "card_bg": "#FFFFFF",
+    "navbar_bg": "#FFFFFF",
+    "text_primary": "#262626",
+    "text_secondary": "#8C8C8C",
+    "text_tertiary": "#BFBFBF",
+    "primary": "#1890FF",
+    "primary_dark": "#0050B3",
+    "success": "#52C41A",
+    "success_bg": "#F6FFED",
+    "warning": "#FAAD14",
+    "warning_bg": "#FFFBE6",
+    "danger": "#FF4D4F",
+    "danger_bg": "#FFF1F0",
+    "price": "#262626",
+    "pay_button_start": "#1890FF",
+    "pay_button_end": "#0050B3",
+    "refund_button_start": "#FF6B35",
+    "refund_button_end": "#FA541C",
+    "divider": "#F0F0F0",
+    "border": "#E8E8E8",
+    "avatar_bg": "#E6F7FF",
+    "avatar_text": "#1890FF"
+  },
+  "typography": {
+    "navbar_title": { "fontSize": 17, "fontWeight": 500, "lineHeight": 1.2 },
+    "tab_active": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "tab_normal": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "package_name": { "fontSize": 16, "fontWeight": 500, "lineHeight": 22 },
+    "coach_time": { "fontSize": 12, "fontWeight": 400, "lineHeight": 16 },
+    "price": { "fontSize": 18, "fontWeight": 700, "lineHeight": 1.2 },
+    "order_no": { "fontSize": 12, "fontWeight": 400, "lineHeight": 16 },
+    "status_badge": { "fontSize": 10, "fontWeight": 400, "lineHeight": 1.2 },
+    "button": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "countdown": { "fontSize": 12, "fontWeight": 400, "lineHeight": 16 }
+  },
+  "spacing": {
+    "page_horizontal": 16,
+    "card_gap": 12,
+    "card_padding": 16,
+    "tab_height": 48,
+    "navbar_height": 44,
+    "status_bar_height": 44,
+    "section_gap": 12
+  },
+  "radius": {
+    "card": 12,
+    "button": 8,
+    "badge": 10,
+    "avatar": 24
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0, 0, 0, 0.08)"
+  }
+}

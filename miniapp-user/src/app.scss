@@ -1,4 +1,4 @@
-@import './styles/variables';
+@use './styles/variables' as *;
 
 page,
 body {
@@ -7,4 +7,38 @@ body {
     Arial, Roboto, 'PingFang SC', miui, 'Hiragino Sans GB', 'Microsoft Yahei',
     sans-serif;
   color: $text-color;
+}
+
+.leyo-icon {
+  font-family: remixicon, 'PingFang SC', sans-serif;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+// H5 下 Taro Input 内部 .weui-input 高度默认固定，导致与外框不同高、文字不居中
+.weui-input,
+.weui-textarea {
+  height: 100%;
+}
+
+// H5 适配：>=430px（平板/桌面）时居中展示 375px 内容，<430px（手机）时全屏等比缩放
+@media (width >= 430px) {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    background-color: $background-color;
+  }
+
+  #app {
+    // 大写 PX 跳过 pxtransform，保持固定 375px 居中
+    max-width: 375px;
+    margin: 0 auto;
+    min-height: 100%;
+    background-color: #fff;
+    box-shadow: 0 0 20px rgb(0 0 0 / 5%);
+  }
 }

@@ -17,7 +17,16 @@
 | `id` | PK |
 | `user_id` | FK |
 | `coach_id` | FK |
-| `package_type` | 0=体验 / 1=正式 |
+| `package_name` | 套餐名称（快照）|
+| `package_mode` | 'experience'=体验 / 'standard'=正价（快照）|
+| `coach_name` | 教练姓名（快照）|
+| `teaching_type` | 教学类型（快照）|
+| `duration_minutes` | 每节课时长（快照）|
+| `valid_days` | 有效期天数（快照）|
+| `paid_amount` | 实付金额（分，快照）|
+| `refund_enabled` | 是否可退款（快照）|
+| `refund_ratio` | 退款比例（快照）|
+| `refund_valid_days` | 退款有效期天数（快照）|
 | `total_hours` | 总课时 |
 | `consumed_count` | 已消耗 |
 | `available_count` | 剩余可用 |
@@ -30,7 +39,7 @@
 
 ```sql
 CREATE INDEX idx_package_user_status ON package(user_id, status);
-CREATE INDEX idx_package_user_type ON package(user_id, package_type);
+CREATE INDEX idx_package_user_mode ON package(user_id, package_mode);
 ```
 
 ## 2. API 设计
@@ -70,9 +79,16 @@ CREATE INDEX idx_package_user_type ON package(user_id, package_type);
   ```json
   {
     "packageId": 1,
+    "packageName": "蛙泳基础 10 节",
     "userId": 10001,
     "userName": "张小明",
+    "coachName": "王教练",
     "packageMode": "standard",
+    "teachingType": "1v1",
+    "strokeIds": ["breaststroke"],
+    "durationMinutes": 60,
+    "validDays": 90,
+    "paidAmount": 180000,
     "status": "active",
     "totalHours": 10,
     "availableHours": 8,
@@ -84,7 +100,7 @@ CREATE INDEX idx_package_user_type ON package(user_id, package_type);
     ]
   }
   ```
-- **Response 403**: `{ code: FORBIDDEN }`（package 不属于当前教练）
+- **Response 403**: `{ code: NOT_ASSOCIATED_STUDENT }`（package 不属于当前教练）
 - **Response 404**: `{ code: PACKAGE_NOT_FOUND }`
 
 ## 3. 状态机

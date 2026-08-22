@@ -1,0 +1,478 @@
+@use '@/styles/calicat-overrides' as *;
+
+.my-package-detail {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: $calicat-white;
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 $calicat-page-horizontal;
+  }
+
+  &__back {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    width: 26px;
+    height: 26px;
+    color: $calicat-text-primary;
+  }
+
+  &__title {
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+  }
+
+  &__navbar-placeholder {
+    width: 26px;
+  }
+
+  &__content {
+    padding: calc(var(--status-bar-height, 44px) + 44px + 12px)
+      $calicat-page-horizontal 120px;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 0 40px;
+  }
+
+  &__error-icon {
+    width: 80px;
+    height: 80px;
+    color: $calicat-text-disabled;
+    margin-bottom: 16px;
+  }
+
+  &__error-text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    line-height: 1.5;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  &__error-button {
+    padding: 10px 24px;
+    border-radius: 20px;
+    background-color: $calicat-primary;
+  }
+
+  &__error-button-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-white;
+    line-height: 1.2;
+  }
+
+  &--skeleton {
+    .info-card--skeleton,
+    .usage-card--skeleton {
+      height: 200px;
+      border-radius: $calicat-card-radius;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      margin-bottom: $calicat-card-gap;
+    }
+
+    .usage-card--skeleton {
+      height: 160px;
+    }
+  }
+}
+
+.info-card,
+.usage-card,
+.refund-entry,
+.coach-resigned-tip {
+  background-color: $calicat-white;
+  border-radius: $calicat-card-radius;
+  box-shadow: $calicat-card-shadow;
+  margin-bottom: $calicat-card-gap;
+}
+
+.info-card {
+  padding: $calicat-card-padding;
+
+  &__header {
+    margin-bottom: 14px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__name {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+  }
+
+  &__tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__mode-tag {
+    padding: 0 8px;
+    height: 20px;
+    border-radius: $calicat-tag-radius;
+    background-color: $calicat-standard-tag-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__mode-tag-text {
+    font-size: 11px;
+    color: $calicat-standard-tag-text;
+    line-height: 1.2;
+  }
+
+  &__status-tag {
+    padding: 0 10px;
+    height: 22px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__status-tag-text {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__divider {
+    height: 1px;
+    background-color: $calicat-divider;
+    margin: 12px 0;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__row-label {
+    width: 73px;
+    flex-shrink: 0;
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    line-height: 1.4;
+  }
+
+  &__row-value {
+    flex: 1;
+    font-size: 13px;
+    color: $calicat-text-primary;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 14px;
+  }
+
+  &__price-label {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  &__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-price;
+    line-height: 1.2;
+  }
+
+  &__original-price {
+    font-size: 13px;
+    color: $calicat-text-disabled;
+    line-height: 1.2;
+    text-decoration: line-through;
+    margin-bottom: 4px;
+  }
+}
+
+.usage-card {
+  padding: $calicat-card-padding;
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+    margin-bottom: 14px;
+  }
+
+  &__stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+  }
+
+  &__stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+
+    &--used {
+      color: $calicat-warning-orange;
+    }
+
+    &--remaining {
+      color: $calicat-primary;
+    }
+  }
+
+  &__stat-label {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+
+  &__stat-divider {
+    width: 2px;
+    height: 32px;
+    background-color: $calicat-divider;
+  }
+
+  &__notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 0 0;
+
+    &--expired {
+      color: $calicat-warning;
+    }
+
+    &--frozen {
+      color: $calicat-danger;
+    }
+  }
+
+  &__notice-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &__notice-text {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  &__expire-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 12px;
+  }
+
+  &__expire-icon {
+    width: 16px;
+    height: 16px;
+    color: $calicat-text-secondary;
+  }
+
+  &__expire-text {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    line-height: 1.4;
+  }
+}
+
+.coach-resigned-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px $calicat-card-padding;
+  background-color: $calicat-warning-bg;
+
+  &__icon {
+    width: 18px;
+    height: 18px;
+    color: $calicat-warning;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 13px;
+    color: $calicat-warning-text;
+    line-height: 1.4;
+  }
+}
+
+.refund-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $calicat-card-padding;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    background-color: $calicat-danger-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    color: $calicat-danger;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+
+  &__button {
+    padding: 0 16px;
+    height: 34px;
+    border-radius: 17px;
+    border: 0.7px solid $calicat-danger;
+    background-color: $calicat-white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__button-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: $calicat-danger;
+    line-height: 1.2;
+  }
+}
+
+.status-tag {
+  &--success {
+    background-color: $calicat-success-bg;
+
+    .info-card__status-tag-text {
+      color: $calicat-success;
+    }
+  }
+
+  &--secondary {
+    background-color: $calicat-tag-default-bg;
+
+    .info-card__status-tag-text {
+      color: $calicat-text-secondary;
+    }
+  }
+
+  &--warning {
+    background-color: $calicat-warning-bg;
+
+    .info-card__status-tag-text {
+      color: $calicat-warning-text;
+    }
+  }
+
+  &--danger {
+    background-color: $calicat-danger-bg;
+
+    .info-card__status-tag-text {
+      color: $calicat-danger;
+    }
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text, Input, Button } from '@tarojs/components';
+import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox';
+import LogoIcon from '@/assets/calicat/icons/logo-swimming.svg';
 import {
   ProtocolDrawer,
   type ProtocolTab,
@@ -36,6 +37,7 @@ export default function PhoneLoginPage() {
   const [errorTip, setErrorTip] = useState('');
   const [phoneError, setPhoneError] = useState(false);
   const [codeError, setCodeError] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const login = useAuthStore((state) => state.login);
   const { seconds, isRunning, start } = useCountdown({ initialSeconds: 60 });
   const {
@@ -70,7 +72,7 @@ export default function PhoneLoginPage() {
     setPhoneError(false);
 
     try {
-      await sendSmsCode({ phone, scene: 'login' });
+      await sendSmsCode({ phone, appType: 'user', scene: 'login' });
       start();
     } catch (error) {
       const errCode = getErrorCode(error);
@@ -122,7 +124,7 @@ export default function PhoneLoginPage() {
     try {
       const res = await phoneLogin({
         phone,
-        smsCode: code,
+        code,
         termsAccepted: true,
         privacyAccepted: true,
         termsVersion,
@@ -137,11 +139,14 @@ export default function PhoneLoginPage() {
         profileCompleted,
       });
 
-      if (profileCompleted) {
-        Taro.switchTab({ url: '/pages/index/index' });
-      } else {
-        Taro.redirectTo({ url: '/pages/profile/complete/index' });
-      }
+      setLoginSuccess(true);
+      setTimeout(() => {
+        if (profileCompleted) {
+          Taro.switchTab({ url: '/pages/index/index' });
+        } else {
+          Taro.redirectTo({ url: '/pages/profile/complete/index' });
+        }
+      }, 300);
     } catch (error) {
       const message = handleBusinessError(error);
       const errCode = getErrorCode(error);
@@ -175,7 +180,7 @@ export default function PhoneLoginPage() {
     <View className='phone-login'>
       <View className='phone-login__brand'>
         <View className='phone-login__logo'>
-          <View className='phone-login__logo-icon' />
+          <Image className='phone-login__logo-icon' src={LogoIcon} />
         </View>
         <Text className='phone-login__name'>{APP_NAME}</Text>
         <Text className='phone-login__slogan'>专业游泳约课平台</Text>
@@ -192,7 +197,9 @@ export default function PhoneLoginPage() {
           <View
             className={`phone-login__input-row ${phoneError ? 'phone-login__input-row--error' : ''}`}
           >
-            <View className='phone-login__input-icon phone-login__input-icon--phone' />
+            <Text className='phone-login__input-icon phone-login__input-icon--phone'>
+              
+            </Text>
             <Input
               className='phone-login__input'
               type='number'
@@ -209,7 +216,9 @@ export default function PhoneLoginPage() {
           <View
             className={`phone-login__input-row ${codeError ? 'phone-login__input-row--error' : ''}`}
           >
-            <View className='phone-login__input-icon phone-login__input-icon--code' />
+            <Text className='phone-login__input-icon phone-login__input-icon--code'>
+              
+            </Text>
             <Input
               className='phone-login__input'
               type='number'
@@ -248,12 +257,12 @@ export default function PhoneLoginPage() {
         )}
 
         <Button
-          className={`phone-login__submit ${loading ? 'phone-login__submit--loading' : ''}`}
+          className={`phone-login__submit ${loading ? 'phone-login__submit--loading' : ''} ${loginSuccess ? 'phone-login__submit--success' : ''}`}
           onClick={handleSubmit}
-          disabled={loading || !canSubmit}
+          disabled={loading || !canSubmit || loginSuccess}
           loading={loading}
         >
-          {loading ? '登录中…' : '登录'}
+          {loading ? '登录中…' : loginSuccess ? '登录成功' : '登录'}
         </Button>
 
         <View className='phone-login__divider'>
@@ -266,13 +275,11 @@ export default function PhoneLoginPage() {
           className='phone-login__wechat-entry'
           onClick={navigateToWechatLogin}
         >
-          <View className='phone-login__wechat-icon' />
+          <Text className='phone-login__wechat-icon'></Text>
           <Text className='phone-login__wechat-text'>使用微信登录</Text>
         </View>
 
-        <Text className='phone-login__tip'>
-          未注册手机号将自动创建账号
-        </Text>
+        <Text className='phone-login__tip'>未注册手机号将自动创建账号</Text>
       </View>
 
       <ProtocolDrawer

@@ -11,25 +11,44 @@
 | 表名 | 操作 | 说明 |
 |------|------|------|
 | `coach` | 读 | 校验教练状态、读取参考单价 |
-| `standard_package` | 读 | 读取管理员配置的标准套餐 |
+| `package_template` | 读 | 读取管理员配置的套餐模板 |
+| `package_template_coach` | 读 | 校验标准套餐是否适配当前教练 |
 
 ### 1.2 字段
 
-#### standard_package
+#### package_template
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
-| `id` | BIGINT | PK | — |
-| `hours` | INT | NOT NULL | 课时数（1/6/8/10） |
-| `price` | INT | NOT NULL | 价格（分） |
-| `validity_days` | INT | NOT NULL | 有效期天数 |
-| `status` | TINYINT | 默认 1 | 1=启用 0=禁用 |
+| `id` | BIGINT | PK | 模板 ID |
+| `name` | VARCHAR(64) | NOT NULL | 套餐名称 |
+| `package_mode` | VARCHAR(20) | NOT NULL | 套餐模式：standard / experience / custom |
+| `teaching_type` | VARCHAR(20) | NOT NULL | 教学类型/班级规模：one_on_one / one_on_two / one_on_three |
+| `total_hours` | INT | CHECK > 0 | 课时数 |
+| `duration_minutes` | INT | CHECK > 0 | 每节课时长（分钟） |
+| `valid_days` | INT | CHECK > 0 | 有效期天数 |
+| `original_price` | DECIMAL(10,2) | CHECK >= 0 | 原价 |
+| `price` | DECIMAL(10,2) | CHECK >= 0 | 售价 |
+| `refund_enabled` | TINYINT(1) | NOT NULL | 是否支持退款 |
+| `refund_ratio` | DECIMAL(3,2) | CHECK >= 0 | 退款比例（0~1） |
+| `refund_valid_days` | INT | CHECK >= 0 | 退款有效期限制（天） |
+| `status` | VARCHAR(16) | NOT NULL | 上下架：inactive / active |
 | `created_at` / `updated_at` | DATETIME | — | 时间戳 |
+
+#### package_template_coach
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| `id` | BIGINT | PK | 关联 ID |
+| `package_template_id` | BIGINT | FK, IDX | 套餐模板 ID |
+| `coach_id` | BIGINT | FK, IDX | 教练 ID |
+| `reference_price_snapshot` | DECIMAL(10,2) | CHECK >= 0 | 保存时该教练的参考单价快照 |
 
 ### 1.3 索引
 
 ```sql
-CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
+CREATE INDEX idx_package_template_status_mode ON package_template(status, package_mode);
+CREATE INDEX idx_package_template_coach ON package_template_coach(coach_id, package_template_id);
 ```
 
 ---
@@ -123,7 +142,8 @@ CREATE INDEX idx_standard_package_status ON standard_package(status, hours);
 
 - 仅返回 `coach.status IN (1, 4)` 的教练
 - `referencePrice` 为空时 `customPackageEnabled = false`
-- 标准套餐仅返回 `status = 1`（启用）的记录
+- 套餐模板仅返回 `status = 'active'` 的记录
+- 教练详情页入口的标准/体验套餐需通过 `package_template_coach` 校验是否适配当前教练
 - `applicableCoaches` 在未传 `coachId` 时返回全部适配教练；传入 `coachId` 时仅返回当前教练信息
 
 ---
@@ -177,3 +197,12 @@ US-019 是只读 US，不修改任何实体状态。
 | 教练未设参考单价 | `test_get_coach_packages_no_reference_price` |
 | 教练不可约 | `test_get_coach_packages_not_found` |
 | 标准套餐为空 | `test_get_coach_packages_empty_standard` |
+
+---
+
+## 附录：变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | 开发 | 初版（基于旧 `standard_package` 模型） |
+| v1.1 | 2026-08-15 | AI | 三件套一致性修复：§1 数据模型由 `standard_package` 更新为 `package_template` / `package_template_coach`，索引与业务规则同步适配 US-045 |

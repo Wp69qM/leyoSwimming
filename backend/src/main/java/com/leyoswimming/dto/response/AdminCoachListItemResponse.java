@@ -13,4 +13,5 @@ public record AdminCoachListItemResponse(
     String tenure,
     Integer status,
     Long currentStudentCount,
-    String realtimeStatus) {}
+    String realtimeStatus,
+    java.math.BigDecimal referencePrice) {}

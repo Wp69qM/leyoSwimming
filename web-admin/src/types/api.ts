@@ -135,6 +135,7 @@ export interface AdminCoachListItem {
   status: number;
   currentStudentCount: number;
   realtimeStatus: string;
+  referencePrice: number;
 }
 
 export interface AdminCoachCertificate {
@@ -310,6 +311,7 @@ export interface AdminOrderListItem {
   originalAmount: string;
   discountAmount: string;
   paidAmount: string;
+  calculatedRefundAmount: string | null;
   paymentMethod: string | null;
   reason: string | null;
   createdAt: string;
@@ -328,6 +330,15 @@ export interface AdminOrderStatusLog {
   description: string;
 }
 
+export interface AdminOrderPackageSnapshot {
+  packageId: number;
+  packageNo: string;
+  status: PackageStatus;
+  totalHours: number;
+  availableCount: number;
+  expireAt: string;
+}
+
 export interface AdminOrderDetail {
   orderId: number;
   orderNo: string;
@@ -338,6 +349,7 @@ export interface AdminOrderDetail {
   userPhone: string | null;
   coachId: number | null;
   coachName: string | null;
+  teachingType: string | null;
   packageId: number | null;
   purchaseOrderId: number | null;
   purchaseOrderNo: string | null;
@@ -355,6 +367,7 @@ export interface AdminOrderDetail {
   refundedAt: string | null;
   createdAt: string;
   statusTimeline: AdminOrderStatusLog[];
+  packageSnapshot: AdminOrderPackageSnapshot | null;
 }
 
 export interface AdminOrderDetailRequest {
@@ -378,7 +391,7 @@ export type PackageMode = 'standard' | 'experience';
 
 export interface AdminPackageListRequest extends PageRequest {
   status?: PackageStatus | '';
-  courseType?: string;
+  teachingType?: string;
   startExpireAt?: string;
   endExpireAt?: string;
   keyword?: string;
@@ -392,7 +405,7 @@ export interface AdminPackageListItem {
   coachId: number | null;
   coachName: string | null;
   packageMode: PackageMode;
-  courseType: string;
+  teachingType: string;
   status: PackageStatus;
   totalHours: number;
   consumedCount: number;
@@ -400,6 +413,11 @@ export interface AdminPackageListItem {
   availableCount: number;
   expireAt: string;
   createdAt: string;
+  refundEnabled: boolean;
+  refundValidDays: number;
+  refundRatio: string;
+  refundAmount: string;
+  version: number;
 }
 
 export interface AdminPackageListResponse {
@@ -412,12 +430,16 @@ export interface AdminPackageListResponse {
 export interface AdminPackageDetail {
   packageId: number;
   packageNo: string;
+  packageName: string;
   userId: number;
   userName: string;
   coachId: number | null;
   coachName: string | null;
   packageMode: PackageMode;
-  courseType: string;
+  teachingType: string;
+  strokeIds: number[];
+  durationMinutes: number;
+  validDays: number;
   status: PackageStatus;
   frozenReason: string | null;
   totalHours: number;
@@ -430,11 +452,13 @@ export interface AdminPackageDetail {
   refundEnabled: boolean;
   refundRatio: string;
   refundValidDays: number;
+  refundAmount: string;
   expireAt: string;
   exhaustedAt: string | null;
   refundedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  version: number;
 }
 
 export interface AdminPackageDetailRequest {
@@ -443,15 +467,153 @@ export interface AdminPackageDetailRequest {
 
 export interface AdminPackageFreezeRequest {
   packageId: number;
-  reason: string;
+  reasonDetail: string;
+  version: number;
+}
+
+export interface AdminPackageUnfreezeRequest {
+  packageId: number;
+  version: number;
 }
 
 export interface AdminPackageExtendRequest {
   packageId: number;
-  expireAt: string;
+  newExpireAt: string;
+  reason: string;
+  version: number;
 }
 
 export interface AdminPackageRefundRequest {
   packageId: number;
   reason: string;
+  refundAmount?: string;
+  adjustReason?: string;
+  version: number;
+}
+
+export interface AdminPackageOperationResponse {
+  message: string;
+  orderNo?: string;
+}
+
+export type PackageTemplateStatus = 'active' | 'inactive';
+export type PackageTemplateMode = 'standard' | 'experience';
+
+export interface AdminPackageTemplateListRequest extends PageRequest {
+  packageMode?: PackageTemplateMode | '';
+  status?: PackageTemplateStatus | '';
+  keyword?: string;
+}
+
+export interface AdminPackageTemplateListItem {
+  packageTemplateId: number;
+  name: string;
+  packageMode: PackageTemplateMode;
+  teachingType: string;
+  coachIds: number[];
+  coachNames: string[];
+  totalHours: number;
+  durationMinutes: number;
+  validDays: number;
+  originalPrice: number;
+  price: number;
+  refundEnabled: boolean;
+  status: PackageTemplateStatus;
+  createdAt: string;
+}
+
+export interface AdminPackageTemplateListResponse {
+  items: AdminPackageTemplateListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CoachBrief {
+  coachId: number;
+  name: string;
+  avatarUrl: string;
+}
+
+export interface AdminPackageTemplateDetail {
+  packageTemplateId: number;
+  name: string;
+  packageMode: PackageTemplateMode;
+  teachingType: string;
+  coachIds: number[];
+  coachList: CoachBrief[];
+  strokeIds: number[];
+  totalHours: number;
+  durationMinutes: number;
+  validDays: number;
+  originalPrice: number;
+  price: number;
+  refundEnabled: boolean;
+  refundRatio: number;
+  refundValidDays: number;
+  tags: string[];
+  description: string;
+  images: string[];
+  status: PackageTemplateStatus;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+}
+
+export interface AdminPackageTemplateAddRequest {
+  name: string;
+  packageMode: PackageTemplateMode;
+  coachIds: number[];
+  teachingType: string;
+  strokeIds: number[];
+  totalHours: number;
+  durationMinutes: number;
+  validDays: number;
+  originalPrice: number;
+  price: number;
+  refundEnabled: boolean;
+  refundRatio?: number;
+  refundValidDays?: number;
+  tags?: string[];
+  description?: string;
+  images?: string[];
+  idempotencyKey?: string;
+}
+
+export interface AdminPackageTemplateUpdateRequest {
+  packageTemplateId: number;
+  name?: string;
+  packageMode?: PackageTemplateMode;
+  coachIds: number[];
+  teachingType?: string;
+  strokeIds?: number[];
+  totalHours?: number;
+  durationMinutes?: number;
+  validDays?: number;
+  originalPrice?: number;
+  price?: number;
+  refundEnabled?: boolean;
+  refundRatio?: number;
+  refundValidDays?: number;
+  tags?: string[];
+  description?: string;
+  images?: string[];
+  version: number;
+}
+
+export interface AdminPackageTemplateToggleRequest {
+  packageTemplateId: number;
+}
+
+export interface AdminPackageTemplateCustomConfigRequest {
+  minHours: number;
+  maxHours: number;
+  defaultValidDays: number;
+}
+
+export interface AdminPackageTemplateCustomConfigResponse {
+  configId: number;
+  minHours: number;
+  maxHours: number;
+  defaultValidDays: number;
 }

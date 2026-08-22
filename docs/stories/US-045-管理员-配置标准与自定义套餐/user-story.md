@@ -94,7 +94,7 @@
 Given 管理员已登录且具有套餐配置权限
 And   系统中不存在名称为"暑期 10 节课"的标准套餐
 When  管理员提交标准套餐：名称="暑期 10 节课", 套餐模式="正价套餐", 适用教练=[教练 A, 教练 B], 教学类型="一对一", 泳姿=[], 课时数=10, 每节课时长=60, 有效期=180 天, 原价=3600.00, 售价=3000.00, 是否支持退款=true, 退款比例=80, 退款有效期限制=30, 标签=["热销"], 套餐描述="<p>暑期特惠套餐</p>", 套餐展示图片=["https://cdn.example.com/a.jpg"], 状态=未上架
-Then  系统返回 HTTP 200 且 package_template 表新增 1 条记录
+Then  系统返回 HTTP 201 且 package_template 表新增 1 条记录
 And   package_template_coach 表新增 2 条记录，分别关联教练 A 与教练 B
 And   该记录 package_mode='standard'，status='inactive'，total_hours=10，duration_minutes=60，original_price=3600.00，price=3000.00
 And   前端列表展示"暑期 10 节课"且状态为"未上架"
@@ -179,7 +179,7 @@ And   package_template 表不新增记录
 | 3 | `/api/admin/package-template/update` | POST | 新增 | 管理员编辑标准套餐；JSON body 传入 `packageTemplateId` 与套餐字段 |
 | 4 | `/api/admin/package-template/toggle-status` | POST | 新增 | 上下架切换（`active` ↔ `inactive`）；JSON body 传入 `packageTemplateId` |
 | 5 | `/api/admin/package-template/detail` | POST | 新增 | 管理员获取标准套餐详情；JSON body 传入 `packageTemplateId` |
-| 6 | `/api/admin/package-template/custom-config` | POST | 新增 | 自定义套餐全局规则配置；JSON body 传入 `minHours`、`maxHours`、`defaultValidDays`、`unitPriceFloor` |
+| 6 | `/api/admin/package-template/custom-config` | POST | 新增 | 自定义套餐全局规则配置；JSON body 传入 `minHours`、`maxHours`、`defaultValidDays` |
 | 7 | `/api/admin/image/upload` | POST | 新增 | 套餐展示图片上传（返回 URL 列表） |
 
 ### 7.3 状态机影响

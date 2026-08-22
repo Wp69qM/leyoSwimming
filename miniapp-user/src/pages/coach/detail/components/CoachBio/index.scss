@@ -1,0 +1,51 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail-bio {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: $calicat-content-text;
+
+    &--collapsed {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  &__toggle {
+    align-self: flex-start;
+    font-size: 13px;
+    color: $calicat-primary;
+  }
+
+  &__strokes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  &__stroke {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background-color: $calicat-tag-standard-bg;
+  }
+
+  &__stroke-text {
+    font-size: 12px;
+    color: $calicat-tag-standard-text;
+  }
+}

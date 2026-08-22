@@ -81,8 +81,8 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
     "remark": "同意退款"
   }
   ```
-- **Response 200**: `{ orderId, refundTransactionId, status }`
-- **Response 400**: `INVALID_REFUND_AMOUNT | REFUND_ALREADY_PROCESSED`
+- **Response 202**: `{ orderId, refundTransactionId, status }`
+- **Response 400**: `ORDER_STATUS_INVALID | REFUND_AMOUNT_INVALID | REFUND_ALREADY_PROCESSED`
 - **Response 403**: `FORBIDDEN`
 - **Response 404**: `ORDER_NOT_FOUND`
 
@@ -97,7 +97,7 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
   }
   ```
 - **Response 200**: `{ orderId, status: "refund_rejected" }`
-- **Response 400**: `REFUND_ALREADY_PROCESSED`
+- **Response 400**: `ORDER_STATUS_INVALID | REJECT_REASON_REQUIRED | REFUND_ALREADY_PROCESSED`
 - **Response 403**: `FORBIDDEN`
 
 ## 3. 状态机
@@ -148,7 +148,7 @@ CREATE INDEX idx_package_refund ON package(order_id, status);
 ## 6. 安全
 
 - 接口仅对管理员角色开放
-- 退款金额不得超过 refund.amount / order.paid_amount
+- 退款金额需 ≥ 0；是否允许超过原支付金额 order.paid_amount 待产品确认
 - 渠道密钥安全存储，不暴露给前端
 - 审批操作记录审计日志
 - 幂等键防止重复审批

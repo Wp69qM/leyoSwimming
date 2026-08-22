@@ -1,0 +1,410 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.package-list {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  &__back {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    font-size: 24px;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__navbar-placeholder {
+    width: 26px;
+  }
+
+  &__content {
+    padding: 16px 16px 24px;
+  }
+
+  &__section {
+    margin-top: 24px;
+  }
+
+  &__section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+  }
+}
+
+.experience-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    $calicat-experience-start 0%,
+    $calicat-experience-end 100%
+  );
+  box-shadow: $calicat-experience-shadow;
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__badge {
+    align-self: flex-start;
+    padding: 0 10px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: rgb(255 255 255 / 20%);
+    display: flex;
+    align-items: center;
+  }
+
+  &__badge-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+
+  &__name {
+    font-size: 20px;
+    font-weight: 700;
+    color: $calicat-white;
+  }
+
+  &__desc {
+    font-size: 14px;
+    color: rgb(255 255 255 / 85%);
+  }
+
+  &__action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    padding-left: 16px;
+  }
+
+  &__price {
+    font-size: 28px;
+    font-weight: 700;
+    color: $calicat-white;
+  }
+
+  &__button {
+    width: 88px;
+    height: 34px;
+    border-radius: 17px;
+    background-color: $calicat-white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__button-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: $calicat-experience-start;
+  }
+}
+
+.standard-card {
+  margin-top: 12px;
+  padding: 20px;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-card-bg;
+  box-shadow: $calicat-card-shadow;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__name {
+    font-size: 18px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+  }
+
+  &__tag {
+    height: 20px;
+    padding: 0 10px;
+    border-radius: $calicat-tag-radius;
+    display: flex;
+    align-items: center;
+
+    &-text {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    &--primary {
+      background-color: $calicat-standard-tag-bg;
+
+      .standard-card__tag-text {
+        color: $calicat-standard-tag-text;
+      }
+    }
+
+    &--hot {
+      background-color: $calicat-hot-tag-bg;
+
+      .standard-card__tag-text {
+        color: $calicat-hot-tag-text;
+      }
+    }
+
+    &--recommend {
+      background-color: $calicat-recommend-tag-bg;
+
+      .standard-card__tag-text {
+        color: $calicat-recommend-tag-text;
+      }
+    }
+  }
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+  }
+
+  &__info-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__info-icon {
+    font-size: 14px;
+    color: $calicat-icon-default;
+  }
+
+  &__info-text {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+  }
+
+  &__price-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  &__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-price;
+  }
+
+  &__original-price {
+    font-size: 13px;
+    color: $calicat-text-disabled;
+    text-decoration: line-through;
+  }
+
+  &__unit {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__arrow {
+    font-size: 22px;
+    color: $calicat-icon-arrow;
+  }
+}
+
+.custom-entry {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 20px;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-card-bg;
+  box-shadow: $calicat-card-shadow;
+  border: 0.7px solid $calicat-custom-border;
+
+  &__icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    background-color: $calicat-custom-icon-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    font-size: 22px;
+    color: $calicat-primary;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 14px 0 0;
+    margin-left: 14px;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__desc {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__price {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-primary;
+    white-space: nowrap;
+  }
+
+  &__arrow {
+    font-size: 22px;
+    color: $calicat-icon-arrow;
+    margin-left: 8px;
+  }
+}
+
+.package-list-empty {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 160px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__desc {
+    margin-top: 8px;
+    font-size: 14px;
+    color: $calicat-text-secondary;
+  }
+}
+
+.package-list-error {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  &__text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    text-align: center;
+  }
+
+  &__retry {
+    margin-top: 16px;
+    font-size: 14px;
+    color: $calicat-primary;
+  }
+}
+
+.package-list--skeleton {
+  .skeleton-card {
+    margin-top: 12px;
+    height: 140px;
+    border-radius: $calicat-card-radius;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+
+    &--experience {
+      margin-top: 0;
+      height: 120px;
+    }
+
+    &--custom {
+      height: 88px;
+    }
+  }
+
+  .skeleton-title {
+    margin-top: 24px;
+    width: 65px;
+    height: 20px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

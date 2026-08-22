@@ -16,6 +16,7 @@ public record AdminOrderListItemResponse(
     BigDecimal originalAmount,
     BigDecimal discountAmount,
     BigDecimal paidAmount,
+    BigDecimal calculatedRefundAmount,
     String paymentMethod,
     String reason,
     LocalDateTime createdAt) {}

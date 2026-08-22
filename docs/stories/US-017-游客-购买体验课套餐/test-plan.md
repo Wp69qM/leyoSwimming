@@ -6,7 +6,7 @@
 - Create: `backend/src/services/trial-purchase.ts`
 - Test: `backend/tests/services/trial-purchase.test.ts`
 
-**Spec coverage:** 正常购买、已有套餐、教练不可约
+**Spec coverage:** 正常购买、已有套餐、教练不可约、协议未签署、模板已下架
 
 - [ ] **RED:** Valid purchase allowed; duplicate rejected; unavailable coach rejected
 - [ ] **GREEN:** Implement eligibility check and package/order creation
@@ -20,7 +20,7 @@
 - Create: `backend/src/routes/order.ts`
 - Test: `backend/tests/controllers/order.test.ts`
 
-- [ ] **RED:** 201 for valid; 400 for duplicate/unavailable coach; 401 for guest
+- [ ] **RED:** 201 for valid; 400 for duplicate/unavailable coach/agreement missing/package inactive; 401 for guest
 - [ ] **GREEN:** Implement endpoint with auth and validation
 - [ ] **REFACTOR:** Share order DTO schema
 - [ ] **COMMIT:** `feat(api): add POST /api/order/trial`
@@ -65,7 +65,7 @@
 - [ ] **REFACTOR:** Share agreement status helper with trial purchase service
 - [ ] **COMMIT:** `feat(api): add POST /api/agreement/status`
 
-## Task 5: Timeout Cancel Job [P1]
+## Task 6: Timeout Cancel Job [P1]
 
 **Files:**
 - Create: `backend/src/jobs/cancel-unpaid-orders.ts`
@@ -83,3 +83,10 @@
 - 严格顺序：Task 1 → 2 → 3 → 4 → 5 → 6
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder
+
+## 附录：变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | QA | 初版 |
+| v1.1 | 2026-08-15 | AI | 三件套一致性修复：Task 1/2 补充协议未签署、模板已下架测试覆盖；Task 5（Timeout Cancel Job）编号修正为 Task 6 |

@@ -23,4 +23,17 @@ public interface BookingMapper extends BaseMapper<Booking> {
           + "WHERE coach_id = #{coachId} AND start_time > #{now} "
           + "AND status IN ('booked', 'confirmed')")
   int cancelFutureByCoachId(@Param("coachId") Long coachId, @Param("now") LocalDateTime now);
+
+  @Select(
+      "SELECT * FROM booking WHERE package_id = #{packageId} AND start_time > #{now} "
+          + "AND status IN ('booked', 'confirmed') ORDER BY start_time ASC")
+  List<Booking> findFutureActiveByPackageId(
+      @Param("packageId") Long packageId, @Param("now") LocalDateTime now);
+
+  @Update(
+      "UPDATE booking SET status = 'cancelled', cancel_reason = 6, updated_at = NOW() "
+          + "WHERE package_id = #{packageId} AND start_time > #{now} "
+          + "AND status IN ('booked', 'confirmed')")
+  int cancelFutureByPackageId(
+      @Param("packageId") Long packageId, @Param("now") LocalDateTime now);
 }

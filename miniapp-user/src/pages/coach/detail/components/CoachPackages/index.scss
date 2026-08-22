@@ -1,0 +1,169 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail-package {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid $calicat-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &--experience {
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(
+      90deg,
+      $calicat-experience-start 0%,
+      $calicat-experience-end 100%
+    );
+    box-shadow: $calicat-experience-shadow;
+    margin-bottom: 12px;
+    border-bottom: none;
+  }
+
+  &--disabled {
+    opacity: 0.6;
+  }
+
+  &__image {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background-color: $calicat-avatar-placeholder-bg;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+
+    .coach-detail-package--experience & {
+      color: $calicat-white;
+    }
+  }
+
+  &__desc {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+
+    .coach-detail-package--experience & {
+      color: rgb(255 255 255 / 85%);
+    }
+  }
+
+  &__action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  &__price-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__price {
+    font-size: 18px;
+    font-weight: 700;
+    color: $calicat-text-price;
+
+    .coach-detail-package--experience & {
+      color: $calicat-white;
+    }
+  }
+
+  &__arrow {
+    font-size: 18px;
+    color: $calicat-icon-arrow;
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 14px;
+    background-color: $calicat-white;
+  }
+
+  &__btn-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: $calicat-experience-start;
+  }
+}
+
+.coach-detail-custom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 0;
+  border-top: 1px solid $calicat-divider;
+  margin-top: 4px;
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    background-color: $calicat-info-icon-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__icon-inner {
+    font-size: 22px;
+    color: $calicat-info-icon;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__desc {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+  }
+
+  &__price-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__price {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-primary;
+  }
+
+  &__arrow {
+    font-size: 18px;
+    color: $calicat-icon-arrow;
+  }
+}

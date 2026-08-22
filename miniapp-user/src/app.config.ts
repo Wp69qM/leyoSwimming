@@ -2,6 +2,7 @@ export default {
   pages: [
     'pages/index/index',
     'pages/coach/index',
+    'pages/coach/detail/index',
     'pages/booking/index',
     'pages/mine/index',
     'pages/login/wechat/index',
@@ -11,7 +12,20 @@ export default {
     'pages/account/cancel/index',
     'pages/settings/index',
     'pages/terms/index',
+    'pages/terms/detail/index',
     'pages/privacy/index',
+    'pages/package/list/index',
+    'pages/package/detail/index',
+    'pages/package/custom/index',
+    'pages/package/mine/index',
+    'pages/package/mine/detail/index',
+    'pages/order/confirm/index',
+    'pages/order/payment/index',
+    'pages/order/detail/index',
+    'pages/order/list/index',
+    'pages/refund/apply/index',
+    'pages/ai-assistant/index',
+    'pages/ai-assistant/entry/index',
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -32,6 +46,10 @@ export default {
       {
         pagePath: 'pages/coach/index',
         text: '教练',
+      },
+      {
+        pagePath: 'pages/ai-assistant/entry/index',
+        text: 'AI 助理',
       },
       {
         pagePath: 'pages/booking/index',

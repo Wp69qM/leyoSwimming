@@ -1,0 +1,54 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "8cf3ad0d-a402-4b5c-8eaa-b361500c3d7f",
+  "page_name": "C-套餐使用详情页",
+  "colors": {
+    "primary": "#1890FF",
+    "primaryLight": "#E6F7FF",
+    "experience": "#FA8C16",
+    "experienceLight": "#FFF7E6",
+    "success": "#52C41A",
+    "successLight": "#F6FFED",
+    "error": "#FF4D4F",
+    "errorLight": "#FFF1F0",
+    "warning": "#FAAD14",
+    "warningLight": "#FFFBEE",
+    "background": "#F5F7FA",
+    "surface": "#FFFFFF",
+    "textPrimary": "#262626",
+    "textSecondary": "#8C8C8C",
+    "textDisabled": "#BFBFBF",
+    "divider": "#F0F0F0"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "cardTitle": { "fontSize": 20, "fontWeight": 700, "lineHeight": 1.2 },
+    "badge": { "fontSize": 11, "fontWeight": 600, "lineHeight": 1.2 },
+    "infoLabel": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "infoValue": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "summaryNumber": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "summaryLabel": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "sectionTitle": { "fontSize": 15, "fontWeight": 600, "lineHeight": 1.2 },
+    "recordTitle": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "recordMeta": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "studentName": { "fontSize": 15, "fontWeight": 600, "lineHeight": 1.2 },
+    "studentMeta": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "ruleText": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.5 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24
+  },
+  "radius": {
+    "card": 12,
+    "badge": 11,
+    "avatar": 20,
+    "icon": 8
+  },
+  "shadows": {
+    "card": "0 2px 16px rgba(0,0,0,0.08)"
+  }
+}

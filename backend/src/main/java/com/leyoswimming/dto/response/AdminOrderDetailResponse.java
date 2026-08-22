@@ -14,6 +14,7 @@ public record AdminOrderDetailResponse(
     String userPhone,
     Long coachId,
     String coachName,
+    String teachingType,
     Long packageId,
     Long purchaseOrderId,
     String purchaseOrderNo,
@@ -30,7 +31,16 @@ public record AdminOrderDetailResponse(
     LocalDateTime approvedAt,
     LocalDateTime refundedAt,
     LocalDateTime createdAt,
-    List<OrderStatusLog> statusTimeline) {
+    List<OrderStatusLog> statusTimeline,
+    PackageSnapshot packageSnapshot) {
 
   public record OrderStatusLog(String status, LocalDateTime time, String description) {}
+
+  public record PackageSnapshot(
+      Long packageId,
+      String packageNo,
+      String status,
+      Integer totalHours,
+      Integer availableCount,
+      LocalDateTime expireAt) {}
 }

@@ -19,7 +19,7 @@
 |------|------|------|
 | `package_template` | 新增 | 标准套餐模板，字段见下 |
 | `package_template_coach` | 新增 | 标准套餐与教练多对多关联表，字段见下 |
-| `custom_package_config` | 新增 | 自定义套餐全局配置（允许课时范围 min/max、默认有效期、单价下限）|
+| `custom_package_config` | 新增 | 自定义套餐全局配置（允许课时范围 min/max、默认有效期）|
 | `coach` | 读取 | 关联教练与 `reference_price` |
 
 ### 1.2 `package_template` 字段
@@ -28,10 +28,21 @@
 |------|------|------|------|
 | `id` | BIGINT PK | AUTO_INCREMENT | 模板 ID |
 | `name` | VARCHAR(64) | UK, NOT NULL | 套餐名称 |
+| `package_mode` | VARCHAR(20) | NOT NULL | 套餐模式：standard / experience |
+| `teaching_type` | VARCHAR(20) | NOT NULL | 教学类型/班级规模：one_on_one / one_on_two / one_on_three |
+| `stroke_ids` | JSON | — | 泳姿 ID 数组，空数组表示全部泳姿 |
 | `total_hours` | INT | CHECK > 0 | 课时数 |
+| `duration_minutes` | INT | CHECK > 0 | 每节课时长（分钟）|
 | `valid_days` | INT | CHECK > 0 | 有效期天数 |
+| `original_price` | DECIMAL(10,2) | CHECK >= 0 | 原价 |
 | `price` | DECIMAL(10,2) | CHECK >= 0 | 售价 |
-| `status` | TINYINT | 0=inactive 1=active | 上下架 |
+| `refund_enabled` | TINYINT(1) | NOT NULL | 是否支持退款 |
+| `refund_ratio` | DECIMAL(3,2) | CHECK >= 0 | 退款比例（0~1）|
+| `refund_valid_days` | INT | CHECK >= 0 | 退款有效期限制（天）|
+| `tags` | JSON | — | 标签数组 |
+| `description` | TEXT | — | 套餐描述（富文本）|
+| `images` | JSON | — | 套餐展示图片 URL 数组 |
+| `status` | VARCHAR(16) | NOT NULL | 上下架：inactive / active |
 | `created_at` | DATETIME | — | 创建时间 |
 | `updated_at` | DATETIME | — | 更新时间 |
 
@@ -152,12 +163,11 @@ CREATE INDEX idx_package_template_coach_coach ON package_template_coach(coach_id
   {
     "minHours": 1,
     "maxHours": 50,
-    "defaultValidDays": 60,
-    "unitPriceFloor": 10000
+    "defaultValidDays": 60
   }
   ```
 - **Response 200**：更新后的全局配置对象
-- **Response 400**：`{ error: 'INVALID_CUSTOM_PACKAGE_CONFIG' }`
+- **Response 400**：`{ error: 'INVALID_PACKAGE_PARAM' }`
 
 ### 2.7 POST /api/admin/image/upload
 

@@ -11,7 +11,8 @@
 | `user` | 读 | 登录态、身份 |
 | `package` | 读 | 校验同用户 active 套餐教练一致性 |
 | `coach` | 读 | 教练状态、参考单价 |
-| `standard_package` | 读 | 标准套餐配置 |
+| `package_template` | 读 | 标准套餐/自定义套餐模板配置 |
+| `package_template_coach` | 读 | 校验标准套餐是否适配所选教练 |
 
 #### order
 
@@ -20,9 +21,9 @@
 | `id` | PK |
 | `user_id` | FK |
 | `coach_id` | FK |
-| `course_type` | 1=正价套餐 |
-| `standard_package_id` | 标准套餐 ID（自定义时为 null） |
-| `custom_hours` | 自定义课时数 |
+| `package_mode` | 'standard'=正价套餐（自定义课时同属 standard 模式） |
+| `package_template_id` | 套餐模板 ID（自定义课时为 custom 模板 ID） |
+| `total_hours` | 课时数（标准套餐按模板，自定义按用户输入） |
 | `amount` | 订单金额（分） |
 | `status` | 待支付 / 已支付 / 已取消 / 已退款 |
 | `expire_at` | 订单支付截止时间（24h） |
@@ -56,8 +57,8 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
   ```json
   {
     "coachId": 1,
-    "packageTemplateId": 1,
-    "customHours": 12,
+    "packageId": 1,
+    "hours": 12,
     "validDays": 60,
     "strokeIds": [1, 2],
     "agreementVersions": {
@@ -68,7 +69,7 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
   }
   ```
 - **Response 201**: `{ orderId, amount, expireAt }`
-- **Response 400**: `{ code: AGREEMENT_REQUIRED | COACH_CONFLICT | COACH_UNAVAILABLE | INVALID_HOURS | GUARDIAN_PHONE_REQUIRED }`
+- **Response 400**: `{ code: AGREEMENT_REQUIRED | COACH_CONFLICT | COACH_UNAVAILABLE | PACKAGE_NOT_AVAILABLE | INVALID_CUSTOM_PACKAGE_CONFIG | GUARDIAN_PHONE_REQUIRED }`
 
 ### 2.2 POST /api/agreement/status
 
@@ -158,3 +159,6 @@ CREATE INDEX idx_agreement_sign_user ON agreement_sign(user_id, agreement_type, 
 |------|------|------|
 | v1.0 | 2026-07-30 | 初版 |
 | v1.1 | 2026-07-31 | P1-9 修复：§2.1 POST /api/order/formal 的 Response 400 错误码列表补充 `GUARDIAN_PHONE_REQUIRED`（原仅在 user-story.md §4.2 分支 4 与 §6.4 场景 4 出现，tech-design 漏列）；§8 测试映射同步补充对应测试方法 |
+| v1.2 | 2026-08-15 | AI | 三件套一致性修复：§1.1 数据模型由 `standard_package` 更新为 `package_template` / `package_template_coach`；order 表 `course_type` 统一为 `package_mode='standard'`；§2.1 `/api/order/formal` 请求字段 `packageTemplateId`/`customHours` 统一为 `packageId`/`hours`，Response 400 错误码补充 `PACKAGE_NOT_AVAILABLE`、`INVALID_CUSTOM_PACKAGE_CONFIG` |
+
+---

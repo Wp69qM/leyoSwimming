@@ -15,6 +15,7 @@ import OrderManagementView from '@/views/order-management/OrderManagementView.vu
 import OrderDetailView from '@/views/order-management/OrderDetailView.vue';
 import PackageManagementView from '@/views/package-management/PackageManagementView.vue';
 import PackageDetailView from '@/views/package-management/PackageDetailView.vue';
+import PackageConfigView from '@/views/package-config/PackageConfigView.vue';
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -88,6 +89,11 @@ export const router = createRouter({
           path: 'package-management/detail/:packageId',
           name: 'package-management-detail',
           component: PackageDetailView,
+        },
+        {
+          path: 'package-config',
+          name: 'package-config',
+          component: PackageConfigView,
         },
       ],
     },

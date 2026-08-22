@@ -24,7 +24,7 @@ export interface WechatLoginParams {
 
 export interface PhoneLoginParams {
   phone: string;
-  smsCode: string;
+  code: string;
   termsAccepted: boolean;
   privacyAccepted: boolean;
   termsVersion: string;

@@ -3,6 +3,8 @@ export default defineAppConfig({
     'pages/index/index',
     'pages/booking/index',
     'pages/student/index',
+    'pages/student/detail/index',
+    'pages/student/package-detail/index',
     'pages/mine/index',
     'pages/coach/index',
     'pages/login/wechat/index',

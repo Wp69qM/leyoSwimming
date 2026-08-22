@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ref, reactive, onMounted, watch } from 'vue';
+import { ElMessage } from 'element-plus';
 import type {
   AdminPackageListItem,
   PackageStatus,
@@ -9,8 +8,11 @@ import type {
 } from '@/types/api';
 import { getPackageList } from '@/api/packageManagement';
 import { formatDateTime } from '@/utils/format';
-
-const router = useRouter();
+import PackageDetailModal from './PackageDetailModal.vue';
+import PackageFreezeModal from './PackageFreezeModal.vue';
+import PackageExtendModal from './PackageExtendModal.vue';
+import PackageRefundModal from './PackageRefundModal.vue';
+import { TEACHING_TYPE_OPTIONS, getTeachingTypeLabel } from './constants';
 
 const statusOptions = [
   { label: '全部', value: '' },
@@ -21,10 +23,9 @@ const statusOptions = [
   { label: '已退款', value: 'refunded' },
 ];
 
-const courseTypeOptions = [
+const classSizeOptions = [
   { label: '全部', value: '' },
-  { label: '体验课', value: 'experience' },
-  { label: '正价课', value: 'standard' },
+  ...TEACHING_TYPE_OPTIONS,
 ];
 
 const statusMap: Record<
@@ -48,7 +49,7 @@ const modeMap: Record<
 
 const queryForm = reactive({
   status: '',
-  courseType: '',
+  classSize: '',
   startExpireAt: '',
   endExpireAt: '',
   keyword: '',
@@ -60,6 +61,14 @@ const error = ref(false);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
+
+const detailVisible = ref(false);
+const detailPackageId = ref<number | undefined>(undefined);
+
+const freezeVisible = ref(false);
+const extendVisible = ref(false);
+const refundVisible = ref(false);
+const activeRow = ref<AdminPackageListItem | null>(null);
 
 function formatHours(row: AdminPackageListItem): string {
   return `${row.availableCount}/${row.reservedCount}/${row.consumedCount}`;
@@ -73,7 +82,7 @@ async function fetchList() {
       page: page.value,
       pageSize: pageSize.value,
       status: (queryForm.status as PackageStatus) || undefined,
-      courseType: queryForm.courseType || undefined,
+      teachingType: queryForm.classSize || undefined,
       startExpireAt: queryForm.startExpireAt || undefined,
       endExpireAt: queryForm.endExpireAt || undefined,
       keyword: queryForm.keyword || undefined,
@@ -101,7 +110,7 @@ function handleSearch() {
 
 function handleReset() {
   queryForm.status = '';
-  queryForm.courseType = '';
+  queryForm.classSize = '';
   queryForm.startExpireAt = '';
   queryForm.endExpireAt = '';
   queryForm.keyword = '';
@@ -115,27 +124,58 @@ function handlePageChange(current: number) {
 }
 
 function openDetail(row: AdminPackageListItem) {
-  router.push(`/package-management/detail/${row.packageId}`);
+  detailPackageId.value = row.packageId;
+  detailVisible.value = true;
+}
+
+function handleSuccess() {
+  fetchList();
 }
 
 function handleFreeze(row: AdminPackageListItem) {
-  ElMessage.info('冻结功能即将上线');
+  activeRow.value = row;
+  freezeVisible.value = true;
 }
 
 function handleUnfreeze(row: AdminPackageListItem) {
-  ElMessage.info('解冻功能即将上线');
+  activeRow.value = row;
+  freezeVisible.value = true;
 }
 
 function handleExtend(row: AdminPackageListItem) {
-  ElMessage.info('延期功能即将上线');
+  activeRow.value = row;
+  extendVisible.value = true;
 }
 
 function handleRefund(row: AdminPackageListItem) {
-  ElMessage.info('请前往订单管理处理退款订单');
+  activeRow.value = row;
+  refundVisible.value = true;
+}
+
+function isRefundAvailable(row: AdminPackageListItem): boolean {
+  if (row.status !== 'active' || !row.refundEnabled) {
+    return false;
+  }
+  if (row.refundValidDays > 0) {
+    const deadline = new Date(row.createdAt);
+    deadline.setDate(deadline.getDate() + row.refundValidDays);
+    if (new Date() > deadline) {
+      return false;
+    }
+  }
+  return true;
 }
 
 onMounted(() => {
   fetchList();
+});
+
+watch([freezeVisible, extendVisible, refundVisible], (values, oldValues) => {
+  const wasVisible = oldValues.some(Boolean);
+  const isVisible = values.some(Boolean);
+  if (wasVisible && !isVisible) {
+    activeRow.value = null;
+  }
 });
 </script>
 
@@ -167,15 +207,15 @@ onMounted(() => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="课程类型">
+          <el-form-item label="班级规模">
             <el-select
-              v-model="queryForm.courseType"
+              v-model="queryForm.classSize"
               placeholder="全部"
               style="width: 160px"
               clearable
             >
               <el-option
-                v-for="option in courseTypeOptions"
+                v-for="option in classSizeOptions"
                 :key="option.value"
                 :label="option.label"
                 :value="option.value"
@@ -266,7 +306,7 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="类型" align="center" width="100">
           <template #default="{ row }">
-            {{ row.courseType || '-' }}
+            {{ getTeachingTypeLabel(row.teachingType) }}
           </template>
         </el-table-column>
         <el-table-column label="状态" align="center" width="100">
@@ -322,13 +362,20 @@ onMounted(() => {
               延期
             </el-button>
             <el-button
-              v-if="row.status === 'active'"
+              v-if="isRefundAvailable(row)"
               link
               type="warning"
               @click="handleRefund(row)"
             >
               退款
             </el-button>
+            <el-tooltip
+              v-else-if="row.status === 'active'"
+              content="该套餐不允许退款或已超过退款有效期"
+              placement="top"
+            >
+              <el-button link type="warning" disabled>退款</el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -345,6 +392,53 @@ onMounted(() => {
         />
       </div>
     </div>
+
+    <PackageDetailModal
+      v-model:visible="detailVisible"
+      :package-id="detailPackageId"
+      @success="handleSuccess"
+    />
+
+    <PackageFreezeModal
+      v-if="activeRow"
+      :visible="freezeVisible"
+      :package-id="activeRow.packageId"
+      :status="activeRow.status"
+      :package-no="activeRow.packageNo"
+      :available-count="activeRow.availableCount"
+      :expire-at="activeRow.expireAt"
+      :version="activeRow.version"
+      @update:visible="freezeVisible = $event"
+      @success="handleSuccess"
+    />
+
+    <PackageExtendModal
+      v-if="activeRow"
+      :visible="extendVisible"
+      :package-id="activeRow.packageId"
+      :package-no="activeRow.packageNo"
+      :available-count="activeRow.availableCount"
+      :current-expire-at="activeRow.expireAt"
+      :version="activeRow.version"
+      @update:visible="extendVisible = $event"
+      @success="handleSuccess"
+    />
+
+    <PackageRefundModal
+      v-if="activeRow"
+      :visible="refundVisible"
+      :package-id="activeRow.packageId"
+      :package-no="activeRow.packageNo"
+      :total-hours="activeRow.totalHours"
+      :consumed-count="activeRow.consumedCount"
+      :available-count="activeRow.availableCount"
+      :expire-at="activeRow.expireAt"
+      :refund-amount="activeRow.refundAmount"
+      :refund-ratio="activeRow.refundRatio"
+      :version="activeRow.version"
+      @update:visible="refundVisible = $event"
+      @success="handleSuccess"
+    />
   </div>
 </template>
 

@@ -1,0 +1,68 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "0560f340-66cf-4708-8590-05207588b715",
+  "page_name": "U-订单详情页",
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "card_bg": "#FFFFFF",
+    "primary": "#1890FF",
+    "primary_dark": "#0050B3",
+    "success": "#52C41A",
+    "success_dark": "#389E0D",
+    "warning": "#FAAD14",
+    "warning_orange": "#FA8C16",
+    "danger": "#FF4D4F",
+    "price": "#FF6B35",
+    "text_primary": "#262626",
+    "text_secondary": "#8C8C8C",
+    "text_tertiary": "#595959",
+    "text_inverse": "#FFFFFF",
+    "text_inverse_secondary": "rgba(255,255,255,0.8)",
+    "border": "#D9D9D9",
+    "divider": "#F0F0F0",
+    "tag_default_bg": "#F5F5F5",
+    "tag_primary_bg": "#E6F7FF",
+    "tag_success_bg": "#F6FFED",
+    "tag_success_text": "#52C41A",
+    "notice_bg": "#F6FFED",
+    "gradient_primary": ["#1890FF", "#0050B3"],
+    "gradient_success": ["#52C41A", "#389E0D"]
+  },
+  "typography": {
+    "navbar_title": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "section_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "status_title": { "fontSize": 20, "fontWeight": 700, "lineHeight": 1.2 },
+    "amount": { "fontSize": 36, "fontWeight": 700, "lineHeight": 1.2 },
+    "body": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "body_bold": { "fontSize": 13, "fontWeight": 600, "lineHeight": 1.2 },
+    "caption": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "tag": { "fontSize": 10, "fontWeight": 400, "lineHeight": 1.2 },
+    "button": { "fontSize": 15, "fontWeight": 600, "lineHeight": 1.2 },
+    "counter": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "xxl": 28,
+    "page_horizontal": 16,
+    "card_padding": 16,
+    "section_gap": 12,
+    "safe_bottom": 34
+  },
+  "radius": {
+    "card": 12,
+    "button": 23,
+    "tag": 10,
+    "icon": 16,
+    "pill": 14,
+    "avatar": 20
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottom_bar": "0 -4px 12px rgba(0,0,0,0.08)",
+    "primary_button": "0 4px 12px rgba(24,144,255,0.35)"
+  }
+}

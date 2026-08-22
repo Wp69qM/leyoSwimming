@@ -2,63 +2,43 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    180deg,
-    #1890ff 0%,
-    #096dd9 50%,
-    #0050b3 100%
-  );
+  background: linear-gradient(180deg, #1890ff 0%, #096dd9 50%, #0050b3 100%);
   box-sizing: border-box;
 
   &__brand {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 64rpx 0 48rpx;
+    padding: 32rpx 0 24rpx;
   }
 
   &__logo {
-    width: 160rpx;
-    height: 160rpx;
-    border-radius: 50%;
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 40rpx;
     background: rgb(255 255 255 / 15%);
-    border: 2rpx solid rgb(255 255 255 / 25%);
+    border: 1rpx solid rgb(255 255 255 / 25%);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   &__logo-icon {
-    width: 88rpx;
-    height: 88rpx;
-    border: 3rpx solid rgb(255 255 255 / 80%);
-    border-radius: 50%;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 44rpx;
-      height: 22rpx;
-      border-bottom: 4rpx solid rgb(255 255 255 / 90%);
-      border-radius: 0 0 44rpx 44rpx;
-      top: 46%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
+    width: 44rpx;
+    height: 44rpx;
   }
 
   &__name {
-    margin-top: 32rpx;
-    font-size: 44rpx;
+    margin-top: 16rpx;
+    font-size: 22rpx;
     font-weight: 600;
     color: #fff;
     line-height: 1.2;
   }
 
   &__slogan {
-    margin-top: 12rpx;
-    font-size: 26rpx;
+    margin-top: 6rpx;
+    font-size: 13rpx;
     color: rgb(255 255 255 / 85%);
     line-height: 1.2;
   }
@@ -66,47 +46,49 @@
   &__card {
     flex: 1;
     background: #fff;
-    border-radius: 40rpx 40rpx 0 0;
-    padding: 56rpx 40rpx calc(40rpx + env(safe-area-inset-bottom));
-    box-shadow: 0 -8rpx 40rpx rgb(0 0 0 / 8%);
+    border-radius: 20rpx 20rpx 0 0;
+    padding: 28rpx 20rpx calc(40rpx + env(safe-area-inset-bottom));
+    box-shadow: 0 -4rpx 20rpx rgb(0 0 0 / 8%);
   }
 
   &__title {
-    font-size: 44rpx;
+    display: block;
+    font-size: 22rpx;
     font-weight: 700;
     color: #262626;
     line-height: 1.2;
   }
 
   &__subtitle {
-    margin-top: 12rpx;
-    font-size: 26rpx;
+    display: block;
+    margin-top: 6rpx;
+    font-size: 13rpx;
     color: #8c8c8c;
     line-height: 1.4;
   }
 
   &__field {
-    margin-top: 48rpx;
+    margin-top: 24rpx;
   }
 
   &__label {
     display: block;
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 500;
     color: #262626;
-    margin-bottom: 16rpx;
+    margin-bottom: 8rpx;
   }
 
   &__input-row {
     display: flex;
     align-items: center;
-    height: 92rpx;
+    height: 46rpx;
     background: #f5f7fa;
     border: 1rpx solid #e8e8e8;
-    border-radius: 20rpx;
-    padding: 0 28rpx;
+    border-radius: 10rpx;
+    padding: 0 14rpx;
     box-sizing: border-box;
-    gap: 20rpx;
+    gap: 10rpx;
 
     &--error {
       background: #fff2f0;
@@ -115,57 +97,56 @@
   }
 
   &__input-icon {
-    width: 40rpx;
-    height: 40rpx;
+    width: 20rpx;
+    height: 20rpx;
     flex-shrink: 0;
-    background: #9ca3af;
-    border-radius: 50%;
-
-    &--phone {
-      mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>')
-        center / contain no-repeat;
-    }
-
-    &--code {
-      mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>')
-        center / contain no-repeat;
-    }
+    font-family: remixicon, 'PingFang SC', sans-serif;
+    font-size: 18rpx;
+    line-height: 20rpx;
+    text-align: center;
+    color: #9ca3af;
   }
 
   &__input {
     flex: 1;
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #262626;
     height: 100%;
     min-width: 0;
     background: transparent;
+    line-height: 46rpx;
+    padding: 0;
+
+    .weui-input {
+      height: 100%;
+    }
 
     &::placeholder {
       color: #bfbfbf;
+      line-height: 46rpx;
     }
   }
 
   &__code-btn {
     margin: 0;
-    padding: 0 20rpx;
-    width: 200rpx;
-    height: 92rpx;
-    line-height: 92rpx;
-    font-size: 26rpx;
+    padding: 0 10rpx;
+    width: 100rpx;
+    height: 46rpx;
+    line-height: 46rpx;
+    font-size: 13rpx;
     font-weight: 500;
     color: #fff;
-    background: #bfbfbf;
-    border-radius: 20rpx;
+    background: #d9d9d9;
+    border-radius: 10rpx;
     flex-shrink: 0;
-    box-shadow: 0 8rpx 20rpx rgb(191 191 191 / 25%);
 
     &--active {
       background: #1890ff;
-      box-shadow: 0 8rpx 20rpx rgb(24 144 255 / 25%);
+      box-shadow: 0 4rpx 10rpx rgb(24 144 255 / 25%);
     }
 
     &[disabled] {
-      opacity: 0.7;
+      opacity: 0.6;
     }
 
     &::after {
@@ -174,20 +155,20 @@
   }
 
   &__error {
-    margin-top: 24rpx;
+    margin-top: 12rpx;
     background: rgb(255 241 240 / 95%);
-    border-radius: 16rpx;
-    padding: 20rpx 28rpx;
+    border-radius: 8rpx;
+    padding: 10rpx 14rpx;
     display: flex;
     align-items: center;
   }
 
   &__error-icon {
-    width: 40rpx;
-    height: 40rpx;
+    width: 20rpx;
+    height: 20rpx;
     border-radius: 50%;
     background: #ff4d4f;
-    margin-right: 16rpx;
+    margin-right: 8rpx;
     flex-shrink: 0;
     position: relative;
 
@@ -198,7 +179,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       color: #fff;
-      font-size: 24rpx;
+      font-size: 12rpx;
       font-weight: 600;
       line-height: 1;
     }
@@ -206,28 +187,39 @@
 
   &__error-text {
     flex: 1;
-    font-size: 26rpx;
+    font-size: 13rpx;
     color: #ff4d4f;
   }
 
   &__submit {
-    margin-top: 48rpx;
+    margin-top: 24rpx;
     width: 100%;
-    height: 96rpx;
-    line-height: 96rpx;
-    background: linear-gradient(90deg, #1890ff 0%, #0050b3 100%);
+    height: 48rpx;
+    line-height: 48rpx;
+    background: #1890ff;
     color: #fff;
-    font-size: 32rpx;
+    font-size: 16rpx;
     font-weight: 600;
-    border-radius: 20rpx;
-    box-shadow: 0 8rpx 28rpx rgb(24 144 255 / 35%);
+    border-radius: 10rpx;
+    box-shadow: 0 4rpx 14rpx rgb(24 144 255 / 35%);
+    transition: all 300ms ease;
+
+    &[disabled] {
+      background: #d9d9d9;
+      box-shadow: none;
+      opacity: 1;
+    }
 
     &--loading {
+      background: #1890ff;
+      box-shadow: 0 4rpx 14rpx rgb(24 144 255 / 35%);
       opacity: 0.85;
     }
 
-    &[disabled] {
-      opacity: 0.5;
+    &--success {
+      background: #1890ff;
+      box-shadow: 0 4rpx 14rpx rgb(24 144 255 / 35%);
+      opacity: 0;
     }
 
     &::after {
@@ -236,10 +228,10 @@
   }
 
   &__divider {
-    margin-top: 56rpx;
+    margin-top: 28rpx;
     display: flex;
     align-items: center;
-    gap: 16rpx;
+    gap: 8rpx;
   }
 
   &__divider-line {
@@ -249,65 +241,43 @@
   }
 
   &__divider-text {
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #bfbfbf;
   }
 
   &__wechat-entry {
-    margin-top: 40rpx;
+    margin-top: 20rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16rpx;
+    gap: 8rpx;
     align-self: center;
-    padding: 24rpx 48rpx;
+    padding: 12rpx 24rpx;
     border: 1rpx solid #e8e8e8;
-    border-radius: 20rpx;
+    border-radius: 10rpx;
     background: #fff;
   }
 
   &__wechat-icon {
-    width: 44rpx;
-    height: 44rpx;
-    border-radius: 50%;
-    background: #07c160;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 24rpx;
-      height: 20rpx;
-      border: 3rpx solid #fff;
-      border-radius: 50% 50% 50% 0;
-      transform: translate(-60%, -55%) rotate(-45deg);
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 8rpx;
-      height: 8rpx;
-      background: #fff;
-      border-radius: 50%;
-      transform: translate(-30%, -90%);
-    }
+    width: 22rpx;
+    height: 22rpx;
+    font-family: remixicon, 'PingFang SC', sans-serif;
+    font-size: 20rpx;
+    line-height: 22rpx;
+    text-align: center;
+    color: #07c160;
   }
 
   &__wechat-text {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #595959;
   }
 
   &__tip {
     display: block;
-    margin-top: 32rpx;
+    margin-top: 16rpx;
     text-align: center;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #bfbfbf;
   }
 }

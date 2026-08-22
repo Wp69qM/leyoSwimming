@@ -1,0 +1,84 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "ff5458ce-7aae-4c9a-9196-f959c29082c3",
+  "page_name": "U-自定义套餐配置页",
+  "source": "Calicat",
+  "states": {
+    "normal": "ff5458ce-7aae-4c9a-9196-f959c29082c3",
+    "minor": "95bc70ea-ba67-4d70-85bc-d22b3625543d",
+    "conflict": "44bbd398-ed98-4fbf-a912-a488f941d7e2"
+  },
+  "colors": {
+    "primary": "#1890FF",
+    "primaryDark": "#0050B3",
+    "pageBackground": "#F5F7FA",
+    "cardBackground": "#FFFFFF",
+    "textPrimary": "#262626",
+    "textTitle": "#1D2129",
+    "textSecondary": "#4E5969",
+    "textAuxiliary": "#868C9C",
+    "textTertiary": "#BFBFBF",
+    "textPrice": "#FF4D4F",
+    "navBarText": "#FFFFFF",
+    "white": "#FFFFFF",
+    "border": "#E8E8E8",
+    "divider": "#F0F0F0",
+    "optionSelectedBg": "#EFF6FF",
+    "avatarPlaceholderBg": "#E6F7FF",
+    "star": "#FAAD14",
+    "warning": "#FAAD14",
+    "warningBg": "#FFFBE6",
+    "warningText": "#AD6800",
+    "link": "#1890FF",
+    "iconArrow": "#BFBFBF"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "sectionTitle": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 },
+    "cardTitle": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "bodyBold": { "fontSize": 14, "fontWeight": 600, "lineHeight": 1.2 },
+    "caption": { "fontSize": 13, "fontWeight": 600, "lineHeight": 1.2 },
+    "small": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "hint": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "priceLarge": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "priceSymbol": { "fontSize": 12, "fontWeight": 600, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "xxl": 24,
+    "pageHorizontal": 16,
+    "pageTop": 12,
+    "pageBottom": 24,
+    "cardPadding": 16,
+    "cardGap": 12,
+    "sectionGap": 12,
+    "safeBottom": 34,
+    "bottomBarHeight": 78,
+    "bottomBarPaddingTop": 12
+  },
+  "radius": {
+    "card": 12,
+    "button": 22,
+    "option": 8,
+    "pill": 18,
+    "avatar": 24,
+    "checkbox": 2
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottomBar": "0 -1px 0 rgba(240,240,240,1), 0 -4px 12px rgba(0,0,0,0.04)"
+  },
+  "navbar": {
+    "statusBarHeight": 44,
+    "navbarHeight": 44,
+    "gradient": {
+      "start": "#1890FF",
+      "end": "#0050B3"
+    }
+  }
+}

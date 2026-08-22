@@ -20,7 +20,8 @@
     "yarn": ">=1.22.0"
   },
   "resolutions": {
-    "webpack": "5.91.0"
+    "webpack": "5.91.0",
+    "query-string": "7.1.3"
   },
   "scripts": {
     "dev:shared": "yarn workspace @leyo/shared dev",

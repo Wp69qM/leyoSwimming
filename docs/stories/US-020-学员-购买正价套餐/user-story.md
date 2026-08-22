@@ -147,7 +147,7 @@ And   确认订单页展示教练 A 横向自适应卡片、套餐信息、价�
 When  用户勾选协议并点击「确认订单」
 Then  系统校验模板 package_mode='standard' 且 status='active'
 And   系统将 package_name、package_mode、coach_id、coach_name、teaching_type、stroke_ids、total_hours、duration_minutes、valid_days、original_price、paid_amount、refund_enabled、refund_ratio、refund_valid_days、tags、description、images 快照写入订单/预生成 package
-And   系统创建 order.status = 待支付，course_type = 1
+And   系统创建 order.status = 待支付，package_mode = 'standard'
 And   系统记录 agreement_sign 版本号与签署时间
 And   接口返回 HTTP 201 与订单 ID
 And   前端跳转支付页（US-025）
@@ -232,7 +232,7 @@ And   配置页顶部展示教练 A 横向自适应卡片（含参考单价 300 
 When  用户选择课时数量 20、有效期 90 天、学习泳姿「蝶泳」
 And   用户勾选协议并点击「提交订单」
 Then  系统按参考单价计算订单金额 20 × 300 = 6000 元
-And   系统创建 order.status = 待支付，course_type = 1
+And   系统创建 order.status = 待支付，package_mode = 'standard'
 And   订单中 coach_id = 教练 A，total_hours = 20，valid_days = 90
 And   接口返回 HTTP 201 与订单 ID
 And   前端跳转支付页（US-025）
@@ -316,7 +316,7 @@ And   不创建订单
 
 | # | 表名 | 操作 | 说明 |
 |---|------|------|------|
-| 1 | `order` | 新增 | 待支付订单，course_type=1；关联套餐模板快照字段 |
+| 1 | `order` | 新增 | 待支付订单，package_mode='standard'；关联套餐模板快照字段 |
 | 2 | `agreement_sign` | 新增 | 协议签署记录（版本号、时间） |
 | 3 | `user` | 读取 | 校验登录态、身份、年龄；未成年人需已维护 guardian_phone |
 | 4 | `package` | 读取/新增 | 校验是否持有其他教练 active 套餐；创建时写入模板快照字段 |
@@ -516,6 +516,7 @@ And   不创建订单
 | v1.4 | 2026-08-12 | PM | 适配 US-045：§3 增加模板 `status='active'` 前置条件；§4.1 增加模板状态校验与快照字段写入；§4.2 增加 `PACKAGE_NOT_AVAILABLE` 异常分支；§6 补充模板状态校验与快照字段断言，新增场景 7；§7.1 更新 `package_template` 与快照说明；§12 补充模板快照备注 |
 | v1.6 | 2026-08-14 | PM | 适配 MVP 范围：未成年人购买正价课仅校验监护人手机号已填写，MVP 阶段不触发短信验证码校验；§7.2 `/api/guardian/verify`、§12 备注、§14.4 设计决策同步更新 |
 | v1.5 | 2026-08-13 | PM | 区分购买入口与页面流程：入口 A/B 均进入套餐详情页 → 选择/确认教练 → 点击立即购买 → 确认订单页 → 支付页；套餐详情页教练卡片区区分横向滚动竖向卡片（入口 A）与当前教练横向自适应卡片（入口 B）；§2/§3/§4.1/§5/§6/§7/§8/§10/§11/§13 同步更新 |
+| v1.7 | 2026-08-15 | AI | 三件套一致性修复：§6.1/6.2/6.3/7.1 order 字段由 course_type=1 统一为 package_mode='standard' |
 
 ---
 

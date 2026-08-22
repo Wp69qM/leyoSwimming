@@ -1,0 +1,68 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "27f804b2-0cd4-49b0-b598-2043a5a55ca6",
+  "page_name": "U-我的套餐页",
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "primary": "#1890FF",
+    "primary_dark": "#0050B3",
+    "text_primary": "#262626",
+    "text_secondary": "#8C8C8C",
+    "text_tertiary": "#BFBFBF",
+    "white": "#FFFFFF",
+    "success": "#52C41A",
+    "success_bg": "#F6FFED",
+    "warning": "#FAAD14",
+    "warning_bg": "#FFFBE6",
+    "warning_text": "#AD6800",
+    "danger": "#FF4D4F",
+    "danger_bg": "#FFF1F0",
+    "experience": "#FA8C16",
+    "experience_bg": "#FFF7E6",
+    "price": "#FF6B35",
+    "tag_standard_bg": "#E6F7FF",
+    "tag_standard_text": "#1890FF",
+    "tag_count_bg": "#F5F5F5",
+    "tag_count_text": "#8C8C8C",
+    "divider_light": "rgba(255,255,255,0.3)",
+    "icon_arrow": "#8C8C8C"
+  },
+  "typography": {
+    "summary_number": { "fontSize": 28, "fontWeight": 700, "lineHeight": 1.2 },
+    "summary_label": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "section_title": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 },
+    "card_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "tag": { "fontSize": 10, "fontWeight": 400, "lineHeight": 1.2 },
+    "status_tag": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "coach_info": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "hours_number": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 },
+    "hours_label": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "validity": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "price": { "fontSize": 14, "fontWeight": 700, "lineHeight": 1.2 },
+    "original_price": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "refund_button": { "fontSize": 12, "fontWeight": 600, "lineHeight": 1.2 },
+    "notice_text": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "empty_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "empty_subtitle": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "cta_button": { "fontSize": 15, "fontWeight": 600, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "page_horizontal": 16,
+    "section_gap": 12,
+    "card_padding": 16,
+    "card_inner_gap": 12,
+    "summary_padding": 20,
+    "content_top": 12,
+    "content_bottom": 34
+  },
+  "radius": {
+    "card": 12,
+    "tag": 9,
+    "button": 14,
+    "notice": 8,
+    "cta": 22
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)"
+  }
+}

@@ -8,7 +8,7 @@
 
 **Spec coverage:** 退款资格校验、金额计算、套餐状态校验
 
-- [ ] **RED:** Return eligible + amount for active package; reject PACKAGE_ALREADY_REFUNDED; reject PACKAGE_FROZEN; reject ORDER_NOT_PAID; calculate amount = paid × (total - consumed) / total
+- [ ] **RED:** Return eligible + amount for active package; reject PACKAGE_ALREADY_REFUNDED; reject PACKAGE_FROZEN; reject PACKAGE_EXHAUSTED_NOT_REFUNDABLE; reject ORDER_NOT_PAID; calculate amount = paid × (total - consumed) / total
 - [ ] **GREEN:** Implement eligibility check + amount calculator
 - [ ] **REFACTOR:** Extract amount calculator
 - [ ] **COMMIT:** `feat(refund): add refund eligibility service`

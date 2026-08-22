@@ -76,19 +76,19 @@ export default function SettingsPage() {
         style={{ paddingTop: `${STATUS_BAR_HEIGHT + NAV_BAR_HEIGHT}px` }}
       >
         <View className='settings__card'>
-        {SETTING_ITEMS.map((item) => (
-          <View
-            key={item.label}
-            className='settings__item'
-            onClick={() => handleItemClick(item)}
-          >
-            <View className='settings__left'>
-              <View className={`settings__icon ${item.iconClass}`} />
-              <Text className='settings__label'>{item.label}</Text>
+          {SETTING_ITEMS.map((item) => (
+            <View
+              key={item.label}
+              className='settings__item'
+              onClick={() => handleItemClick(item)}
+            >
+              <View className='settings__left'>
+                <View className={`settings__icon ${item.iconClass}`} />
+                <Text className='settings__label'>{item.label}</Text>
+              </View>
+              <Text className='settings__arrow'>&#8250;</Text>
             </View>
-            <Text className='settings__arrow'>&#8250;</Text>
-          </View>
-        ))}
+          ))}
         </View>
       </View>
     </View>

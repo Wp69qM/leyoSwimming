@@ -1,0 +1,91 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail--skeleton {
+  .coach-detail__header {
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+  }
+
+  .coach-detail__title--skeleton {
+    width: 80px;
+    height: 18px;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .coach-detail__back-icon--skeleton {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .coach-detail-header--skeleton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .coach-detail-header__avatar--skeleton {
+    border-radius: 50%;
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .coach-detail-header__skeleton-line {
+    border-radius: 4px;
+    background: rgb(255 255 255 / 30%);
+
+    &--name {
+      width: 80px;
+      height: 18px;
+      margin-top: 12px;
+    }
+
+    &--meta {
+      width: 140px;
+      height: 12px;
+      margin-top: 8px;
+    }
+
+    &--stats {
+      width: 180px;
+      height: 12px;
+      margin-top: 8px;
+    }
+  }
+
+  .coach-detail-card--skeleton {
+    background-color: $calicat-card-bg;
+  }
+
+  .coach-detail-card__title--skeleton {
+    width: 80px;
+    height: 16px;
+    border-radius: 4px;
+    background-color: $calicat-text-disabled;
+  }
+
+  .coach-detail-card__body--skeleton {
+    margin-top: 16px;
+    width: 100%;
+    height: 60px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

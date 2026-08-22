@@ -1,0 +1,267 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+  }
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  &__back {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    font-size: 24px;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-nav-bar-text;
+  }
+
+  &__navbar-placeholder {
+    width: 26px;
+  }
+
+  &__scroll {
+    flex: 1;
+    overflow: hidden;
+    padding: 12px 16px 24px;
+  }
+
+  &__notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: $calicat-warning-bg;
+  }
+
+  &__notice-icon {
+    font-size: 16px;
+    color: $calicat-warning;
+  }
+
+  &__notice-text {
+    flex: 1;
+    font-size: 13px;
+    color: $calicat-warning-text;
+  }
+
+  &__cta-spacer {
+    height: 90px;
+  }
+
+  &__cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 34px;
+    background-color: $calicat-white;
+    box-shadow: $calicat-bottom-bar-shadow;
+  }
+
+  &__cta-favorite {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  &__cta-favorite-icon {
+    font-size: 22px;
+    color: $calicat-text-disabled;
+
+    &--active {
+      color: $calicat-warning;
+    }
+  }
+
+  &__cta-favorite-text {
+    margin-top: 2px;
+    font-size: 10px;
+    color: $calicat-text-secondary;
+  }
+
+  &__cta-primary,
+  &__cta-secondary {
+    flex: 1;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__cta-primary {
+    background: linear-gradient(
+      90deg,
+      $calicat-experience-start 0%,
+      $calicat-experience-end 100%
+    );
+    box-shadow: 0 4px 12px rgb(255 107 53 / 35%);
+  }
+
+  &__cta-primary--disabled,
+  &__cta-secondary--disabled {
+    background: $calicat-text-disabled;
+    box-shadow: none;
+  }
+
+  &__cta-secondary {
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+    box-shadow: $calicat-button-shadow;
+  }
+
+  &__cta-primary-text,
+  &__cta-secondary-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+
+  &__modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(0 0 0 / 70%);
+  }
+
+  &__modal-image {
+    width: 280px;
+    height: 280px;
+    border-radius: 12px;
+    background-color: $calicat-white;
+  }
+}
+
+.coach-detail-card {
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-white;
+  box-shadow: $calicat-card-shadow;
+
+  &--row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__more {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__more-text {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__more-icon {
+    font-size: 14px;
+    color: $calicat-icon-arrow;
+  }
+
+  &__empty {
+    font-size: 14px;
+    color: $calicat-text-disabled;
+    text-align: center;
+    padding: 24px 0;
+  }
+}
+
+.coach-detail-error {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  &__icon {
+    font-size: 80px;
+    color: $calicat-text-disabled;
+  }
+
+  &__text {
+    margin-top: 16px;
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    text-align: center;
+  }
+
+  &__btn {
+    margin-top: 16px;
+    padding: 8px 24px;
+    border-radius: 18px;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+}

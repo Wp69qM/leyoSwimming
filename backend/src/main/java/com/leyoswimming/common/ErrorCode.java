@@ -54,6 +54,7 @@ public enum ErrorCode {
   NOT_OWN_PACKAGE(410005, "该套餐不属于当前教练"),
   INVALID_REFERENCE_PRICE(410008, "参考单价需在 50-2000 元之间"),
   PRICE_CHANGE_LIMIT_REACHED(410009, "今日参考单价修改次数已达上限"),
+  NOT_ASSOCIATED_STUDENT(410010, "该学员与当前教练无关联"),
 
   // 套餐/订单 420xxx
   PACKAGE_NOT_FOUND(420001, "套餐不存在"),
@@ -63,6 +64,17 @@ public enum ErrorCode {
   REFUND_PENDING_EXISTS(420005, "存在待处理的退款申请"),
   ORDER_NOT_FOUND(420006, "订单不存在"),
   ORDER_STATUS_NOT_ALLOWED(420007, "当前订单状态不允许该操作"),
+  INVALID_PACKAGE_PARAM(420101, "套餐参数错误"),
+  DUPLICATE_PACKAGE_NAME(420102, "套餐名称已存在"),
+  PACKAGE_TEMPLATE_NOT_FOUND(420103, "套餐模板不存在"),
+  INVALID_CUSTOM_PACKAGE_CONFIG(420104, "自定义套餐配置参数错误"),
+  PACKAGE_TEMPLATE_ACTIVE_CANNOT_EDIT(420105, "已上架套餐需先下架才能编辑"),
+  PACKAGE_NOT_ACTIVE(420106, "套餐未处于活跃状态"),
+  INVALID_TAG_FORMAT(420111, "标签格式错误"),
+  PACKAGE_NOT_FROZEN(420107, "套餐未处于冻结状态"),
+  PACKAGE_NOT_EXTENDABLE(420108, "套餐不满足延期条件"),
+  INVALID_EXTENSION_REASON(420109, "延期原因必填且不超过 200 字"),
+  PACKAGE_CONCURRENTLY_UPDATED(420110, "套餐已被他人更新，请刷新后重试"),
 
   // 管理员审批 510xxx
   CHECKLIST_NOT_PASSED(510001, "请先完成所有检查项"),
@@ -94,12 +106,16 @@ public enum ErrorCode {
   INVALID_GENDER(440009, "性别参数错误"),
   INVALID_AGE(440010, "年龄需在 3-99 岁之间"),
   INVALID_SWIM_STROKE(440011, "泳姿参数错误"),
+  INVALID_IMAGE(440012, "图片文件非法"),
 
   // 教练入驻申请 500xxx
   COACH_APPLICATION_PENDING(500001, "已有待审核申请"),
 
   // 系统 900xxx
-  INTERNAL_ERROR(900001, "系统繁忙，请稍后重试");
+  INTERNAL_ERROR(900001, "系统繁忙，请稍后重试"),
+  AI_SERVICE_ERROR(900002, "AI 服务暂时不可用，请稍后重试"),
+  AI_RATE_LIMITED(900003, "操作过于频繁，请稍后再试"),
+  AI_SESSION_NOT_FOUND(900004, "会话不存在或无权访问");
 
   private final int code;
   private final String message;

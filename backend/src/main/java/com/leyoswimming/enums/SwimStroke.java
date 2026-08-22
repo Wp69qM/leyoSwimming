@@ -49,4 +49,18 @@ public enum SwimStroke {
   public static boolean isValidLabel(String label) {
     return LABEL_TO_CODE.containsKey(label);
   }
+
+  public static String codeFromId(Integer id) {
+    if (id == null || id < 1 || id > values().length) {
+      return null;
+    }
+    return values()[id - 1].code;
+  }
+
+  public static String labelFromId(Integer id) {
+    if (id == null || id < 1 || id > values().length) {
+      return null;
+    }
+    return values()[id - 1].label;
+  }
 }

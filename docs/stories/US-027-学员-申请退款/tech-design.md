@@ -10,7 +10,7 @@
 
 | 表名 | 操作 | 说明 |
 |------|------|------|
-| `order` | 读/写 | 校验订单状态，更新为退款审批中 |
+| `order` | 读/写 | 校验原购买订单状态；创建退款订单（type='refund'，status=退款审批中），原购买订单 status 保持已支付不变 |
 | `package` | 读/写 | 校验套餐状态，更新为 frozen(refund_pending)，释放 reserved_count → 0 |
 | `refund_record` | 写 | 新增退款申请记录 |
 | `booking` | 写 | 已预约 booking → 已取消（cancel_reason=1 学员取消） |
@@ -88,7 +88,7 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 ### 2.3 业务规则
 
 - 退款金额 = `paid_amount × (total_hours - consumed_count) / total_hours`（§6.4.2）
-- package.status 必须 ∈ {active, exhausted, expired}，或 = frozen 且 frozen_reason = coach_resigned；否则拒绝
+- package.status 必须 ∈ {active, expired}，或 = frozen 且 frozen_reason = coach_resigned；exhausted 不允许退款，否则拒绝
 - 提交后 package.status → frozen（frozen_reason='refund_pending'，PRD §5.5.1.2），立即释放 reserved_count → 0，自动取消已预约课程（booking.status → 已取消，cancel_reason=1 学员取消，PRD §6.3.1），触发 US-024 候补转正
 - 教练离职场景：保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算
 - 已存在 status=待审批 的 refund_record → 拒绝（REFUND_IN_PROGRESS）
@@ -98,8 +98,8 @@ CREATE INDEX idx_refund_user_status ON refund_record(user_id, status);
 ## 3. 状态机
 
 ```
-order: 已支付 ──[学员提交退款]──→ 退款审批中
-package: active/exhausted/expired ──[学员提交退款]──→ frozen(refund_pending)，reserved_count → 0
+新建退款订单 order（type='refund'，status=退款审批中），原购买订单 status 保持已支付不变
+package: active/expired ──[学员提交退款]──→ frozen(refund_pending)，reserved_count → 0
 package: frozen(coach_resigned) ──[学员提交退款]──→ frozen(refund_pending)，保留 frozen_reason 历史值为 coach_resigned 用于 100% 退款计算，reserved_count → 0
 booking: 已预约 ──[学员提交退款触发]──→ 已取消（cancel_reason=1 学员取消）
 refund_record: 无 ──[学员提交]──→ 待审批
@@ -148,5 +148,5 @@ refund_record: 无 ──[学员提交]──→ 待审批
 | 正常申请退款 | `test_submit_refund_success` |
 | 套餐已退款 | `test_submit_refund_already_refunded` |
 | 重复提交退款 | `test_submit_refund_duplicate` |
-| 体验套餐退款金额为 0 | `test_refund_amount_zero_exhausted_trial` |
+| 已耗尽套餐拒绝退款 | `test_refund_exhausted_rejected` |
 | 过期套餐有剩余课时可退 | `test_refund_expired_with_remaining` |

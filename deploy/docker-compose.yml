@@ -51,11 +51,38 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:-dev-phone-encryption-key-change-in-production}
+      ID_CARD_ENCRYPTION_KEY: ${ID_CARD_ENCRYPTION_KEY:-dev-id-card-encryption-key-change-in-production}
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  ai-service:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+    container_name: leyo-ai-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: dev
+      LLM_MODEL: ${LLM_MODEL:-qwen-plus}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JAVA_INTERNAL_BASE_URL: http://leyo-backend:8080/api/internal/ai
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
+      ENABLE_MOCK_DATA: ${ENABLE_MOCK_DATA:-true}
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
 
   nginx:
     image: nginx:alpine
@@ -67,6 +94,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - backend
+      - ai-service
 
 volumes:
   mysql_data:

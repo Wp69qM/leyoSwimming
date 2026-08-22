@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>leyo - 你的游泳学习助手</title>
+  <style>
+    :root {
+      --primary: #3B8BFF;
+      --primary-light: #EDF4FF;
+      --bg: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --text-main: #1A1A1A;
+      --text-sub: #666666;
+      --text-light: #999999;
+      --border: #EEEEEE;
+      --user-bubble: #3B8BFF;
+      --ai-bubble: #FFFFFF;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #E5E5E5;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 375px;
+      background: var(--bg);
+      min-height: 100vh;
+      max-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      height: 52px;
+      background: var(--card-bg);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-btn {
+      min-width: 52px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-sub);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Chat Area */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 12px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      gap: 8px;
+      max-width: 92%;
+      align-items: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message.ai {
+      align-self: flex-start;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    .bubble {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .message.user .bubble {
+      background: var(--user-bubble);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.ai .bubble {
+      background: var(--ai-bubble);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Welcome Message */
+    .welcome-bubble {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .welcome-bubble .bubble {
+      max-width: 260px;
+    }
+
+    .welcome-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    /* Quick Tags in Chat */
+    .quick-tags-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      padding-left: 42px;
+    }
+
+    .quick-tag {
+      padding: 8px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      font-size: 13px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .quick-tag:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .quick-tag:active {
+      transform: scale(0.96);
+    }
+
+    /* Recommendation Cards */
+    .recommendation-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .rec-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .rec-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .rec-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .rec-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: var(--bg);
+    }
+
+    .rec-title-group {
+      flex: 1;
+    }
+
+    .rec-type {
+      font-size: 11px;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+
+    .rec-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .rec-meta {
+      font-size: 12px;
+      color: var(--text-sub);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .rec-reason {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .price-tag {
+      color: #FF4D4F;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* Suggested Questions */
+    .suggested-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .suggested-question {
+      padding: 6px 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 16px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .suggested-question:hover {
+      background: #D6E7FF;
+    }
+
+    /* Input Area */
+    .input-area {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 375px;
+      background: var(--card-bg);
+      padding: 10px 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      z-index: 20;
+    }
+
+    .input-box {
+      flex: 1;
+      min-height: 44px;
+      max-height: 100px;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      font-size: 15px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .input-box:focus {
+      border-color: var(--primary);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .send-btn:disabled {
+      background: var(--text-light);
+      cursor: not-allowed;
+    }
+
+    /* Typing Indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 10px 12px;
+      background: var(--ai-bubble);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+      box-shadow: var(--shadow);
+      margin-left: 42px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-light);
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* History Drawer */
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .history-drawer {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: var(--card-bg);
+      z-index: 101;
+      transition: right 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .history-drawer.active {
+      right: 0;
+    }
+
+    .drawer-header {
+      height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .drawer-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg);
+      color: var(--text-sub);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .history-item {
+      padding: 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .history-item:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .history-item-title {
+      font-size: 14px;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-item-time {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* Scrollbar */
+    .chat-container::-webkit-scrollbar,
+    .history-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb,
+    .history-list::-webkit-scrollbar-thumb {
+      background: #D9D9D9;
+      border-radius: 2px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <!-- Header -->
+    <div class="header">
+      <button class="header-btn" id="newSessionBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        新会话
+      </button>
+      <div class="header-title">leyo</div>
+      <button class="header-btn" id="historyBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        历史
+      </button>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-container" id="chatContainer">
+      <!-- Welcome Message -->
+      <div class="welcome-bubble" id="welcomeMessage">
+        <img class="avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=leyo&backgroundColor=3B8BFF" alt="leyo" />
+        <div class="bubble">
+          <div class="welcome-name">leyo</div>
+          <div>你好！我是你的游泳学习助手。可以帮你推荐教练、选套餐、查课程。你想了解什么？</div>
+        </div>
+      </div>
+
+      <!-- Quick Tags -->
+      <div class="quick-tags-inline" id="quickTags">
+        <span class="quick-tag" data-text="推荐自由泳教练">🏊 自由泳教练</span>
+        <span class="quick-tag" data-text="预算3000的套餐">💰 3000元套餐</span>
+        <span class="quick-tag" data-text="女教练推荐">👩 女教练</span>
+        <span class="quick-tag" data-text="成人零基础">🌱 成人零基础</span>
+        <span class="quick-tag" data-text="儿童游泳">🧒 儿童游泳</span>
+        <span class="quick-tag" data-text="体验课推荐">🎯 体验课</span>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <textarea class="input-box" id="messageInput" placeholder="输入问题，如：推荐自由泳教练" rows="1"></textarea>
+      <button class="send-btn" id="sendBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- History Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <div class="drawer-title">历史会话</div>
+      <button class="drawer-close" id="drawerClose">×</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <!-- Mock history items -->
+    </div>
+  </div>
+
+  <script>
+    // Mock Data
+    const mockCoaches = [
+      {
+        id: 1,
+        type: 'coach',
+        name: '王教练',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wang&gender=female',
+        gender: '女',
+        age: 32,
+        teachingYears: 8,
+        rating: 4.9,
+        referencePrice: 200,
+        strokes: ['自由泳', '蛙泳'],
+        reason: '8 年教学经验，评分 4.9，擅长成人自由泳教学。'
+      },
+      {
+        id: 2,
+        type: 'coach',
+        name: '李教练',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=li&gender=male',
+        gender: '男',
+        age: 28,
+        teachingYears: 5,
+        rating: 4.8,
+        referencePrice: 180,
+        strokes: ['自由泳', '仰泳'],
+        reason: '5 年教学经验，自由泳专项，适合有一定基础。'
+      }
+    ];
+
+    const mockPackages = [
+      {
+        id: 101,
+        type: 'package',
+        name: '成人自由泳 10 节私教',
+        packageMode: '标准套餐',
+        hours: 10,
+        price: 1800,
+        pricePerHour: 180,
+        validityDays: 90,
+        teachingType: '一对一',
+        strokes: ['自由泳'],
+        reason: '单节课 180 元，系统学习自由泳，性价比高。'
+      },
+      {
+        id: 102,
+        type: 'package',
+        name: '自由泳体验课 2 节',
+        packageMode: '体验课',
+        hours: 2,
+        price: 299,
+        pricePerHour: 150,
+        validityDays: 30,
+        teachingType: '一对一',
+        strokes: ['自由泳'],
+        reason: '低成本体验，适合先试课后决定。'
+      }
+    ];
+
+    const suggestedReplies = [
+      '这个教练能约什么时候？',
+      '有没有更便宜的体验课？',
+      '一对二课程多少钱？',
+      '儿童可以学自由泳吗？'
+    ];
+
+    const mockHistory = [
+      { id: 'sess_001', title: '自由泳教练推荐', time: '10:30' },
+      { id: 'sess_002', title: '预算3000的套餐', time: '昨天' },
+      { id: 'sess_003', title: '儿童游泳课程', time: '昨天' },
+      { id: 'sess_004', title: '女教练推荐', time: '08-13' },
+      { id: 'sess_005', title: '一对一私教价格', time: '08-12' }
+    ];
+
+    // DOM Elements
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newSessionBtn = document.getElementById('newSessionBtn');
+    const historyBtn = document.getElementById('historyBtn');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const drawerClose = document.getElementById('drawerClose');
+    const historyList = document.getElementById('historyList');
+
+    const leyoAvatar = 'https://api.dicebear.com/7.x/notionists/svg?seed=leyo&backgroundColor=3B8BFF';
+    const userAvatar = 'https://api.dicebear.com/7.x/notionists/svg?seed=user&backgroundColor=FF8C3A';
+
+    // Initialize history list
+    function renderHistory() {
+      historyList.innerHTML = mockHistory.map(item => `
+        <div class="history-item" data-session="${item.id}">
+          <div class="history-item-title">${item.title}</div>
+          <div class="history-item-time">${item.time}</div>
+        </div>
+      `).join('');
+
+      historyList.querySelectorAll('.history-item').forEach(item => {
+        item.addEventListener('click', () => {
+          closeHistoryDrawer();
+          startNewSession();
+          setTimeout(() => {
+            sendMessage(`打开历史会话：${item.querySelector('.history-item-title').textContent}`);
+          }, 300);
+        });
+      });
+    }
+
+    renderHistory();
+
+    // Event Listeners
+    document.querySelectorAll('.quick-tag').forEach(tag => {
+      tag.addEventListener('click', () => {
+        const text = tag.getAttribute('data-text');
+        sendMessage(text);
+      });
+    });
+
+    sendBtn.addEventListener('click', () => {
+      const text = messageInput.value.trim();
+      if (text) sendMessage(text);
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const text = messageInput.value.trim();
+        if (text) sendMessage(text);
+      }
+    });
+
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+
+    newSessionBtn.addEventListener('click', startNewSession);
+
+    historyBtn.addEventListener('click', openHistoryDrawer);
+    drawerOverlay.addEventListener('click', closeHistoryDrawer);
+    drawerClose.addEventListener('click', closeHistoryDrawer);
+
+    function openHistoryDrawer() {
+      drawerOverlay.classList.add('active');
+      historyDrawer.classList.add('active');
+    }
+
+    function closeHistoryDrawer() {
+      drawerOverlay.classList.remove('active');
+      historyDrawer.classList.remove('active');
+    }
+
+    function startNewSession() {
+      chatContainer.innerHTML = `
+        <div class="welcome-bubble">
+          <img class="avatar" src="${leyoAvatar}" alt="leyo" />
+          <div class="bubble">
+            <div class="welcome-name">leyo</div>
+            <div>你好！我是你的游泳学习助手。可以帮你推荐教练、选套餐、查课程。你想了解什么？</div>
+          </div>
+        </div>
+        <div class="quick-tags-inline" id="quickTags"></div>
+      `;
+
+      const tags = [
+        { text: '推荐自由泳教练', label: '🏊 自由泳教练' },
+        { text: '预算3000的套餐', label: '💰 3000元套餐' },
+        { text: '女教练推荐', label: '👩 女教练' },
+        { text: '成人零基础', label: '🌱 成人零基础' },
+        { text: '儿童游泳', label: '🧒 儿童游泳' },
+        { text: '体验课推荐', label: '🎯 体验课' }
+      ];
+
+      const quickTagsContainer = document.getElementById('quickTags');
+      tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'quick-tag';
+        span.setAttribute('data-text', tag.text);
+        span.textContent = tag.label;
+        span.addEventListener('click', () => sendMessage(tag.text));
+        quickTagsContainer.appendChild(span);
+      });
+
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+    }
+
+    function sendMessage(text) {
+      appendUserMessage(text);
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+
+      showTyping();
+
+      setTimeout(() => {
+        removeTyping();
+        const response = generateAIResponse(text);
+        appendAIMessage(response);
+      }, 1200);
+
+      scrollToBottom();
+    }
+
+    function appendUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message user';
+      msgDiv.innerHTML = `
+        <div class="bubble">${escapeHtml(text)}</div>
+        <img class="avatar" src="${userAvatar}" alt="我" />
+      `;
+      chatContainer.appendChild(msgDiv);
+      scrollToBottom();
+    }
+
+    function showTyping() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing';
+      typingDiv.id = 'typingIndicator';
+      typingDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      `;
+      chatContainer.appendChild(typingDiv);
+      scrollToBottom();
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    function appendAIMessage(response) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message ai';
+
+      let html = `
+        <img class="avatar" src="${leyoAvatar}" alt="leyo" />
+        <div class="bubble">
+          <div>${response.text}</div>
+      `;
+
+      if (response.recommendations && response.recommendations.length > 0) {
+        html += '<div class="recommendation-cards">';
+        response.recommendations.forEach(item => {
+          html += renderRecommendationCard(item);
+        });
+        html += '</div>';
+      }
+
+      if (response.suggestedQuestions && response.suggestedQuestions.length > 0) {
+        html += '<div class="suggested-questions">';
+        response.suggestedQuestions.forEach(q => {
+          html += `<span class="suggested-question" data-text="${escapeHtml(q)}">${escapeHtml(q)}</span>`;
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+      msgDiv.innerHTML = html;
+      chatContainer.appendChild(msgDiv);
+
+      msgDiv.querySelectorAll('.suggested-question').forEach(q => {
+        q.addEventListener('click', () => {
+          sendMessage(q.getAttribute('data-text'));
+        });
+      });
+
+      scrollToBottom();
+    }
+
+    function renderRecommendationCard(item) {
+      if (item.type === 'coach') {
+        return `
+          <div class="rec-card">
+            <div class="rec-card-header">
+              <img class="rec-avatar" src="${item.avatar}" alt="${item.name}" />
+              <div class="rec-title-group">
+                <div class="rec-type">教练推荐</div>
+                <div class="rec-name">${item.name}</div>
+              </div>
+            </div>
+            <div class="rec-meta">
+              <span>⭐ ${item.rating}</span>
+              <span>${item.teachingYears} 年教龄</span>
+              <span>${item.gender}</span>
+              <span>¥${item.referencePrice}/课时</span>
+            </div>
+            <div class="rec-meta">
+              <span>擅长：${item.strokes.join('、')}</span>
+            </div>
+            <div class="rec-reason">${item.reason}</div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="rec-card">
+            <div class="rec-card-header">
+              <div class="rec-title-group" style="margin-left: 0;">
+                <div class="rec-type">套餐推荐</div>
+                <div class="rec-name">${item.name}</div>
+              </div>
+            </div>
+            <div class="rec-meta">
+              <span class="price-tag">¥${item.price}</span>
+              <span>${item.hours} 课时</span>
+              <span>${item.teachingType}</span>
+              <span>有效期 ${item.validityDays} 天</span>
+            </div>
+            <div class="rec-meta">
+              <span>适合：${item.strokes.join('、')}</span>
+            </div>
+            <div class="rec-reason">${item.reason}</div>
+          </div>
+        `;
+      }
+    }
+
+    function generateAIResponse(userText) {
+      const lowerText = userText.toLowerCase();
+
+      if (lowerText.includes('教练')) {
+        return {
+          text: '根据你的需求，leyo 为你找到以下几位合适的教练：',
+          recommendations: mockCoaches,
+          suggestedQuestions: suggestedReplies
+        };
+      }
+
+      if (lowerText.includes('套餐') || lowerText.includes('预算')) {
+        return {
+          text: '根据你的预算，leyo 推荐以下套餐：',
+          recommendations: mockPackages,
+          suggestedQuestions: suggestedReplies
+        };
+      }
+
+      if (lowerText.includes('我的套餐')) {
+        return {
+          text: '你当前没有进行中的套餐。是否需要 leyo 为你推荐一个适合的新手套餐？',
+          recommendations: mockPackages.slice(0, 1),
+          suggestedQuestions: suggestedReplies
+        };
+      }
+
+      return {
+        text: '好的，为了更好地为你推荐，能告诉我你的年龄、游泳基础和目标泳姿吗？也可以直接点击下方标签快速开始。',
+        recommendations: [],
+        suggestedQuestions: suggestedReplies
+      };
+    }
+
+    function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

@@ -1,14 +1,13 @@
 .profile-complete {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: #f5f7fa;
   box-sizing: border-box;
 
   &__navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
+    flex-shrink: 0;
+    position: relative;
     background: #fff;
     border-bottom: 1px solid #f0f0f0;
   }
@@ -25,33 +24,36 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 88rpx;
+    width: 44rpx;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   &__navbar-back-icon {
-    font-size: 48rpx;
+    font-size: 24rpx;
     color: #262626;
     line-height: 1;
   }
 
   &__navbar-title {
-    font-size: 34rpx;
+    font-size: 17rpx;
     font-weight: 500;
     color: #262626;
   }
 
   &__body {
-    padding: 32rpx 32rpx 260rpx;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16rpx 16rpx 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   &__loading {
     display: block;
     text-align: center;
-    padding-top: 200rpx;
-    font-size: 28rpx;
+    padding-top: 100rpx;
+    font-size: 14rpx;
     color: #999;
   }
 
@@ -59,13 +61,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32rpx 0 16rpx;
+    padding: 16rpx 0;
   }
 
   &__avatar {
     position: relative;
-    width: 176rpx;
-    height: 176rpx;
+    width: 88rpx;
+    height: 88rpx;
     border-radius: 50%;
     overflow: hidden;
     background: #f0f0f0;
@@ -91,7 +93,7 @@
 
   &__avatar-tip {
     margin-top: 16rpx;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #8c8c8c;
 
     &--error {
@@ -103,8 +105,8 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    width: 56rpx;
-    height: 56rpx;
+    width: 28rpx;
+    height: 28rpx;
     border-radius: 50%;
     background: #1890ff;
     display: flex;
@@ -114,8 +116,8 @@
   }
 
   &__camera-icon {
-    width: 32rpx;
-    height: 24rpx;
+    width: 16rpx;
+    height: 12rpx;
     position: relative;
 
     &::before {
@@ -123,8 +125,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 32rpx;
-      height: 22rpx;
+      width: 16rpx;
+      height: 11rpx;
       border: 4rpx solid #fff;
       border-radius: 4rpx;
       box-sizing: border-box;
@@ -146,12 +148,12 @@
 
   &__card {
     background: #fff;
-    border-radius: 24rpx;
-    padding: 32rpx;
+    border-radius: 12rpx;
+    padding: 16rpx;
   }
 
   &__field {
-    margin-bottom: 32rpx;
+    margin-bottom: 16rpx;
 
     &--last {
       margin-bottom: 0;
@@ -160,7 +162,7 @@
 
   &__label {
     display: block;
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 500;
     color: #262626;
     margin-bottom: 16rpx;
@@ -172,7 +174,7 @@
   }
 
   &__label-note {
-    font-size: 24rpx;
+    font-size: 12rpx;
     font-weight: 400;
     color: #8c8c8c;
     margin-left: 4rpx;
@@ -180,14 +182,20 @@
 
   &__input {
     width: 100%;
-    height: 92rpx;
-    padding: 0 24rpx;
-    font-size: 28rpx;
+    height: 46rpx;
+    padding: 0 12rpx;
+    font-size: 14rpx;
     color: #262626;
     background: #fff;
     border: 1rpx solid #e8e8e8;
     border-radius: 16rpx;
     box-sizing: border-box;
+    line-height: 46rpx;
+
+    .weui-input {
+      height: 100%;
+      line-height: 46rpx;
+    }
 
     &--error {
       background: #fff2f0;
@@ -199,39 +207,14 @@
     }
   }
 
-  &__picker {
-    height: 92rpx;
-    padding: 0 24rpx;
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border: 1rpx solid #e8e8e8;
-    border-radius: 16rpx;
-    box-sizing: border-box;
-
-    &--error {
-      background: #fff2f0;
-      border-color: #ff4d4f;
-    }
-  }
-
-  &__picker-text {
-    font-size: 28rpx;
-    color: #bfbfbf;
-  }
-
-  &__picker--active &__picker-text {
-    color: #262626;
-  }
-
   &__radio-group {
     display: flex;
-    gap: 24rpx;
+    gap: 12rpx;
   }
 
   &__radio {
     flex: 1;
-    height: 92rpx;
+    height: 46rpx;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,7 +228,7 @@
   }
 
   &__radio-text {
-    font-size: 28rpx;
+    font-size: 14rpx;
     color: #595959;
   }
 
@@ -265,13 +248,13 @@
   }
 
   &__stroke {
-    padding: 0 32rpx;
-    height: 76rpx;
+    padding: 0 16rpx;
+    height: 38rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 999rpx;
-    font-size: 26rpx;
+    border-radius: 500rpx;
+    font-size: 13rpx;
     color: #595959;
     background: #fff;
     border: 1rpx solid #e8e8e8;
@@ -291,12 +274,12 @@
     display: flex;
     align-items: center;
     gap: 12rpx;
-    margin: 16rpx 0 24rpx;
+    margin: 16rpx 0 12rpx;
   }
 
   &__guardian-icon {
-    width: 32rpx;
-    height: 32rpx;
+    width: 16rpx;
+    height: 16rpx;
     border-radius: 50%;
     background: #fa8c16;
     position: relative;
@@ -308,52 +291,55 @@
       left: 50%;
       transform: translate(-50%, -50%);
       color: #fff;
-      font-size: 22rpx;
+      font-size: 11rpx;
       font-weight: 600;
       line-height: 1;
     }
   }
 
   &__guardian-title {
-    font-size: 28rpx;
+    font-size: 14rpx;
     font-weight: 500;
     color: #fa8c16;
   }
 
   &__textarea {
     width: 100%;
-    height: 228rpx;
-    padding: 24rpx;
-    font-size: 28rpx;
+    height: 114rpx;
+    padding: 12rpx;
+    font-size: 14rpx;
     color: #262626;
     background: #fff;
     border: 1rpx solid #e8e8e8;
     border-radius: 16rpx;
     box-sizing: border-box;
+    line-height: 1.5;
+
+    .weui-textarea {
+      height: 100%;
+    }
   }
 
   &__counter {
     display: block;
     text-align: right;
     margin-top: 8rpx;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #bfbfbf;
   }
 
   &__field-error {
     display: block;
     margin-top: 8rpx;
-    font-size: 24rpx;
+    font-size: 12rpx;
     color: #ff4d4f;
     line-height: 1.4;
   }
 
   &__footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+    flex-shrink: 0;
+    position: relative;
+    padding: 12rpx 16rpx calc(12rpx + env(safe-area-inset-bottom));
     background: #fff;
     box-shadow: 0 -4rpx 16rpx rgb(0 0 0 / 4%);
     box-sizing: border-box;
@@ -365,15 +351,15 @@
   }
 
   &__error-text {
-    font-size: 26rpx;
+    font-size: 13rpx;
     color: #ff4d4f;
   }
 
   &__submit {
     width: 100%;
-    height: 88rpx;
-    line-height: 88rpx;
-    font-size: 32rpx;
+    height: 44rpx;
+    line-height: 44rpx;
+    font-size: 16rpx;
     font-weight: 500;
     color: #fff;
     background: linear-gradient(135deg, #1890ff 0%, #0050b3 100%);

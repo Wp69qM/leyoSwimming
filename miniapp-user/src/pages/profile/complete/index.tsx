@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Taro from '@tarojs/taro';
-import {
-  View,
-  Text,
-  Input,
-  Button,
-  Image,
-  Picker,
-  Textarea,
-} from '@tarojs/components';
+import { View, Text, Input, Button, Image, Textarea } from '@tarojs/components';
 import {
   getProfile,
   updateProfile,
@@ -19,8 +11,6 @@ import {
 import { handleBusinessError, getErrorCode } from '@/api/request';
 import { useAuthStore } from '@/stores/authStore';
 import './index.scss';
-
-const AGE_RANGE = Array.from({ length: 97 }, (_, i) => String(i + 3));
 
 const SWIM_BASIS_OPTIONS = [
   { value: 'yes', label: '是' },
@@ -166,7 +156,7 @@ export default function ProfileCompletePage() {
     else if (!/^[^\s]{1,32}$/.test(name.trim()))
       next.name = '姓名长度不超过32个字符';
     const ageNum = Number(age);
-    if (!age || ageNum < 3 || ageNum > 99) next.age = '请选择年龄';
+    if (!age || ageNum < 3 || ageNum > 99) next.age = '请输入正确的年龄';
     if (!gender) next.gender = '请选择性别';
     if (ageNum < 18) {
       if (!guardianName.trim()) next.guardianName = '请输入监护人姓名';
@@ -262,7 +252,6 @@ export default function ProfileCompletePage() {
   }
 
   const ageNum = Number(age) || 0;
-  const ageIndex = age ? AGE_RANGE.indexOf(age) : -1;
   const showSwimDetail = swimBasisLevel === 'yes';
   const pageTitle = isEditMode ? '编辑资料' : '完善资料';
 
@@ -288,10 +277,7 @@ export default function ProfileCompletePage() {
         </View>
       </View>
 
-      <View
-        className='profile-complete__body'
-        style={{ paddingTop: `${STATUS_BAR_HEIGHT + NAV_BAR_HEIGHT}px` }}
-      >
+      <View className='profile-complete__body'>
         <View className='profile-complete__avatar-wrap'>
           <View
             className={`profile-complete__avatar ${errors.avatarUrl ? 'profile-complete__avatar--error' : ''}`}
@@ -370,23 +356,17 @@ export default function ProfileCompletePage() {
             <Text className='profile-complete__label'>
               年龄<Text className='profile-complete__required'>*</Text>
             </Text>
-            <Picker
-              mode='selector'
-              range={AGE_RANGE}
-              value={ageIndex >= 0 ? ageIndex : 0}
-              onChange={(e) => {
-                setAge(AGE_RANGE[Number(e.detail.value)]);
+            <Input
+              className={`profile-complete__input ${errors.age ? 'profile-complete__input--error' : ''}`}
+              type='number'
+              placeholder='请输入年龄（3-99）'
+              value={age}
+              onInput={(e) => {
+                setAge(e.detail.value.replace(/\D/g, '').slice(0, 2));
                 clearFieldError('age');
               }}
-            >
-              <View
-                className={`profile-complete__picker ${age ? 'profile-complete__picker--active' : ''} ${errors.age ? 'profile-complete__picker--error' : ''}`}
-              >
-                <Text className='profile-complete__picker-text'>
-                  {age ? `${age} 岁` : '请选择年龄（3-99）'}
-                </Text>
-              </View>
-            </Picker>
+              maxlength={2}
+            />
             {errors.age && (
               <Text className='profile-complete__field-error'>
                 {errors.age}
@@ -550,24 +530,22 @@ export default function ProfileCompletePage() {
             </Text>
           </View>
         </View>
+      </View>
 
-        <View className='profile-complete__footer'>
-          {globalError && (
-            <View className='profile-complete__error'>
-              <Text className='profile-complete__error-text'>
-                {globalError}
-              </Text>
-            </View>
-          )}
-          <Button
-            className={`profile-complete__submit ${loading ? 'profile-complete__submit--loading' : ''} ${!isFormValid ? 'profile-complete__submit--disabled' : ''}`}
-            onClick={handleSubmit}
-            loading={loading}
-            disabled={loading || !isFormValid}
-          >
-            {loading ? '保存中…' : isEditMode ? '保存' : '保存并进入首页'}
-          </Button>
-        </View>
+      <View className='profile-complete__footer'>
+        {globalError && (
+          <View className='profile-complete__error'>
+            <Text className='profile-complete__error-text'>{globalError}</Text>
+          </View>
+        )}
+        <Button
+          className={`profile-complete__submit ${loading ? 'profile-complete__submit--loading' : ''} ${!isFormValid ? 'profile-complete__submit--disabled' : ''}`}
+          onClick={handleSubmit}
+          loading={loading}
+          disabled={loading || !isFormValid}
+        >
+          {loading ? '保存中…' : isEditMode ? '保存' : '保存并进入首页'}
+        </Button>
       </View>
     </View>
   );

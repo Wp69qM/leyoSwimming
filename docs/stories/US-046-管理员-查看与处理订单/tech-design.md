@@ -19,7 +19,7 @@
 |------|------|------|
 | `order` | 读取/修改 | 订单主表，字段：order_id, user_id, coach_id, amount, status, paid_amount |
 | `package` | 读取/修改 | 退款批准后 status → refunded |
-| `refund_record` | 新增 | 退款记录：refund_id, order_id, amount, reason, status, admin_id |
+| `refund_record` | 读取 | 读取退款申请记录：refund_id, order_id, amount, reason, status, admin_id |
 | `audit_log` | 新增 | 操作日志 |
 | `user` / `coach` | 读取 | 列表/详情展示 |
 
@@ -76,8 +76,8 @@ CREATE INDEX idx_refund_record_order ON refund_record(order_id);
     "remark": "同意退款"
   }
   ```
-- Response 200 / 400 / 409
-- 错误码：`ORDER_STATUS_INVALID`, `REFUND_AMOUNT_MISMATCH`
+- Response 202 / 400 / 409
+- 错误码：`ORDER_STATUS_INVALID`, `REFUND_AMOUNT_INVALID`, `REFUND_AMOUNT_MISMATCH`, `REFUND_ALREADY_PROCESSED`
 
 ### 2.4 POST /api/admin/order/reject-refund
 
@@ -136,7 +136,7 @@ package.status:
 ## 6. 安全 / 鉴权
 
 - 所有接口登录 + RBAC
-- 退款金额 ≤ paid_amount
+- 退款金额需 ≥ 0；是否允许超过原支付金额 paid_amount 待产品确认
 - 操作日志不可修改
 - 敏感字段（支付流水）脱敏展示
 
@@ -157,8 +157,9 @@ package.status:
 |------|------|
 | 订单不存在 | 404 ORDER_NOT_FOUND |
 | 状态非法 | 400 ORDER_STATUS_INVALID |
-| 金额超额 | 400 REFUND_AMOUNT_MISMATCH |
-| 重复提交 | 幂等返回已有结果 |
+| 退款金额 < 0 | 400 REFUND_AMOUNT_INVALID |
+| 退款金额超过原支付金额 | 400 REFUND_AMOUNT_MISMATCH |
+| 重复提交 | 409 REFUND_ALREADY_PROCESSED / 幂等返回已有结果 |
 | 无权限 | 403 FORBIDDEN |
 
 ---

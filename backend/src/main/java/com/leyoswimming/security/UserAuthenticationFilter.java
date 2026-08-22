@@ -30,7 +30,10 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
       chain.doFilter(request, response);
       return;
     }
-    if (path.startsWith("/api/user/")) {
+    if (path.startsWith("/api/user/")
+        || path.startsWith("/api/order/")
+        || path.startsWith("/api/payment/")
+        || path.startsWith("/api/ai-assistant/")) {
       String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
       if (token != null
           && jwtTokenProvider.isTokenValid(token)

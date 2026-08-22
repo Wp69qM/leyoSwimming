@@ -148,7 +148,7 @@ function handleEditSuccess() {
   fetchList();
 }
 
-function handleSchedule(_row: AdminCoachListItem) {
+function handleSchedule() {
   ElMessage.info('排班管理功能即将上线');
 }
 
@@ -159,7 +159,7 @@ function handleViewStudents(row: AdminCoachListItem) {
   });
 }
 
-function handleViewLogs(_row: AdminCoachListItem) {
+function handleViewLogs() {
   ElMessage.info('操作日志功能即将上线');
 }
 

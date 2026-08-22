@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Min;
 public record AdminOrderListRequest(
     String type,
     String status,
+    String paymentMethod,
+    String startDate,
+    String endDate,
     String keyword,
     @Min(1) int page,
     @Min(1) int pageSize) {

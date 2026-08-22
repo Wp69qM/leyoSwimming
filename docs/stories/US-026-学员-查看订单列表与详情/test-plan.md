@@ -30,7 +30,7 @@
 - Create: `miniapp-user/src/pages/orders/index.tsx`, `miniapp-user/src/pages/order-detail/index.tsx`
 - Test: 对应测试文件
 
-- [ ] **RED:** Write failing tests — renders order cards; empty state; detail page shows refund entry
+- [ ] **RED:** Write failing tests — renders order cards; empty state; detail page shows associated package info and refund/reject reasons
 - [ ] **GREEN:** Implement pages
 - [ ] **REFACTOR:** Extract `<OrderCard />`
 - [ ] **COMMIT:** `feat(miniapp): add order list and detail pages`

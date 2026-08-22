@@ -1,0 +1,141 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 24px;
+  margin: 0 -16px;
+  background: linear-gradient(
+    90deg,
+    $calicat-primary 0%,
+    $calicat-primary-dark 100%
+  );
+
+  &__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-color: rgb(255 255 255 / 20%);
+    border: 2px solid rgb(255 255 255 / 30%);
+
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: $calicat-coach-avatar-bg;
+    }
+  }
+
+  &__avatar-text {
+    font-size: 32px;
+    font-weight: 600;
+    color: $calicat-coach-avatar-text;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &--main {
+      margin-top: 12px;
+    }
+  }
+
+  &__name {
+    font-size: 20px;
+    font-weight: 700;
+    color: $calicat-white;
+  }
+
+  &__gender {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background-color: $calicat-gender-tag-bg;
+  }
+
+  &__gender-text {
+    font-size: 11px;
+    color: $calicat-white;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background-color: rgb(255 255 255 / 20%);
+  }
+
+  &__status-text {
+    font-size: 11px;
+    color: $calicat-white;
+  }
+
+  &__meta {
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgb(255 255 255 / 80%);
+  }
+
+  &__rating-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  &__star {
+    font-size: 14px;
+    color: $calicat-star-header;
+  }
+
+  &__rating {
+    font-size: 14px;
+    font-weight: 700;
+    color: $calicat-star-header;
+  }
+
+  &__rating-divider {
+    font-size: 12px;
+    color: rgb(255 255 255 / 50%);
+  }
+
+  &__students {
+    font-size: 13px;
+    color: rgb(255 255 255 / 80%);
+  }
+
+  &__certs {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    margin-top: 16px;
+    white-space: nowrap;
+  }
+
+  &__cert {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background-color: rgb(255 255 255 / 20%);
+    flex-shrink: 0;
+  }
+
+  &__cert-text {
+    font-size: 12px;
+    color: $calicat-white;
+  }
+}

@@ -1,0 +1,155 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail-review {
+  &__summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  &__summary-score {
+    font-size: 32px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+  }
+
+  &__summary-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__stars {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__star {
+    font-size: 14px;
+
+    &--active {
+      color: $calicat-star-icon;
+    }
+
+    &--empty {
+      color: $calicat-text-disabled;
+    }
+
+    &--small {
+      font-size: 10px;
+    }
+  }
+
+  &__summary-count {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  &__tag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background-color: $calicat-tag-standard-bg;
+  }
+
+  &__tag-text {
+    font-size: 12px;
+    color: $calicat-tag-standard-text;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    flex-shrink: 0;
+    background-color: $calicat-avatar-placeholder-bg;
+
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: $calicat-coach-avatar-bg;
+    }
+  }
+
+  &__avatar-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-coach-avatar-text;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__nickname {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__content {
+    font-size: 14px;
+    line-height: 1.5;
+    color: $calicat-content-text;
+  }
+
+  &__time {
+    font-size: 12px;
+    color: $calicat-text-disabled;
+  }
+
+  &__view-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 16px;
+    padding: 12px 0;
+    border-top: 1px solid $calicat-divider;
+  }
+
+  &__view-all-text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+  }
+
+  &__view-all-icon {
+    font-size: 14px;
+    color: $calicat-icon-arrow;
+  }
+}

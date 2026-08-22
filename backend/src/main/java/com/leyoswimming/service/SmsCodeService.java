@@ -12,15 +12,15 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class SmsCodeService {
 
   private static final int CODE_LENGTH = 6;
@@ -50,6 +50,20 @@ public class SmsCodeService {
   private final SmsSender smsSender;
   private final StringRedisTemplate redisTemplate;
   private final PhoneEncryptor phoneEncryptor;
+  private final String mockFixedCode;
+
+  public SmsCodeService(
+      SmsCodeMapper smsCodeMapper,
+      SmsSender smsSender,
+      StringRedisTemplate redisTemplate,
+      PhoneEncryptor phoneEncryptor,
+      @Value("${leyo.sms.mock-fixed-code:}") String mockFixedCode) {
+    this.smsCodeMapper = smsCodeMapper;
+    this.smsSender = smsSender;
+    this.redisTemplate = redisTemplate;
+    this.phoneEncryptor = phoneEncryptor;
+    this.mockFixedCode = mockFixedCode;
+  }
 
   public void send(String phone, String scene, AppType appType) {
     String phoneHash = hashPhone(phone);
@@ -131,6 +145,9 @@ public class SmsCodeService {
   }
 
   private String generateCode() {
+    if (StringUtils.hasText(mockFixedCode)) {
+      return mockFixedCode;
+    }
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < CODE_LENGTH; i++) {
       sb.append(ThreadLocalRandom.current().nextInt(10));

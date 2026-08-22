@@ -61,8 +61,8 @@
 ### Task 5：发起退款接口
 
 - [ ] **5.1 RED**：编写 active package 发起退款成功测试（含默认金额）
-- [ ] **5.2 RED**：编写管理员修改退款金额成功测试
-- [ ] **5.3 RED**：编写退款金额超过系统计算金额失败测试
+- [ ] **5.2 RED**：编写管理员修改退款金额成功测试（可大于系统计算金额）
+- [ ] **5.3 RED**：编写退款金额为负数失败测试
 - [ ] **5.4 RED**：编写修改金额未填写调整原因失败测试
 - [ ] **5.5 RED**：编写 refund_enabled=false 发起退款失败测试
 - [ ] **5.6 RED**：编写重复发起退款失败测试
@@ -125,7 +125,7 @@
 | 10 | 延期不可延期套餐失败 | 6.10 | `test_extend_not_extendable_package` | HTTP 409，PACKAGE_NOT_EXTENDABLE |
 | 11 | 发起退款时 package 不可退款 | 6.11 | `test_refund_not_refundable_package` | HTTP 409，PACKAGE_NOT_REFUNDABLE |
 | 12 | 重复发起退款失败 | 6.12 | `test_refund_pending_exists` | HTTP 409，REFUND_PENDING_EXISTS |
-| 13 | 退款金额超过系统计算金额 | — | `test_refund_amount_exceeds_calculated` | HTTP 409，REFUND_AMOUNT_INVALID |
+| 13 | 退款金额为负数 | — | `test_refund_amount_negative` | HTTP 400，REFUND_AMOUNT_INVALID |
 | 14 | 修改退款金额未填调整原因 | — | `test_refund_adjust_reason_required` | HTTP 409，REFUND_AMOUNT_INVALID 或业务校验错误 |
 | 15 | 并发冻结/解冻/延期 | 8.1 | `test_concurrent_package_status_change` | 仅一次成功 |
 | 16 | 冻结时取消未上课 booking | 8.2 | `test_freeze_cancels_future_bookings` | 未来 booking 取消 |

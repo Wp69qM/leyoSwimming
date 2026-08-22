@@ -177,15 +177,14 @@
 
 - **鉴权**：管理员 JWT，`MANAGE_PACKAGE`
 - **请求体**：`{ "packageId": 1, "reason": "协商退款", "refundAmount": 1200.00, "adjustReason": "协商一致", "version": 1 }`
-  - `refundAmount`：管理员填写的退款金额，可选，默认使用系统计算金额；不得超过系统计算金额且不能小于 0
+  - `refundAmount`：管理员填写的退款金额，可选，默认使用系统计算金额；可大于系统计算金额，但不能小于 0
   - `adjustReason`：金额调整原因，当 `refundAmount` 与系统计算金额不一致时必填
 - **响应 200**：`{ "message": "退款订单已生成，请前往订单管理审批", "orderNo": "R202608010001" }`
 - **错误码**：
-  - `ADMIN_PERMISSION_DENIED`（403）
+  - `FORBIDDEN`（403）
   - `PACKAGE_NOT_FOUND`（404）
-  - `PACKAGE_STATUS_NOT_ALLOWED`（409）
   - `PACKAGE_NOT_REFUNDABLE`（409）
-  - `REFUND_AMOUNT_INVALID`（409）
+  - `REFUND_AMOUNT_INVALID`（400）
   - `REFUND_PENDING_EXISTS`（409）
   - `PACKAGE_CONCURRENTLY_UPDATED`（409）
 

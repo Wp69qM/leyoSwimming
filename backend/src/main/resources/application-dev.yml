@@ -19,6 +19,11 @@ spring:
       password: ${REDIS_PASSWORD:leyo1234}
       database: ${REDIS_DATABASE:0}
 
+mybatis-plus:
+  global-config:
+    db-config:
+      table-format: "`%s`"
+
 leyo:
   jwt:
     secret: ${JWT_SECRET}
@@ -26,8 +31,14 @@ leyo:
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   phone-encryption:
     key: ${PHONE_ENCRYPTION_KEY}
+  id-card-encryption:
+    key: ${ID_CARD_ENCRYPTION_KEY}
   sms:
     mock-enabled: ${SMS_MOCK_ENABLED:true}
+    mock-fixed-code: ${SMS_MOCK_FIXED_CODE:123456}
   wechat:
     appid: ${WECHAT_APPID:wx_mock_appid}
     secret: ${WECHAT_SECRET:wx_mock_secret}
+  ai-service:
+    base-url: ${AI_SERVICE_BASE_URL:http://leyo-ai-service:8000}
+    internal-api-token: ${INTERNAL_API_TOKEN:dev-internal-token-must-be-overridden-in-production}

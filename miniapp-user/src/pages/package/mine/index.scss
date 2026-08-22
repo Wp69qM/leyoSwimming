@@ -1,0 +1,568 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.my-package {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: $calicat-white;
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 $calicat-page-horizontal;
+  }
+
+  &__back {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    font-size: 24px;
+    color: $calicat-text-primary;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+  }
+
+  &__navbar-placeholder {
+    width: 26px;
+  }
+
+  &__content {
+    padding: $calicat-page-top $calicat-page-horizontal $calicat-page-bottom;
+  }
+
+  &__groups {
+    display: flex;
+    flex-direction: column;
+    gap: $calicat-section-gap;
+  }
+}
+
+.summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: $calicat-my-package-summary-padding 0;
+  margin-bottom: $calicat-section-gap;
+  border-radius: $calicat-card-radius;
+  background: $calicat-my-package-summary-gradient;
+  box-shadow: $calicat-card-shadow;
+
+  &__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__number {
+    font-size: 28px;
+    font-weight: 700;
+    color: $calicat-white;
+    line-height: 1.2;
+  }
+
+  &__label {
+    font-size: 12px;
+    color: rgb(255 255 255 / 80%);
+    line-height: 1.2;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 32px;
+    background-color: rgb(255 255 255 / 30%);
+  }
+
+  &--skeleton {
+    height: 96px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+}
+
+.package-group {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px $calicat-card-padding;
+    background-color: transparent;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: $calicat-my-package-section-title;
+    line-height: 1.2;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background-color: $calicat-my-package-count-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__count-text {
+    font-size: 12px;
+    color: $calicat-my-package-count-text;
+    line-height: 1;
+  }
+
+  &__arrow {
+    font-size: 16px;
+    color: $calicat-icon-arrow;
+    transform: rotate(-90deg);
+    transition: transform 0.2s ease;
+
+    &--expanded {
+      transform: rotate(90deg);
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: $calicat-card-inner-gap;
+  }
+
+  &--skeleton {
+    .package-group__header {
+      height: 44px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+    }
+  }
+}
+
+.coach-resigned-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: $calicat-radius-notice;
+  background-color: $calicat-my-package-coach-resigned-notice-bg;
+
+  &__icon {
+    font-size: 16px;
+    color: $calicat-my-package-coach-resigned-notice-icon;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: 12px;
+    color: $calicat-my-package-coach-resigned-notice-text;
+    line-height: 1.5;
+  }
+}
+
+.package-card {
+  padding: $calicat-card-padding;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-white;
+  box-shadow: $calicat-card-shadow;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__name {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 1.4;
+  }
+
+  &__tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__mode-tag {
+    height: 18px;
+    padding: 0 8px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+
+    &--standard {
+      background-color: $calicat-tag-standard-bg;
+    }
+
+    &--experience {
+      background-color: $calicat-tag-experience-bg;
+    }
+
+    &--custom {
+      background-color: $calicat-tag-default-bg;
+    }
+  }
+
+  &__mode-tag-text {
+    font-size: 10px;
+    line-height: 1;
+
+    .package-card__mode-tag--standard & {
+      color: $calicat-tag-standard-text;
+    }
+
+    .package-card__mode-tag--experience & {
+      color: $calicat-tag-experience-text;
+    }
+
+    .package-card__mode-tag--custom & {
+      color: $calicat-text-secondary;
+    }
+  }
+
+  &__status-tag {
+    height: 18px;
+    padding: 0 8px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__status-tag-text {
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  &__status-tag--success {
+    background-color: $calicat-success-bg;
+
+    .package-card__status-tag-text {
+      color: $calicat-success;
+    }
+  }
+
+  &__status-tag--warning {
+    background-color: $calicat-warning-bg;
+
+    .package-card__status-tag-text {
+      color: $calicat-warning-text;
+    }
+  }
+
+  &__status-tag--danger {
+    background-color: $calicat-danger-bg;
+
+    .package-card__status-tag-text {
+      color: $calicat-danger;
+    }
+  }
+
+  &__status-tag--secondary {
+    background-color: $calicat-tag-default-bg;
+
+    .package-card__status-tag-text {
+      color: $calicat-text-secondary;
+    }
+  }
+
+  &__coach {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__coach-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: $calicat-avatar-placeholder-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__coach-avatar-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: $calicat-primary;
+    line-height: 1;
+  }
+
+  &__coach-info {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+
+  &__body {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__hours {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__hours-item {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+
+  &__hours-label {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+
+  &__hours-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+
+    &--used {
+      color: $calicat-warning-orange;
+    }
+
+    &--remaining {
+      color: $calicat-primary;
+    }
+  }
+
+  &__expire {
+    font-size: 12px;
+    color: $calicat-text-tertiary;
+    line-height: 1.2;
+  }
+
+  &__footer {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid $calicat-divider;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  &__price {
+    font-size: 14px;
+    font-weight: 700;
+    color: $calicat-text-price;
+    line-height: 1.2;
+  }
+
+  &__original-price {
+    font-size: 11px;
+    color: $calicat-text-tertiary;
+    text-decoration: line-through;
+    line-height: 1.2;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__refund-button {
+    height: 26px;
+    padding: 0 12px;
+    border-radius: 13px;
+    border: 1px solid $calicat-danger;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__refund-button-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: $calicat-danger;
+    line-height: 1;
+  }
+
+  &__arrow {
+    font-size: 16px;
+    color: $calicat-icon-arrow;
+  }
+
+  &--skeleton {
+    height: 160px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+}
+
+.my-package-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 120px;
+
+  &__icon-wrap {
+    width: 96px;
+    height: 96px;
+    border-radius: 48px;
+    background-color: $calicat-info-icon-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__icon {
+    font-size: 48px;
+    color: $calicat-primary;
+  }
+
+  &__title {
+    margin-top: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    margin-top: 8px;
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    line-height: 1.2;
+  }
+
+  &__button {
+    margin-top: 24px;
+    min-width: 180px;
+    height: 44px;
+    padding: 0 32px;
+    border-radius: 22px;
+    background: $calicat-my-package-summary-gradient;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__button-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: $calicat-white;
+    line-height: 1;
+  }
+}
+
+.my-package-error {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 160px;
+  }
+
+  &__icon {
+    font-size: 64px;
+    color: $calicat-text-tertiary;
+  }
+
+  &__text {
+    margin-top: 16px;
+    padding: 0 40px;
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  &__button {
+    margin-top: 24px;
+    height: 40px;
+    padding: 0 32px;
+    border-radius: 20px;
+    background: $calicat-my-package-summary-gradient;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__button-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-white;
+    line-height: 1;
+  }
+}
+
+.my-package--skeleton {
+  .package-group--skeleton {
+    margin-top: 12px;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -2,6 +2,7 @@ import { request } from './request';
 
 export interface SendSmsCodeParams {
   phone: string;
+  appType: 'user' | 'coach';
   scene:
     | 'login'
     | 'register'

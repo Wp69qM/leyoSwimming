@@ -25,8 +25,21 @@
 | `created_at` | 创建时间 |
 | `paid_at` | 支付时间 |
 | `expire_at` | 支付截止时间（24h）|
+| `package_name` | 套餐名称（快照）|
+| `package_mode` | 'experience'/'standard'（快照）|
+| `coach_name` | 教练姓名（快照）|
+| `teaching_type` | 教学类型（快照）|
+| `stroke_ids` | 泳姿 ID 列表（快照，JSON）|
+| `total_hours` | 总课时（快照）|
+| `duration_minutes` | 每节课时长（快照）|
+| `valid_days` | 有效期天数（快照）|
+| `original_price` | 原价（分，快照）|
+| `paid_amount` | 实付金额（分，快照）|
+| `refund_enabled` | 是否可退款（快照）|
+| `refund_ratio` | 退款比例（快照）|
+| `refund_valid_days` | 退款有效期天数（快照）|
 
-#### payment
+### payment
 
 | 字段 | 说明 |
 |------|------|
@@ -47,12 +60,22 @@
 | `user_id` | FK |
 | `coach_id` | FK |
 | `order_id` | FK |
-| `package_type` | 1=正式一对一 |
-| `total_hours` | 总课时 |
+| `package_name` | 套餐名称（快照）|
+| `package_mode` | 'experience'=体验 / 'standard'=正价（快照）|
+| `coach_name` | 教练姓名（快照）|
+| `teaching_type` | 教学类型（快照）|
+| `stroke_ids` | 泳姿 ID 列表（快照，JSON）|
+| `total_hours` | 总课时（快照）|
+| `duration_minutes` | 每节课时长（快照）|
+| `valid_days` | 有效期天数（快照）|
+| `original_price` | 原价（分，快照）|
+| `paid_amount` | 实付金额（分，快照）|
+| `refund_enabled` | 是否可退款（快照）|
+| `refund_ratio` | 退款比例（快照）|
+| `refund_valid_days` | 退款有效期天数（快照）|
 | `reserved_count` | 预占中，初始 0 |
 | `consumed_count` | 已消耗，初始 0 |
 | `available_count` | 可用，初始 = total_hours |
-| `paid_amount` | 实付金额（分）|
 | `status` | active |
 | `expire_at` | 过期时间 |
 

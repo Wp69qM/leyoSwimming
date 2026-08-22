@@ -1,0 +1,290 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "50f251d8-0262-4084-ab5a-86079f699dfc",
+  "page_name": "U-教练列表页",
+  "last_synced_at": "2026-08-17T00:00:00+08:00",
+  "colors": {
+    "pageBackground": "#F5F7FA",
+    "statusBarStart": "#1890FF",
+    "statusBarEnd": "#0050B3",
+    "navBarText": "#FFFFFF",
+    "searchBarBackground": "#F5F7FA",
+    "searchBarBorder": "#E8E8E8",
+    "searchBarIcon": "#8C8C8C",
+    "searchBarClear": "#D9D9D9",
+    "searchPlaceholder": "#BFBFBF",
+    "sortBarBackground": "#FFFFFF",
+    "sortSelected": "#1890FF",
+    "sortUnselected": "#262626",
+    "sortIndicator": "#1890FF",
+    "divider": "#F0F0F0",
+    "cardBackground": "#FFFFFF",
+    "cardShadow": "rgba(0, 0, 0, 0.08)",
+    "primaryText": "#262626",
+    "secondaryText": "#8C8C8C",
+    "disabledText": "#BFBFBF",
+    "primary": "#1890FF",
+    "price": "#FF6B35",
+    "star": "#FAAD14",
+    "avatarBlue": "#E6F7FF",
+    "avatarOrange": "#FFF2E8",
+    "avatarGreen": "#F6FFED",
+    "statusIdleBackground": "#F6FFED",
+    "statusIdleText": "#52C41A",
+    "statusTeachingBackground": "#FFF1F0",
+    "statusTeachingText": "#FF4D4F",
+    "statusRestingBackground": "#FFF7E6",
+    "statusRestingText": "#FAAD14",
+    "statusOffDutyBackground": "#F5F5F5",
+    "statusOffDutyText": "#8C8C8C",
+    "statusLeaveBackground": "#FFFBE6",
+    "statusLeaveText": "#FAAD14",
+    "skillTagBackground": "#F5F5F5",
+    "skillTagText": "#8C8C8C",
+    "tabBarBackground": "#FFFFFF",
+    "tabBarShadow": "rgba(0, 0, 0, 0.12)",
+    "tabBarTopBorder": "#F0F0F0",
+    "tabUnselected": "#8C8C8C",
+    "tabSelected": "#1890FF",
+    "emptyStateText": "#8C8C8C",
+    "emptyStateDescription": "#BFBFBF",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "statusBarTime": {
+      "fontSize": 14,
+      "fontWeight": 500,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Medium"
+    },
+    "navTitle": {
+      "fontSize": 17,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "searchPlaceholder": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "sortSelected": {
+      "fontSize": 14,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "sortUnselected": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "sortIcon": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "remixicon"
+    },
+    "coachName": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "gender": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "statusTag": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "ratingStar": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "remixicon"
+    },
+    "ratingScore": {
+      "fontSize": 14,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "teachingYears": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "skillTag": {
+      "fontSize": 10,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "listEnd": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "tabIcon": {
+      "fontSize": 24,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "remixicon"
+    },
+    "tabLabel": {
+      "fontSize": 10,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "tabLabelSelected": {
+      "fontSize": 10,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "emptyStateTitle": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.4,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "emptyStateDescription": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.4,
+      "fontFamily": "SourceHanSans-Regular"
+    }
+  },
+  "spacing": {
+    "pageHorizontal": 16,
+    "pageTop": 0,
+    "pageBottom": 24,
+    "searchBarPaddingTop": 12,
+    "searchBarPaddingRight": 16,
+    "searchBarPaddingBottom": 8,
+    "searchBarPaddingLeft": 16,
+    "searchBarHeight": 44,
+    "searchBarInnerPadding": 12,
+    "sortBarHeight": 48,
+    "sortBarHorizontalPadding": 32,
+    "sortItemHorizontalPadding": 8,
+    "cardPadding": 16,
+    "cardGap": 12,
+    "cardInnerGap": 12,
+    "nameRowGap": 6,
+    "ratingRowGap": 6,
+    "skillTagsGap": 8,
+    "infoSectionGap": 8,
+    "listEndPaddingVertical": 20,
+    "tabBarPaddingTop": 8,
+    "tabBarHorizontalPadding": 32,
+    "tabIconLabelGap": 2,
+    "safeAreaHeight": 34
+  },
+  "radius": {
+    "searchBar": 22,
+    "card": 12,
+    "avatar": 24,
+    "statusTag": 10,
+    "skillTag": 10,
+    "sortIndicator": 1,
+    "button": 0
+  },
+  "shadows": {
+    "sortBar": "0 1px 0 rgba(240, 240, 240, 1)",
+    "card": "0 2px 8px rgba(0, 0, 0, 0.08)",
+    "tabBar": "0 8px 24px rgba(0, 0, 0, 0.12), 0 -1px 0 rgba(240, 240, 240, 1)"
+  },
+  "icons": {
+    "source": "remixicon",
+    "search": "\uf4d1",
+    "clear": "\ueb96",
+    "star": "\uf186",
+    "sortArrow": "\uea74",
+    "signal": "\uf134",
+    "battery": "\ueaaf",
+    "tabHome": "\uee1d",
+    "tabCoach": "\uf1ee",
+    "tabBooking": "\ueb23",
+    "tabProfile": "\uf256"
+  },
+  "screenshots": {
+    "normal": "src/assets/calicat/screenshots/U-coach-list-normal.png"
+  },
+  "exported_assets": [
+    {
+      "name": "icon-search",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-search.svg",
+      "usage": "搜索框左侧搜索图标（当前为 remixicon U+F4D1）"
+    },
+    {
+      "name": "icon-clear",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-clear.svg",
+      "usage": "搜索框右侧清空图标（当前为 remixicon U+EB96）"
+    },
+    {
+      "name": "icon-star",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-star.svg",
+      "usage": "教练评分星级图标（当前为 remixicon U+F186，颜色 #FAAD14）"
+    },
+    {
+      "name": "icon-sort-arrow",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-sort-arrow.svg",
+      "usage": "排序栏价格排序右侧箭头图标（当前为 remixicon U+EA74，颜色 #BFBFBF）"
+    },
+    {
+      "name": "icon-tab-home",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-tab-home.svg",
+      "usage": "底部 TabBar 首页未选中图标（当前为 remixicon U+EE1D）"
+    },
+    {
+      "name": "icon-tab-coach",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-tab-coach.svg",
+      "usage": "底部 TabBar 教练选中图标（当前为 remixicon U+F1EE，颜色 #1890FF）"
+    },
+    {
+      "name": "icon-tab-booking",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-tab-booking.svg",
+      "usage": "底部 TabBar 预约未选中图标（当前为 remixicon U+EB23）"
+    },
+    {
+      "name": "icon-tab-profile",
+      "type": "icon",
+      "format": "svg",
+      "target_path": "src/assets/calicat/icons/icon-tab-profile.svg",
+      "usage": "底部 TabBar 我的未选中图标（当前为 remixicon U+F256）"
+    },
+    {
+      "name": "empty-coach-list",
+      "type": "illustration",
+      "format": "webp",
+      "target_path": "src/assets/calicat/illustrations/empty-coach-list.webp",
+      "usage": "教练列表空状态插画占位。当前 get_design_data 输出未包含空状态 Frame，需从 Calicat 空状态页面导出或后续补充"
+    }
+  ]
+}

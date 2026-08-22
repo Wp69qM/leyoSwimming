@@ -1,7 +1,7 @@
 package com.leyoswimming.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.leyoswimming.common.ErrorCode;
 import com.leyoswimming.dto.request.AdminOrderListRequest;
@@ -28,7 +28,9 @@ import com.leyoswimming.repository.UserMapper;
 import com.leyoswimming.util.OrderNoGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +75,17 @@ public class OrderService {
     if (StringUtils.isNotBlank(request.status())) {
       wrapper.eq(Order::getStatus, request.status().trim().toLowerCase());
     }
+    if (StringUtils.isNotBlank(request.paymentMethod())) {
+      wrapper.eq(Order::getPaymentMethod, request.paymentMethod().trim().toLowerCase());
+    }
+    if (StringUtils.isNotBlank(request.startDate())) {
+      LocalDate startDate = LocalDate.parse(request.startDate().trim());
+      wrapper.ge(Order::getCreatedAt, LocalDateTime.of(startDate, LocalTime.MIN));
+    }
+    if (StringUtils.isNotBlank(request.endDate())) {
+      LocalDate endDate = LocalDate.parse(request.endDate().trim());
+      wrapper.le(Order::getCreatedAt, LocalDateTime.of(endDate, LocalTime.MAX));
+    }
     if (StringUtils.isNotBlank(request.keyword())) {
       wrapper.like(Order::getOrderNo, request.keyword().trim());
     }
@@ -98,6 +111,18 @@ public class OrderService {
             .stream()
             .collect(Collectors.toMap(Coach::getId, Function.identity()));
 
+    List<Long> packageIds =
+        records.stream()
+            .map(Order::getPackageId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    Map<Long, CoursePackage> packageMap =
+        packageIds.isEmpty()
+            ? Map.of()
+            : packageMapper.selectBatchIds(packageIds).stream()
+                .collect(Collectors.toMap(CoursePackage::getId, Function.identity()));
+
     List<AdminOrderListItemResponse> list =
         records.stream()
             .map(
@@ -105,6 +130,13 @@ public class OrderService {
                   User user = userMap.get(order.getUserId());
                   Coach coach =
                       order.getCoachId() == null ? null : coachMap.get(order.getCoachId());
+                  CoursePackage coursePackage =
+                      order.getPackageId() == null ? null : packageMap.get(order.getPackageId());
+                  BigDecimal calculatedRefundAmount = null;
+                  if (OrderType.REFUND.getValue().equals(order.getType())
+                      && coursePackage != null) {
+                    calculatedRefundAmount = packageService.calculateRefundAmount(coursePackage);
+                  }
                   return new AdminOrderListItemResponse(
                       order.getId(),
                       order.getOrderNo(),
@@ -118,6 +150,7 @@ public class OrderService {
                       order.getOriginalAmount(),
                       order.getDiscountAmount(),
                       order.getPaidAmount(),
+                      calculatedRefundAmount,
                       order.getPaymentMethod(),
                       order.getReason(),
                       order.getCreatedAt());
@@ -150,6 +183,18 @@ public class OrderService {
 
     List<AdminOrderDetailResponse.OrderStatusLog> timeline = buildStatusTimeline(order);
 
+    AdminOrderDetailResponse.PackageSnapshot packageSnapshot = null;
+    if (coursePackage != null) {
+      packageSnapshot =
+          new AdminOrderDetailResponse.PackageSnapshot(
+              coursePackage.getId(),
+              coursePackage.getPackageNo(),
+              coursePackage.getStatus(),
+              coursePackage.getTotalHours(),
+              coursePackage.getAvailableCount(),
+              coursePackage.getExpireAt());
+    }
+
     return new AdminOrderDetailResponse(
         order.getId(),
         order.getOrderNo(),
@@ -160,6 +205,7 @@ public class OrderService {
         user == null ? null : user.getPhone(),
         order.getCoachId(),
         coach == null ? null : coach.getName(),
+        order.getTeachingType(),
         order.getPackageId(),
         order.getPurchaseOrderId(),
         purchaseOrder == null ? null : purchaseOrder.getOrderNo(),
@@ -171,12 +217,13 @@ public class OrderService {
         order.getChannelTradeNo(),
         order.getReason(),
         order.getRejectedReason(),
-        null,
+        order.getAdjustReason(),
         order.getApprovedBy(),
         order.getApprovedAt(),
         order.getRefundedAt(),
         order.getCreatedAt(),
-        timeline);
+        timeline,
+        packageSnapshot);
   }
 
   @Transactional
@@ -201,32 +248,43 @@ public class OrderService {
 
     BigDecimal calculatedAmount = packageService.calculateRefundAmount(coursePackage);
     BigDecimal refundAmount = request.refundAmount().setScale(2, RoundingMode.HALF_UP);
-    if (refundAmount.compareTo(BigDecimal.ZERO) < 0
+    if (refundAmount.compareTo(BigDecimal.ZERO) <= 0
         || refundAmount.compareTo(calculatedAmount) > 0) {
       throw new BusinessException(
           ErrorCode.REFUND_AMOUNT_INVALID,
-          "退款金额必须在 0 到 " + calculatedAmount + " 之间");
+          "退款金额超出可退范围");
     }
 
     LocalDateTime now = LocalDateTime.now();
 
-    Order updateOrder = new Order();
-    updateOrder.setId(order.getId());
-    updateOrder.setPaidAmount(refundAmount);
-    updateOrder.setStatus(OrderStatus.REFUND_PROCESSING.getValue());
-    updateOrder.setApprovedBy(adminId);
-    updateOrder.setApprovedAt(now);
-    orderMapper.updateById(updateOrder);
+    LambdaUpdateWrapper<Order> orderWrapper = new LambdaUpdateWrapper<>();
+    orderWrapper
+        .eq(Order::getId, order.getId())
+        .eq(Order::getStatus, OrderStatus.REFUND_PENDING.getValue())
+        .set(Order::getPaidAmount, refundAmount)
+        .set(Order::getAdjustReason, request.adjustReason())
+        .set(Order::getStatus, OrderStatus.REFUND_PROCESSING.getValue())
+        .set(Order::getApprovedBy, adminId)
+        .set(Order::getApprovedAt, now);
+    int orderUpdated = orderMapper.update(orderWrapper);
+    if (orderUpdated == 0) {
+      throw new BusinessException(ErrorCode.ORDER_STATUS_NOT_ALLOWED, "订单状态已变更，请刷新后重试");
+    }
 
     LambdaQueryWrapper<RefundRecord> recordWrapper = new LambdaQueryWrapper<>();
-    recordWrapper.eq(RefundRecord::getOrderId, order.getId()).last("LIMIT 1");
+    recordWrapper
+        .eq(RefundRecord::getOrderId, order.getId())
+        .eq(RefundRecord::getStatus, REFUND_RECORD_STATUS_PENDING)
+        .last("LIMIT 1");
     RefundRecord refundRecord = refundRecordMapper.selectOne(recordWrapper);
     if (refundRecord != null) {
-      RefundRecord updateRecord = new RefundRecord();
-      updateRecord.setId(refundRecord.getId());
-      updateRecord.setRefundAmount(refundAmount);
-      updateRecord.setStatus(REFUND_RECORD_STATUS_APPROVED);
-      refundRecordMapper.updateById(updateRecord);
+      LambdaUpdateWrapper<RefundRecord> updateRecordWrapper = new LambdaUpdateWrapper<>();
+      updateRecordWrapper
+          .eq(RefundRecord::getId, refundRecord.getId())
+          .eq(RefundRecord::getStatus, REFUND_RECORD_STATUS_PENDING)
+          .set(RefundRecord::getRefundAmount, refundAmount)
+          .set(RefundRecord::getStatus, REFUND_RECORD_STATUS_APPROVED);
+      refundRecordMapper.update(updateRecordWrapper);
     }
 
     RefundTransaction transaction = new RefundTransaction();
@@ -239,11 +297,9 @@ public class OrderService {
     refundTransactionMapper.insert(transaction);
 
     log.info(
-        "Refund approved: adminId={}, orderId={}, amount={}, calculated={}",
+        "Refund approved: adminId={}, orderId={}",
         adminId,
-        order.getId(),
-        refundAmount,
-        calculatedAmount);
+        order.getId());
 
     mockRefundChannelService.notifyRefundSuccess(transaction.getChannelRefundNo());
   }
@@ -265,22 +321,32 @@ public class OrderService {
 
     LocalDateTime now = LocalDateTime.now();
 
-    Order updateOrder = new Order();
-    updateOrder.setId(order.getId());
-    updateOrder.setStatus(OrderStatus.REJECTED.getValue());
-    updateOrder.setRejectedReason(request.rejectedReason());
-    updateOrder.setApprovedBy(adminId);
-    updateOrder.setApprovedAt(now);
-    orderMapper.updateById(updateOrder);
+    LambdaUpdateWrapper<Order> orderWrapper = new LambdaUpdateWrapper<>();
+    orderWrapper
+        .eq(Order::getId, order.getId())
+        .eq(Order::getStatus, OrderStatus.REFUND_PENDING.getValue())
+        .set(Order::getStatus, OrderStatus.REJECTED.getValue())
+        .set(Order::getRejectedReason, request.rejectedReason())
+        .set(Order::getApprovedBy, adminId)
+        .set(Order::getApprovedAt, now);
+    int orderUpdated = orderMapper.update(orderWrapper);
+    if (orderUpdated == 0) {
+      throw new BusinessException(ErrorCode.ORDER_STATUS_NOT_ALLOWED, "订单状态已变更，请刷新后重试");
+    }
 
     LambdaQueryWrapper<RefundRecord> recordWrapper = new LambdaQueryWrapper<>();
-    recordWrapper.eq(RefundRecord::getOrderId, order.getId()).last("LIMIT 1");
+    recordWrapper
+        .eq(RefundRecord::getOrderId, order.getId())
+        .eq(RefundRecord::getStatus, REFUND_RECORD_STATUS_PENDING)
+        .last("LIMIT 1");
     RefundRecord refundRecord = refundRecordMapper.selectOne(recordWrapper);
     if (refundRecord != null) {
-      RefundRecord updateRecord = new RefundRecord();
-      updateRecord.setId(refundRecord.getId());
-      updateRecord.setStatus(REFUND_RECORD_STATUS_REJECTED);
-      refundRecordMapper.updateById(updateRecord);
+      LambdaUpdateWrapper<RefundRecord> updateRecordWrapper = new LambdaUpdateWrapper<>();
+      updateRecordWrapper
+          .eq(RefundRecord::getId, refundRecord.getId())
+          .eq(RefundRecord::getStatus, REFUND_RECORD_STATUS_PENDING)
+          .set(RefundRecord::getStatus, REFUND_RECORD_STATUS_REJECTED);
+      refundRecordMapper.update(updateRecordWrapper);
     }
 
     if (order.getPackageId() != null) {
@@ -288,16 +354,16 @@ public class OrderService {
       if (coursePackage != null
           && "frozen".equals(coursePackage.getStatus())
           && REFUND_FROZEN_REASON.equals(coursePackage.getFrozenReason())) {
-        UpdateWrapper<CoursePackage> packageWrapper = new UpdateWrapper<>();
+        LambdaUpdateWrapper<CoursePackage> packageWrapper = new LambdaUpdateWrapper<>();
         packageWrapper
-            .eq("id", coursePackage.getId())
-            .set("status", "active")
-            .set("frozen_reason", null);
+            .eq(CoursePackage::getId, coursePackage.getId())
+            .set(CoursePackage::getStatus, "active")
+            .set(CoursePackage::getFrozenReason, null);
         packageMapper.update(packageWrapper);
       }
     }
 
-    log.info("Refund rejected: adminId={}, orderId={}, reason={}", adminId, order.getId(), request.rejectedReason());
+    log.info("Refund rejected: adminId={}, orderId={}", adminId, order.getId());
   }
 
   private List<AdminOrderDetailResponse.OrderStatusLog> buildStatusTimeline(Order order) {

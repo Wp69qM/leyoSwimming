@@ -1,0 +1,65 @@
+{
+  "file_id": "2083742072257646592",
+  "frames": {
+    "refund-apply-normal": "78fa26ea-61ca-4fd4-93a1-a3f29ccf5b7a",
+    "refund-apply-full-refund": "e28f888b-9669-49fd-b201-5d24f226914d",
+    "refund-apply-not-eligible": "0e7c3d1c-8609-4719-958c-462f14668745"
+  },
+  "page_name": "U-申请退款页",
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "card_bg": "#FFFFFF",
+    "text_primary": "#262626",
+    "text_secondary": "#8C8C8C",
+    "text_tertiary": "#595959",
+    "text_disabled": "#BFBFBF",
+    "primary": "#1890FF",
+    "primary_dark": "#0050B3",
+    "price": "#FF4D4F",
+    "warning": "#FAAD14",
+    "danger": "#FF4D4F",
+    "divider": "#F0F0F0",
+    "border": "#E8E8E8",
+    "input_bg": "#F5F7FA",
+    "standard_tag_bg": "#E6F7FF",
+    "standard_tag_text": "#1890FF",
+    "info_tip_bg": "#F5F7FA"
+  },
+  "typography": {
+    "page_title": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "section_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "package_name": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "price": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "price_label": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "caption": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "tag": { "fontSize": 10, "fontWeight": 400, "lineHeight": 1.2 },
+    "button": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "input_placeholder": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2
+    }
+  },
+  "spacing": {
+    "page_horizontal": 16,
+    "page_top": 12,
+    "page_bottom": 120,
+    "card_padding": 16,
+    "card_gap": 12,
+    "section_gap": 12,
+    "info_row_gap": 8
+  },
+  "radius": {
+    "card": 12,
+    "tag": 9,
+    "button": 8,
+    "input": 8,
+    "icon": 24
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottom_bar": "0 -4px 12px rgba(0,0,0,0.08)",
+    "primary_button": "0 4px 12px rgba(24,144,255,0.35)"
+  }
+}

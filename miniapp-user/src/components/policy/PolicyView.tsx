@@ -21,7 +21,10 @@ const STATUS_BAR_HEIGHT = SYSTEM_INFO.statusBarHeight || 0;
 const NAV_BAR_HEIGHT = 44;
 
 export function PolicyView({ title, fetchPolicy, emptyText }: PolicyViewProps) {
-  const [policy, setPolicy] = useState<{ version: string; content: string } | null>(null);
+  const [policy, setPolicy] = useState<{
+    version: string;
+    content: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retryKey, setRetryKey] = useState(0);
@@ -106,11 +109,10 @@ export function PolicyView({ title, fetchPolicy, emptyText }: PolicyViewProps) {
         {!loading && error && (
           <View className='policy-view__status'>
             <View className='policy-view__error-icon' />
-            <Text className='policy-view__status-text'>内容加载失败，请重试</Text>
-            <Button
-              className='policy-view__retry'
-              onClick={handleRetry}
-            >
+            <Text className='policy-view__status-text'>
+              内容加载失败，请重试
+            </Text>
+            <Button className='policy-view__retry' onClick={handleRetry}>
               重试
             </Button>
           </View>

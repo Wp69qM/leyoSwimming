@@ -6,7 +6,7 @@
 - Create: `backend/src/services/formal-purchase.ts`
 - Test: `backend/tests/services/formal-purchase.test.ts`
 
-**Spec coverage:** 标准套餐下单、自定义课时、协议校验、教练冲突、教练不可用
+**Spec coverage:** 标准套餐下单、自定义课时、协议校验、教练冲突、教练不可用、模板未上架、自定义配置越界
 
 - [ ] **RED:** Valid standard order created; valid custom order amount correct; reject missing agreement / coach conflict / unavailable coach
 - [ ] **GREEN:** Implement eligibility, amount calculation, order creation
@@ -76,3 +76,12 @@
 - 严格顺序：Task 1 → 2 → 3 → 4 → 5
 - 每 Task = RED → GREEN → REFACTOR → COMMIT
 - 禁止 placeholder
+
+---
+
+## 附录：变更日志
+
+| 版本 | 日期 | 作者 | 变更 |
+|------|------|------|------|
+| v1.0 | 2026-07-30 | QA | 初版 |
+| v1.1 | 2026-08-15 | AI | 三件套一致性修复：Task 1 补充模板未上架、自定义配置越界测试覆盖 |

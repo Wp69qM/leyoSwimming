@@ -434,7 +434,8 @@ public class AdminCoachManagementService {
         computeTenure(coach.getApprovedAt()),
         coach.getStatus(),
         studentCount == null ? 0L : studentCount,
-        resolveRealtimeStatus(coach.getStatus()));
+        resolveRealtimeStatus(coach.getStatus()),
+        coach.getReferencePrice());
   }
 
   private AdminCoachDetailResponse toDetailResponse(Coach coach) {
