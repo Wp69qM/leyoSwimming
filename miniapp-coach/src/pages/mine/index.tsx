@@ -58,8 +58,8 @@ function MenuItem({
   return (
     <View className={`mine__menu-item mine__menu-item--${variant}`} onClick={onClick}>
       <View className={`mine__menu-icon mine__menu-icon--${icon}`} />
-      <Text className='mine__menu-text'>{text}</Text>
-      {value && <Text className='mine__menu-value'>{value}</Text>}
+      <View className='mine__menu-text'>{text}</View>
+      {value && <View className='mine__menu-value'>{value}</View>}
       <Text className='mine__menu-arrow'>›</Text>
     </View>
   )
@@ -126,21 +126,10 @@ export default function MinePage() {
     loadProfile()
   }
 
-  function handleSettings() {
-    Taro.showActionSheet({
-      itemList: ['退出登录'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          handleLogout()
-        }
-      },
-    })
-  }
-
   if (loading) {
     return (
       <View className='mine mine--loading'>
-        <Text className='mine__loading-text'>加载中…</Text>
+        <View className='mine__loading-text'>加载中…</View>
       </View>
     )
   }
@@ -148,7 +137,7 @@ export default function MinePage() {
   if (error || !profile) {
     return (
       <View className='mine mine--error'>
-        <Text className='mine__error-text'>加载失败</Text>
+        <View className='mine__error-text'>加载失败</View>
         <Button className='mine__retry' onClick={handleRetry}>
           点击重试
         </Button>
@@ -188,8 +177,7 @@ export default function MinePage() {
   return (
     <View className='mine'>
       <View className='mine__navbar'>
-        <Text className='mine__navbar-title'>我的</Text>
-        <View className='mine__navbar-settings' onClick={handleSettings} />
+        <View className='mine__navbar-title'>我的</View>
       </View>
 
       <View className='mine__card mine__profile' onClick={() => navigateTo('/pages/profile/edit/index')}>
@@ -201,29 +189,29 @@ export default function MinePage() {
               mode='aspectFill'
             />
           ) : (
-            <Text className='mine__avatar-text'>{surname || '?'}</Text>
+            <View className='mine__avatar-text'>{surname || '?'}</View>
           )}
         </View>
         <View className='mine__info'>
           <View className='mine__name-row'>
-            <Text className='mine__surname'>{surname}</Text>
-            <Text className='mine__given-name'>{givenName}</Text>
+            <View className='mine__surname'>{surname}</View>
+            <View className='mine__given-name'>{givenName}</View>
           </View>
-          <Text className={`mine__tag ${STATUS_TAG_CLASS[status] || 'mine__tag--default'}`}>{statusText}</Text>
+          <View className={`mine__tag ${STATUS_TAG_CLASS[status] || 'mine__tag--default'}`}>{statusText}</View>
         </View>
       </View>
 
       {showStatusCard && (
         <View className={`mine__status-card ${STATUS_CARD_CLASS[status] || ''}`}>
-          <Text className='mine__status-title'>{STATUS_CARD_TITLE[status] ?? statusText}</Text>
-          <Text className='mine__status-desc'>
+          <View className='mine__status-title'>{STATUS_CARD_TITLE[status] ?? statusText}</View>
+          <View className='mine__status-desc'>
             {status === COACH_STATUS.UNDER_REVIEW && '审核通常需 1-3 个工作日'}
             {status === COACH_STATUS.REJECTED && `原因：${profile.rejectionReason || '资料不符合要求'}`}
             {status === COACH_STATUS.RESIGNED && '教学资格已冻结，仅可进行重新入驻'}
             {status === COACH_STATUS.RESIGNING && '学员端购买入口已隐藏，可继续上课'}
-          </Text>
+          </View>
           {status === COACH_STATUS.RESIGNING && (
-            <Text
+            <View
               className='mine__status-link'
               onClick={(e) => {
                 e.stopPropagation()
@@ -231,7 +219,7 @@ export default function MinePage() {
               }}
             >
               查看离职申请
-            </Text>
+            </View>
           )}
         </View>
       )}
@@ -287,6 +275,10 @@ export default function MinePage() {
           />
         )}
       </View>
+
+      <Button className='mine__logout' onClick={handleLogout}>
+        退出登录
+      </Button>
     </View>
   )
 }

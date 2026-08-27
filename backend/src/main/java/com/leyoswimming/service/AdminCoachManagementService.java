@@ -93,6 +93,8 @@ public class AdminCoachManagementService {
     permissionHelper.checkPermission(adminId, AdminPermissionHelper.PERM_COACH_READ);
 
     LambdaQueryWrapper<Coach> wrapper = new LambdaQueryWrapper<>();
+    // 教练管理默认只展示已入驻教练；入驻审核在独立页面处理
+    wrapper.eq(Coach::getStatus, CoachStatus.APPROVED.getValue());
     if (StringUtils.isNotBlank(request.status())) {
       try {
         int status = Integer.parseInt(request.status().trim());
@@ -456,7 +458,7 @@ public class AdminCoachManagementService {
         coach.getAge(),
         coach.getEmail(),
         coach.getWechatQrUrl(),
-        IdCardEncryptor.mask(decryptIdCard(coach.getIdCardNo())),
+        decryptIdCard(coach.getIdCardNo()),
         coach.getTeachingYears(),
         coach.getTotalStudents(),
         coach.getTotalHours(),

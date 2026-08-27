@@ -5,9 +5,9 @@ const config = {
   date: '2026-8-9',
   designWidth: 375,
   deviceRatio: {
-    // H5 rem 模式下 rootValue = (baseFontSize / deviceRatio) * 2；
-    // 设 baseFontSize=16、deviceRatio=2，可使 rootValue=16，1rpx 约等于 1px。
-    375: 2,
+    // 与 miniapp-user 保持一致：deviceRatio=1，1rpx 约等于 1px，
+    // 避免教练端 H5 字体/图标被放大两倍。
+    375: 1,
   },
   sourceRoot: 'src',
   outputRoot: 'dist',
@@ -29,9 +29,7 @@ const config = {
     postcss: {
       pxtransform: {
         enable: true,
-        config: {
-          baseFontSize: 16,
-        },
+        config: {},
       },
     },
   },
@@ -40,12 +38,10 @@ const config = {
     staticDirectory: 'static',
     esnextModules: [],
     postcss: {
-      // H5 启用 pxtransform 将 rpx 转为 rem；baseFontSize:16 + deviceRatio:2 使 rootValue=16，1rpx 约等于 1px。
+      // 与 miniapp-user 保持一致，不再设置 baseFontSize，由 deviceRatio=1 保证 1rpx≈1px。
       pxtransform: {
         enable: true,
-        config: {
-          baseFontSize: 16,
-        },
+        config: {},
       },
       autoprefixer: {
         enable: true,

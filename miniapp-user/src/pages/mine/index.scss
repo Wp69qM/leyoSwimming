@@ -3,18 +3,15 @@
   background-color: #f5f7fa;
   box-sizing: border-box;
 
-  &__navbar {
-    position: fixed;
+  &__header {
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     z-index: 100;
     background: #fff;
     border-bottom: 1px solid #f0f0f0;
   }
 
-  &__navbar-inner {
-    position: relative;
+  &__navbar {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -137,29 +134,8 @@
     &-icon {
       width: 24rpx;
       height: 24rpx;
-      border-radius: 12rpx;
       margin-right: 12rpx;
       flex-shrink: 0;
-
-      &--package {
-        background-color: #e6f7ff;
-      }
-
-      &--order {
-        background-color: #f6ffed;
-      }
-
-      &--booking {
-        background-color: #fff7e6;
-      }
-
-      &--privacy {
-        background-color: #f9f0ff;
-      }
-
-      &--settings {
-        background-color: #f5f5f5;
-      }
     }
 
     &-text {
@@ -174,7 +150,6 @@
   }
 
   &__logout {
-    width: 343rpx;
     height: 48rpx;
     line-height: 48rpx;
     color: #ff4d4f;

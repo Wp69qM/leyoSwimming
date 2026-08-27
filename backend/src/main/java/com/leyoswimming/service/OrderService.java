@@ -26,6 +26,7 @@ import com.leyoswimming.repository.RefundRecordMapper;
 import com.leyoswimming.repository.RefundTransactionMapper;
 import com.leyoswimming.repository.UserMapper;
 import com.leyoswimming.util.OrderNoGenerator;
+import com.leyoswimming.util.PhoneEncryptor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -63,6 +64,7 @@ public class OrderService {
   private final PackageService packageService;
   private final MockRefundChannelService mockRefundChannelService;
   private final AdminPermissionHelper permissionHelper;
+  private final PhoneEncryptor phoneEncryptor;
 
   @Transactional(readOnly = true)
   public AdminOrderListResponse list(Long adminId, AdminOrderListRequest request) {
@@ -183,6 +185,11 @@ public class OrderService {
 
     List<AdminOrderDetailResponse.OrderStatusLog> timeline = buildStatusTimeline(order);
 
+    String teachingType = order.getTeachingType();
+    if (teachingType == null && coursePackage != null) {
+      teachingType = coursePackage.getTeachingType();
+    }
+
     AdminOrderDetailResponse.PackageSnapshot packageSnapshot = null;
     if (coursePackage != null) {
       packageSnapshot =
@@ -202,10 +209,10 @@ public class OrderService {
         order.getStatus(),
         order.getUserId(),
         user == null ? null : user.getName(),
-        user == null ? null : user.getPhone(),
+        user == null ? null : decryptPhone(user.getPhone(), user.getId()),
         order.getCoachId(),
         coach == null ? null : coach.getName(),
-        order.getTeachingType(),
+        teachingType,
         order.getPackageId(),
         order.getPurchaseOrderId(),
         purchaseOrder == null ? null : purchaseOrder.getOrderNo(),
@@ -221,6 +228,7 @@ public class OrderService {
         order.getApprovedBy(),
         order.getApprovedAt(),
         order.getRefundedAt(),
+        order.getPaidAt(),
         order.getCreatedAt(),
         timeline,
         packageSnapshot);
@@ -392,5 +400,17 @@ public class OrderService {
     }
 
     return timeline;
+  }
+
+  private String decryptPhone(String encrypted, Long userId) {
+    if (encrypted == null) {
+      return null;
+    }
+    try {
+      return phoneEncryptor.decrypt(encrypted);
+    } catch (Exception e) {
+      log.error("Failed to decrypt phone for userId={}", userId, e);
+      return null;
+    }
   }
 }

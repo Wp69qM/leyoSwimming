@@ -136,6 +136,7 @@ const rules = computed(() => ({
       trigger: 'blur',
     },
   ],
+  // coachCerts 由 handleSubmit 手动校验，避免嵌套属性变更时表单校验不触发
   referencePrice: [
     { required: true, message: '参考单价不能为空', trigger: 'blur' },
     {
@@ -158,21 +159,6 @@ const rules = computed(() => ({
   healthCertUrl: [
     { required: true, message: '请上传健康证', trigger: 'change' },
   ],
-  coachCerts: [
-    {
-      validator: (_: unknown, value: { imageUrl: string }[]) => {
-        if (
-          !value ||
-          value.length === 0 ||
-          value.every((item) => !item.imageUrl)
-        ) {
-          return new Error('请上传至少一张教练资格证');
-        }
-        return true;
-      },
-      trigger: 'change',
-    },
-  ],
 }));
 
 function resetForm() {
@@ -180,7 +166,7 @@ function resetForm() {
   error.value = '';
   form.phone = '';
   form.name = '';
-  form.gender = 'MALE';
+  form.gender = 'male';
   form.age = 25;
   form.email = '';
   form.wechatQrUrl = '';
@@ -223,7 +209,7 @@ function fillFromCoach(data: AdminCoachDetail) {
   coach.value = data;
   form.phone = data.phone || '';
   form.name = data.name || '';
-  form.gender = data.gender || 'MALE';
+  form.gender = data.gender?.toLowerCase() || 'male';
   form.age = data.age ?? 25;
   form.email = data.email || '';
   form.wechatQrUrl = data.wechatQrUrl || '';
@@ -294,8 +280,21 @@ function handleClose() {
 
 async function handleSubmit() {
   error.value = '';
-  const valid = await formRef.value?.validate().catch(() => false);
+  const valid = await formRef.value?.validate().catch((invalidFields) => {
+    const messages = Object.values(invalidFields || {})
+      .flat()
+      .map((item: any) => item?.message)
+      .filter(Boolean);
+    error.value = messages[0] || '请检查表单填写是否正确';
+    return false;
+  });
   if (!valid) return;
+
+  const hasCoachCert = form.coachCerts.some((item) => item.imageUrl);
+  if (!hasCoachCert) {
+    error.value = '请上传至少一张教练资格证';
+    return;
+  }
 
   const certificates = buildCertificates();
   if (certificates.length === 0) {
@@ -419,8 +418,8 @@ watch(
         <el-col :span="12">
           <el-form-item label="性别" prop="gender">
             <el-radio-group v-model="form.gender">
-              <el-radio label="MALE">男</el-radio>
-              <el-radio label="FEMALE">女</el-radio>
+              <el-radio label="male">男</el-radio>
+              <el-radio label="female">女</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-col>

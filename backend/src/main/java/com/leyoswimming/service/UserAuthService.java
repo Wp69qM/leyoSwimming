@@ -18,6 +18,7 @@ import com.leyoswimming.security.JwtTokenProvider;
 import com.leyoswimming.service.wechat.WechatClient;
 import com.leyoswimming.service.wechat.WechatSession;
 import com.leyoswimming.util.PhoneEncryptor;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -132,9 +133,12 @@ public class UserAuthService {
         LocalDateTime.now().plusSeconds(jwtTokenProvider.getExpirationSeconds()));
     session.setLastActiveAt(LocalDateTime.now());
     userSessionMapper.insert(session);
-    user.setLastLoginAt(LocalDateTime.now());
-    user.setLoginIp(ip);
-    userMapper.updateById(user);
+    userMapper.update(
+        null,
+        new LambdaUpdateWrapper<User>()
+            .eq(User::getId, user.getId())
+            .set(User::getLastLoginAt, LocalDateTime.now())
+            .set(User::getLoginIp, ip));
     userLoginLogMapper.insert(buildLog(user.getId(), ip, userAgent, LOGIN_LOG_SUCCESS, null));
     return new UserLoginResponse(
         accessToken,

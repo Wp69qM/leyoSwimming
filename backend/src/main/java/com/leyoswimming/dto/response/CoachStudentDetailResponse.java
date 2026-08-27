@@ -9,7 +9,7 @@ public record CoachStudentDetailResponse(
   public record UserProfile(
       String avatarUrl,
       String name,
-      String phoneMasked,
+      String phone,
       Integer age,
       String gender,
       Boolean hasSwimBasis,
@@ -18,7 +18,7 @@ public record CoachStudentDetailResponse(
       String personalDesc,
       Boolean isMinor,
       String guardianName,
-      String guardianPhoneMasked) {}
+      String guardianPhone) {}
 
   public record CoachSlice(
       String learningStrokes,

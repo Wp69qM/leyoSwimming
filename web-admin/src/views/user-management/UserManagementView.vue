@@ -358,21 +358,6 @@ onMounted(() => {
               style="width: 240px"
             />
           </el-form-item>
-          <el-form-item class="filter-actions">
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
-            <el-button
-              link
-              type="primary"
-              class="advanced-toggle"
-              @click="advancedExpanded = !advancedExpanded"
-            >
-              <el-icon class="toggle-icon" :size="14">
-                <component :is="advancedExpanded ? ArrowUp : ArrowDown" />
-              </el-icon>
-              {{ advancedExpanded ? '收起高级筛选' : '展开高级筛选' }}
-            </el-button>
-          </el-form-item>
         </div>
         <div v-show="advancedExpanded" class="filter-row advanced-row">
           <el-form-item>
@@ -418,6 +403,23 @@ onMounted(() => {
             />
           </el-form-item>
         </div>
+        <div class="filter-row action-row">
+          <el-form-item class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+            <el-button
+              link
+              type="primary"
+              class="advanced-toggle"
+              @click="advancedExpanded = !advancedExpanded"
+            >
+              <el-icon class="toggle-icon" :size="14">
+                <component :is="advancedExpanded ? ArrowUp : ArrowDown" />
+              </el-icon>
+              {{ advancedExpanded ? '收起高级筛选' : '展开高级筛选' }}
+            </el-button>
+          </el-form-item>
+        </div>
       </el-form>
     </div>
 
@@ -440,34 +442,34 @@ onMounted(() => {
         row-class-name="table-row"
         style="width: 100%"
       >
-        <el-table-column label="用户 ID" width="80">
+        <el-table-column label="用户 ID" min-width="80">
           <template #default="{ row }">
             <span class="id-text">{{ row.userId }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="昵称/姓名" width="120">
+        <el-table-column label="昵称/姓名" min-width="120">
           <template #default="{ row }">
             <el-button link type="primary" @click="openView(row)">
               {{ formatName(row.name) }}
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="手机号" width="120">
+        <el-table-column label="手机号" min-width="150">
           <template #default="{ row }">
             <PhoneReveal :phone="row.phone" />
           </template>
         </el-table-column>
-        <el-table-column label="性别" align="center" width="80">
+        <el-table-column label="性别" align="center" min-width="80">
           <template #default="{ row }">
             {{ formatGender(row.gender) }}
           </template>
         </el-table-column>
-        <el-table-column label="年龄" align="center" width="80">
+        <el-table-column label="年龄" align="center" min-width="80">
           <template #default="{ row }">
             {{ formatAge(row.age) }}
           </template>
         </el-table-column>
-        <el-table-column label="身份" align="center" width="100">
+        <el-table-column label="身份" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -480,7 +482,7 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="资料完善" align="center" width="100">
+        <el-table-column label="资料完善" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -493,7 +495,7 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="账号状态" align="center" width="100">
+        <el-table-column label="账号状态" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -506,12 +508,18 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="注册时间" width="160">
+        <el-table-column label="注册时间" min-width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="220" fixed="right">
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="220"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button link type="primary" @click="openView(row)">
               查看
@@ -534,10 +542,10 @@ onMounted(() => {
               trigger="click"
               @command="(cmd: string) => handleCommand(cmd, row)"
             >
-              <span class="operation-more">
+              <el-button link type="primary">
                 更多
-                <i class="more-arrow"></i>
-              </span>
+                <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="view">查看日志</el-dropdown-item>
@@ -639,11 +647,16 @@ onMounted(() => {
   margin-top: 12px;
 }
 
+.action-row {
+  margin-top: 12px;
+}
+
 .filter-actions {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: auto;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .advanced-toggle {
@@ -684,30 +697,17 @@ onMounted(() => {
   border-radius: 12px;
 }
 
-.operation-more {
-  display: inline-flex;
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
   align-items: center;
-  margin-left: 12px;
-  font-size: 14px;
-  line-height: 1;
-  color: #1890ff;
-  cursor: pointer;
-  user-select: none;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
 
-  &:hover {
-    color: #40a9ff;
+  .el-button + .el-button {
+    margin-left: 0;
   }
-}
-
-.more-arrow {
-  display: inline-block;
-  width: 0;
-  height: 0;
-  margin-left: 4px;
-  border-top: 4px solid currentcolor;
-  border-right: 4px solid transparent;
-  border-left: 4px solid transparent;
-  transition: transform 0.2s ease;
 }
 
 .pagination-wrap {

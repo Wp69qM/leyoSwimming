@@ -5,6 +5,7 @@ import Taro from '@tarojs/taro';
 import { fetchMyPackageList } from '@/api/package';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
+import { getTeachingTypeLabel } from '@/constants/teachingType';
 import type { UserPackageListItem, UserPackageStatus } from '@/types/package';
 
 import './index.scss';
@@ -152,7 +153,7 @@ export default function MyPackagePage() {
           <Icon name='error-circle' className='my-package-error__icon' />
           <Text className='my-package-error__text'>{error}</Text>
           <View className='my-package-error__button' onClick={loadData}>
-            <Text className='my-package-error__button-text'>重新加载</Text>
+            <View className='my-package-error__button-text'>重新加载</View>
           </View>
         </View>
       </View>
@@ -207,7 +208,7 @@ function StatusBarAndNavBar({
         <View className='my-package__back' onClick={onBack}>
           <Icon name='arrow-left' className='my-package__back-icon' />
         </View>
-        <Text className='my-package__title'>{title}</Text>
+        <View className='my-package__title'>{title}</View>
         <View className='my-package__navbar-placeholder' />
       </View>
     </View>
@@ -222,24 +223,24 @@ function SummaryBar({
   return (
     <View className='summary-bar'>
       <View className='summary-bar__item'>
-        <Text className='summary-bar__number' data-testid='summary-total'>
+        <View className='summary-bar__number' data-testid='summary-total'>
           {summary.total}
-        </Text>
-        <Text className='summary-bar__label'>总课时</Text>
+        </View>
+        <View className='summary-bar__label'>总课时</View>
       </View>
       <View className='summary-bar__divider' />
       <View className='summary-bar__item'>
-        <Text className='summary-bar__number' data-testid='summary-used'>
+        <View className='summary-bar__number' data-testid='summary-used'>
           {summary.used}
-        </Text>
-        <Text className='summary-bar__label'>已上课时</Text>
+        </View>
+        <View className='summary-bar__label'>已上课时</View>
       </View>
       <View className='summary-bar__divider' />
       <View className='summary-bar__item'>
-        <Text className='summary-bar__number' data-testid='summary-remaining'>
+        <View className='summary-bar__number' data-testid='summary-remaining'>
           {summary.remaining}
-        </Text>
-        <Text className='summary-bar__label'>剩余课时</Text>
+        </View>
+        <View className='summary-bar__label'>剩余课时</View>
       </View>
     </View>
   );
@@ -271,10 +272,10 @@ function PackageGroup({
   return (
     <View className='package-group'>
       <View className='package-group__header' onClick={onToggle}>
-        <Text className='package-group__title'>{GROUP_LABELS[status]}</Text>
+        <View className='package-group__title'>{GROUP_LABELS[status]}</View>
         <View className='package-group__meta'>
           <View className='package-group__count'>
-            <Text className='package-group__count-text'>{items.length}</Text>
+            <View className='package-group__count-text'>{items.length}</View>
           </View>
           <Icon
             name='arrow-left'
@@ -324,14 +325,14 @@ function PackageCard({
     <View className='package-card' onClick={onClick}>
       <View className='package-card__header'>
         <View className='package-card__title-row'>
-          <Text className='package-card__name'>{item.packageName}</Text>
+          <View className='package-card__name'>{item.packageName}</View>
           <View className='package-card__tags'>
             <View
               className={`package-card__mode-tag package-card__mode-tag--${item.packageMode}`}
             >
-              <Text className='package-card__mode-tag-text'>
+              <View className='package-card__mode-tag-text'>
                 {packageModeLabel}
-              </Text>
+              </View>
             </View>
             <View
               className={`package-card__status-tag ${statusConfig.tagClass}`}
@@ -348,51 +349,51 @@ function PackageCard({
               {item.coachName?.charAt(0) || '?'}
             </Text>
           </View>
-          <Text className='package-card__coach-info'>
-            {item.coachName} · {item.teachingType} · {item.durationMinutes}
-            分钟/节
-          </Text>
+          <View className='package-card__coach-info'>
+            {item.coachName} · {getTeachingTypeLabel(item.teachingType)} ·{' '}
+            {item.durationMinutes}分钟/节
+          </View>
         </View>
       </View>
 
       <View className='package-card__body'>
         <View className='package-card__hours'>
           <View className='package-card__hours-item'>
-            <Text className='package-card__hours-label'>共</Text>
-            <Text className='package-card__hours-number'>
+            <View className='package-card__hours-label'>共</View>
+            <View className='package-card__hours-number'>
               {item.totalHours}
-            </Text>
-            <Text className='package-card__hours-label'>节</Text>
+            </View>
+            <View className='package-card__hours-label'>节</View>
           </View>
           <View className='package-card__hours-item'>
-            <Text className='package-card__hours-label'>已用</Text>
+            <View className='package-card__hours-label'>已用</View>
             <Text className='package-card__hours-number package-card__hours-number--used'>
               {item.consumedCount}
             </Text>
-            <Text className='package-card__hours-label'>节</Text>
+            <View className='package-card__hours-label'>节</View>
           </View>
           <View className='package-card__hours-item'>
-            <Text className='package-card__hours-label'>剩余</Text>
+            <View className='package-card__hours-label'>剩余</View>
             <Text className='package-card__hours-number package-card__hours-number--remaining'>
               {item.availableCount}
             </Text>
-            <Text className='package-card__hours-label'>节</Text>
+            <View className='package-card__hours-label'>节</View>
           </View>
         </View>
-        <Text className='package-card__expire'>
+        <View className='package-card__expire'>
           {formatDate(item.expireAt)} 到期
-        </Text>
+        </View>
       </View>
 
       <View className='package-card__footer'>
         <View className='package-card__price-row'>
-          <Text className='package-card__price'>
+          <View className='package-card__price'>
             ¥{formatPrice(item.paidAmount)}
-          </Text>
+          </View>
           {compareAmount(item.originalPrice, item.paidAmount) > 0 && (
-            <Text className='package-card__original-price'>
+            <View className='package-card__original-price'>
               ¥{formatPrice(item.originalPrice)}
-            </Text>
+            </View>
           )}
         </View>
         <View className='package-card__actions'>
@@ -421,12 +422,12 @@ function EmptyState({ onAction }: { onAction: () => void }) {
       <View className='my-package-empty__icon-wrap'>
         <Icon name='empty' className='my-package-empty__icon' />
       </View>
-      <Text className='my-package-empty__title'>您还没有套餐，去选购吧</Text>
+      <View className='my-package-empty__title'>您还没有套餐，去选购吧</View>
       <Text className='my-package-empty__subtitle'>
         选购心仪教练的课程套餐，开启游泳之旅
       </Text>
       <View className='my-package-empty__button' onClick={onAction}>
-        <Text className='my-package-empty__button-text'>去购买套餐</Text>
+        <View className='my-package-empty__button-text'>去购买套餐</View>
       </View>
     </View>
   );

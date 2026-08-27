@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text, Image, Button } from '@tarojs/components';
+import { View, Image, Button } from '@tarojs/components';
+import packageIcon from '@/assets/calicat/icons/briefcase-outline.svg';
+import orderIcon from '@/assets/calicat/icons/book-outline.svg';
+import bookingIcon from '@/assets/calicat/icons/calendar-outline.svg';
+import settingsIcon from '@/assets/calicat/icons/mine.svg';
 import { getProfile, type UserProfile } from '@/api/profile';
 import { logout } from '@/api/auth';
 import { handleBusinessError } from '@/api/request';
@@ -9,7 +13,7 @@ import './index.scss';
 
 interface MenuItem {
   label: string;
-  iconClass: string;
+  iconSrc: string;
   url?: string;
   requireAuth?: boolean;
 }
@@ -17,29 +21,24 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   {
     label: '我的套餐',
-    iconClass: 'mine__menu-icon--package',
+    iconSrc: packageIcon,
     url: '/pages/package/mine/index',
     requireAuth: true,
   },
   {
     label: '我的订单',
-    iconClass: 'mine__menu-icon--order',
+    iconSrc: orderIcon,
+    url: '/pages/order/list/index',
     requireAuth: true,
   },
   {
     label: '我的预约',
-    iconClass: 'mine__menu-icon--booking',
-    requireAuth: true,
-  },
-  {
-    label: '隐私协议',
-    iconClass: 'mine__menu-icon--privacy',
-    url: '/pages/privacy/index',
+    iconSrc: bookingIcon,
     requireAuth: true,
   },
   {
     label: '设置',
-    iconClass: 'mine__menu-icon--settings',
+    iconSrc: settingsIcon,
     url: '/pages/settings/index',
     requireAuth: true,
   },
@@ -114,6 +113,7 @@ export default function MinePage() {
   }
 
   function handleLogout() {
+    if (logoutLoading) return;
     Taro.showModal({
       title: '确定要退出登录吗？',
       cancelText: '取消',
@@ -141,21 +141,18 @@ export default function MinePage() {
   return (
     <View className='mine'>
       <View
-        className='mine__navbar'
+        className='mine__header'
         style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
       >
         <View
-          className='mine__navbar-inner'
+          className='mine__navbar'
           style={{ height: `${NAV_BAR_HEIGHT}px` }}
         >
-          <Text className='mine__navbar-title'>我的</Text>
+          <View className='mine__navbar-title'>我的</View>
         </View>
       </View>
 
-      <View
-        className='mine__content'
-        style={{ paddingTop: `${STATUS_BAR_HEIGHT + NAV_BAR_HEIGHT}px` }}
-      >
+      <View className='mine__content'>
         <View className='mine__card mine__profile' onClick={handleProfileClick}>
           <View className='mine__avatar'>
             {avatarUrl ? (
@@ -165,21 +162,21 @@ export default function MinePage() {
                 mode='aspectFill'
               />
             ) : (
-              <Text className='mine__avatar-text'>
+              <View className='mine__avatar-text'>
                 {isLoggedIn ? displayName.charAt(0) : '?'}
-              </Text>
+              </View>
             )}
           </View>
           <View className='mine__info'>
             {isLoggedIn ? (
               <>
-                <Text className='mine__name'>{displayName}</Text>
-                <Text className='mine__status'>注册用户</Text>
+                <View className='mine__name'>{displayName}</View>
+                <View className='mine__status'>注册用户</View>
               </>
             ) : (
               <>
-                <Text className='mine__name'>请登录/注册</Text>
-                <Text className='mine__status'>登录后查看个人中心</Text>
+                <View className='mine__name'>请登录/注册</View>
+                <View className='mine__status'>登录后查看个人中心</View>
               </>
             )}
           </View>
@@ -193,10 +190,14 @@ export default function MinePage() {
               onClick={() => handleMenuClick(item)}
             >
               <View className='mine__menu-left'>
-                <View className={`mine__menu-icon ${item.iconClass}`} />
-                <Text className='mine__menu-text'>{item.label}</Text>
+                <Image
+                  className='mine__menu-icon'
+                  src={item.iconSrc}
+                  mode='aspectFit'
+                />
+                <View className='mine__menu-text'>{item.label}</View>
               </View>
-              <Text className='mine__menu-arrow'>&#8250;</Text>
+              <View className='mine__menu-arrow'>&#8250;</View>
             </View>
           ))}
         </View>
@@ -206,7 +207,6 @@ export default function MinePage() {
             className={`mine__logout ${logoutLoading ? 'mine__logout--loading' : ''}`}
             onClick={handleLogout}
             loading={logoutLoading}
-            disabled={logoutLoading}
           >
             {logoutLoading ? '退出中…' : '退出登录'}
           </Button>
@@ -214,7 +214,7 @@ export default function MinePage() {
 
         {loading && (
           <View className='mine__loading'>
-            <Text className='mine__loading-text'>加载中…</Text>
+            <View className='mine__loading-text'>加载中…</View>
           </View>
         )}
       </View>

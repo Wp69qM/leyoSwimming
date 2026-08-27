@@ -86,7 +86,7 @@ class AdminPackageTemplateServiceTest {
             new BigDecimal("3600.00"),
             new BigDecimal("3000.00"),
             true,
-            new BigDecimal("80.00"),
+            new BigDecimal("0.80"),
             30,
             List.of("热销"),
             "<p>暑期特惠</p>",
@@ -546,12 +546,12 @@ class AdminPackageTemplateServiceTest {
   }
 
   @Test
-  @DisplayName("add: 退款比例超出 100 抛出 INVALID_PACKAGE_PARAM")
-  void add_refundRatioOver100_throwsInvalidPackageParam() {
+  @DisplayName("add: 退款比例超出 1 抛出 INVALID_PACKAGE_PARAM")
+  void add_refundRatioOver1_throwsInvalidPackageParam() {
     AdminPackageTemplateAddRequest request =
         new AdminPackageTemplateAddRequest(
             "暑期课", "standard", List.of(1L), "one_on_one", null, 10, 60, 90,
-            new BigDecimal("1000.00"), new BigDecimal("800.00"), true, new BigDecimal("101.00"), 30,
+            new BigDecimal("1000.00"), new BigDecimal("800.00"), true, new BigDecimal("1.50"), 30,
             null, null, null, null);
 
     assertThatThrownBy(() -> service.add(1L, request))
@@ -567,9 +567,9 @@ class AdminPackageTemplateServiceTest {
   void add_refundValidDaysNegative_throwsInvalidPackageParam() {
     AdminPackageTemplateAddRequest request =
         new AdminPackageTemplateAddRequest(
-            "暑期课", "standard", List.of(1L), "one_on_one", null, 10, 60, 90,
-            new BigDecimal("1000.00"), new BigDecimal("800.00"), true, new BigDecimal("80.00"), -1,
-            null, null, null, null);
+                "暑期课", "standard", List.of(1L), "one_on_one", null, 10, 60, 90,
+                new BigDecimal("1000.00"), new BigDecimal("800.00"), true, new BigDecimal("0.80"), -1,
+                null, null, null, null);
 
     assertThatThrownBy(() -> service.add(1L, request))
         .isInstanceOf(BusinessException.class)
@@ -642,7 +642,7 @@ class AdminPackageTemplateServiceTest {
             new BigDecimal("2000.00"),
             new BigDecimal("1500.00"),
             true,
-            new BigDecimal("70.00"),
+            new BigDecimal("0.70"),
             60,
             List.of("标签"),
             "描述",

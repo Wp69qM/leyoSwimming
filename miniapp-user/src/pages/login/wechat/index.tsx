@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text, Button } from '@tarojs/components';
+import { View, Text, Button, Image } from '@tarojs/components';
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox';
+import wechatIcon from '@/assets/calicat/icons/wechat.png';
+import logoIcon from '@/assets/calicat/icons/logo-swimming.png';
 import {
   ProtocolDrawer,
   type ProtocolTab,
@@ -76,9 +78,17 @@ export default function WechatLoginPage() {
         appType: 'user',
       });
 
-      const { accessToken, refreshToken, expiresIn, profileCompleted, userId } =
-        res;
-      login(accessToken, refreshToken, expiresIn, { userId, profileCompleted });
+      const {
+        accessToken,
+        refreshToken,
+        expiresInSeconds,
+        profileCompleted,
+        userId,
+      } = res;
+      login(accessToken, refreshToken, expiresInSeconds, {
+        userId,
+        profileCompleted,
+      });
 
       if (profileCompleted) {
         Taro.switchTab({ url: '/pages/index/index' });
@@ -141,21 +151,19 @@ export default function WechatLoginPage() {
       <View
         className={`wechat-login__brand ${errorTip ? 'wechat-login__brand--dimmed' : ''}`}
       >
-        <View className='wechat-login__logo'>
-          <View className='wechat-login__logo-icon' />
-        </View>
-        <Text className='wechat-login__name'>{APP_NAME}</Text>
-        <Text className='wechat-login__slogan'>专业游泳约课平台</Text>
-        <Text className='wechat-login__guide'>
+        <Image className='wechat-login__logo' src={logoIcon} />
+        <View className='wechat-login__name'>{APP_NAME}</View>
+        <View className='wechat-login__slogan'>专业游泳约课平台</View>
+        <View className='wechat-login__guide'>
           登录后即可预约课程、购买套餐
-        </Text>
+        </View>
       </View>
 
       <View className='wechat-login__footer'>
         {errorTip && (
           <View className='wechat-login__error'>
             <View className='wechat-login__error-icon' />
-            <Text className='wechat-login__error-text'>{errorTip}</Text>
+            <View className='wechat-login__error-text'>{errorTip}</View>
           </View>
         )}
 
@@ -178,7 +186,9 @@ export default function WechatLoginPage() {
           loading={loading}
           disabled={loading}
         >
-          {!loading && <View className='wechat-login__button-icon' />}
+          {!loading && (
+            <Image className='wechat-login__button-icon' src={wechatIcon} />
+          )}
           {loading ? '登录中…' : '微信一键登录'}
         </Button>
         <Text

@@ -5,36 +5,18 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid $calicat-divider;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-white;
+  box-shadow: $calicat-card-shadow;
 
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &--experience {
-    padding: 16px;
-    border-radius: 12px;
-    background: linear-gradient(
-      90deg,
-      $calicat-experience-start 0%,
-      $calicat-experience-end 100%
-    );
-    box-shadow: $calicat-experience-shadow;
-    margin-bottom: 12px;
-    border-bottom: none;
+  &:last-of-type {
+    margin-bottom: 0;
   }
 
   &--disabled {
     opacity: 0.6;
-  }
-
-  &__image {
-    width: 64px;
-    height: 64px;
-    border-radius: 8px;
-    flex-shrink: 0;
-    background-color: $calicat-avatar-placeholder-bg;
   }
 
   &__info {
@@ -44,23 +26,38 @@
     gap: 6px;
   }
 
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   &__name {
     font-size: 15px;
     font-weight: 600;
     color: $calicat-text-primary;
+  }
 
-    .coach-detail-package--experience & {
-      color: $calicat-white;
-    }
+  &__tag {
+    padding: 0 6px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: $calicat-tag-experience-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__tag-text {
+    font-size: 10px;
+    font-weight: 600;
+    color: $calicat-tag-experience-text;
+    line-height: 1;
   }
 
   &__desc {
     font-size: 12px;
     color: $calicat-text-secondary;
-
-    .coach-detail-package--experience & {
-      color: rgb(255 255 255 / 85%);
-    }
   }
 
   &__action {
@@ -80,10 +77,6 @@
     font-size: 18px;
     font-weight: 700;
     color: $calicat-text-price;
-
-    .coach-detail-package--experience & {
-      color: $calicat-white;
-    }
   }
 
   &__arrow {
@@ -98,13 +91,13 @@
     height: 28px;
     padding: 0 12px;
     border-radius: 14px;
-    background-color: $calicat-white;
+    background-color: $calicat-primary;
   }
 
   &__btn-text {
     font-size: 12px;
     font-weight: 700;
-    color: $calicat-experience-start;
+    color: $calicat-white;
   }
 }
 
@@ -112,9 +105,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 0 0;
-  border-top: 1px solid $calicat-divider;
-  margin-top: 4px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-white;
+  box-shadow: $calicat-card-shadow;
 
   &__icon {
     width: 44px;

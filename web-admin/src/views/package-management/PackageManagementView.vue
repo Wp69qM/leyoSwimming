@@ -45,6 +45,7 @@ const modeMap: Record<
 > = {
   standard: { label: '正价套餐', color: '#1890FF', bgColor: '#E6F7FF' },
   experience: { label: '体验课', color: '#FAAD14', bgColor: '#FFFBE6' },
+  custom: { label: '自定义套餐', color: '#52C41A', bgColor: '#F6FFED' },
 };
 
 const queryForm = reactive({
@@ -274,24 +275,24 @@ watch([freezeVisible, extendVisible, refundVisible], (values, oldValues) => {
         row-class-name="table-row"
         style="width: 100%"
       >
-        <el-table-column label="套餐编号" width="120">
+        <el-table-column label="套餐编号" min-width="120">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)">
               {{ row.packageNo }}
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="用户" width="120">
+        <el-table-column label="用户" min-width="120">
           <template #default="{ row }">
             {{ row.userName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="教练" width="120">
+        <el-table-column label="教练" min-width="120">
           <template #default="{ row }">
             {{ row.coachName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="套餐模式" align="center" width="100">
+        <el-table-column label="套餐模式" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -304,12 +305,12 @@ watch([freezeVisible, extendVisible, refundVisible], (values, oldValues) => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="类型" align="center" width="100">
+        <el-table-column label="类型" align="center" min-width="100">
           <template #default="{ row }">
             {{ getTeachingTypeLabel(row.teachingType) }}
           </template>
         </el-table-column>
-        <el-table-column label="状态" align="center" width="100">
+        <el-table-column label="状态" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -322,17 +323,23 @@ watch([freezeVisible, extendVisible, refundVisible], (values, oldValues) => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="剩余课时" align="center" width="100">
+        <el-table-column label="剩余课时" align="center" min-width="100">
           <template #default="{ row }">
             {{ formatHours(row) }}
           </template>
         </el-table-column>
-        <el-table-column label="到期时间" width="160">
+        <el-table-column label="到期时间" min-width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.expireAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="260" fixed="right">
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="260"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)">
               查看
@@ -544,6 +551,19 @@ watch([freezeVisible, extendVisible, refundVisible], (values, oldValues) => {
 :deep(.el-table__body) {
   .el-table__row:last-child td {
     border-bottom: none;
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 </style>

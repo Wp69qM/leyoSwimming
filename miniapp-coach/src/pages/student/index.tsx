@@ -88,25 +88,25 @@ export default function StudentPage() {
 
   const renderEmpty = () => (
     <View className='student__empty'>
-      <Text className='student__empty-title'>
+      <View className='student__empty-title'>
         {activeTab === 'active' ? '暂无活跃学员' : '暂无历史学员'}
-      </Text>
-      <Text className='student__empty-desc'>
+      </View>
+      <View className='student__empty-desc'>
         {activeTab === 'active'
           ? '关联学员购买套餐后将出现在这里'
           : '暂无历史关联学员'}
-      </Text>
+      </View>
     </View>
   )
 
   const renderError = () => (
     <View className='student__error'>
-      <Text className='student__error-title'>网络异常，请重试</Text>
+      <View className='student__error-title'>网络异常，请重试</View>
       <View
         className='student__error-button'
         onClick={() => loadStudents(activeTab, keyword, true)}
       >
-        <Text className='student__error-button-text'>重新加载</Text>
+        <View className='student__error-button-text'>重新加载</View>
       </View>
     </View>
   )
@@ -116,7 +116,7 @@ export default function StudentPage() {
       return <Image className='student-card__avatar-img' src={item.avatarUrl} mode='aspectFill' />
     }
     const char = item.name ? item.name.charAt(0) : '?'
-    return <Text className='student-card__avatar-text'>{char}</Text>
+    return <View className='student-card__avatar-text'>{char}</View>
   }
 
   const renderContent = () => {
@@ -135,13 +135,13 @@ export default function StudentPage() {
             <View className='student-card__avatar'>{renderAvatar(item)}</View>
             <View className='student-card__info'>
               <View className='student-card__name-row'>
-                <Text className='student-card__name'>{item.name}</Text>
-                <Text className='student-card__meta'>
+                <View className='student-card__name'>{item.name}</View>
+                <View className='student-card__meta'>
                   {formatGenderAge(item.gender, item.age)}
-                </Text>
+                </View>
                 {item.isMinor && (
                   <View className='student-card__minor-tag'>
-                    <Text className='student-card__minor-tag-text'>未成年</Text>
+                    <View className='student-card__minor-tag-text'>未成年</View>
                   </View>
                 )}
               </View>
@@ -152,7 +152,7 @@ export default function StudentPage() {
                       key={index}
                       className={`student-card__tag student-card__tag--${tag.type}`}
                     >
-                      <Text className='student-card__tag-text'>{tag.label}</Text>
+                      <View className='student-card__tag-text'>{tag.label}</View>
                     </View>
                   ))}
                 </View>
@@ -190,7 +190,7 @@ export default function StudentPage() {
               className={`student__tab ${activeTab === tab.key ? 'student__tab--active' : ''}`}
               onClick={() => handleTabChange(tab.key)}
             >
-              <Text className='student__tab-text'>{tab.label}</Text>
+              <View className='student__tab-text'>{tab.label}</View>
             </View>
           ))}
         </View>
@@ -203,7 +203,9 @@ export default function StudentPage() {
 
 function formatGenderAge(gender: string | null, age: number | null): string {
   const parts: string[] = []
-  if (gender) parts.push(gender)
+  if (gender) {
+    parts.push(gender === 'male' ? '男' : gender === 'female' ? '女' : gender)
+  }
   if (age != null) parts.push(`${age}岁`)
   return parts.join(' · ') || ''
 }

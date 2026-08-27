@@ -1,11 +1,10 @@
 .protocol-checkbox {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
 
   &__box {
     width: 19rpx;
     height: 18rpx;
-    margin-top: 2rpx;
     margin-right: 8rpx;
     border: 1rpx solid #d9d9d9;
     border-radius: 4rpx;

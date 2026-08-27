@@ -68,7 +68,8 @@ const selectedCoachId = ref<number | null>(null);
 const isEditMode = ref(false);
 
 function formatGender(gender: string): string {
-  return gender === 'MALE' ? '男' : gender === 'FEMALE' ? '女' : '-';
+  const normalized = gender?.toLowerCase();
+  return normalized === 'male' ? '男' : normalized === 'female' ? '女' : '-';
 }
 
 function formatTenure(tenure: string | undefined): string {
@@ -202,51 +203,51 @@ onMounted(() => {
     </div>
 
     <div class="filter-card">
-      <div class="filter-header">
-        <el-form :model="queryForm" inline>
-          <el-form-item label="在职状态">
-            <el-select
-              v-model="queryForm.status"
-              placeholder="全部状态"
-              style="width: 160px"
-              clearable
-            >
-              <el-option
-                v-for="option in statusOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="实时状态">
-            <el-select
-              v-model="queryForm.realtimeStatus"
-              placeholder="全部状态"
-              style="width: 160px"
-              clearable
-            >
-              <el-option
-                v-for="option in realtimeStatusOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="关键词">
-            <el-input
-              v-model="queryForm.keyword"
-              placeholder="姓名 / 手机号"
-              clearable
-              style="width: 240px"
+      <el-form :model="queryForm" inline class="filter-form">
+        <el-form-item label="在职状态">
+          <el-select
+            v-model="queryForm.status"
+            placeholder="全部状态"
+            style="width: 160px"
+            clearable
+          >
+            <el-option
+              v-for="option in statusOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
             />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
-          </el-form-item>
-        </el-form>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="实时状态">
+          <el-select
+            v-model="queryForm.realtimeStatus"
+            placeholder="全部状态"
+            style="width: 160px"
+            clearable
+          >
+            <el-option
+              v-for="option in realtimeStatusOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关键词">
+          <el-input
+            v-model="queryForm.keyword"
+            placeholder="姓名 / 手机号"
+            clearable
+            style="width: 240px"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="operation-bar">
         <el-button type="primary" @click="openCreate">新建教练</el-button>
       </div>
     </div>
@@ -270,24 +271,29 @@ onMounted(() => {
         header-row-class-name="table-header"
         style="width: 100%"
       >
-        <el-table-column label="教练 ID" prop="coachId" width="80" />
-        <el-table-column label="姓名" width="100">
+        <el-table-column label="教练 ID" prop="coachId" min-width="80" />
+        <el-table-column label="姓名" min-width="100">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)">
               {{ row.name || '未设置' }}
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="性别" align="center" width="60">
+        <el-table-column label="性别" align="center" min-width="60">
           <template #default="{ row }">
             {{ formatGender(row.gender) }}
           </template>
         </el-table-column>
-        <el-table-column label="年龄" align="center" prop="age" width="60" />
-        <el-table-column label="教学年限" align="center" width="100">
+        <el-table-column
+          label="年龄"
+          align="center"
+          prop="age"
+          min-width="60"
+        />
+        <el-table-column label="教学年限" align="center" min-width="100">
           <template #default="{ row }"> {{ row.teachingYears }} 年 </template>
         </el-table-column>
-        <el-table-column label="擅长" align="center" width="120">
+        <el-table-column label="擅长" align="center" min-width="140">
           <template #default="{ row }">
             <div class="stroke-tags">
               <el-tag
@@ -301,17 +307,17 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="160">
+        <el-table-column label="创建时间" min-width="160">
           <template #default="{ row }">
             {{ formatDate(row.approvedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="在职时长" align="center" width="100">
+        <el-table-column label="在职时长" align="center" min-width="100">
           <template #default="{ row }">
             {{ formatTenure(row.tenure) }}
           </template>
         </el-table-column>
-        <el-table-column label="在职状态" align="center" width="110">
+        <el-table-column label="在职状态" align="center" min-width="110">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -328,9 +334,9 @@ onMounted(() => {
           label="当前学员数"
           align="center"
           prop="currentStudentCount"
-          width="100"
+          min-width="100"
         />
-        <el-table-column label="实时状态" align="center" width="100">
+        <el-table-column label="实时状态" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -347,7 +353,13 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="220" fixed="right">
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="220"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button
               v-if="row.status === 1 || row.status === 2 || row.status === 3"
@@ -430,6 +442,9 @@ onMounted(() => {
 }
 
 .filter-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 16px;
   margin-bottom: 16px;
   background: #ffffff;
@@ -437,11 +452,14 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.filter-header {
+.filter-form {
+  margin-bottom: 0;
+}
+
+.operation-bar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .table-card {
@@ -482,6 +500,19 @@ onMounted(() => {
 :deep(.table-header) {
   th {
     background: #f5f7fa;
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 </style>

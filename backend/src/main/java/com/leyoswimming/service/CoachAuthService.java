@@ -18,6 +18,7 @@ import com.leyoswimming.security.JwtTokenProvider;
 import com.leyoswimming.service.wechat.WechatClient;
 import com.leyoswimming.service.wechat.WechatSession;
 import com.leyoswimming.util.PhoneEncryptor;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -127,9 +128,12 @@ public class CoachAuthService {
         LocalDateTime.now().plusSeconds(jwtTokenProvider.getExpirationSeconds()));
     session.setLastActiveAt(LocalDateTime.now());
     coachSessionMapper.insert(session);
-    coach.setLastLoginAt(LocalDateTime.now());
-    coach.setLoginIp(ip);
-    coachMapper.updateById(coach);
+    coachMapper.update(
+        null,
+        new LambdaUpdateWrapper<Coach>()
+            .eq(Coach::getId, coach.getId())
+            .set(Coach::getLastLoginAt, LocalDateTime.now())
+            .set(Coach::getLoginIp, ip));
     coachLoginLogMapper.insert(buildLog(coach.getId(), ip, userAgent, LOGIN_LOG_SUCCESS, null));
     return new CoachLoginResponse(
         accessToken,

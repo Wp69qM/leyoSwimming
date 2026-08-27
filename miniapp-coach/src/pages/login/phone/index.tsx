@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Input, Button } from '@tarojs/components'
+import { View, Text, Input, Button, Image } from '@tarojs/components'
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox'
+import LogoIcon from '@/assets/calicat/icons/logo-swimming.png'
 import {
   ProtocolDrawer,
   type ProtocolTab,
@@ -180,25 +181,25 @@ export default function PhoneLoginPage() {
     <View className='phone-login'>
       <View className='phone-login__brand'>
         <View className='phone-login__logo'>
-          <View className='phone-login__logo-icon' />
+          <Image className='phone-login__logo-icon' src={LogoIcon} />
         </View>
-        <Text className='phone-login__name'>{APP_NAME}</Text>
-        <Text className='phone-login__slogan'>专业游泳约课平台</Text>
+        <View className='phone-login__name'>{APP_NAME}</View>
+        <View className='phone-login__slogan'>专业游泳约课平台</View>
       </View>
 
       <View className='phone-login__card'>
-        <Text className='phone-login__title'>手机号登录</Text>
-        <Text className='phone-login__subtitle'>
+        <View className='phone-login__title'>手机号登录</View>
+        <View className='phone-login__subtitle'>
           输入手机号获取验证码，即可快速登录
-        </Text>
+        </View>
 
         <View className='phone-login__field'>
-          <Text className='phone-login__label'>手机号</Text>
+          <View className='phone-login__label'>手机号</View>
           <View
             className={`phone-login__input-row ${phoneError ? 'phone-login__input-row--error' : ''}`}
           >
             <Text className='phone-login__input-icon phone-login__input-icon--phone'>
-              󰏁
+              
             </Text>
             <Input
               className='phone-login__input'
@@ -212,32 +213,34 @@ export default function PhoneLoginPage() {
         </View>
 
         <View className='phone-login__field'>
-          <Text className='phone-login__label'>验证码</Text>
-          <View
-            className={`phone-login__input-row ${codeError ? 'phone-login__input-row--error' : ''}`}
-          >
-            <Text className='phone-login__input-icon phone-login__input-icon--code'>
-              󰦇
-            </Text>
-            <Input
-              className='phone-login__input'
-              type='number'
-              placeholder='请输入短信验证码'
-              value={code}
-              onInput={(e) => handleCodeChange(e.detail.value)}
-              maxlength={6}
-            />
-            <Button
-              className={`phone-login__code-btn ${canSend ? 'phone-login__code-btn--active' : ''}`}
-              onClick={handleSendCode}
-              disabled={!canSend}
-              loading={sending}
+          <View className='phone-login__label'>验证码</View>
+          <View className='phone-login__input-group'>
+            <View
+              className={`phone-login__input-row ${codeError ? 'phone-login__input-row--error' : ''}`}
             >
-              {isRunning
-                ? `${seconds}s后重发`
-                : sending
-                  ? '发送中…'
-                  : '获取验证码'}
+              <Text className='phone-login__input-icon phone-login__input-icon--code'>
+                
+              </Text>
+              <Input
+                className='phone-login__input'
+                type='number'
+                placeholder='请输入短信验证码'
+                value={code}
+                onInput={(e) => handleCodeChange(e.detail.value)}
+                maxlength={6}
+              />
+            </View>
+            <Button
+              className={`phone-login__code-btn ${canSend ? 'phone-login__code-btn--active' : 'phone-login__code-btn--disabled'}`}
+              onClick={handleSendCode}
+            >
+              <View className='phone-login__code-btn-text'>
+                {isRunning
+                  ? `${seconds}s后重发`
+                  : sending
+                    ? '发送中…'
+                    : '获取验证码'}
+              </View>
             </Button>
           </View>
         </View>
@@ -252,22 +255,22 @@ export default function PhoneLoginPage() {
         {errorTip && (
           <View className='phone-login__error'>
             <View className='phone-login__error-icon' />
-            <Text className='phone-login__error-text'>{errorTip}</Text>
+            <View className='phone-login__error-text'>{errorTip}</View>
           </View>
         )}
 
         <Button
-          className={`phone-login__submit ${loading ? 'phone-login__submit--loading' : ''} ${loginSuccess ? 'phone-login__submit--success' : ''}`}
+          className={`phone-login__submit ${loading ? 'phone-login__submit--loading' : ''} ${loginSuccess ? 'phone-login__submit--success' : ''} ${!canSubmit && !loading && !loginSuccess ? 'phone-login__submit--disabled' : ''}`}
           onClick={handleSubmit}
-          disabled={loading || !canSubmit || loginSuccess}
-          loading={loading}
         >
-          {loading ? '登录中…' : loginSuccess ? '登录成功' : '登录'}
+          <View className='phone-login__submit-text'>
+            {loading ? '登录中…' : loginSuccess ? '登录成功' : '登录'}
+          </View>
         </Button>
 
         <View className='phone-login__divider'>
           <View className='phone-login__divider-line' />
-          <Text className='phone-login__divider-text'>其他登录方式</Text>
+          <View className='phone-login__divider-text'>其他登录方式</View>
           <View className='phone-login__divider-line' />
         </View>
 
@@ -275,11 +278,11 @@ export default function PhoneLoginPage() {
           className='phone-login__wechat-entry'
           onClick={navigateToWechatLogin}
         >
-          <Text className='phone-login__wechat-icon'>󰖣</Text>
-          <Text className='phone-login__wechat-text'>使用微信登录</Text>
+          <Text className='phone-login__wechat-icon'></Text>
+          <View className='phone-login__wechat-text'>使用微信登录</View>
         </View>
 
-        <Text className='phone-login__tip'>未注册手机号将自动创建账号</Text>
+        <View className='phone-login__tip'>未注册手机号将自动创建账号</View>
       </View>
 
       <ProtocolDrawer

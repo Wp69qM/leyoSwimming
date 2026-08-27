@@ -23,6 +23,7 @@ import com.leyoswimming.service.DistributedLockHelper;
 import com.leyoswimming.util.OrderNoGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -209,7 +210,8 @@ class AdminPackageControllerIT {
   @DisplayName("POST /api/admin/package/extend 延期 expired 套餐成功")
   void extend_expiredPackage_returnsSuccess() throws Exception {
     Long packageId = createPackage("expired", 10, 8, 0);
-    LocalDateTime newExpireAt = LocalDateTime.now().plusDays(30);
+    String newExpireAt =
+        LocalDateTime.now().plusDays(60).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
     mockMvc
         .perform(
@@ -236,6 +238,8 @@ class AdminPackageControllerIT {
   @DisplayName("POST /api/admin/package/extend 不可延期套餐返回 409")
   void extend_notExtendablePackage_returnsConflict() throws Exception {
     Long packageId = createPackage("exhausted", 10, 0, 0);
+    String newExpireAt =
+        LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
     mockMvc
         .perform(
@@ -246,7 +250,7 @@ class AdminPackageControllerIT {
                     "{\"packageId\":"
                         + packageId
                         + ",\"newExpireAt\":\""
-                        + LocalDateTime.now().plusDays(30)
+                        + newExpireAt
                         + "\",\"reason\":\"学员出差一个月\",\"version\":0}"))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value(420108));

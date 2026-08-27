@@ -32,6 +32,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -124,7 +126,7 @@ public class UserCoachService {
         coach.getId(),
         coach.getName(),
         coach.getStatus(),
-        coach.getAvatarUrl(),
+        resolveAvatar(coach),
         coach.getRating(),
         coach.getTeachingYears(),
         parseTeachingStrokes(coach.getTeachingStrokes()),
@@ -135,7 +137,7 @@ public class UserCoachService {
     return new CoachDetailResponse(
         coach.getId(),
         coach.getName(),
-        coach.getAvatarUrl(),
+        resolveAvatar(coach),
         parseGender(coach.getGender()),
         coach.getAge(),
         coach.getStatus(),
@@ -152,6 +154,18 @@ public class UserCoachService {
         buildReviews(),
         buildAvailableTimes(),
         coach.getRealtimeStatus());
+  }
+
+  private String resolveAvatar(Coach coach) {
+    if (StringUtils.isNotBlank(coach.getAvatarUrl())) {
+      return coach.getAvatarUrl();
+    }
+    List<CoachCertificate> certificates = certificateMapper.findByCoachId(coach.getId());
+    return certificates.stream()
+        .filter(cert -> "PORTRAIT".equalsIgnoreCase(cert.getCertType()))
+        .findFirst()
+        .map(CoachCertificate::getImageUrl)
+        .orElse(null);
   }
 
   private Integer parseGender(String gender) {
@@ -178,8 +192,16 @@ public class UserCoachService {
 
   private CoachDetailContactResponse buildContact(Coach coach) {
     String phone = decryptPhone(coach.getPhone());
+    boolean authenticated = isUserAuthenticated();
     return new CoachDetailContactResponse(
-        PhoneEncryptor.mask(phone), coach.getWechatQrUrl());
+        authenticated ? phone : PhoneEncryptor.mask(phone), coach.getWechatQrUrl());
+  }
+
+  private boolean isUserAuthenticated() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication != null
+        && authentication.isAuthenticated()
+        && !"anonymousUser".equals(authentication.getPrincipal());
   }
 
   private String decryptPhone(String encryptedPhone) {
@@ -247,6 +269,7 @@ public class UserCoachService {
         template.getPackageMode(),
         template.getPrice(),
         template.getTotalHours(),
+        template.getValidDays(),
         imageUrl);
   }
 

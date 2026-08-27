@@ -273,7 +273,7 @@ watch(
             </div>
             <div v-if="!isRefund" class="detail-item">
               <span class="label">支付时间</span>
-              <span class="value">{{ formatDateTime(order.approvedAt) }}</span>
+              <span class="value">{{ formatDateTime(order.paidAt) }}</span>
             </div>
             <div class="detail-item">
               <span class="label">{{

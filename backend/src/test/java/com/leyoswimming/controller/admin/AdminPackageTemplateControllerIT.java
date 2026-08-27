@@ -323,7 +323,7 @@ class AdminPackageTemplateControllerIT {
           "originalPrice": 3600.00,
           "price": 3000.00,
           "refundEnabled": true,
-          "refundRatio": 80.00,
+          "refundRatio": 0.80,
           "refundValidDays": 30,
           "tags": ["热销"],
           "description": "<p>暑期特惠</p>",

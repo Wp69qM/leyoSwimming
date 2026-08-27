@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.leyoswimming.common.CoachCertificateListJsonTypeHandler;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Data;
@@ -91,7 +91,7 @@ public class Coach {
   @TableField(updateStrategy = FieldStrategy.IGNORED)
   private String realtimeStatus;
 
-  @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
+  @TableField(typeHandler = CoachCertificateListJsonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
   private List<CoachCertificate> certificates;
 
   @Version

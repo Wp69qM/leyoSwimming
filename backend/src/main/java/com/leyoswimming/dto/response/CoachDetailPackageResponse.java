@@ -7,5 +7,6 @@ public record CoachDetailPackageResponse(
     String name,
     String packageMode,
     BigDecimal price,
-    Integer hours,
+    Integer totalHours,
+    Integer validDays,
     String imageUrl) {}

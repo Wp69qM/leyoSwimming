@@ -319,7 +319,7 @@ onMounted(() => {
               </el-form-item>
             </div>
           </el-form>
-          <div class="filter-extra">
+          <div class="operation-bar">
             <el-button type="primary" @click="openAddModal"
               >新增标准套餐</el-button
             >
@@ -347,7 +347,7 @@ onMounted(() => {
             row-class-name="table-row"
             style="width: 100%"
           >
-            <el-table-column label="套餐编号" width="120">
+            <el-table-column label="套餐编号" min-width="120">
               <template #default="{ row }">
                 <span class="text-secondary">{{ row.packageTemplateId }}</span>
               </template>
@@ -357,7 +357,7 @@ onMounted(() => {
                 <span class="table-name">{{ row.name }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="套餐模式" align="center" width="110">
+            <el-table-column label="套餐模式" align="center" min-width="110">
               <template #default="{ row }">
                 <span
                   class="mode-tag"
@@ -375,27 +375,27 @@ onMounted(() => {
                 {{ formatCoaches(row) }}
               </template>
             </el-table-column>
-            <el-table-column label="教学类型" align="center" width="100">
+            <el-table-column label="教学类型" align="center" min-width="100">
               <template #default="{ row }">
                 {{
                   teachingTypeMap[row.teachingType] || row.teachingType || '-'
                 }}
               </template>
             </el-table-column>
-            <el-table-column label="课时数" align="center" width="90">
+            <el-table-column label="课时数" align="center" min-width="90">
               <template #default="{ row }">
                 {{ row.totalHours }}
               </template>
             </el-table-column>
-            <el-table-column label="有效期" align="center" width="90">
+            <el-table-column label="有效期" align="center" min-width="90">
               <template #default="{ row }"> {{ row.validDays }}天 </template>
             </el-table-column>
-            <el-table-column label="售价" align="right" width="120">
+            <el-table-column label="售价" align="right" min-width="120">
               <template #default="{ row }">
                 <span class="price-text">{{ formatPrice(row.price) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="状态" align="center" width="100">
+            <el-table-column label="状态" align="center" min-width="100">
               <template #default="{ row }">
                 <span
                   class="status-tag"
@@ -411,8 +411,9 @@ onMounted(() => {
             <el-table-column
               label="操作"
               align="center"
-              width="180"
+              min-width="180"
               fixed="right"
+              class-name="operation-cell"
             >
               <template #default="{ row }">
                 <el-button link type="primary" @click="openViewModal(row)">
@@ -543,8 +544,7 @@ onMounted(() => {
 
 .filter-card {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 16px;
   padding: 16px;
   margin-bottom: 16px;
@@ -554,7 +554,6 @@ onMounted(() => {
 }
 
 .filter-form {
-  flex: 1;
   margin-bottom: 0;
 }
 
@@ -569,9 +568,10 @@ onMounted(() => {
   margin-left: auto;
 }
 
-.filter-extra {
+.operation-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .table-card {
@@ -653,6 +653,19 @@ onMounted(() => {
     padding-right: 8px;
     font-size: 13px;
     color: var(--calicat-text-primary);
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 </style>

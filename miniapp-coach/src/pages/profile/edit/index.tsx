@@ -187,7 +187,7 @@ export default function ProfileEditPage() {
   if (initialLoading) {
     return (
       <View className='profile-edit profile-edit--loading'>
-        <Text className='profile-edit__loading-text'>加载中…</Text>
+        <View className='profile-edit__loading-text'>加载中…</View>
       </View>
     )
   }
@@ -198,19 +198,11 @@ export default function ProfileEditPage() {
 
   return (
     <View className='profile-edit'>
-      <View className='profile-edit__status-bar' />
       <View className='profile-edit__navbar'>
         <View className='profile-edit__navbar-back' onClick={handleBack}>
           <Text className='profile-edit__navbar-back-icon'>‹</Text>
         </View>
-        <Text className='profile-edit__navbar-title'>个人主页</Text>
-        {showShare ? (
-          <Button className='profile-edit__navbar-share' openType='share'>
-            <Text className='profile-edit__navbar-share-text'>分享</Text>
-          </Button>
-        ) : (
-          <View className='profile-edit__navbar-placeholder' />
-        )}
+        <View className='profile-edit__navbar-title'>个人主页</View>
       </View>
 
       <View className='profile-edit__header'>
@@ -219,19 +211,19 @@ export default function ProfileEditPage() {
           src={portraitUrl || ''}
           mode='aspectFill'
         />
-        <Text className='profile-edit__header-name'>{name || '未设置姓名'}</Text>
-        <Text className='profile-edit__header-years'>
+        <View className='profile-edit__header-name'>{name || '未设置姓名'}</View>
+        <View className='profile-edit__header-years'>
           {teachingYears ? `任教 ${teachingYears} 年` : '暂无任教年限'}
-        </Text>
+        </View>
         <View className={`profile-edit__status-tag ${STATUS_TAG_CLASS[status] || ''}`}>
-          <Text>{statusText}</Text>
+          <View>{statusText}</View>
         </View>
       </View>
 
       <View className='profile-edit__section'>
-        <Text className='profile-edit__section-title'>形象展示</Text>
+        <View className='profile-edit__section-title'>形象展示</View>
         <View className='profile-edit__field profile-edit__field--top'>
-          <Text className='profile-edit__label'>个人形象照</Text>
+          <View className='profile-edit__label'>个人形象照</View>
           <View className='profile-edit__uploader' onClick={handleUploadPortrait}>
             {portraitUrl ? (
               <Image className='profile-edit__uploader-img' src={portraitUrl} mode='aspectFill' />
@@ -242,7 +234,7 @@ export default function ProfileEditPage() {
         </View>
 
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>姓名/昵称</Text>
+          <View className='profile-edit__label'>姓名/昵称</View>
           <Input
             className='profile-edit__input'
             value={name}
@@ -253,7 +245,7 @@ export default function ProfileEditPage() {
         </View>
 
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>任教年限</Text>
+          <View className='profile-edit__label'>任教年限</View>
           <View className='profile-edit__input-wrap'>
             <Input
               className='profile-edit__input'
@@ -262,43 +254,43 @@ export default function ProfileEditPage() {
               placeholder='请输入任教年限'
               type='number'
             />
-            <Text className='profile-edit__unit'>年</Text>
+            <View className='profile-edit__unit'>年</View>
           </View>
         </View>
 
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>实时状态标签</Text>
+          <View className='profile-edit__label'>实时状态标签</View>
           <View className='profile-edit__readonly-wrap'>
             <View className={`profile-edit__status-tag ${STATUS_TAG_CLASS[status] || ''}`}>
-              <Text>{statusText}</Text>
+              <View>{statusText}</View>
             </View>
-            <Text className='profile-edit__readonly-hint'>系统自动更新</Text>
+            <View className='profile-edit__readonly-hint'>系统自动更新</View>
           </View>
         </View>
       </View>
 
       <View className='profile-edit__section'>
-        <Text className='profile-edit__section-title'>基础信息</Text>
+        <View className='profile-edit__section-title'>基础信息</View>
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>性别</Text>
+          <View className='profile-edit__label'>性别</View>
           <View className='profile-edit__options'>
             <View
               className={`profile-edit__option ${gender === 'male' ? 'profile-edit__option--active' : ''}`}
               onClick={() => setGender('male')}
             >
-              <Text>男</Text>
+              <View>男</View>
             </View>
             <View
               className={`profile-edit__option ${gender === 'female' ? 'profile-edit__option--active' : ''}`}
               onClick={() => setGender('female')}
             >
-              <Text>女</Text>
+              <View>女</View>
             </View>
           </View>
         </View>
 
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>年龄</Text>
+          <View className='profile-edit__label'>年龄</View>
           <View className='profile-edit__input-wrap'>
             <Input
               className='profile-edit__input'
@@ -307,12 +299,12 @@ export default function ProfileEditPage() {
               placeholder='请输入年龄'
               type='number'
             />
-            <Text className='profile-edit__unit'>岁</Text>
+            <View className='profile-edit__unit'>岁</View>
           </View>
         </View>
 
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>邮箱</Text>
+          <View className='profile-edit__label'>邮箱</View>
           <Input
             className='profile-edit__input'
             value={email}
@@ -322,12 +314,12 @@ export default function ProfileEditPage() {
         </View>
 
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>手机号</Text>
-          <Text className='profile-edit__readonly'>{profile?.phone || '未设置'}</Text>
+          <View className='profile-edit__label'>手机号</View>
+          <View className='profile-edit__readonly'>{profile?.phone || '未设置'}</View>
         </View>
 
         <View className='profile-edit__field profile-edit__field--top'>
-          <Text className='profile-edit__label'>微信二维码</Text>
+          <View className='profile-edit__label'>微信二维码</View>
           <View className='profile-edit__uploader profile-edit__uploader--large' onClick={handleUploadWechatQr}>
             {wechatQrUrl ? (
               <Image className='profile-edit__uploader-img' src={wechatQrUrl} mode='aspectFill' />
@@ -335,31 +327,31 @@ export default function ProfileEditPage() {
               <Text className='profile-edit__uploader-placeholder'>+</Text>
             )}
           </View>
-          <Text className='profile-edit__uploader-hint'>JPG/PNG，≤5MB，点击可预览/替换</Text>
+          <View className='profile-edit__uploader-hint'>JPG/PNG，≤5MB，点击可预览/替换</View>
         </View>
       </View>
 
       <View className='profile-edit__section'>
-        <Text className='profile-edit__section-title'>实名与资质</Text>
+        <View className='profile-edit__section-title'>实名与资质</View>
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>身份证号</Text>
-          <Text className='profile-edit__readonly'>{profile?.idCardNoMasked || '未认证'}</Text>
+          <View className='profile-edit__label'>身份证号</View>
+          <View className='profile-edit__readonly'>{profile?.idCardNoMasked || '未认证'}</View>
         </View>
         {profile?.idCardFrontUrl && (
           <View className='profile-edit__field profile-edit__field--top'>
-            <Text className='profile-edit__label'>身份证正面照</Text>
+            <View className='profile-edit__label'>身份证正面照</View>
             <Image className='profile-edit__cert-img' src={profile.idCardFrontUrl} mode='aspectFit' />
           </View>
         )}
         {profile?.idCardBackUrl && (
           <View className='profile-edit__field profile-edit__field--top'>
-            <Text className='profile-edit__label'>身份证反面照</Text>
+            <View className='profile-edit__label'>身份证反面照</View>
             <Image className='profile-edit__cert-img' src={profile.idCardBackUrl} mode='aspectFit' />
           </View>
         )}
         {profile?.coachCertUrls && profile.coachCertUrls.length > 0 && (
           <View className='profile-edit__field profile-edit__field--top'>
-            <Text className='profile-edit__label'>教练资格证</Text>
+            <View className='profile-edit__label'>教练资格证</View>
             <View className='profile-edit__cert-list'>
               {profile.coachCertUrls.map((url, idx) => (
                 <Image key={idx} className='profile-edit__cert-img' src={url} mode='aspectFit' />
@@ -369,12 +361,12 @@ export default function ProfileEditPage() {
         )}
         {profile?.healthCertUrl && (
           <View className='profile-edit__field profile-edit__field--top'>
-            <Text className='profile-edit__label'>健康证</Text>
+            <View className='profile-edit__label'>健康证</View>
             <Image className='profile-edit__cert-img' src={profile.healthCertUrl} mode='aspectFit' />
           </View>
         )}
         <View className='profile-edit__field'>
-          <Text
+          <View
             className='profile-edit__reapply-link'
             onClick={() =>
               Taro.showModal({
@@ -391,22 +383,22 @@ export default function ProfileEditPage() {
             }
           >
             修改实名与资质需重新提交审核
-          </Text>
+          </View>
         </View>
       </View>
 
       <View className='profile-edit__section'>
-        <Text className='profile-edit__section-title'>教学履历</Text>
+        <View className='profile-edit__section-title'>教学履历</View>
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>总学员数</Text>
-          <Text className='profile-edit__readonly'>{profile?.totalStudents ?? 0} 人（系统统计）</Text>
+          <View className='profile-edit__label'>总学员数</View>
+          <View className='profile-edit__readonly'>{profile?.totalStudents ?? 0} 人（系统统计）</View>
         </View>
         <View className='profile-edit__field'>
-          <Text className='profile-edit__label'>总课时数</Text>
-          <Text className='profile-edit__readonly'>{profile?.totalHours ?? 0} 节（系统统计）</Text>
+          <View className='profile-edit__label'>总课时数</View>
+          <View className='profile-edit__readonly'>{profile?.totalHours ?? 0} 节（系统统计）</View>
         </View>
         <View className='profile-edit__field profile-edit__field--top'>
-          <Text className='profile-edit__label'>擅长泳姿</Text>
+          <View className='profile-edit__label'>擅长泳姿</View>
           <View className='profile-edit__strokes'>
             {STROKES.map((stroke) => (
               <View
@@ -414,13 +406,13 @@ export default function ProfileEditPage() {
                 className={`profile-edit__stroke ${teachingStrokes.includes(stroke) ? 'profile-edit__stroke--active' : ''}`}
                 onClick={() => toggleStroke(stroke)}
               >
-                <Text>{stroke}</Text>
+                <View>{stroke}</View>
               </View>
             ))}
           </View>
         </View>
         <View className='profile-edit__field profile-edit__field--top'>
-          <Text className='profile-edit__label'>个人简介</Text>
+          <View className='profile-edit__label'>个人简介</View>
           <Textarea
             className='profile-edit__textarea'
             value={bio}
@@ -428,21 +420,24 @@ export default function ProfileEditPage() {
             placeholder='请输入个人简介，10-500 字'
             maxlength={500}
           />
-          <Text className='profile-edit__count'>{bio.length}/500</Text>
+          <View className='profile-edit__count'>{bio.length}/500</View>
         </View>
       </View>
 
       <View className='profile-edit__section'>
-        <Text className='profile-edit__section-title'>服务设置</Text>
+        <View className='profile-edit__section-title'>服务设置</View>
         <View className='profile-edit__field profile-edit__field--arrow' onClick={handleGoReferencePrice}>
-          <Text className='profile-edit__label'>参考单价</Text>
-          <Text className='profile-edit__readonly'>
+          <View className='profile-edit__label'>参考单价</View>
+          <View className='profile-edit__readonly'>
             {referencePrice ? `${referencePrice} 元/节` : '未设置'}
-          </Text>
+          </View>
         </View>
       </View>
 
-      <Button className='profile-edit__save' onClick={handleSave} disabled={saving}>
+      <Button
+        className={`profile-edit__save ${saving ? 'profile-edit__save--saving' : ''}`}
+        onClick={saving ? undefined : handleSave}
+      >
         {saving ? '保存中…' : '保存'}
       </Button>
     </View>

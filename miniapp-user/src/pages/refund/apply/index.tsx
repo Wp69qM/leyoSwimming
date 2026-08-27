@@ -10,6 +10,7 @@ import Taro from '@tarojs/taro';
 import { fetchMyPackageDetail, submitRefund } from '@/api/package';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
+import { getTeachingTypeLabel } from '@/constants/teachingType';
 import {
   REFUND_REASONS,
   type RefundReason,
@@ -170,16 +171,16 @@ export default function RefundApplyPage() {
         <StatusBarAndNavBar title='申请退款' onBack={navigateBack} />
         <View className='refund-apply__error'>
           <Icon name='error-circle' className='refund-apply__error-icon' />
-          <Text className='refund-apply__error-text'>
+          <View className='refund-apply__error-text'>
             {error ?? '套餐不存在'}
-          </Text>
+          </View>
           <View
             className='refund-apply__error-button'
             onClick={navigateToMyPackages}
           >
-            <Text className='refund-apply__error-button-text'>
+            <View className='refund-apply__error-button-text'>
               返回我的套餐
-            </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -243,7 +244,7 @@ function StatusBarAndNavBar({
         <View className='refund-apply__back' onClick={onBack}>
           <Icon name='arrow-left' className='refund-apply__back-icon' />
         </View>
-        <Text className='refund-apply__title'>{title}</Text>
+        <View className='refund-apply__title'>{title}</View>
         <View className='refund-apply__navbar-placeholder' />
       </View>
     </View>
@@ -263,21 +264,21 @@ function PackageSnapshotCard({ detail }: { detail: UserPackageDetail }) {
     <View className='snapshot-card'>
       <View className='snapshot-card__header'>
         <View className='snapshot-card__icon-wrap'>
-          <Text className='snapshot-card__icon-text'>课</Text>
+          <View className='snapshot-card__icon-text'>课</View>
         </View>
         <View className='snapshot-card__info'>
           <View className='snapshot-card__name-row'>
-            <Text className='snapshot-card__name'>{detail.packageName}</Text>
+            <View className='snapshot-card__name'>{detail.packageName}</View>
             <View className='snapshot-card__mode-tag'>
-              <Text className='snapshot-card__mode-tag-text'>{modeLabel}</Text>
+              <View className='snapshot-card__mode-tag-text'>{modeLabel}</View>
             </View>
           </View>
-          <Text className='snapshot-card__meta'>
-            教练：{detail.coachName} · {detail.teachingType}
-          </Text>
-          <Text className='snapshot-card__meta'>
+          <View className='snapshot-card__meta'>
+            教练：{detail.coachName} · {getTeachingTypeLabel(detail.teachingType)}
+          </View>
+          <View className='snapshot-card__meta'>
             泳姿：{strokeText} · {detail.durationMinutes} 分钟/节
-          </Text>
+          </View>
         </View>
       </View>
 
@@ -285,16 +286,16 @@ function PackageSnapshotCard({ detail }: { detail: UserPackageDetail }) {
 
       <View className='snapshot-card__rows'>
         <View className='snapshot-card__row'>
-          <Text className='snapshot-card__row-label'>购买时间</Text>
-          <Text className='snapshot-card__row-value'>
+          <View className='snapshot-card__row-label'>购买时间</View>
+          <View className='snapshot-card__row-value'>
             {formatDateTime(detail.createdAt)}
-          </Text>
+          </View>
         </View>
         <View className='snapshot-card__row'>
-          <Text className='snapshot-card__row-label'>已用 / 总课时</Text>
-          <Text className='snapshot-card__row-value'>
+          <View className='snapshot-card__row-label'>已用 / 总课时</View>
+          <View className='snapshot-card__row-value'>
             {detail.consumedCount} / {detail.totalHours} 节
-          </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -308,31 +309,31 @@ function RefundAmountCard({ detail }: { detail: UserPackageDetail }) {
 
   return (
     <View className='amount-card'>
-      <Text className='amount-card__title'>退款规则</Text>
+      <View className='amount-card__title'>退款规则</View>
 
       <View className='amount-card__formula'>
-        <Text className='amount-card__formula-text'>
+        <View className='amount-card__formula-text'>
           {isFullRefund
             ? '教练离职，按实付金额全额退款'
             : '退款金额 = 实付金额 × (总课时 - 已用课时) / 总课时 × 退款比例'}
-        </Text>
+        </View>
         {!isFullRefund && (
-          <Text className='amount-card__formula-example'>
+          <View className='amount-card__formula-example'>
             = ¥{formatPrice(detail.paidAmount)} × ({detail.totalHours} -{' '}
             {detail.consumedCount}) / {detail.totalHours} ×{' '}
             {Math.round(Number(detail.refundRatio) * 100)}%
-          </Text>
+          </View>
         )}
       </View>
 
       <View className='amount-card__amount-row'>
-        <Text className='amount-card__amount-label'>可退金额</Text>
-        <Text className='amount-card__amount-value'>¥{refundAmount}</Text>
+        <View className='amount-card__amount-label'>可退金额</View>
+        <View className='amount-card__amount-value'>¥{refundAmount}</View>
       </View>
 
       <View className='amount-card__tip'>
         <Icon name='warning' className='amount-card__tip-icon' />
-        <Text className='amount-card__tip-text'>{detail.refundRuleText}</Text>
+        <View className='amount-card__tip-text'>{detail.refundRuleText}</View>
       </View>
     </View>
   );
@@ -350,7 +351,7 @@ function ReasonSelector({
   return (
     <View className='reason-selector'>
       <View className='reason-selector__label-row'>
-        <Text className='reason-selector__label'>退款原因</Text>
+        <View className='reason-selector__label'>退款原因</View>
         <Text className='reason-selector__required'>*</Text>
       </View>
       <View
@@ -391,7 +392,7 @@ function ReasonPicker({
         onClick={(e) => e.stopPropagation()}
       >
         <View className='reason-picker__header'>
-          <Text className='reason-picker__title'>选择退款原因</Text>
+          <View className='reason-picker__title'>选择退款原因</View>
           <View className='reason-picker__close' onClick={onClose}>
             <Icon name='close' className='reason-picker__close-icon' />
           </View>
@@ -429,7 +430,7 @@ function ReasonTextarea({
   return (
     <View className='reason-textarea'>
       <View className='reason-textarea__header'>
-        <Text className='reason-textarea__label'>退款原因说明</Text>
+        <View className='reason-textarea__label'>退款原因说明</View>
         <Text className='reason-textarea__optional'>（选填）</Text>
         <Text className='reason-textarea__count'>
           {value.length}/{MAX_REASON_LENGTH}
@@ -461,8 +462,8 @@ function BottomSubmitBar({
   return (
     <View className='submit-bar'>
       <View className='submit-bar__amount'>
-        <Text className='submit-bar__amount-label'>可退金额</Text>
-        <Text className='submit-bar__amount-value'>¥{refundAmount}</Text>
+        <View className='submit-bar__amount-label'>可退金额</View>
+        <View className='submit-bar__amount-value'>¥{refundAmount}</View>
       </View>
       <View
         className={`submit-bar__button ${
@@ -470,9 +471,9 @@ function BottomSubmitBar({
         }`}
         onClick={onSubmit}
       >
-        <Text className='submit-bar__button-text'>
+        <View className='submit-bar__button-text'>
           {submitting ? '提交中...' : '提交申请'}
-        </Text>
+        </View>
       </View>
     </View>
   );

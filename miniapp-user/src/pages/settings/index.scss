@@ -11,6 +11,13 @@
     z-index: 100;
     background: #fff;
     border-bottom: 1px solid #f0f0f0;
+
+    @media (width >=768px) {
+      left: 50%;
+      right: auto;
+      width: 375px;
+      transform: translateX(-50%);
+    }
   }
 
   &__navbar-inner {

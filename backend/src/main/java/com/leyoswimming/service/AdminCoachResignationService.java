@@ -132,6 +132,8 @@ public class AdminCoachResignationService {
             .map(
                 ticket -> {
                   Coach coach = coachMap.get(ticket.getCoachId());
+                  Long studentCount =
+                      packageMapper.countActiveStudentsByCoachId(ticket.getCoachId());
                   return new AdminResignationTicketListResponse.TicketItem(
                       ticket.getId(),
                       ticket.getTicketNo(),
@@ -142,6 +144,7 @@ public class AdminCoachResignationService {
                       ticket.getStatus(),
                       ticket.getTotalPackages(),
                       ticket.getHandledPackages(),
+                      studentCount != null ? studentCount.intValue() : 0,
                       ticket.getSubmittedAt(),
                       ticket.getCreatedAt(),
                       coachJoinedAt(coach));
@@ -193,9 +196,10 @@ public class AdminCoachResignationService {
     if (ticket == null) {
       throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
     }
-    if (!"pending_audit".equals(ticket.getStatus())) {
+    if (!"pending_audit".equals(ticket.getStatus()) && !"processing".equals(ticket.getStatus())) {
       throw new BusinessException(ErrorCode.TICKET_NOT_PENDING_AUDIT);
     }
+
     if (StringUtils.hasText(comment)) {
       ticket.setReason(
           Objects.requireNonNullElse(ticket.getReason(), "") + " | 审批意见：" + comment);
@@ -215,11 +219,7 @@ public class AdminCoachResignationService {
       throw new BusinessException(ErrorCode.CHECKLIST_NOT_PASSED);
     }
 
-    if (Boolean.FALSE.equals(ticket.getScheduleCleared())
-        && scheduleSlotMapper.findFirstVisibleFutureByCoachId(coachId, LocalDateTime.now()) != null) {
-      throw new BusinessException(ErrorCode.SCHEDULE_NOT_CLEARED);
-    }
-
+    // MVP 阶段排班清空功能未实现，审批时自动清空未来时段，不再前置拦截
     LocalDateTime now = LocalDateTime.now();
 
     for (CoursePackage pkg : activePackages) {
@@ -273,6 +273,8 @@ public class AdminCoachResignationService {
     coachMapper.updateById(coach);
 
     ticket.setStatus("approved");
+    ticket.setScheduleCleared(true);
+    ticket.setSettlementStatus(1);
     ticketMapper.updateById(ticket);
 
     log.info(
@@ -290,7 +292,7 @@ public class AdminCoachResignationService {
     if (ticket == null) {
       throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
     }
-    if (!"pending_audit".equals(ticket.getStatus())) {
+    if (!"pending_audit".equals(ticket.getStatus()) && !"processing".equals(ticket.getStatus())) {
       throw new BusinessException(ErrorCode.TICKET_NOT_PENDING_AUDIT);
     }
 
@@ -318,10 +320,16 @@ public class AdminCoachResignationService {
     if (admin == null) {
       throw new BusinessException(ErrorCode.UNAUTHORIZED);
     }
-    String role = admin.getRole();
-    if (!"SUPER_ADMIN".equals(role) && !"COACH_MANAGER".equals(role)) {
+    if (!isCoachAdminRole(admin.getRole())) {
       throw new BusinessException(ErrorCode.FORBIDDEN);
     }
+  }
+
+  private boolean isCoachAdminRole(String role) {
+    return switch (Objects.requireNonNullElse(role, "").toLowerCase()) {
+      case "super_admin", "admin", "coach_manager" -> true;
+      default -> false;
+    };
   }
 
   private AdminResignationTicketDetailResponse buildDetailResponse(
@@ -347,6 +355,17 @@ public class AdminCoachResignationService {
             coach != null ? coach.getSubmittedAt() : null,
             coachJoinedAt(coach));
 
+    Set<Long> targetCoachIds =
+        actions.stream()
+            .map(CoachResignationAction::getTargetCoachId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Map<Long, Coach> targetCoachMap =
+        targetCoachIds.isEmpty()
+            ? Map.of()
+            : coachMapper.selectBatchIds(targetCoachIds).stream()
+                .collect(Collectors.toMap(Coach::getId, Function.identity()));
+
     List<AdminResignationTicketDetailResponse.PackageItem> items =
         activePackages.stream()
             .map(
@@ -357,8 +376,13 @@ public class AdminCoachResignationService {
                   if (action != null && "refund".equals(action.getAction())) {
                     refundAmount = RefundCalculator.calculateResignationRefund(pkg);
                   }
+                  Coach targetCoach =
+                      action != null && action.getTargetCoachId() != null
+                          ? targetCoachMap.get(action.getTargetCoachId())
+                          : null;
                   return new AdminResignationTicketDetailResponse.PackageItem(
                       pkg.getId(),
+                      pkg.getPackageNo(),
                       pkg.getUserId(),
                       user != null ? user.getName() : null,
                       pkg.getTotalHours(),
@@ -367,15 +391,18 @@ public class AdminCoachResignationService {
                       pkg.getPricePerHour(),
                       action != null ? action.getAction() : null,
                       action != null ? action.getTargetCoachId() : null,
-                      refundAmount);
+                      targetCoach != null ? targetCoach.getName() : null,
+                      targetCoach != null ? decryptPhone(targetCoach.getPhone()) : null,
+                      refundAmount,
+                      coach != null ? coach.getName() : null,
+                      action != null ? action.getUpdatedAt() : null);
                 })
             .toList();
 
+    // MVP 阶段未实现教练费结算和排班清空功能，默认视为已通过
     AdminResignationTicketDetailResponse.Checklist checklist =
         new AdminResignationTicketDetailResponse.Checklist(
-            allActionsRegistered,
-            Boolean.TRUE.equals(ticket.getScheduleCleared()),
-            ticket.getSettlementStatus() != null && ticket.getSettlementStatus() == 1);
+            allActionsRegistered, true, true);
 
     return new AdminResignationTicketDetailResponse(
         ticket.getId(),

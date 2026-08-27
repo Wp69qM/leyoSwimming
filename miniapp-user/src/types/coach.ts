@@ -32,6 +32,7 @@ export interface CoachDetailPackage {
   packageMode: 'experience' | 'standard';
   price: string;
   totalHours: number;
+  validDays: number;
   imageUrl: string | null;
 }
 

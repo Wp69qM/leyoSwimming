@@ -20,6 +20,10 @@ export interface RequestOptions {
   needToken?: boolean;
 }
 
+interface InternalRequestOptions extends RequestOptions {
+  _retryCount?: number;
+}
+
 export class ApiError extends Error {
   code: number;
 
@@ -43,11 +47,14 @@ function getRefreshToken(): string | null {
 function setTokens(
   accessToken: string,
   refreshToken: string,
-  expiresIn: number
+  expiresInSeconds: number
 ): void {
   setStorageItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
   setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-  setStorageItem(STORAGE_KEYS.TOKEN_EXPIRES_AT, Date.now() + expiresIn * 1000);
+  setStorageItem(
+    STORAGE_KEYS.TOKEN_EXPIRES_AT,
+    Date.now() + expiresInSeconds * 1000
+  );
 }
 
 function clearTokens(): void {
@@ -76,7 +83,7 @@ async function doRefreshAccessToken(): Promise<string | null> {
       ApiResponse<{
         accessToken: string;
         refreshToken: string;
-        expiresIn: number;
+        expiresInSeconds: number;
       }>
     >({
       url: `${BASE_URL}/user/auth/refresh`,
@@ -90,9 +97,9 @@ async function doRefreshAccessToken(): Promise<string | null> {
       const {
         accessToken,
         refreshToken: newRefreshToken,
-        expiresIn,
+        expiresInSeconds,
       } = result.data;
-      setTokens(accessToken, newRefreshToken, expiresIn);
+      setTokens(accessToken, newRefreshToken, expiresInSeconds);
       return accessToken;
     }
   } catch {
@@ -123,12 +130,19 @@ function redirectToLogin(): void {
 export async function request<T = unknown>(
   options: RequestOptions
 ): Promise<T> {
+  return doRequest<T>(options);
+}
+
+async function doRequest<T = unknown>(
+  options: InternalRequestOptions
+): Promise<T> {
   const {
     url,
     method = 'POST',
     data,
     headers = {},
     needToken = true,
+    _retryCount = 0,
   } = options;
 
   const requestHeaders: Record<string, string> = {
@@ -154,9 +168,17 @@ export async function request<T = unknown>(
     const { statusCode, data: responseData } = res;
 
     if (statusCode === 401) {
+      if (!needToken) {
+        throw new ApiError(200002, '登录已过期，请重新登录');
+      }
+      if (_retryCount >= 1) {
+        clearTokens();
+        redirectToLogin();
+        throw new ApiError(200002, '登录已过期，请重新登录');
+      }
       const newToken = await refreshAccessToken();
       if (newToken) {
-        return request<T>(options);
+        return doRequest<T>({ ...options, _retryCount: _retryCount + 1 });
       }
       redirectToLogin();
       throw new ApiError(200002, '登录已过期，请重新登录');

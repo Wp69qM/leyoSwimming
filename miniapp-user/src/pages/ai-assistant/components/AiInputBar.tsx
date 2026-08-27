@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Textarea } from '@tarojs/components';
+import { View, Textarea } from '@tarojs/components';
 import { Icon } from '@/components/common/Icon';
 
 interface AiInputBarProps {
@@ -70,9 +70,9 @@ export function AiInputBar({ onSend, disabled = false }: AiInputBarProps) {
       </View>
       <View className='ai-input-bar__disclaimer'>
         <Icon name='shield' className='ai-input-bar__disclaimer-icon' />
-        <Text className='ai-input-bar__disclaimer-text'>
+        <View className='ai-input-bar__disclaimer-text'>
           leyo 的回答由 AI 生成，仅供参考
-        </Text>
+        </View>
       </View>
     </View>
   );

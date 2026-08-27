@@ -148,9 +148,9 @@ export default function CustomPackageConfigPage() {
       setActivePackage(activePackageData);
     }
 
+    const isValidPackageId = packageId === -1 || packageId > 0;
     if (
-      Number.isNaN(packageId) ||
-      packageId <= 0 ||
+      !isValidPackageId ||
       Number.isNaN(coachId) ||
       coachId <= 0
     ) {
@@ -376,9 +376,9 @@ export default function CustomPackageConfigPage() {
             />
           </View>
           <Text className='custom-config-error__text'>{error}</Text>
-          <Text className='custom-config-error__retry' onClick={loadData}>
+          <View className='custom-config-error__retry' onClick={loadData}>
             重新加载
-          </Text>
+          </View>
         </View>
       </View>
     );
@@ -395,9 +395,9 @@ export default function CustomPackageConfigPage() {
                 name='warning'
                 className='custom-config-empty__warning-icon'
               />
-              <Text className='custom-config-empty__warning-text'>
+              <View className='custom-config-empty__warning-text'>
                 {warning}
-              </Text>
+              </View>
             </View>
           )}
           <View className='custom-config-empty__illustration'>
@@ -406,7 +406,7 @@ export default function CustomPackageConfigPage() {
               className='custom-config-empty__illustration-icon'
             />
           </View>
-          <Text className='custom-config-empty__title'>暂无配置信息</Text>
+          <View className='custom-config-empty__title'>暂无配置信息</View>
           <Text
             className='custom-config-empty__action'
             onClick={navigateToHome}

@@ -464,28 +464,33 @@ onMounted(() => {
       >
         <el-table-column
           type="selection"
-          width="48"
+          min-width="48"
           align="center"
           :selectable="selectable"
         />
-        <el-table-column label="教练 ID" prop="coachId" width="80" />
-        <el-table-column label="姓名" width="100">
+        <el-table-column label="教练 ID" prop="coachId" min-width="80" />
+        <el-table-column label="姓名" min-width="100">
           <template #default="{ row }">
             <el-button link type="primary" @click="goDetail(row.applicationId)">
               {{ row.name }}
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="性别" align="center" width="60">
+        <el-table-column label="性别" align="center" min-width="60">
           <template #default="{ row }">
             {{ formatGender(row.gender) }}
           </template>
         </el-table-column>
-        <el-table-column label="年龄" align="center" prop="age" width="60" />
-        <el-table-column label="教学年限" align="center" width="100">
+        <el-table-column
+          label="年龄"
+          align="center"
+          prop="age"
+          min-width="60"
+        />
+        <el-table-column label="教学年限" align="center" min-width="100">
           <template #default="{ row }"> {{ row.teachingYears }} 年 </template>
         </el-table-column>
-        <el-table-column label="擅长" align="center" width="120">
+        <el-table-column label="擅长" align="center" min-width="120">
           <template #default="{ row }">
             <div class="stroke-tags">
               <el-tag
@@ -499,12 +504,12 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="申请时间" width="160">
+        <el-table-column label="申请时间" min-width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.submittedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="流程状态" align="center" width="100">
+        <el-table-column label="流程状态" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -517,13 +522,23 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="入驻类型" align="center" width="120">
+        <el-table-column label="入驻类型" align="center" min-width="120">
           <template #default="{ row }">
             {{ formatEntryType(row.previousCoachStatus) }}
           </template>
         </el-table-column>
-        <el-table-column label="最新申请 ID" prop="applicationId" width="100" />
-        <el-table-column label="操作" align="center" width="180" fixed="right">
+        <el-table-column
+          label="最新申请 ID"
+          prop="applicationId"
+          min-width="100"
+        />
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="180"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button link type="primary" @click="goDetail(row.applicationId)">
               查看
@@ -571,7 +586,7 @@ onMounted(() => {
     <el-dialog
       v-model="rejectVisible"
       title="驳回入驻申请"
-      width="360px"
+      min-width="360px"
       :close-on-click-modal="false"
       destroy-on-close
       @close="closeRejectDialog"
@@ -800,6 +815,19 @@ onMounted(() => {
 :deep(.el-table__body) {
   .el-table__row:last-child td {
     border-bottom: none;
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 

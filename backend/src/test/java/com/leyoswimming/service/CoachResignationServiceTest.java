@@ -159,7 +159,7 @@ class CoachResignationServiceTest {
     when(actionMapper.findByTicketId(100L)).thenReturn(Collections.emptyList());
     when(userMapper.selectById(100L)).thenReturn(user);
 
-    CoachResignationDetailResponse response = coachResignationService.detail(1L);
+    CoachResignationDetailResponse response = coachResignationService.detail(1L, null);
 
     assertThat(response).isNotNull();
     assertThat(response.ticketId()).isEqualTo(100L);
@@ -168,11 +168,16 @@ class CoachResignationServiceTest {
   }
 
   @Test
-  @DisplayName("查询离职详情：无工单返回 null")
-  void detail_withoutTicket_returnsNull() {
+  @DisplayName("查询离职详情：无工单返回草稿详情")
+  void detail_withoutTicket_returnsDraft() {
     when(ticketMapper.findActiveByCoachId(1L)).thenReturn(null);
+    when(packageMapper.findActiveByCoachId(1L)).thenReturn(Collections.emptyList());
 
-    assertThat(coachResignationService.detail(1L)).isNull();
+    CoachResignationDetailResponse response = coachResignationService.detail(1L, null);
+
+    assertThat(response).isNotNull();
+    assertThat(response.status()).isEqualTo("none");
+    assertThat(response.packages()).isEmpty();
   }
 
   @Test

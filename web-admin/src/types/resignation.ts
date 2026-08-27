@@ -13,6 +13,7 @@ export interface ResignationTicket {
   status: ResignationStatus;
   totalPackages: number;
   handledPackages: number;
+  activeStudentCount: number;
   submittedAt: string;
   createdAt: string;
   coachJoinedAt?: string;
@@ -36,6 +37,8 @@ export interface ResignationPackageItem {
   pricePerHour: number;
   action: StudentHandleResult;
   targetCoachId: string | null;
+  targetCoachName?: string | null;
+  targetCoachPhone?: string | null;
   refundAmount: number | null;
   handlerName?: string | null;
   handledAt?: string | null;

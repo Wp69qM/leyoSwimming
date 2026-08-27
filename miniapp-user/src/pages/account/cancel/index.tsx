@@ -117,7 +117,7 @@ export default function AccountCancelPage() {
     }
     return (
       <View className='account-cancel__check-icon account-cancel__check-icon--error'>
-        <Text className='account-cancel__check-exclamation'>!</Text>
+        <View className='account-cancel__check-exclamation'>!</View>
       </View>
     );
   }
@@ -135,7 +135,7 @@ export default function AccountCancelPage() {
           <View className='account-cancel__navbar-back' onClick={handleBack}>
             <Text className='account-cancel__navbar-back-icon'>‹</Text>
           </View>
-          <Text className='account-cancel__navbar-title'>注销账号</Text>
+          <View className='account-cancel__navbar-title'>注销账号</View>
         </View>
       </View>
 
@@ -146,29 +146,29 @@ export default function AccountCancelPage() {
         <View className='account-cancel__risk-card'>
           <View className='account-cancel__risk-header'>
             <View className='account-cancel__risk-header-icon' />
-            <Text className='account-cancel__risk-title'>
+            <View className='account-cancel__risk-title'>
               注销账号前，请确认以下重要信息
-            </Text>
+            </View>
           </View>
           <View className='account-cancel__risk-list'>
             {RISK_ITEMS.map((item) => (
               <View className='account-cancel__risk-item' key={item}>
                 <View className='account-cancel__risk-icon' />
-                <Text className='account-cancel__risk-text'>{item}</Text>
+                <View className='account-cancel__risk-text'>{item}</View>
               </View>
             ))}
           </View>
         </View>
 
         <View className='account-cancel__checklist'>
-          <Text className='account-cancel__checklist-title'>
+          <View className='account-cancel__checklist-title'>
             需满足以下条件
-          </Text>
+          </View>
           {loading && !checkState ? (
             <View className='account-cancel__checklist-loading'>
-              <Text className='account-cancel__checklist-loading-text'>
+              <View className='account-cancel__checklist-loading-text'>
                 加载中...
-              </Text>
+              </View>
             </View>
           ) : (
             <View className='account-cancel__checklist-list'>
@@ -201,7 +201,7 @@ export default function AccountCancelPage() {
 
         {errorTip && (
           <View className='account-cancel__error'>
-            <Text className='account-cancel__error-text'>{errorTip}</Text>
+            <View className='account-cancel__error-text'>{errorTip}</View>
           </View>
         )}
       </View>
@@ -224,10 +224,10 @@ export default function AccountCancelPage() {
             onClick={handleCancelModal}
           />
           <View className='account-cancel__modal-body'>
-            <Text className='account-cancel__modal-title'>确认注销</Text>
-            <Text className='account-cancel__modal-content'>
+            <View className='account-cancel__modal-title'>确认注销</View>
+            <View className='account-cancel__modal-content'>
               注销后账号不可找回，是否确认注销？
-            </Text>
+            </View>
             <View className='account-cancel__modal-actions'>
               <Button
                 className='account-cancel__modal-btn account-cancel__modal-btn--cancel'

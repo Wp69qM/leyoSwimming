@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 import { API_BASE_URL } from '@/constants'
-import { request } from './request'
+import { getAccessToken, request } from './request'
 
 export interface SendSmsRequest {
   phone: string
@@ -18,13 +18,17 @@ export function sendSmsCode(data: SendSmsRequest): Promise<void> {
 
 export function uploadFile(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const token = Taro.getStorageSync('leyo_coach_access_token')
+    const token = getAccessToken()
+    if (!token) {
+      reject(new Error('登录已过期，请重新登录'))
+      return
+    }
     Taro.uploadFile({
       url: `${API_BASE_URL}/common/file/upload`,
       filePath,
       name: 'file',
       header: {
-        Authorization: token ? `Bearer ${token}` : '',
+        Authorization: `Bearer ${token}`,
       },
       success: (res) => {
         try {

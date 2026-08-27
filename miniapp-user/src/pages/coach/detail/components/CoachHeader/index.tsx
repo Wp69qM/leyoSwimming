@@ -1,5 +1,6 @@
 import { View, Text, Image, ScrollView } from '@tarojs/components';
 import { Icon } from '@/components/common/Icon';
+import { strokeCodesToLabels } from '@/constants/swimStrokes';
 import type { CoachDetail } from '@/types/coach';
 
 import './index.scss';
@@ -29,11 +30,11 @@ export function CoachHeader({ coach }: CoachHeaderProps) {
         />
       ) : (
         <View className='coach-detail-header__avatar coach-detail-header__avatar--placeholder'>
-          <Text className='coach-detail-header__avatar-text'>{surname}</Text>
+          <View className='coach-detail-header__avatar-text'>{surname}</View>
         </View>
       )}
       <View className='coach-detail-header__row coach-detail-header__row--main'>
-        <Text className='coach-detail-header__name'>{coach.name}</Text>
+        <View className='coach-detail-header__name'>{coach.name}</View>
         {genderText && (
           <View className='coach-detail-header__gender'>
             <Text className='coach-detail-header__gender-text'>
@@ -42,15 +43,15 @@ export function CoachHeader({ coach }: CoachHeaderProps) {
           </View>
         )}
         <View className='coach-detail-header__status'>
-          <Text className='coach-detail-header__status-text'>
+          <View className='coach-detail-header__status-text'>
             {coach.realTimeStatus}
-          </Text>
+          </View>
         </View>
       </View>
       {metaParts.length > 0 && (
-        <Text className='coach-detail-header__meta'>
+        <View className='coach-detail-header__meta'>
           {metaParts.join(' · ')}
-        </Text>
+        </View>
       )}
       <View className='coach-detail-header__rating-row'>
         <Icon name='star' className='coach-detail-header__star' />
@@ -69,7 +70,7 @@ export function CoachHeader({ coach }: CoachHeaderProps) {
         )}
       </View>
       {coach.certificates.length > 0 && (
-        <ScrollView className='coach-detail-header__certs' scrollX>
+        <View className='coach-detail-header__certs'>
           {coach.certificates.slice(0, 2).map((cert) => (
             <View key={cert.certType} className='coach-detail-header__cert'>
               <Text className='coach-detail-header__cert-text'>
@@ -84,7 +85,7 @@ export function CoachHeader({ coach }: CoachHeaderProps) {
               </Text>
             </View>
           )}
-        </ScrollView>
+        </View>
       )}
     </View>
   );

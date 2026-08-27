@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { AdminCoachDetail } from '@/types/api';
@@ -16,6 +16,22 @@ const loading = ref(false);
 const error = ref(false);
 const activeTab = ref('basic');
 const editVisible = ref(false);
+
+const avatarUrl = computed(() => {
+  if (coach.value?.avatarUrl) {
+    return coach.value.avatarUrl;
+  }
+  const portraitUrl = coach.value?.certificates.find(
+    (item) => item.certType === 'PORTRAIT'
+  )?.imageUrl;
+  return portraitUrl || '/default-avatar.png';
+});
+
+const visibleAuditLogs = computed(() => {
+  return (coach.value?.auditLogs || []).filter(
+    (log) => !ignoredAuditActions.has(log.action)
+  );
+});
 
 const coachStatusMap: Record<
   number,
@@ -39,8 +55,21 @@ const realtimeStatusMap: Record<
   请假中: { label: '请假中', color: '#722ED1', bgColor: '#F9F0FF' },
 };
 
+const auditActionMap: Record<string, string> = {
+  submit: '提交入驻',
+  approve: '通过审核',
+  reject: '驳回审核',
+  update: '更新资料',
+  ADMIN_CREATE_COACH: '创建教练',
+  ADMIN_UPDATE_COACH_PROFILE: '更新资料',
+  ADMIN_CANCEL_COACH_ENTRY: '取消入驻',
+};
+
+const ignoredAuditActions = new Set(['draft_save']);
+
 function formatGender(gender: string): string {
-  return gender === 'MALE' ? '男' : gender === 'FEMALE' ? '女' : '-';
+  const normalized = gender?.toLowerCase();
+  return normalized === 'male' ? '男' : normalized === 'female' ? '女' : '-';
 }
 
 function findCertUrl(certType: string): string {
@@ -148,11 +177,7 @@ onMounted(() => {
     <template v-else>
       <div class="info-card">
         <div class="info-main">
-          <img
-            class="avatar"
-            :src="coach.avatarUrl || '/default-avatar.png'"
-            alt="头像"
-          />
+          <img class="avatar" :src="avatarUrl" alt="头像" />
           <div class="info-content">
             <div class="info-title">
               <span class="name">{{ coach.name || '未设置' }}</span>
@@ -215,16 +240,21 @@ onMounted(() => {
         <div class="card-title">状态变更记录</div>
         <el-timeline>
           <el-timeline-item
-            v-for="(log, index) in coach.auditLogs || []"
-            :key="index"
+            v-for="log in visibleAuditLogs"
+            :key="log.logId"
             :timestamp="formatDateTime(log.createdAt)"
           >
-            {{ log.action }}
-            <span v-if="log.reason"> - {{ log.reason }}</span>
+            <div class="audit-log-action">
+              {{ auditActionMap[log.action] || log.action }}
+            </div>
+            <div v-if="log.fromStatus || log.toStatus" class="audit-log-meta">
+              {{ log.fromStatus || '-' }} → {{ log.toStatus || '-' }}
+            </div>
+            <div v-if="log.reason" class="audit-log-reason">
+              原因：{{ log.reason }}
+            </div>
           </el-timeline-item>
-          <el-timeline-item
-            v-if="!coach.auditLogs || coach.auditLogs.length === 0"
-          >
+          <el-timeline-item v-if="visibleAuditLogs.length === 0">
             暂无状态变更记录
           </el-timeline-item>
         </el-timeline>
@@ -607,6 +637,24 @@ onMounted(() => {
   color: #8c8c8c;
   background: #f5f7fa;
   border-radius: 4px;
+}
+
+.audit-log-action {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d2129;
+}
+
+.audit-log-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #86909c;
+}
+
+.audit-log-reason {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #86909c;
 }
 
 .bottom-bar {

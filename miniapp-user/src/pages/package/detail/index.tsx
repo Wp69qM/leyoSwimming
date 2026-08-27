@@ -4,6 +4,8 @@ import Taro from '@tarojs/taro';
 import { fetchPackageDetail } from '@/api/package';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
+import { getTeachingTypeLabel } from '@/constants/teachingType';
+import { strokeCodesToLabels } from '@/constants/swimStrokes';
 import { useAuthStore } from '@/stores/authStore';
 import type { PackageDetail, PackageDetailCoach } from '@/types/package';
 
@@ -37,7 +39,8 @@ export default function PackageDetailPage() {
   const source = params.source ?? 'list';
 
   const loadDetail = useCallback(async () => {
-    if (Number.isNaN(packageId) || packageId <= 0) {
+    const isValidPackageId = packageId === -1 || packageId > 0;
+    if (Number.isNaN(packageId) || !isValidPackageId) {
       setError('套餐 ID 无效');
       setLoading(false);
       return;
@@ -62,6 +65,7 @@ export default function PackageDetailPage() {
   }, [packageId, coachId]);
 
   useEffect(() => {
+    useAuthStore.getState().restoreFromStorage();
     void loadDetail();
   }, [loadDetail]);
 
@@ -82,7 +86,8 @@ export default function PackageDetailPage() {
     const targetCoachId = selectedCoach?.coachId ?? coachId;
     if (!targetCoachId) return;
 
-    if (!isLoggedIn) {
+    const loggedIn = useAuthStore.getState().isLoggedIn;
+    if (!loggedIn) {
       void Taro.navigateTo({
         url: `${PAGE_PATHS.wechatAuth}?sourcePage=package_detail`,
       });
@@ -111,9 +116,9 @@ export default function PackageDetailPage() {
         <StatusBarAndNavBar title='套餐详情' onBack={navigateBack} />
         <View className='package-detail-error__content'>
           <Text className='package-detail-error__text'>{error}</Text>
-          <Text className='package-detail-error__retry' onClick={loadDetail}>
+          <View className='package-detail-error__retry' onClick={loadDetail}>
             重新加载
-          </Text>
+          </View>
         </View>
       </View>
     );
@@ -124,9 +129,9 @@ export default function PackageDetailPage() {
       <View className='package-detail-empty'>
         <StatusBarAndNavBar title='套餐详情' onBack={navigateBack} />
         <View className='package-detail-empty__content'>
-          <Text className='package-detail-empty__title'>
+          <View className='package-detail-empty__title'>
             套餐不存在或已下架
-          </Text>
+          </View>
           <Text
             className='package-detail-empty__action'
             onClick={navigateToHome}
@@ -170,7 +175,7 @@ export default function PackageDetailPage() {
           />
         )}
 
-        {source === 'coach' && (
+        {(source === 'coach' || source === 'detail') && (
           <SelectedCoachCard
             coach={primaryCoach}
             teachingType={detail.teachingType}
@@ -205,7 +210,7 @@ function StatusBarAndNavBar({
         <View className='package-detail__back' onClick={onBack}>
           <Icon name='arrow-left' className='package-detail__back-icon' />
         </View>
-        <Text className='package-detail__title'>{title}</Text>
+        <View className='package-detail__title'>{title}</View>
         <View className='package-detail__navbar-placeholder' />
       </View>
     </View>
@@ -214,21 +219,22 @@ function StatusBarAndNavBar({
 
 function MainInfoCard({ detail }: { detail: PackageDetail }) {
   const isExperience = detail.packageMode === 'experience';
-  const tagText = isExperience ? '体验课' : '正价课';
+  const isCustom = detail.packageMode === 'custom';
+  const tagText = isExperience ? '体验课' : isCustom ? '自定义' : '正价课';
 
   return (
     <View
-      className={`main-info-card main-info-card--${isExperience ? 'experience' : 'standard'}`}
+      className={`main-info-card main-info-card--${isExperience ? 'experience' : isCustom ? 'custom' : 'standard'}`}
     >
       <View className='main-info-card__badge'>
-        <Text className='main-info-card__badge-text'>{tagText}</Text>
+        <View className='main-info-card__badge-text'>{tagText}</View>
       </View>
-      <Text className='main-info-card__name'>{detail.name}</Text>
+      <View className='main-info-card__name'>{detail.name}</View>
       {detail.tags.length > 0 && (
         <View className='main-info-card__tags'>
           {detail.tags.map((tag) => (
             <View key={tag} className='main-info-card__tag'>
-              <Text className='main-info-card__tag-text'>{tag}</Text>
+              <View className='main-info-card__tag-text'>{tag}</View>
             </View>
           ))}
         </View>
@@ -237,36 +243,38 @@ function MainInfoCard({ detail }: { detail: PackageDetail }) {
       <View className='main-info-card__info-row'>
         <View className='main-info-card__info-item'>
           <Icon name='calendar' className='main-info-card__info-icon' />
-          <Text className='main-info-card__info-text'>
+          <View className='main-info-card__info-text'>
             有效期 {isExperience ? EXPERIENCE_VALID_DAYS : detail.validDays} 天
-          </Text>
+          </View>
         </View>
         <View className='main-info-card__info-item'>
           <Icon name='user' className='main-info-card__info-icon' />
-          <Text className='main-info-card__info-text'>
-            {detail.teachingType}
-          </Text>
+          <View className='main-info-card__info-text'>
+            {getTeachingTypeLabel(detail.teachingType)}
+          </View>
         </View>
         <View className='main-info-card__info-item'>
           <Icon name='time' className='main-info-card__info-icon' />
-          <Text className='main-info-card__info-text'>
+          <View className='main-info-card__info-text'>
             {detail.durationMinutes} 分钟/节
-          </Text>
+          </View>
         </View>
       </View>
 
-      <View className='main-info-card__price-row'>
-        <Text className='main-info-card__price'>
-          ¥{formatPrice(detail.price)}
-        </Text>
-        {Number(detail.originalPrice) > 0 &&
-          Number(detail.originalPrice) > Number(detail.price) && (
-            <Text className='main-info-card__original-price'>
-              ¥{formatPrice(detail.originalPrice)}
-            </Text>
-          )}
-        <Text className='main-info-card__unit'>/ {detail.totalHours} 节</Text>
-      </View>
+      {!isCustom && (
+        <View className='main-info-card__price-row'>
+          <View className='main-info-card__price'>
+            ¥{formatPrice(detail.price)}
+          </View>
+          {Number(detail.originalPrice) > 0 &&
+            Number(detail.originalPrice) > Number(detail.price) && (
+              <View className='main-info-card__original-price'>
+                ¥{formatPrice(detail.originalPrice)}
+              </View>
+            )}
+          <View className='main-info-card__unit'>/ {detail.totalHours} 节</View>
+        </View>
+      )}
     </View>
   );
 }
@@ -299,7 +307,7 @@ function IncludedSection({ detail }: { detail: PackageDetail }) {
 
   return (
     <View className='section-card'>
-      <Text className='section-card__title'>套餐包含</Text>
+      <View className='section-card__title'>套餐包含</View>
       <View className='section-card__list'>
         {items.map((item, index) => (
           <View key={index} className='content-item'>
@@ -317,9 +325,9 @@ function IncludedSection({ detail }: { detail: PackageDetail }) {
 function DescriptionSection({ detail }: { detail: PackageDetail }) {
   return (
     <View className='section-card'>
-      <Text className='section-card__title'>套餐详情</Text>
+      <View className='section-card__title'>套餐详情</View>
       {detail.description && (
-        <Text className='section-card__desc'>{detail.description}</Text>
+        <View className='section-card__desc'>{detail.description}</View>
       )}
       {detail.images.length > 0 && (
         <View className='section-card__images'>
@@ -345,6 +353,7 @@ function DescriptionSection({ detail }: { detail: PackageDetail }) {
 
 function NoticeSection({ detail }: { detail: PackageDetail }) {
   const isExperience = detail.packageMode === 'experience';
+  const isCustom = detail.packageMode === 'custom';
 
   const items = useMemo(() => {
     if (isExperience) {
@@ -353,6 +362,15 @@ function NoticeSection({ detail }: { detail: PackageDetail }) {
         '体验课过期或退款后可再次购买',
         '体验课购买后不可退款',
         `自购买起 ${EXPERIENCE_VALID_DAYS} 天内有效`,
+      ];
+    }
+
+    if (isCustom) {
+      return [
+        '购买后即绑定该教练，不可跨教练使用',
+        '按实际购买课时与教练参考单价计算总价',
+        '课时数、有效期可在下单页自主选择',
+        `自购买起 ${detail.validDays} 天内有效`,
       ];
     }
 
@@ -372,18 +390,18 @@ function NoticeSection({ detail }: { detail: PackageDetail }) {
 
     notices.push(`自购买起 ${detail.validDays} 天内有效`);
     return notices;
-  }, [detail, isExperience]);
+  }, [detail, isExperience, isCustom]);
 
   return (
     <View className='section-card'>
-      <Text className='section-card__title'>购买须知</Text>
+      <View className='section-card__title'>购买须知</View>
       <View className='section-card__list'>
         {items.map((item, index) => (
           <View key={index} className='notice-item'>
             <View className='notice-item__icon-wrap'>
               <Icon name='notice' className='notice-item__icon' />
             </View>
-            <Text className='notice-item__text'>{item}</Text>
+            <View className='notice-item__text'>{item}</View>
           </View>
         ))}
       </View>
@@ -402,40 +420,40 @@ function CoachSelection({
 }) {
   return (
     <View className='section-card coach-selection'>
-      <Text className='section-card__title'>选择教练</Text>
+      <View className='section-card__title'>选择教练</View>
       <View className='coach-selection__list'>
         {coaches.map((coach) => {
           const isSelected = selected?.coachId === coach.coachId;
           return (
             <View
               key={coach.coachId}
-              className={`coach-card ${isSelected ? 'coach-card--selected' : ''}`}
+              className={`package-coach-card ${isSelected ? 'package-coach-card--selected' : ''}`}
               onClick={() => onSelect(coach)}
             >
               {coach.avatarUrl ? (
                 <Image
-                  className='coach-card__avatar'
+                  className='package-coach-card__avatar'
                   src={coach.avatarUrl}
                   mode='aspectFill'
                 />
               ) : (
-                <View className='coach-card__avatar coach-card__avatar--placeholder'>
-                  <Text className='coach-card__avatar-text'>
+                <View className='package-coach-card__avatar package-coach-card__avatar--placeholder'>
+                  <View className='package-coach-card__avatar-text'>
                     {coach.name.charAt(0)}
-                  </Text>
+                  </View>
                 </View>
               )}
-              <Text className='coach-card__name'>{coach.name}</Text>
-              <View className='coach-card__rating'>
-                <Icon name='star' className='coach-card__star' />
-                <Text className='coach-card__rating-text'>{coach.rating}</Text>
+              <View className='package-coach-card__name'>{coach.name}</View>
+              <View className='package-coach-card__rating'>
+                <Icon name='star' className='package-coach-card__star' />
+                <View className='package-coach-card__rating-text'>{coach.rating}</View>
               </View>
-              <Text className='coach-card__stats'>
+              <Text className='package-coach-card__stats'>
                 教龄 {coach.teachingYears} 年 · 学员 {coach.totalStudents} 人
               </Text>
-              <Text className='coach-card__price'>
+              <View className='package-coach-card__price'>
                 ¥{formatPrice(coach.referencePrice)}/节
-              </Text>
+              </View>
             </View>
           );
         })}
@@ -459,7 +477,7 @@ function SelectedCoachCard({
 
   return (
     <View className='section-card selected-coach'>
-      <Text className='section-card__title'>执教教练</Text>
+      <View className='section-card__title'>执教教练</View>
       <View className='selected-coach__card' onClick={navigateToCoachDetail}>
         {coach.avatarUrl ? (
           <Image
@@ -469,13 +487,13 @@ function SelectedCoachCard({
           />
         ) : (
           <View className='selected-coach__avatar selected-coach__avatar--placeholder'>
-            <Text className='selected-coach__avatar-text'>
+            <View className='selected-coach__avatar-text'>
               {coach.name.charAt(0)}
-            </Text>
+            </View>
           </View>
         )}
         <View className='selected-coach__info'>
-          <Text className='selected-coach__name'>教练 {coach.name}</Text>
+          <View className='selected-coach__name'>教练 {coach.name}</View>
           <View className='selected-coach__meta'>
             <Icon name='star' className='selected-coach__star' />
             <Text className='selected-coach__meta-text'>{coach.rating} 分</Text>
@@ -484,9 +502,9 @@ function SelectedCoachCard({
             </Text>
           </View>
           <Text className='selected-coach__strokes'>
-            {teachingType}
+            {getTeachingTypeLabel(teachingType)}
             {coach.teachingStrokes.length > 0 &&
-              ` · 泳姿：${coach.teachingStrokes.join('/')}`}
+              ` · 泳姿：${strokeCodesToLabels(coach.teachingStrokes).join('/')}`}
           </Text>
         </View>
         <Icon name='arrow-right' className='selected-coach__arrow' />
@@ -507,30 +525,43 @@ function BottomBar({
   onPurchase: () => void;
 }) {
   const isExperience = detail.packageMode === 'experience';
+  const isCustom = detail.packageMode === 'custom';
   const unitPrice = selectedCoach
     ? selectedCoach.referencePrice
     : detail.totalHours > 0
       ? (Number(detail.price) / detail.totalHours).toFixed(2)
       : detail.price;
 
-  const canPurchase = source === 'coach' || selectedCoach !== null;
+  const canPurchase = source === 'coach' || source === 'detail' || selectedCoach !== null;
   const buttonText = canPurchase ? '立即购买' : '请选择教练';
 
   return (
     <View className='bottom-bar'>
-      <View className='bottom-bar__price-wrap'>
-        <Text className='bottom-bar__price'>¥{formatPrice(detail.price)}</Text>
-        <Text className='bottom-bar__subtext'>
-          {isExperience
-            ? `1 节 · ${EXPERIENCE_VALID_DAYS} 天有效`
-            : `${detail.totalHours} 节 · ¥${formatPrice(unitPrice)}/节`}
-        </Text>
-      </View>
+      {!isCustom && (
+        <View className='bottom-bar__price-wrap'>
+          <View className='bottom-bar__price'>¥{formatPrice(detail.price)}</View>
+          <View className='bottom-bar__subtext'>
+            {isExperience
+              ? `1 节 · ${EXPERIENCE_VALID_DAYS} 天有效`
+              : `${detail.totalHours} 节 · ¥${formatPrice(unitPrice)}/节`}
+          </View>
+        </View>
+      )}
+      {isCustom && (
+        <View className='bottom-bar__price-wrap'>
+          <View className='bottom-bar__price bottom-bar__price--custom'>
+            按课时灵活计价
+          </View>
+          <View className='bottom-bar__subtext'>
+            选择教练后确定单价
+          </View>
+        </View>
+      )}
       <View
         className={`bottom-bar__button ${canPurchase ? '' : 'bottom-bar__button--disabled'}`}
         onClick={canPurchase ? onPurchase : undefined}
       >
-        <Text className='bottom-bar__button-text'>{buttonText}</Text>
+        <View className='bottom-bar__button-text'>{buttonText}</View>
       </View>
     </View>
   );

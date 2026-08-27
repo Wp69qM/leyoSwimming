@@ -56,10 +56,15 @@ public class SecurityConfig {
                         "/api/payment/mock-callback",
                         "/uploads/**",
                         "/health",
-                        "/error")
+                        "/error",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/common/file/upload")
-                    .hasRole("COACH")
+                    .hasAnyRole("COACH", "ADMIN")
                     .requestMatchers("/api/admin/**")
                     .hasRole("ADMIN")
                     .requestMatchers("/api/user/**")

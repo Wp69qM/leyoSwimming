@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { View, Text } from '@tarojs/components';
+import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { fetchOrderList } from '@/api/order';
 import { handleBusinessError } from '@/api/request';
@@ -204,7 +204,7 @@ function StatusBarAndNavBar({
         <View className='order-list-page__back' onClick={onBack}>
           <Icon name='arrow-left' className='order-list-page__back-icon' />
         </View>
-        <Text className='order-list-page__title'>{title}</Text>
+        <View className='order-list-page__title'>{title}</View>
         <View className='order-list-page__navbar-placeholder' />
       </View>
     </View>
@@ -230,13 +230,13 @@ function TabBar({
             }`}
             onClick={() => onChange(tab.key)}
           >
-            <Text
+            <View
               className={`order-list-page__tab-text ${
                 isActive ? 'order-list-page__tab-text--active' : ''
               }`}
             >
               {tab.label}
-            </Text>
+            </View>
           </View>
         );
       })}
@@ -293,7 +293,7 @@ function OrderCard({
   return (
     <View className='order-card' onClick={navigateToDetail}>
       <View className='order-card__header'>
-        <Text className='order-card__no'>订单号 {order.orderNo}</Text>
+        <View className='order-card__no'>订单号 {order.orderNo}</View>
         <StatusBadge
           status={order.status}
           pulse={order.status === 'refund_processing'}
@@ -302,33 +302,33 @@ function OrderCard({
       <View className='order-card__divider' />
       <View className='order-card__body'>
         <View className='order-card__avatar'>
-          <Text className='order-card__avatar-text'>
-            {order.coachName.slice(0, 1)}
-          </Text>
+          <View className='order-card__avatar-text'>
+            {order.coachName?.slice(0, 1)}
+          </View>
         </View>
         <View className='order-card__info'>
           <View className='order-card__title-row'>
-            <Text className='order-card__name'>{order.packageName}</Text>
+            <View className='order-card__name'>{order.packageName}</View>
             <PackageModeTag mode={order.packageMode} />
           </View>
-          <Text className='order-card__coach'>
+          <View className='order-card__coach'>
             {order.coachName} · {formatTeachingType(order.teachingType)}
-          </Text>
-          <Text className='order-card__hours'>{order.totalHours} 节</Text>
+          </View>
           <View className='order-card__meta'>
-            <Text className='order-card__time'>
-              {formatDateTime(order.createdAt)}
-            </Text>
-            {remainingSeconds !== null && (
+            {remainingSeconds !== null ? (
               <CountdownTag seconds={remainingSeconds} />
+            ) : (
+              <View className='order-card__time'>
+                {formatDateTime(order.createdAt)}
+              </View>
             )}
           </View>
         </View>
         <View className='order-card__amount'>
-          <Text className='order-card__amount-label'>订单金额</Text>
-          <Text className='order-card__amount-value'>
+          <View className='order-card__amount-label'>订单金额</View>
+          <View className='order-card__amount-value'>
             ¥{formatPrice(order.amount)}
-          </Text>
+          </View>
         </View>
       </View>
       <ActionButtons order={order} onRefresh={onRefresh} />
@@ -350,9 +350,9 @@ function StatusBadge({
       className={`status-badge ${pulse ? 'status-badge--pulse' : ''}`}
       style={{ backgroundColor: theme.bg }}
     >
-      <Text className='status-badge__text' style={{ color: theme.text }}>
+      <View className='status-badge__text' style={{ color: theme.text }}>
         {label}
-      </Text>
+      </View>
     </View>
   );
 }
@@ -365,7 +365,7 @@ function PackageModeTag({ mode }: { mode: OrderListItem['packageMode'] }) {
   }, [mode]);
   return (
     <View className='package-mode-tag'>
-      <Text className='package-mode-tag__text'>{label}</Text>
+      <View className='package-mode-tag__text'>{label}</View>
     </View>
   );
 }
@@ -376,7 +376,7 @@ function CountdownTag({ seconds }: { seconds: number }) {
   return (
     <View className={`countdown-tag ${urgent ? 'countdown-tag--urgent' : ''}`}>
       <Icon name='time' className='countdown-tag__icon' />
-      <Text className='countdown-tag__text'>剩 {display}</Text>
+      <View className='countdown-tag__text'>支付剩余时间 {display}</View>
     </View>
   );
 }
@@ -523,9 +523,9 @@ function ActionButtons({
             void secondary.action();
           }}
         >
-          <Text className='order-card__btn-text order-card__btn-text--secondary'>
+          <View className='order-card__btn-text order-card__btn-text--secondary'>
             {secondary.text}
-          </Text>
+          </View>
         </View>
       )}
       {primary && (
@@ -536,9 +536,9 @@ function ActionButtons({
             void primary.action();
           }}
         >
-          <Text className='order-card__btn-text order-card__btn-text--primary'>
+          <View className='order-card__btn-text order-card__btn-text--primary'>
             {primary.text}
-          </Text>
+          </View>
         </View>
       )}
     </View>
@@ -560,19 +560,19 @@ function ListFooter({
     <View className='order-list-page__footer'>
       {loadMoreError && (
         <View className='order-list-page__footer-error' onClick={onRetry}>
-          <Text className='order-list-page__footer-error-text'>
+          <View className='order-list-page__footer-error-text'>
             {loadMoreError}，点击重试
-          </Text>
+          </View>
         </View>
       )}
       {loading && (
-        <Text className='order-list-page__footer-text'>加载中...</Text>
+        <View className='order-list-page__footer-text'>加载中...</View>
       )}
       {!loading && !loadMoreError && hasMore && (
-        <Text className='order-list-page__footer-text'>上拉加载更多</Text>
+        <View className='order-list-page__footer-text'>上拉加载更多</View>
       )}
       {!loading && !loadMoreError && !hasMore && (
-        <Text className='order-list-page__footer-text'>没有更多了</Text>
+        <View className='order-list-page__footer-text'>没有更多了</View>
       )}
     </View>
   );
@@ -603,10 +603,10 @@ function EmptyState({ tab }: { tab: OrderTab }) {
       <View className='order-list-empty__illustration'>
         <Icon name='empty' className='order-list-empty__icon' />
       </View>
-      <Text className='order-list-empty__title'>{title}</Text>
-      <Text className='order-list-empty__desc'>去看看有哪些合适的课程吧</Text>
+      <View className='order-list-empty__title'>{title}</View>
+      <View className='order-list-empty__desc'>去看看有哪些合适的课程吧</View>
       <View className='order-list-empty__btn' onClick={navigateToPackageList}>
-        <Text className='order-list-empty__btn-text'>去购买套餐</Text>
+        <View className='order-list-empty__btn-text'>去购买套餐</View>
       </View>
     </View>
   );
@@ -624,9 +624,9 @@ function ErrorState({
       <View className='order-list-error__illustration'>
         <Icon name='error-circle' className='order-list-error__icon' />
       </View>
-      <Text className='order-list-error__text'>{message}</Text>
+      <View className='order-list-error__text'>{message}</View>
       <View className='order-list-error__btn' onClick={onRetry}>
-        <Text className='order-list-error__btn-text'>重新加载</Text>
+        <View className='order-list-error__btn-text'>重新加载</View>
       </View>
     </View>
   );

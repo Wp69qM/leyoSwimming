@@ -16,12 +16,17 @@ public record CoachResignationDetailResponse(
 
   public record PackageItem(
       Long packageId,
+      String packageNo,
       Long userId,
       String userName,
+      String packageName,
+      String packageMode,
       Integer totalHours,
       Integer availableCount,
       Integer reservedCount,
       BigDecimal pricePerHour,
       String action,
-      Long targetCoachId) {}
+      Long targetCoachId,
+      String targetCoachName,
+      String targetCoachPhone) {}
 }

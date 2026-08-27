@@ -1,10 +1,26 @@
-import { View, Text } from '@tarojs/components'
-import './index.scss'
+import Taro from '@tarojs/taro'
+import { ProtocolDrawer, type ProtocolTab } from './ProtocolDrawer'
 
-export default function LoginProtocolPage() {
+export {
+  ProtocolDrawer,
+  type ProtocolTab,
+  type ProtocolDrawerProps,
+} from './ProtocolDrawer'
+
+export default function ProtocolPage() {
+  const { type } = Taro.getCurrentInstance().router?.params || {}
+  const initialTab: ProtocolTab = type === 'privacy' ? 'privacy' : 'terms'
+
+  function handleClose() {
+    Taro.navigateBack()
+  }
+
   return (
-    <View className='login-protocol'>
-      <Text className='login-protocol__text'>协议详情页（占位）</Text>
-    </View>
+    <ProtocolDrawer
+      visible
+      initialTab={initialTab}
+      onClose={handleClose}
+      onAgree={handleClose}
+    />
   )
 }

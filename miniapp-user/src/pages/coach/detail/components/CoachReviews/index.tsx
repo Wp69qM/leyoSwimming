@@ -36,9 +36,9 @@ export function CoachReviews({
 
   return (
     <View className='coach-detail-card'>
-      <Text className='coach-detail-card__title'>学员评价</Text>
+      <View className='coach-detail-card__title'>学员评价</View>
       {totalCount === 0 ? (
-        <Text className='coach-detail-card__empty'>暂无评价</Text>
+        <View className='coach-detail-card__empty'>暂无评价</View>
       ) : (
         <>
           <View className='coach-detail-review__summary'>
@@ -53,7 +53,7 @@ export function CoachReviews({
           <View className='coach-detail-review__tags'>
             {displayTags.map((tag) => (
               <View key={tag} className='coach-detail-review__tag'>
-                <Text className='coach-detail-review__tag-text'>{tag}</Text>
+                <View className='coach-detail-review__tag-text'>{tag}</View>
               </View>
             ))}
           </View>
@@ -68,9 +68,9 @@ export function CoachReviews({
                   />
                 ) : (
                   <View className='coach-detail-review__avatar coach-detail-review__avatar--placeholder'>
-                    <Text className='coach-detail-review__avatar-text'>
+                    <View className='coach-detail-review__avatar-text'>
                       {review.nickname ? review.nickname.charAt(0) : ''}
-                    </Text>
+                    </View>
                   </View>
                 )}
                 <View className='coach-detail-review__info'>

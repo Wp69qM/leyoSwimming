@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text, Image } from '@tarojs/components';
+import { View, Image } from '@tarojs/components';
 import { useAuthStore } from '@/stores/authStore';
 import { APP_NAME } from '@/constants';
 import logoRibbon from '@/assets/logo-ribbon.svg';
@@ -12,19 +12,16 @@ export default function Index() {
 
   const initialize = useCallback(async () => {
     try {
-      const { restoreFromStorage, isLoggedIn, userInfo } =
-        useAuthStore.getState();
+      const { restoreFromStorage } = useAuthStore.getState();
       restoreFromStorage();
 
       // 保证启动页至少展示 300ms，避免视觉闪跳
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      if (!isLoggedIn) {
-        Taro.redirectTo({ url: '/pages/login/wechat/index' });
-        return;
-      }
+      const { isLoggedIn, userInfo } = useAuthStore.getState();
 
-      if (userInfo && !userInfo.profileCompleted) {
+      // 用户端首页支持游客模式；仅已登录但资料未完善时跳转
+      if (isLoggedIn && userInfo && !userInfo.profileCompleted) {
         Taro.redirectTo({ url: '/pages/profile/complete/index' });
         return;
       }
@@ -58,11 +55,11 @@ export default function Index() {
               mode='aspectFit'
             />
           </View>
-          <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>专业游泳约课，从这里开始</Text>
+          <View className='splash__brand'>{APP_NAME}</View>
+          <View className='splash__slogan'>专业游泳约课，从这里开始</View>
           <View className='splash__loading'>
             <View className='splash__loading-dot' />
-            <Text className='splash__loading-text'>加载中…</Text>
+            <View className='splash__loading-text'>加载中…</View>
           </View>
         </View>
       </View>
@@ -80,13 +77,13 @@ export default function Index() {
               mode='aspectFit'
             />
           </View>
-          <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>专业游泳约课，从这里开始</Text>
+          <View className='splash__brand'>{APP_NAME}</View>
+          <View className='splash__slogan'>专业游泳约课，从这里开始</View>
           <View className='splash__error'>
             <View className='splash__error-illustration' />
-            <Text className='splash__error-text'>网络异常，请重试</Text>
+            <View className='splash__error-text'>网络异常，请重试</View>
             <View className='splash__retry' onClick={handleRetry}>
-              <Text className='splash__retry-text'>重新加载</Text>
+              <View className='splash__retry-text'>重新加载</View>
             </View>
           </View>
         </View>
@@ -107,8 +104,8 @@ export default function Index() {
               mode='aspectFit'
             />
           </View>
-          <Text className='splash__brand'>{APP_NAME}</Text>
-          <Text className='splash__slogan'>专业游泳约课，从这里开始</Text>
+          <View className='splash__brand'>{APP_NAME}</View>
+          <View className='splash__slogan'>专业游泳约课，从这里开始</View>
         </View>
       </View>
     </View>

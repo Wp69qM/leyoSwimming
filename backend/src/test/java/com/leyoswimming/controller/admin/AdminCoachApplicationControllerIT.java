@@ -69,7 +69,7 @@ class AdminCoachApplicationControllerIT {
                 .content("""
                     {"applicationId":999999,"remark":"通过"}
                     """))
-        .andExpect(status().isOk())
+        .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.code").value(100004));
   }
 

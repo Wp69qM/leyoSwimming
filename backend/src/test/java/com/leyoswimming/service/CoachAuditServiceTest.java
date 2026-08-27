@@ -3,6 +3,7 @@ package com.leyoswimming.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,8 +20,6 @@ import com.leyoswimming.entity.CoachAuditLog;
 import com.leyoswimming.enums.CoachApplicationStatus;
 import com.leyoswimming.enums.CoachStatus;
 import com.leyoswimming.exception.BusinessException;
-import com.leyoswimming.entity.AdminUser;
-import com.leyoswimming.repository.AdminUserMapper;
 import com.leyoswimming.repository.CoachApplicationMapper;
 import com.leyoswimming.repository.CoachAuditLogMapper;
 import com.leyoswimming.repository.CoachCertificateApplicationMapper;
@@ -51,7 +50,7 @@ class CoachAuditServiceTest {
   @Mock private CoachAuditLogMapper auditLogMapper;
   @Mock private CoachMapper coachMapper;
   @Mock private DistributedLockHelper distributedLockHelper;
-  @Mock private AdminUserMapper adminUserMapper;
+  @Mock private AdminPermissionHelper adminPermissionHelper;
 
   private IdCardEncryptor idCardEncryptor;
   private PhoneEncryptor phoneEncryptor;
@@ -71,7 +70,7 @@ class CoachAuditServiceTest {
             phoneEncryptor,
             idCardEncryptor,
             distributedLockHelper,
-            adminUserMapper);
+            adminPermissionHelper);
     when(distributedLockHelper.lock(any(), any(), any(Duration.class)))
         .thenReturn(new LockToken("lock:coach_audit:100", "token"));
   }
@@ -129,7 +128,7 @@ class CoachAuditServiceTest {
     app.setPhone(phoneEncryptor.encrypt("13800138000"));
     app.setIdCardNo(idCardEncryptor.encrypt("110101199001011234"));
     Coach coach = coach(1L, CoachStatus.PENDING.getValue());
-    when(adminUserMapper.selectById(10L)).thenReturn(adminUser("SUPER_ADMIN"));
+    doNothing().when(adminPermissionHelper).checkPermission(10L, AdminPermissionHelper.PERM_COACH_WRITE);
     when(applicationMapper.selectById(100L)).thenReturn(app);
     when(coachMapper.selectById(1L)).thenReturn(coach);
     when(certificateApplicationMapper.findByApplicationId(100L)).thenReturn(Collections.emptyList());
@@ -151,7 +150,7 @@ class CoachAuditServiceTest {
   void approve_notPending_throwsBadRequest() {
     CoachApplication app = pendingApplication(1L, 100L);
     app.setStatus(CoachApplicationStatus.APPROVED.getValue());
-    when(adminUserMapper.selectById(10L)).thenReturn(adminUser("SUPER_ADMIN"));
+    doNothing().when(adminPermissionHelper).checkPermission(10L, AdminPermissionHelper.PERM_COACH_WRITE);
     when(applicationMapper.selectById(100L)).thenReturn(app);
 
     assertThatThrownBy(
@@ -171,7 +170,7 @@ class CoachAuditServiceTest {
     CoachApplication app = pendingApplication(1L, 100L);
     app.setPreviousCoachStatus(CoachStatus.NOT_SUBMITTED.getValue());
     Coach coach = coach(1L, CoachStatus.PENDING.getValue());
-    when(adminUserMapper.selectById(10L)).thenReturn(adminUser("COACH_MANAGER"));
+    doNothing().when(adminPermissionHelper).checkPermission(10L, AdminPermissionHelper.PERM_COACH_WRITE);
     when(applicationMapper.selectById(100L)).thenReturn(app);
     when(coachMapper.selectById(1L)).thenReturn(coach);
 
@@ -193,7 +192,7 @@ class CoachAuditServiceTest {
     CoachApplication app = pendingApplication(1L, 100L);
     app.setPreviousCoachStatus(CoachStatus.RESIGNED.getValue());
     Coach coach = coach(1L, CoachStatus.PENDING.getValue());
-    when(adminUserMapper.selectById(10L)).thenReturn(adminUser("COACH_MANAGER"));
+    doNothing().when(adminPermissionHelper).checkPermission(10L, AdminPermissionHelper.PERM_COACH_WRITE);
     when(applicationMapper.selectById(100L)).thenReturn(app);
     when(coachMapper.selectById(1L)).thenReturn(coach);
 
@@ -209,13 +208,6 @@ class CoachAuditServiceTest {
     coach.setOpenid("openid_" + id);
     coach.setStatus(status);
     return coach;
-  }
-
-  private AdminUser adminUser(String role) {
-    AdminUser admin = new AdminUser();
-    admin.setId(10L);
-    admin.setRole(role);
-    return admin;
   }
 
   private CoachApplication pendingApplication(Long coachId, Long applicationId) {

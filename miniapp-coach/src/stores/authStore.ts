@@ -26,14 +26,14 @@ export function getRedirectPageByStatus(status: CoachStatus): string {
     case COACH_STATUS.PENDING_ONBOARDING:
     case COACH_STATUS.REJECTED:
     case COACH_STATUS.RESIGNED:
-      return '/pages/onboarding/index'
+      return '/pages/onboarding/index/index'
     case COACH_STATUS.UNDER_REVIEW:
       return '/pages/onboarding/pending/index'
     case COACH_STATUS.APPROVED:
     case COACH_STATUS.RESIGNING:
       return '/pages/index/index'
     default:
-      return '/pages/onboarding/index'
+      return '/pages/onboarding/index/index'
   }
 }
 
@@ -62,12 +62,22 @@ function loadCoachInfo(): CoachInfo | null {
   }
 }
 
+function loadAuthStateFromStorage(): Pick<
+  AuthState,
+  'accessToken' | 'refreshToken' | 'tokenExpiresAt' | 'coachInfo' | 'isLoggedIn'
+> {
+  const accessToken = loadToken()
+  const refreshToken = loadRefreshToken()
+  const tokenExpiresAt = loadTokenExpiresAt()
+  const coachInfo = loadCoachInfo()
+  const isLoggedIn = Boolean(
+    accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt
+  )
+  return { accessToken, refreshToken, tokenExpiresAt, coachInfo, isLoggedIn }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  tokenExpiresAt: null,
-  coachInfo: null,
-  isLoggedIn: false,
+  ...loadAuthStateFromStorage(),
 
   setTokens: (accessToken, refreshToken, expiresInSeconds) => {
     const tokenExpiresAt = calculateExpiresAt(expiresInSeconds)
@@ -112,11 +122,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   restoreFromStorage: () => {
-    const accessToken = loadToken()
-    const refreshToken = loadRefreshToken()
-    const tokenExpiresAt = loadTokenExpiresAt()
-    const coachInfo = loadCoachInfo()
-    const isLoggedIn = Boolean(accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt)
-    set({ accessToken, refreshToken, tokenExpiresAt, coachInfo, isLoggedIn })
+    set(loadAuthStateFromStorage())
   }
 }))

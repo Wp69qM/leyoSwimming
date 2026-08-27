@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { View, Text, Image, ScrollView } from '@tarojs/components';
+import { View, Image, ScrollView } from '@tarojs/components';
 import { Icon } from '@/components/common/Icon';
 import type { ChatMessage } from '@/types/ai-assistant';
 import { AiMessageBubble } from './AiMessageBubble';
@@ -54,12 +54,12 @@ export function AiChatArea({
             />
             <View className='ai-chat-area__online-dot' />
           </View>
-          <Text className='ai-chat-area__welcome-title'>
+          <View className='ai-chat-area__welcome-title'>
             你好，我是 leyo 👋
-          </Text>
-          <Text className='ai-chat-area__welcome-subtitle'>
+          </View>
+          <View className='ai-chat-area__welcome-subtitle'>
             你的专属游泳教练助理，有什么可以帮你的？
-          </Text>
+          </View>
         </View>
       )}
 
@@ -101,9 +101,9 @@ export function AiChatArea({
       {error && (
         <View className='ai-chat-area__error'>
           <Icon name='error-circle' className='ai-chat-area__error-icon' />
-          <Text className='ai-chat-area__error-text'>{error}</Text>
+          <View className='ai-chat-area__error-text'>{error}</View>
           <View className='ai-chat-area__error-button' onClick={onRetry}>
-            <Text className='ai-chat-area__error-button-text'>重试</Text>
+            <View className='ai-chat-area__error-button-text'>重试</View>
           </View>
         </View>
       )}

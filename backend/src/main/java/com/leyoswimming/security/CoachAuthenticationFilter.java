@@ -1,5 +1,6 @@
 package com.leyoswimming.security;
 
+import com.leyoswimming.service.AdminAuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class CoachAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final AdminAuthService adminAuthService;
 
   @Override
   protected void doFilterInternal(
@@ -31,19 +33,47 @@ public class CoachAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
     if (path.startsWith("/api/coach/")) {
-      String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
-      if (token != null
-          && jwtTokenProvider.isTokenValid(token)
-          && "coach".equals(jwtTokenProvider.getTokenType(token))) {
-        Long coachId = jwtTokenProvider.getCoachId(token);
-        UsernamePasswordAuthenticationToken auth =
-            new UsernamePasswordAuthenticationToken(
-                coachId, null, List.of(new SimpleGrantedAuthority("ROLE_COACH")));
-        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(auth);
-      }
+      authenticateCoach(request);
+    } else if (path.equals("/api/common/file/upload")) {
+      authenticateForCommonUpload(request);
     }
     chain.doFilter(request, response);
+  }
+
+  private void authenticateCoach(HttpServletRequest request) {
+    String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+    if (token != null
+        && jwtTokenProvider.isTokenValid(token)
+        && "coach".equals(jwtTokenProvider.getTokenType(token))) {
+      Long coachId = jwtTokenProvider.getCoachId(token);
+      setAuthentication(coachId, "ROLE_COACH", request);
+    }
+  }
+
+  private void authenticateForCommonUpload(HttpServletRequest request) {
+    String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+    if (token == null || !jwtTokenProvider.isTokenValid(token)) {
+      return;
+    }
+    String tokenType = jwtTokenProvider.getTokenType(token);
+    if ("coach".equals(tokenType)) {
+      Long coachId = jwtTokenProvider.getCoachId(token);
+      setAuthentication(coachId, "ROLE_COACH", request);
+    } else if ("admin".equals(tokenType)
+        && adminAuthService.isTokenActive(token)
+        && adminAuthService.isAdminActive(jwtTokenProvider.getAdminUserId(token))) {
+      Long adminId = jwtTokenProvider.getAdminUserId(token);
+      setAuthentication(adminId, "ROLE_ADMIN", request);
+    }
+  }
+
+  private void setAuthentication(
+      Long principal, String role, HttpServletRequest request) {
+    UsernamePasswordAuthenticationToken auth =
+        new UsernamePasswordAuthenticationToken(
+            principal, null, List.of(new SimpleGrantedAuthority(role)));
+    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    SecurityContextHolder.getContext().setAuthentication(auth);
   }
 
   private boolean isPublic(String path) {

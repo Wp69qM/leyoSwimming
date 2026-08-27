@@ -22,7 +22,7 @@ export function ProtocolCheckbox({
       >
         {checked && <Text className='protocol-checkbox__check'>✓</Text>}
       </View>
-      <Text className='protocol-checkbox__text'>
+      <View className='protocol-checkbox__text'>
         已阅读并同意
         <Text
           className='protocol-checkbox__link'
@@ -42,7 +42,7 @@ export function ProtocolCheckbox({
         >
           《用户须知》
         </Text>
-      </Text>
+      </View>
     </View>
   )
 }

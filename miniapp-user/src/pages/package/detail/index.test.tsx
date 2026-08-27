@@ -15,9 +15,15 @@ jest.mock('@tarojs/taro', () => ({
 }));
 
 jest.mock('@/stores/authStore', () => ({
-  useAuthStore: jest
-    .fn()
-    .mockImplementation((selector) => selector({ isLoggedIn: true })),
+  useAuthStore: Object.assign(
+    jest.fn().mockImplementation((selector) => selector({ isLoggedIn: true })),
+    {
+      getState: jest.fn().mockReturnValue({
+        isLoggedIn: true,
+        restoreFromStorage: jest.fn(),
+      }),
+    }
+  ),
 }));
 
 jest.mock('@/api/package', () => ({
@@ -176,14 +182,16 @@ describe('PackageDetailPage', () => {
     });
   });
 
-  test('navigates to custom config for custom package', async () => {
+  test('navigates to custom config for custom package with synthetic id -1', async () => {
     (packageApi.fetchPackageDetail as jest.Mock).mockResolvedValue({
       ...mockStandardDetail,
+      id: -1,
+      name: '自定义课时',
       packageMode: 'custom',
       totalHours: 0,
     });
     (Taro.getCurrentInstance as jest.Mock).mockReturnValue({
-      router: { params: { id: '1', source: 'coach', coachId: '10' } },
+      router: { params: { id: '-1', source: 'coach', coachId: '10' } },
     });
     render(<PackageDetailPage />);
 
@@ -195,9 +203,33 @@ describe('PackageDetailPage', () => {
 
     await waitFor(() => {
       expect(Taro.navigateTo).toHaveBeenCalledWith({
-        url: '/pages/package/custom/index?packageId=1&coachId=10',
+        url: '/pages/package/custom/index?packageId=-1&coachId=10',
       });
     });
+  });
+
+  test('hides price and hours for custom package detail', async () => {
+    (packageApi.fetchPackageDetail as jest.Mock).mockResolvedValue({
+      ...mockStandardDetail,
+      id: -1,
+      name: '自定义课时',
+      packageMode: 'custom',
+      totalHours: 0,
+      price: '0',
+      originalPrice: '0',
+    });
+    (Taro.getCurrentInstance as jest.Mock).mockReturnValue({
+      router: { params: { id: '-1', source: 'coach', coachId: '10' } },
+    });
+    render(<PackageDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('自定义课时')).toBeInTheDocument();
+    });
+
+    expect(document.querySelector('.main-info-card__price')).not.toBeInTheDocument();
+    expect(document.querySelector('.main-info-card__unit')).not.toBeInTheDocument();
+    expect(screen.getByText('按课时灵活计价')).toBeInTheDocument();
   });
 
   test('requires coach selection when source is list', async () => {

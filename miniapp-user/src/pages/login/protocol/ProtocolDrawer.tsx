@@ -128,7 +128,7 @@ export function ProtocolDrawer({
               className={`protocol-drawer__tab ${activeTab === tab.key ? 'protocol-drawer__tab--active' : ''}`}
               onClick={() => setActiveTab(tab.key)}
             >
-              <Text className='protocol-drawer__tab-text'>{tab.label}</Text>
+              <View className='protocol-drawer__tab-text'>{tab.label}</View>
             </View>
           ))}
         </View>
@@ -139,38 +139,38 @@ export function ProtocolDrawer({
               {isLoading && (
                 <View className='protocol-drawer__status'>
                   <View className='protocol-drawer__loading-icon' />
-                  <Text className='protocol-drawer__status-text'>加载中…</Text>
+                  <View className='protocol-drawer__status-text'>加载中…</View>
                 </View>
               )}
 
               {!isLoading && currentError && (
                 <View className='protocol-drawer__status'>
                   <View className='protocol-drawer__error-icon' />
-                  <Text className='protocol-drawer__status-text'>
+                  <View className='protocol-drawer__status-text'>
                     {currentError}
-                  </Text>
-                  <Text
+                  </View>
+                  <View
                     className='protocol-drawer__retry'
                     onClick={handleRetry}
                   >
                     重试
-                  </Text>
+                  </View>
                 </View>
               )}
 
               {!isLoading && !currentError && currentPolicy && (
                 <View className='protocol-drawer__content'>
                   <View className='protocol-drawer__dates'>
-                    <Text className='protocol-drawer__date'>
+                    <View className='protocol-drawer__date'>
                       更新日期：{formatDate(currentPolicy.effectiveAt)}
-                    </Text>
-                    <Text className='protocol-drawer__date'>
+                    </View>
+                    <View className='protocol-drawer__date'>
                       生效日期：{formatDate(currentPolicy.effectiveAt)}
-                    </Text>
+                    </View>
                   </View>
-                  <Text className='protocol-drawer__content-text'>
+                  <View className='protocol-drawer__content-text'>
                     {currentPolicy.content}
-                  </Text>
+                  </View>
                 </View>
               )}
             </View>

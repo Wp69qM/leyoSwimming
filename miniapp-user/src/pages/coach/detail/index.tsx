@@ -33,6 +33,7 @@ const PAGE_PATHS = {
   packageList: '/pages/package/list/index',
   packageDetail: '/pages/package/detail/index',
   orderConfirm: '/pages/order/confirm/index',
+  customConfig: '/pages/package/custom/index',
   booking: '/pages/booking/index',
 };
 
@@ -78,6 +79,7 @@ export default function CoachDetailPage() {
   }, [coachId, isLoggedIn]);
 
   useEffect(() => {
+    useAuthStore.getState().restoreFromStorage();
     void loadData();
   }, [loadData]);
 
@@ -101,9 +103,15 @@ export default function CoachDetailPage() {
     });
   }
 
-  function navigateToOrderConfirm(packageId: number) {
+  function navigateToOrderConfirm(packageId: number, packageType: number) {
     void Taro.navigateTo({
-      url: `${PAGE_PATHS.orderConfirm}?packageId=${packageId}&coachId=${coachId}`,
+      url: `${PAGE_PATHS.orderConfirm}?packageId=${packageId}&coachId=${coachId}&packageType=${packageType}`,
+    });
+  }
+
+  function navigateToCustomConfig() {
+    void Taro.navigateTo({
+      url: `${PAGE_PATHS.packageDetail}?id=-1&coachId=${coachId}&source=detail`,
     });
   }
 
@@ -122,7 +130,7 @@ export default function CoachDetailPage() {
 
   function handleCtaPrimary() {
     if (!coach) return;
-    if (!isLoggedIn) {
+    if (!useAuthStore.getState().isLoggedIn) {
       navigateToLogin();
       return;
     }
@@ -134,14 +142,14 @@ export default function CoachDetailPage() {
       (p) => p.packageMode === 'experience'
     );
     if (experiencePackage && !qualification?.hasExperiencePackage) {
-      navigateToOrderConfirm(experiencePackage.id);
+      navigateToOrderConfirm(experiencePackage.id, 0);
       return;
     }
     navigateToPackageList();
   }
 
   function handleCtaSecondary() {
-    if (!isLoggedIn) {
+    if (!useAuthStore.getState().isLoggedIn) {
       navigateToLogin();
       return;
     }
@@ -149,7 +157,7 @@ export default function CoachDetailPage() {
   }
 
   function handleFavorite() {
-    if (!isLoggedIn) {
+    if (!useAuthStore.getState().isLoggedIn) {
       navigateToLogin();
       return;
     }
@@ -208,39 +216,39 @@ export default function CoachDetailPage() {
 
   return (
     <View className='coach-detail'>
-      <View
-        className='coach-detail__header'
-        style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
-      >
-        <View className='coach-detail__navbar'>
-          <View className='coach-detail__back' onClick={navigateBack}>
-            <Icon name='arrow-left' className='coach-detail__back-icon' />
-          </View>
-          <Text className='coach-detail__title'>教练详情</Text>
-          <View className='coach-detail__navbar-placeholder' />
-        </View>
-      </View>
-
       <ScrollView className='coach-detail__scroll' scrollY>
+        <View
+          className='coach-detail__header'
+          style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
+        >
+          <View className='coach-detail__navbar'>
+            <View className='coach-detail__back' onClick={navigateBack}>
+              <Icon name='arrow-left' className='coach-detail__back-icon' />
+            </View>
+            <View className='coach-detail__title'>教练详情</View>
+            <View className='coach-detail__navbar-placeholder' />
+          </View>
+          <CoachHeader coach={coach} />
+        </View>
+
         {isBoundOtherCoach && (
           <View className='coach-detail__notice'>
             <Icon name='notice' className='coach-detail__notice-icon' />
-            <Text className='coach-detail__notice-text'>
+            <View className='coach-detail__notice-text'>
               您已绑定其他教练，暂不可购买本教练套餐
-            </Text>
+            </View>
           </View>
         )}
 
         {isOnLeave && !isBoundOtherCoach && (
           <View className='coach-detail__notice'>
             <Icon name='notice' className='coach-detail__notice-icon' />
-            <Text className='coach-detail__notice-text'>
+            <View className='coach-detail__notice-text'>
               教练请假中，暂不可预约
-            </Text>
+            </View>
           </View>
         )}
 
-        <CoachHeader coach={coach} />
         <CoachBio coach={coach} />
         <CoachReferencePrice price={coach.referencePrice} />
         <CoachContact
@@ -263,7 +271,7 @@ export default function CoachDetailPage() {
           referencePrice={coach.referencePrice}
           onPackageClick={navigateToPackageDetail}
           onMore={navigateToPackageList}
-          onCustom={() => navigateToOrderConfirm(0)}
+          onCustom={navigateToCustomConfig}
         />
         <CoachReviews
           rating={coach.rating}
@@ -282,27 +290,27 @@ export default function CoachDetailPage() {
               name={isFavorite ? 'star-fill' : 'star'}
               className={`coach-detail__cta-favorite-icon ${isFavorite ? 'coach-detail__cta-favorite-icon--active' : ''}`}
             />
-            <Text className='coach-detail__cta-favorite-text'>
+            <View className='coach-detail__cta-favorite-text'>
               {isFavorite ? '已收藏' : '收藏'}
-            </Text>
+            </View>
           </View>
           {secondaryText && (
             <View
               className={`coach-detail__cta-secondary ${secondaryDisabled ? 'coach-detail__cta-secondary--disabled' : ''}`}
               onClick={secondaryDisabled ? undefined : handleCtaSecondary}
             >
-              <Text className='coach-detail__cta-secondary-text'>
+              <View className='coach-detail__cta-secondary-text'>
                 {secondaryText}
-              </Text>
+              </View>
             </View>
           )}
           <View
             className={`coach-detail__cta-primary ${primaryDisabled ? 'coach-detail__cta-primary--disabled' : ''}`}
             onClick={primaryDisabled ? undefined : handleCtaPrimary}
           >
-            <Text className='coach-detail__cta-primary-text'>
+            <View className='coach-detail__cta-primary-text'>
               {primaryText}
-            </Text>
+            </View>
           </View>
         </View>
       )}

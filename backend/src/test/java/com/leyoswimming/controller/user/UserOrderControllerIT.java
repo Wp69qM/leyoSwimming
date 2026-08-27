@@ -82,17 +82,20 @@ class UserOrderControllerIT {
   @DisplayName("POST /api/order/trial 创建体验课订单成功")
   void trial_validCoach_returnsOrder() throws Exception {
     Coach coach = createCoach("教练 A", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    PackageTemplate template = createActiveTemplate(
+        "体验课", PackageMode.EXPERIENCE.getValue(), 1, new BigDecimal("59.00"));
+    linkTemplateToCoach(template, coach);
 
     mockMvc
         .perform(
             post("/api/order/trial")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"coachId\":%d}", coach.getId())))
+                .content(String.format("{\"coachId\":%d,\"packageId\":%d}", coach.getId(), template.getId())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(0))
         .andExpect(jsonPath("$.data.orderId").isNumber())
-        .andExpect(jsonPath("$.data.amount").value(0));
+        .andExpect(jsonPath("$.data.amount").value(59.00));
   }
 
   @Test
@@ -100,15 +103,35 @@ class UserOrderControllerIT {
   void trial_duplicateExperience_returnsError() throws Exception {
     Coach coach = createCoach("教练 B", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
     createExperiencePackage(userId, coach.getId());
+    PackageTemplate template = createActiveTemplate(
+        "体验课", PackageMode.EXPERIENCE.getValue(), 1, new BigDecimal("59.00"));
+    linkTemplateToCoach(template, coach);
 
     mockMvc
         .perform(
             post("/api/order/trial")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"coachId\":%d}", coach.getId())))
+                .content(String.format("{\"coachId\":%d,\"packageId\":%d}", coach.getId(), template.getId())))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value(420101));
+  }
+
+  @Test
+  @DisplayName("POST /api/order/trial 教练不适用该体验课返回 420001")
+  void trial_coachNotLinked_returnsError() throws Exception {
+    Coach coach = createCoach("教练 F", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    PackageTemplate template = createActiveTemplate(
+        "体验课", PackageMode.EXPERIENCE.getValue(), 1, new BigDecimal("59.00"));
+
+    mockMvc
+        .perform(
+            post("/api/order/trial")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"coachId\":%d,\"packageId\":%d}", coach.getId(), template.getId())))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(420001));
   }
 
   @Test
@@ -153,10 +176,12 @@ class UserOrderControllerIT {
   }
 
   @Test
-  @DisplayName("POST /api/order/formal 教练已存在 active 套餐返回 420101")
-  void formal_activePackageConflict_returnsError() throws Exception {
-    Coach coach = createCoach("教练 E", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
-    createActivePackage(userId, coach.getId());
+  @DisplayName("POST /api/order/formal 用户已持有其他教练 active 套餐返回 420101")
+  void formal_activePackageWithOtherCoach_returnsError() throws Exception {
+    Coach otherCoach = createCoach("教练 E-其他", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    createActivePackage(userId, otherCoach.getId());
+
+    Coach coach = createCoach("教练 E-新", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
     PackageTemplate template = createActiveTemplate("标准 6 节", PackageMode.STANDARD.getValue(), 6, new BigDecimal("1200.00"));
     linkTemplateToCoach(template, coach);
 
@@ -166,7 +191,8 @@ class UserOrderControllerIT {
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.format(
-                    "{\"coachId\":%d,\"packageId\":%d}", coach.getId(), template.getId())))
+                    "{\"coachId\":%d,\"packageId\":%d,\"strokeIds\":[1,2]}",
+                    coach.getId(), template.getId())))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value(420101));
   }

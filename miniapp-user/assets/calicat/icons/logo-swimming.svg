@@ -1,0 +1,10 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="24" cy="24" r="22" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" fill="none"/>
+  <g transform="translate(14, 13)">
+    <path transform="translate(-24,-28)"
+          d="M 14 28 Q 14 20 20 16 Q 26 12 30 16 Q 34 20 34 28 Q 34 36 30 40 Q 26 44 20 40 Q 14 36 14 28"
+          stroke="rgb(255,255,255)" stroke-width="2.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="miter"/>
+  </g>
+  <circle cx="30" cy="18" r="3" fill="#FF6B35"/>
+</svg>

@@ -29,7 +29,7 @@ export function fetchCoachDetail(coachId: number): Promise<CoachDetail> {
     url: '/coach/detail',
     method: 'POST',
     data: { coachId },
-    needToken: false,
+    needToken: true,
   });
 }
 

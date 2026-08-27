@@ -6,6 +6,7 @@ export interface AgreementVersions {
 
 export interface CreateTrialOrderParams {
   coachId: number;
+  packageId: number;
 }
 
 export interface CreateFormalOrderParams {
@@ -47,7 +48,7 @@ export interface OrderDetail {
   packageId?: number;
   packageName: string;
   packageMode?: 'standard' | 'experience' | 'custom';
-  originalPrice: string;
+  originalAmount: string;
   coachName: string;
   teachingType: string;
   totalHours: number;

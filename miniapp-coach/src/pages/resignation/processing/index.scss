@@ -1,8 +1,54 @@
 .resignation-processing {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: #F5F7FA;
-  padding: 24rpx 16rpx;
   box-sizing: border-box;
+
+  &__status-bar {
+    flex-shrink: 0;
+    background-color: #FFFFFF;
+  }
+
+  &__navbar {
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44rpx;
+    padding: 0 16rpx;
+    background-color: #FFFFFF;
+    margin-bottom: 24rpx;
+  }
+
+  &__navbar-back {
+    position: absolute;
+    left: 16rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32rpx;
+    height: 32rpx;
+  }
+
+  &__navbar-back-icon {
+    color: #262626;
+    font-size: 24rpx;
+    line-height: 1;
+  }
+
+  &__navbar-title {
+    color: #262626;
+    font-size: 17rpx;
+    font-weight: 500;
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16rpx 24rpx;
+  }
 
   &__status {
     display: flex;

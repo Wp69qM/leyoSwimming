@@ -3,7 +3,7 @@ import { request } from './request';
 export interface LoginResult {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;
+  expiresInSeconds: number;
   isNewUser: boolean;
   profileCompleted: boolean;
   userId: string;
@@ -61,7 +61,7 @@ export function refreshToken(token: string) {
   return request<{
     accessToken: string;
     refreshToken: string;
-    expiresIn: number;
+    expiresInSeconds: number;
   }>({
     url: '/user/auth/refresh',
     method: 'POST',

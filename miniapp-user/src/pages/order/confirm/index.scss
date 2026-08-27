@@ -112,9 +112,13 @@
   }
 }
 
-.coach-card {
+.order-coach-card {
+  width: 100%;
+  box-sizing: border-box;
+
   &__body {
-    margin-top: 14px;
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -400,6 +404,13 @@
     $calicat-bottom-bar-padding-bottom;
   background-color: $calicat-white;
   box-shadow: $calicat-bottom-bar-shadow-strong;
+
+  @media (width >=768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
 
   &__price-wrap {
     display: flex;

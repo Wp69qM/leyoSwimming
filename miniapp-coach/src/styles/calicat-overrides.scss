@@ -19,16 +19,16 @@ $color-text-secondary: #8C8C8C;
 $color-text-disabled: #BFBFBF;
 $color-divider: #F0F0F0;
 
-// Typography (rpx, 1px = 2rpx on 375px baseline)
-$font-size-nav-title: 34rpx;
-$font-size-student-name: 32rpx;
-$font-size-student-meta: 24rpx;
-$font-size-tab: 28rpx;
-$font-size-tag: 20rpx;
-$font-size-placeholder: 28rpx;
-$font-size-avatar: 32rpx;
-$font-size-tab-bar: 20rpx;
-$font-size-minor-tag: 20rpx;
+// Typography (px, pxtransform 会按 375 设计稿转为 rpx，H5/小程序保持一致)
+$font-size-nav-title: 17px;
+$font-size-student-name: 16px;
+$font-size-student-meta: 12px;
+$font-size-tab: 14px;
+$font-size-tag: 10px;
+$font-size-placeholder: 14px;
+$font-size-avatar: 16px;
+$font-size-tab-bar: 10px;
+$font-size-minor-tag: 10px;
 
 // Spacing (rpx)
 $spacing-xs: 8rpx;
@@ -38,7 +38,7 @@ $spacing-lg: 24rpx;
 $spacing-xl: 32rpx;
 
 // Border radius (rpx)
-$radius-card: 24rpx;
+$radius-card: 12rpx;
 $radius-search: 22rpx;
 $radius-tab: 18rpx;
 $radius-tab-item: 15rpx;

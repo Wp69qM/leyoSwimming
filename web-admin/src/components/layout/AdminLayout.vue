@@ -39,9 +39,8 @@ const menuGroups: MenuGroup[] = [
   {
     title: '套餐订单',
     children: [
-      { title: '套餐管理', path: '/package-management', disabled: true },
-      { title: '订单管理', path: '/order-management', disabled: true },
-      { title: '退款审批', path: '/refund-approval', disabled: true },
+      { title: '套餐管理', path: '/package-management' },
+      { title: '订单管理', path: '/order-management' },
       { title: '套餐配置', path: '/package-config' },
     ],
   },

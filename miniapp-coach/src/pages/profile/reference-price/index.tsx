@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Taro, { useDidShow } from '@tarojs/taro'
 import { View, Text, Input, Button } from '@tarojs/components'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { getProfile, updateReferencePrice, type ReferencePriceResult } from '@/api/profile'
 import { handleBusinessError } from '@/api/request'
 import './index.scss'
+
+const STATUS_BAR_HEIGHT = Taro.getSystemInfoSync().statusBarHeight || 20
 
 function generateIdempotencyKey(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -76,6 +78,12 @@ export default function ReferencePricePage() {
     }))
   }, [price])
 
+  function handleBack() {
+    Taro.navigateBack().catch(() => {
+      Taro.switchTab({ url: '/pages/mine/index' })
+    })
+  }
+
   function handlePriceInput(value: string) {
     setPrice(value)
     setError(validatePrice(value))
@@ -110,7 +118,7 @@ export default function ReferencePricePage() {
   if (initialLoading) {
     return (
       <View className='reference-price reference-price--loading'>
-        <Text className='reference-price__loading-text'>加载中…</Text>
+        <View className='reference-price__loading-text'>加载中…</View>
       </View>
     )
   }
@@ -120,15 +128,26 @@ export default function ReferencePricePage() {
 
   return (
     <View className='reference-price'>
+      <View
+        className='reference-price__status-bar'
+        style={{ height: `${STATUS_BAR_HEIGHT}px;width:100%` }}
+      />
+      <View className='reference-price__navbar'>
+        <View className='reference-price__navbar-back' onClick={handleBack}>
+          <Text className='reference-price__navbar-back-icon'>‹</Text>
+        </View>
+        <View className='reference-price__navbar-title'>参考单价</View>
+      </View>
+
       <View className='reference-price__info-card'>
-        <Text className='reference-price__info-title'>参考单价说明</Text>
-        <Text className='reference-price__info-content'>
+        <View className='reference-price__info-title'>参考单价说明</View>
+        <View className='reference-price__info-content'>
           作为系统套餐定价和自定义套餐金额计算的基准。修改后不影响已购套餐。
-        </Text>
+        </View>
       </View>
 
       <View className='reference-price__card'>
-        <Text className='reference-price__card-title'>每节课参考单价</Text>
+        <View className='reference-price__card-title'>每节课参考单价</View>
         <View className='reference-price__input-row'>
           <Input
             className='reference-price__input'
@@ -137,33 +156,33 @@ export default function ReferencePricePage() {
             placeholder='请输入 50-2000'
             type='digit'
           />
-          <Text className='reference-price__unit'>元/节</Text>
+          <View className='reference-price__unit'>元/节</View>
         </View>
         <View className='reference-price__hint-row'>
-          <Text className='reference-price__range-hint'>平台建议范围 50-2000 元/节</Text>
-          <Text
+          <View className='reference-price__range-hint'>平台建议范围 50-2000 元/节</View>
+          <View
             className={`reference-price__remaining ${remainingChanges === 0 ? 'reference-price__remaining--zero' : ''}`}
           >
             今日还可修改 {remainingChanges ?? '—'} 次
-          </Text>
+          </View>
         </View>
-        {error && <Text className='reference-price__error'>{error}</Text>}
+        {error && <View className='reference-price__error'>{error}</View>}
       </View>
 
       <View className='reference-price__card'>
-        <Text className='reference-price__card-title'>基于当前单价的新套餐示例</Text>
+        <View className='reference-price__card-title'>基于当前单价的新套餐示例</View>
         <View className='reference-price__preview-list'>
           {previewItems.map((item) => (
             <View key={item.count} className='reference-price__preview-item'>
-              <Text className='reference-price__preview-label'>{item.label}</Text>
+              <View className='reference-price__preview-label'>{item.label}</View>
               <View className='reference-price__preview-price-wrap'>
                 {item.total !== null ? (
                   <>
-                    <Text className='reference-price__preview-price'>{item.total}</Text>
-                    <Text className='reference-price__preview-unit'>元</Text>
+                    <View className='reference-price__preview-price'>{item.total}</View>
+                    <View className='reference-price__preview-unit'>元</View>
                   </>
                 ) : (
-                  <Text className='reference-price__preview-placeholder'>--</Text>
+                  <View className='reference-price__preview-placeholder'>--</View>
                 )}
               </View>
             </View>
@@ -171,7 +190,10 @@ export default function ReferencePricePage() {
         </View>
       </View>
 
-      <Button className='reference-price__save' onClick={handleSave} disabled={saving || isInvalid}>
+      <Button
+        className={`reference-price__save ${saving || isInvalid ? 'reference-price__save--disabled' : ''}`}
+        onClick={saving || isInvalid ? undefined : handleSave}
+      >
         {saving ? '保存中…' : '保存'}
       </Button>
     </View>

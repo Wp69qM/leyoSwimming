@@ -2,6 +2,7 @@
 import { ref, computed, watch, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { ArrowLeft } from '@element-plus/icons-vue';
 import {
   getCoachApplicationDetail,
   approveCoachApplication,
@@ -233,7 +234,7 @@ watch(
 
     <div class="page-title-row">
       <div class="back-btn" @click="goBack">
-        <i class="ri-arrow-left-line" />
+        <el-icon :size="18"><ArrowLeft /></el-icon>
       </div>
       <h1 class="page-title">教练入驻资料详情</h1>
       <span

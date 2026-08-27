@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Input, Button, Image } from '@tarojs/components'
+import { View, Input, Button, Image } from '@tarojs/components'
 import { getProfile, updateProfile, uploadAvatar, type CoachProfile, type UpdateProfileParams } from '@/api/profile'
 import { sendSmsCode } from '@/api/common'
 import { handleBusinessError, getErrorCode } from '@/api/request'
@@ -160,27 +160,27 @@ export default function ProfileCompletePage() {
   if (initialLoading) {
     return (
       <View className='profile-complete'>
-        <Text className='profile-complete__loading'>加载中…</Text>
+        <View className='profile-complete__loading'>加载中…</View>
       </View>
     )
   }
 
   return (
     <View className='profile-complete'>
-      <Text className='profile-complete__title'>完善个人资料</Text>
+      <View className='profile-complete__title'>完善个人资料</View>
 
       <View className='profile-complete__avatar' onClick={handleChooseAvatar}>
         {avatarUrl ? (
           <Image className='profile-complete__avatar-img' src={avatarUrl} mode='aspectFill' />
         ) : (
           <View className='profile-complete__avatar-placeholder'>
-            <Text className='profile-complete__avatar-text'>点击上传头像</Text>
+            <View className='profile-complete__avatar-text'>点击上传头像</View>
           </View>
         )}
       </View>
 
       <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>昵称</Text>
+        <View className='profile-complete__label'>昵称</View>
         <Input
           className='profile-complete__input'
           placeholder='请输入昵称'
@@ -191,7 +191,7 @@ export default function ProfileCompletePage() {
       </View>
 
       <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>年龄</Text>
+        <View className='profile-complete__label'>年龄</View>
         <Input
           className='profile-complete__input'
           type='number'
@@ -202,25 +202,25 @@ export default function ProfileCompletePage() {
       </View>
 
       <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>性别</Text>
+        <View className='profile-complete__label'>性别</View>
         <View className='profile-complete__radio-group'>
-          <Text
+          <View
             className={`profile-complete__radio ${gender === 'male' ? 'profile-complete__radio--active' : ''}`}
             onClick={() => setGender('male')}
           >
             男
-          </Text>
-          <Text
+          </View>
+          <View
             className={`profile-complete__radio ${gender === 'female' ? 'profile-complete__radio--active' : ''}`}
             onClick={() => setGender('female')}
           >
             女
-          </Text>
+          </View>
         </View>
       </View>
 
       <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>执教年限（选填）</Text>
+        <View className='profile-complete__label'>执教年限（选填）</View>
         <Input
           className='profile-complete__input'
           type='number'
@@ -231,7 +231,7 @@ export default function ProfileCompletePage() {
       </View>
 
       <View className='profile-complete__field'>
-        <Text className='profile-complete__label'>个人简介（选填）</Text>
+        <View className='profile-complete__label'>个人简介（选填）</View>
         <Input
           className='profile-complete__input'
           placeholder='简单介绍一下自己'
@@ -242,9 +242,9 @@ export default function ProfileCompletePage() {
       </View>
 
       <View className='profile-complete__section'>
-        <Text className='profile-complete__section-title'>更换手机号（选填）</Text>
+        <View className='profile-complete__section-title'>更换手机号（选填）</View>
         <View className='profile-complete__field'>
-          <Text className='profile-complete__label'>当前手机号</Text>
+          <View className='profile-complete__label'>当前手机号</View>
           <Input
             className='profile-complete__input'
             value={profile?.phone || ''}
@@ -299,7 +299,7 @@ export default function ProfileCompletePage() {
 
       {errorTip && (
         <View className='profile-complete__error'>
-          <Text className='profile-complete__error-text'>{errorTip}</Text>
+          <View className='profile-complete__error-text'>{errorTip}</View>
         </View>
       )}
 

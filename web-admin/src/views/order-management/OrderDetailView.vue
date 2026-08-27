@@ -136,7 +136,7 @@ async function handleApprove() {
     );
     await approveRefund({
       orderId: order.value.orderId,
-      refundAmount: value.trim(),
+      refundAmount: String(value).trim(),
       adjustReason: adjustReason.trim(),
     });
     ElMessage.success('退款申请已通过');
@@ -283,6 +283,10 @@ onMounted(() => {
           <div class="detail-item">
             <span class="label">渠道流水号</span>
             <span class="value">{{ order.channelTradeNo || '-' }}</span>
+          </div>
+          <div v-if="order.paidAt" class="detail-item">
+            <span class="label">支付时间</span>
+            <span class="value">{{ formatDateTime(order.paidAt) }}</span>
           </div>
           <div v-if="order.type === 'refund'" class="detail-item">
             <span class="label">原购买订单</span>

@@ -9,8 +9,15 @@ body {
 
 // H5 下 Taro Input 内部 .weui-input 高度默认固定，导致与外框不同高、文字不居中
 .weui-input,
-.weui-textarea {
-  height: 100%;
+.weui-textarea,
+.taro-textarea {
+  height: 100% !important;
+}
+
+// 隐藏 H5 textarea 右下角拖拽尺寸控制柄
+.weui-textarea,
+.taro-textarea {
+  resize: none;
 }
 
 // H5 宽屏居中：web 上只在中间展示 375px 内容，移动端保持全屏
@@ -26,8 +33,8 @@ body {
   }
 
   #app {
-    // 大写 PX 跳过 pxtransform，确保任何屏幕下都固定为 375px
-    max-width: 375PX;
+    // 配合 pxtransform 与动态根字号，375px 设计稿对应 9.375rem（1rem=40px）
+    max-width: 375px;
     margin: 0 auto;
     min-height: 100%;
     background-color: $bg-color-white;

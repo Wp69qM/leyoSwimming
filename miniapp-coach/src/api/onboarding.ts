@@ -59,6 +59,7 @@ export interface SubmitApplicationParams {
   teachingYears: number
   totalStudents: number
   totalHours: number
+  teachingStrokes: string[]
   bio: string
   referencePrice: number
   certificates: CoachCertificate[]

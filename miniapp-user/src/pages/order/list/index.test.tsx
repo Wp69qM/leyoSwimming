@@ -356,7 +356,7 @@ describe('OrderListPage', () => {
     render(<OrderListPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/剩 \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+      expect(screen.getByText(/支付剩余时间 \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
     });
 
     act(() => {
@@ -364,7 +364,7 @@ describe('OrderListPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/剩 \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+      expect(screen.getByText(/支付剩余时间 \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
     });
   });
 
@@ -380,7 +380,7 @@ describe('OrderListPage', () => {
     render(<OrderListPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/剩 \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+      expect(screen.getByText(/支付剩余时间 \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
     });
 
     (orderApi.fetchOrderList as jest.Mock).mockResolvedValue(

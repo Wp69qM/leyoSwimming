@@ -46,7 +46,7 @@ export async function fetchCustomPackageConfig(): Promise<CustomPackageConfig> {
   const config = await request<CustomPackageConfig>({
     url: '/package/custom-config',
     method: 'POST',
-    needToken: false,
+    needToken: true,
   });
   return {
     ...DEFAULT_CUSTOM_CONFIG,

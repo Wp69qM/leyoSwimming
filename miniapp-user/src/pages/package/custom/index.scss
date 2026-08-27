@@ -545,6 +545,13 @@
   justify-content: space-between;
   box-shadow: $calicat-bottom-bar-shadow;
 
+  @media (width >=768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
+
   &__total {
     display: flex;
     align-items: flex-end;

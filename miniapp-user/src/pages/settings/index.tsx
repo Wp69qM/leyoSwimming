@@ -16,10 +16,6 @@ interface SettingItem {
 
 const SETTING_ITEMS: SettingItem[] = [
   {
-    label: '账号安全',
-    iconClass: 'settings__icon--security',
-  },
-  {
     label: '用户须知',
     iconClass: 'settings__icon--terms',
     url: '/pages/terms/index',
@@ -67,7 +63,7 @@ export default function SettingsPage() {
           <View className='settings__navbar-back' onClick={handleBack}>
             <Text className='settings__navbar-back-icon'>&#8249;</Text>
           </View>
-          <Text className='settings__navbar-title'>设置</Text>
+          <View className='settings__navbar-title'>设置</View>
         </View>
       </View>
 
@@ -84,9 +80,9 @@ export default function SettingsPage() {
             >
               <View className='settings__left'>
                 <View className={`settings__icon ${item.iconClass}`} />
-                <Text className='settings__label'>{item.label}</Text>
+                <View className='settings__label'>{item.label}</View>
               </View>
-              <Text className='settings__arrow'>&#8250;</Text>
+              <View className='settings__arrow'>&#8250;</View>
             </View>
           ))}
         </View>

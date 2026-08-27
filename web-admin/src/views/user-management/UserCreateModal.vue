@@ -3,6 +3,7 @@ import { ref, reactive, computed, watch } from 'vue';
 
 import type { AdminUserAddRequest, AdminUserDetail } from '@/types/api';
 import { addUser } from '@/api/userManagement';
+import { SWIM_STROKE_OPTIONS } from '@/constants/swimStrokes';
 
 const props = defineProps<{
   visible: boolean;
@@ -100,8 +101,6 @@ const rules = computed(() => ({
     },
   ],
 }));
-
-const swimStrokeOptions = ['蛙泳', '自由泳', '仰泳', '蝶泳'];
 
 const canSubmit = computed(() => {
   if (!form.phone || !/^1[3-9]\d{9}$/.test(form.phone)) return false;
@@ -272,11 +271,11 @@ watch(
         <el-form-item label="会什么泳姿" prop="swimStrokes">
           <el-checkbox-group v-model="form.swimStrokes">
             <el-checkbox
-              v-for="stroke in swimStrokeOptions"
-              :key="stroke"
-              :label="stroke"
+              v-for="option in SWIM_STROKE_OPTIONS"
+              :key="option.code"
+              :label="option.code"
             >
-              {{ stroke }}
+              {{ option.label }}
             </el-checkbox>
           </el-checkbox-group>
         </el-form-item>

@@ -7,21 +7,25 @@ import {
   submitResignationTicket
 } from '@/api/resignation'
 import { handleBusinessError } from '@/api/request'
-import { useAuthStore } from '@/stores/authStore'
-import { COACH_STATUS } from '@/constants'
-import type { CoachPackage, PackageAction, ResignationTicket, ResignationTicketStatus } from '@/types/resignation'
+import type { CoachPackage, PackageAction, PackageMode, ResignationTicket, ResignationTicketStatus } from '@/types/resignation'
 import './index.scss'
 
-const ACTION_OPTIONS: { value: PackageAction; label: string }[] = [
-  { value: 'transfer', label: '转新教练' },
-  { value: 'refund', label: '全额退款' },
-  { value: 'continue', label: '继续上完' }
-]
+const STATUS_BAR_HEIGHT = Taro.getSystemInfoSync().statusBarHeight || 20
+
+const ACTION_VALUES: PackageAction[] = ['transfer', 'refund', 'continue']
 
 const ACTION_LABELS: Record<PackageAction, string> = {
   transfer: '转新教练',
   refund: '全额退款',
   continue: '继续上完'
+}
+
+const ACTION_PICKER_PLACEHOLDER = '请选择处理方式'
+
+const PACKAGE_MODE_LABELS: Record<PackageMode, string> = {
+  standard: '正价课',
+  experience: '体验课',
+  custom: '自定义套餐'
 }
 
 const STEPS = ['提交申请', '处理套餐', '提交工单', '审批结果']
@@ -39,8 +43,8 @@ export default function ResignationTicketPage() {
   const [submitting, setSubmitting] = useState(false)
   const [errorTip, setErrorTip] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
-  const coachInfo = useAuthStore((state) => state.coachInfo)
-  const restoreFromStorage = useAuthStore((state) => state.restoreFromStorage)
+  const [actionSheetOpen, setActionSheetOpen] = useState(false)
+  const [actionSheetPkg, setActionSheetPkg] = useState<CoachPackage | null>(null)
 
   const ticketId = useMemo(() => {
     const params = Taro.getCurrentInstance().router?.params
@@ -50,16 +54,6 @@ export default function ResignationTicketPage() {
   const isReadOnly = !ticket || ticket.status !== 'processing'
 
   useEffect(() => {
-    restoreFromStorage()
-  }, [restoreFromStorage])
-
-  useEffect(() => {
-    Taro.setNavigationBarTitle({ title: '离职工单处理' })
-  }, [])
-
-  useEffect(() => {
-    if (!coachInfo) return
-
     async function loadDetail() {
       setLoading(true)
       setErrorTip('')
@@ -83,7 +77,7 @@ export default function ResignationTicketPage() {
     }
 
     void loadDetail()
-  }, [coachInfo, ticketId, refreshKey])
+  }, [ticketId, refreshKey])
 
   function handleRetry() {
     setRefreshKey((prev) => prev + 1)
@@ -116,45 +110,45 @@ export default function ResignationTicketPage() {
     })
   }
 
-  async function handleSelectAction(pkg: CoachPackage) {
-    if (isReadOnly) return
-
-    const { tapIndex } = await Taro.showActionSheet({
-      itemList: ACTION_OPTIONS.map((item) => item.label)
+  function handleBack() {
+    Taro.navigateBack().catch(() => {
+      Taro.switchTab({ url: '/pages/mine/index' })
     })
-
-    const selected = ACTION_OPTIONS[tapIndex]
-    if (!selected) return
-
-    const actionState: PackageActionState = { action: selected.value }
-    if (selected.value !== 'transfer') {
-      try {
-        await persistAction(pkg.id, selected.value)
-      } catch {
-        return
-      }
-    }
-    setActions((prev) => ({ ...prev, [pkg.id]: actionState }))
   }
 
-  async function persistAction(packageId: number, action: PackageAction, targetCoachId?: number) {
-    if (!ticket) return
-    try {
-      await submitPackageAction({ ticketId: ticket.ticketId, packageId, action, targetCoachId })
-    } catch (error) {
-      Taro.showToast({ title: handleBusinessError(error), icon: 'none' })
-      throw error
-    }
+  function handleOpenActionSheet(pkg: CoachPackage) {
+    if (isReadOnly) return
+    setActionSheetPkg(pkg)
+    setActionSheetOpen(true)
+  }
+
+  function handleSelectAction(action: PackageAction) {
+    if (!actionSheetPkg) return
+    setActions((prev) => ({
+      ...prev,
+      [actionSheetPkg.id]: {
+        action,
+        targetCoachId: undefined,
+        targetCoachName: undefined
+      }
+    }))
+    setActionSheetOpen(false)
+    setActionSheetPkg(null)
+  }
+
+  function handleCloseActionSheet() {
+    setActionSheetOpen(false)
+    setActionSheetPkg(null)
   }
 
   function handleTargetCoachChange(pkgId: number, value: string) {
     setActions((prev) => ({
       ...prev,
-      [pkgId]: { ...prev[pkgId], targetCoachName: value }
+      [pkgId]: { ...(prev[pkgId] ?? {}), targetCoachName: value }
     }))
   }
 
-  async function handleTargetCoachConfirm(pkgId: number) {
+  function handleTargetCoachConfirm(pkgId: number) {
     const state = actions[pkgId]
     if (!state?.targetCoachName?.trim()) return
 
@@ -164,19 +158,19 @@ export default function ResignationTicketPage() {
       return
     }
 
-    try {
-      await persistAction(pkgId, 'transfer', targetCoachId)
-      setActions((prev) => ({
-        ...prev,
-        [pkgId]: { ...prev[pkgId], targetCoachId }
-      }))
-    } catch {
-      // error already toasted
-    }
+    setActions((prev) => ({
+      ...prev,
+      [pkgId]: { ...(prev[pkgId] ?? {}), targetCoachId }
+    }))
   }
 
   async function handleSubmit() {
-    if (!ticket || !allProcessed) return
+    if (submitting) return
+    if (!ticket) return
+    if (ticket.packages.length > 0 && !allProcessed) {
+      Taro.showToast({ title: '请先处理完所有学员套餐', icon: 'none' })
+      return
+    }
 
     const confirm = await Taro.showModal({
       title: '确认提交审批？',
@@ -192,6 +186,22 @@ export default function ResignationTicketPage() {
     setErrorTip('')
 
     try {
+      // 批量提交各套餐处理方式
+      if (ticket.packages.length > 0) {
+        await Promise.all(
+          ticket.packages.map((pkg) => {
+            const state = actions[pkg.id]
+            if (!state?.action) return Promise.resolve()
+            return submitPackageAction({
+              ticketId: ticket.ticketId,
+              packageId: pkg.id,
+              action: state.action,
+              targetCoachId: state.targetCoachId
+            })
+          })
+        )
+      }
+
       await submitResignationTicket({ ticketId: ticket.ticketId })
       Taro.showToast({ title: '工单已提交，等待审批', icon: 'success' })
       navigateToProcessing(ticket.ticketId)
@@ -202,13 +212,17 @@ export default function ResignationTicketPage() {
   }
 
   function renderProgress() {
+    if (!ticket || ticket.status === 'none') {
+      return <View className='resignation-ticket__progress--empty' />
+    }
     const statusStepMap: Record<ResignationTicketStatus, number> = {
       processing: 1,
       pending_audit: 2,
       approved: 3,
-      rejected: 3
+      rejected: 3,
+      none: 0
     }
-    const currentStep = ticket ? statusStepMap[ticket.status] ?? 1 : 1
+    const currentStep = statusStepMap[ticket.status] ?? 1
     return (
       <View className='resignation-ticket__progress'>
         {STEPS.map((step, index) => (
@@ -224,13 +238,13 @@ export default function ResignationTicketPage() {
                 <Text className='resignation-ticket__progress-number'>{index + 1}</Text>
               )}
             </View>
-            <Text
+            <View
               className={`resignation-ticket__progress-label ${
                 index === currentStep ? 'resignation-ticket__progress-label--active' : ''
               }`}
             >
               {step}
-            </Text>
+            </View>
             {index < STEPS.length - 1 ? (
               <View
                 className={`resignation-ticket__progress-line ${
@@ -248,10 +262,83 @@ export default function ResignationTicketPage() {
     const state = actions[pkg.id] ?? {}
     const isTransfer = state.action === 'transfer'
 
+    function renderActionEditor() {
+      return (
+        <>
+          <View
+            className={`resignation-ticket__selector ${
+              state.action ? 'resignation-ticket__selector--selected' : ''
+            }`}
+            onClick={() => handleOpenActionSheet(pkg)}
+          >
+            <View className='resignation-ticket__selector-inner'>
+              <View
+                className={`resignation-ticket__selector-text ${
+                  state.action ? '' : 'resignation-ticket__selector-text--placeholder'
+                }`}
+              >
+                {state.action ? ACTION_LABELS[state.action] : ACTION_PICKER_PLACEHOLDER}
+              </View>
+              <Text className='resignation-ticket__selector-arrow'>▼</Text>
+            </View>
+          </View>
+
+          {isTransfer ? (
+            <View className='resignation-ticket__transfer'>
+              <View className='resignation-ticket__transfer-label'>转给教练</View>
+              <Input
+                className='resignation-ticket__transfer-input'
+                type='number'
+                placeholder='请输入教练编号'
+                value={state.targetCoachName ?? ''}
+                onInput={(e) => handleTargetCoachChange(pkg.id, e.detail.value)}
+                onBlur={() => handleTargetCoachConfirm(pkg.id)}
+              />
+            </View>
+          ) : null}
+        </>
+      )
+    }
+
+    function renderActionReadOnly() {
+      const action = state.action
+      if (!action) {
+        return (
+          <View className='resignation-ticket__result'>
+            <View className='resignation-ticket__result-label'>处理方式</View>
+            <View className='resignation-ticket__result-value resignation-ticket__result-value--placeholder'>
+              未处理
+            </View>
+          </View>
+        )
+      }
+      return (
+        <View className='resignation-ticket__result'>
+          <View className='resignation-ticket__result-row'>
+            <View className='resignation-ticket__result-label'>处理方式</View>
+            <View
+              className={`resignation-ticket__result-tag resignation-ticket__result-tag--${action}`}
+            >
+              {ACTION_LABELS[action]}
+            </View>
+          </View>
+          {action === 'transfer' ? (
+            <View className='resignation-ticket__result-row'>
+              <View className='resignation-ticket__result-label'>新教练</View>
+              <View className='resignation-ticket__result-value'>
+                {pkg.targetCoachName ?? state.targetCoachName ?? '-'}
+                {pkg.targetCoachPhone ? ` (${pkg.targetCoachPhone})` : ''}
+              </View>
+            </View>
+          ) : null}
+        </View>
+      )
+    }
+
     return (
       <View key={pkg.id} className='resignation-ticket__card'>
         <View className='resignation-ticket__card-header'>
-          <Text className='resignation-ticket__student-name'>{pkg.studentName}</Text>
+          <View className='resignation-ticket__student-name'>{pkg.studentName}</View>
           <View
             className={`resignation-ticket__status-tag ${
               pkg.status === 'active'
@@ -259,7 +346,7 @@ export default function ResignationTicketPage() {
                 : 'resignation-ticket__status-tag--frozen'
             }`}
           >
-            <Text
+            <View
               className={`resignation-ticket__status-text ${
                 pkg.status === 'active'
                   ? 'resignation-ticket__status-text--active'
@@ -267,42 +354,17 @@ export default function ResignationTicketPage() {
               }`}
             >
               {pkg.status === 'active' ? '使用中' : '已冻结'}
-            </Text>
+            </View>
           </View>
         </View>
-        <Text className='resignation-ticket__package-info'>
+        <View className='resignation-ticket__package-info'>
+          <View className='resignation-ticket__mode-tag'>
+            {PACKAGE_MODE_LABELS[pkg.packageMode]}
+          </View>
           {pkg.packageName} · 剩余 {pkg.lessonCount} 课时
-        </Text>
-
-        <View
-          className={`resignation-ticket__selector ${
-            state.action ? 'resignation-ticket__selector--selected' : ''
-          } ${isReadOnly ? 'resignation-ticket__selector--readonly' : ''}`}
-          onClick={() => handleSelectAction(pkg)}
-        >
-          <Text
-            className={`resignation-ticket__selector-text ${
-              state.action ? '' : 'resignation-ticket__selector-text--placeholder'
-            }`}
-          >
-            {state.action ? ACTION_LABELS[state.action] : '请选择处理方式'}
-          </Text>
-          {!isReadOnly ? <Text className='resignation-ticket__selector-arrow'>▼</Text> : null}
         </View>
 
-        {isTransfer && !isReadOnly ? (
-          <View className='resignation-ticket__transfer'>
-            <Text className='resignation-ticket__transfer-label'>转给教练</Text>
-            <Input
-              className='resignation-ticket__transfer-input'
-              type='number'
-              placeholder='请输入教练编号'
-              value={state.targetCoachName ?? ''}
-              onInput={(e) => handleTargetCoachChange(pkg.id, e.detail.value)}
-              onBlur={() => handleTargetCoachConfirm(pkg.id)}
-            />
-          </View>
-        ) : null}
+        {isReadOnly ? renderActionReadOnly() : renderActionEditor()}
       </View>
     )
   }
@@ -310,8 +372,8 @@ export default function ResignationTicketPage() {
   function renderEmpty() {
     return (
       <View className='resignation-ticket__empty'>
-        <Text className='resignation-ticket__empty-title'>暂无待处理套餐</Text>
-        <Text className='resignation-ticket__empty-desc'>您名下没有未完结的学员套餐</Text>
+        <View className='resignation-ticket__empty-title'>暂无待处理套餐</View>
+        <View className='resignation-ticket__empty-desc'>您名下没有未完结的学员套餐</View>
         <Button className='resignation-ticket__empty-btn' onClick={navigateToApply}>
           返回
         </Button>
@@ -324,7 +386,7 @@ export default function ResignationTicketPage() {
       <View className='resignation-ticket'>
         {renderProgress()}
         <View className='resignation-ticket__loading'>
-          <Text className='resignation-ticket__loading-text'>加载中...</Text>
+          <View className='resignation-ticket__loading-text'>加载中...</View>
         </View>
       </View>
     )
@@ -335,7 +397,7 @@ export default function ResignationTicketPage() {
       <View className='resignation-ticket'>
         {renderProgress()}
         <View className='resignation-ticket__error'>
-          <Text className='resignation-ticket__error-text'>{errorTip}</Text>
+          <View className='resignation-ticket__error-text'>{errorTip}</View>
           <Button className='resignation-ticket__error-btn' onClick={handleRetry}>
             重新加载
           </Button>
@@ -344,47 +406,105 @@ export default function ResignationTicketPage() {
     )
   }
 
-  const editable = coachInfo?.status === COACH_STATUS.RESIGNING && ticket?.status === 'processing'
+  const editable = ticket?.status === 'processing'
   const showEmpty = !ticket || ticket.packages.length === 0
+  const submitDisabled = ticket ? ticket.packages.length > 0 && !allProcessed : false
+
+  const STATUS_TEXT: Record<string, string> = {
+    processing: '处理中：请选择各套餐的处理方式并提交审批',
+    pending_audit: '已提交：等待管理员审批',
+    approved: '已通过：离职申请已获批',
+    rejected: '已驳回：请重新提交离职申请',
+    none: '暂无进行中的离职工单'
+  }
+
+  function renderStatusBanner() {
+    if (!ticket) return null
+    const text = STATUS_TEXT[ticket.status] ?? STATUS_TEXT.none
+    return (
+      <View className={`resignation-ticket__status-banner resignation-ticket__status-banner--${ticket.status}`}>
+        <View className='resignation-ticket__status-banner-text'>{text}</View>
+        {!editable && ticket.status !== 'none' ? (
+          <View className='resignation-ticket__status-banner-link' onClick={() => navigateToProcessing(ticket.ticketId)}>
+            查看进度 ›
+          </View>
+        ) : null}
+      </View>
+    )
+  }
 
   return (
     <View className='resignation-ticket'>
-      {renderProgress()}
+      <View
+        className='resignation-ticket__status-bar'
+        style={{ height: `${STATUS_BAR_HEIGHT}px` }}
+      />
+      <View className='resignation-ticket__navbar'>
+        <View className='resignation-ticket__navbar-back' onClick={handleBack}>
+          <Text className='resignation-ticket__navbar-back-icon'>‹</Text>
+        </View>
+        <View className='resignation-ticket__navbar-title'>离职工单处理</View>
+      </View>
 
-      {showEmpty ? (
-        renderEmpty()
-      ) : (
-        <>
-          <Text className='resignation-ticket__section-title'>套餐清单</Text>
-          <View className='resignation-ticket__list'>
-            {ticket?.packages.map(renderPackageCard)}
-          </View>
+      <View className='resignation-ticket__body'>
+        {renderStatusBanner()}
+        {renderProgress()}
 
-          {errorTip ? (
-            <View className='resignation-ticket__error-tip'>
-              <Text className='resignation-ticket__error-tip-text'>{errorTip}</Text>
+        {showEmpty ? (
+          renderEmpty()
+        ) : (
+          <>
+            <View className='resignation-ticket__section-title'>套餐清单</View>
+            <View className='resignation-ticket__list'>
+              {ticket?.packages.map(renderPackageCard)}
             </View>
-          ) : null}
-        </>
-      )}
+
+            {errorTip ? (
+              <View className='resignation-ticket__error-tip'>
+                <View className='resignation-ticket__error-tip-text'>{errorTip}</View>
+              </View>
+            ) : null}
+          </>
+        )}
+      </View>
 
       {editable ? (
         <View className='resignation-ticket__footer'>
-          <View className='resignation-ticket__footer-info'>
-            <Text className='resignation-ticket__footer-count'>
-              已处理 {processedCount}/{ticket?.packages.length ?? 0} 份
-            </Text>
+          <View className='resignation-ticket__footer-inner'>
+            <View className='resignation-ticket__footer-info'>
+              <View className='resignation-ticket__footer-count'>
+                已处理 {processedCount}/{ticket?.packages.length ?? 0} 份
+              </View>
+            </View>
+            <Button
+              className={`resignation-ticket__submit ${
+                submitDisabled || submitting ? 'resignation-ticket__submit--disabled' : ''
+              }`}
+              onClick={handleSubmit}
+            >
+              {submitting ? '提交中...' : '提交审批'}
+            </Button>
           </View>
-          <Button
-            className={`resignation-ticket__submit ${
-              !allProcessed || submitting ? 'resignation-ticket__submit--disabled' : ''
-            }`}
-            onClick={handleSubmit}
-            disabled={!allProcessed || submitting}
-            loading={submitting}
-          >
-            {submitting ? '提交中...' : '提交审批'}
-          </Button>
+        </View>
+      ) : null}
+
+      {actionSheetOpen ? (
+        <View className='resignation-ticket__action-sheet-mask' onClick={handleCloseActionSheet}>
+          <View className='resignation-ticket__action-sheet' onClick={(e) => e.stopPropagation()}>
+            <View className='resignation-ticket__action-sheet-title'>选择处理方式</View>
+            {ACTION_VALUES.map((action) => (
+              <View
+                key={action}
+                className='resignation-ticket__action-sheet-item'
+                onClick={() => handleSelectAction(action)}
+              >
+                {ACTION_LABELS[action]}
+              </View>
+            ))}
+            <View className='resignation-ticket__action-sheet-cancel' onClick={handleCloseActionSheet}>
+              取消
+            </View>
+          </View>
         </View>
       ) : null}
     </View>

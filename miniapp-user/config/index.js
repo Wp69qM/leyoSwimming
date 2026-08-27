@@ -91,6 +91,15 @@ const config = {
       chain.resolve.alias
         .set('react$', reactDev)
         .set('react/jsx-runtime$', reactJsxRuntimeDev);
+
+      // Treat SVG files as static assets so they can be used with Image src.
+      chain.module
+        .rule('svg')
+        .test(/\.svg$/)
+        .type('asset/resource')
+        .set('generator', {
+          filename: 'static/images/assets/calicat/icons/[name][ext]',
+        });
     },
     postcss: {
       // H5 启用 pxtransform 将 px/rpx 转为 rem，配合 app.tsx 动态根字号实现响应式。

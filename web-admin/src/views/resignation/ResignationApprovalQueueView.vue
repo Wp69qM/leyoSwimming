@@ -311,48 +311,48 @@ onMounted(() => {
         header-row-class-name="table-header"
         style="width: 100%"
       >
-        <el-table-column label="工单号" width="100">
+        <el-table-column label="工单号" min-width="100">
           <template #default="{ row }">
             <span class="ticket-no">{{ row.ticketNo }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="教练姓名" width="100">
+        <el-table-column label="教练姓名" min-width="100">
           <template #default="{ row }">
             <span class="coach-name" @click="goDetail(row.ticketId)">
               {{ row.coachName }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="手机号" width="120">
+        <el-table-column label="手机号" min-width="120">
           <template #default="{ row }">
             {{ maskPhone(row.coachPhone) }}
           </template>
         </el-table-column>
-        <el-table-column label="在职时长" align="center" width="100">
+        <el-table-column label="在职时长" align="center" min-width="100">
           <template #default="{ row }">
             <span class="tenure-text">
               {{ calculateTenure(row.coachJoinedAt) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="当前学员数" align="center" width="100">
+        <el-table-column label="当前学员数" align="center" min-width="100">
           <template #default="{ row }">
-            <span :class="row.totalPackages > 0 ? 'text-danger' : ''">
-              {{ row.totalPackages }}
+            <span :class="row.activeStudentCount > 0 ? 'text-danger' : ''">
+              {{ row.activeStudentCount }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="离职原因" width="140" show-overflow-tooltip>
+        <el-table-column label="离职原因" min-width="140" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="reason-text">{{ row.reason || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="申请时间" width="160">
+        <el-table-column label="申请时间" min-width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.submittedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="处理进度" align="center" width="180">
+        <el-table-column label="处理进度" align="center" min-width="180">
           <template #default="{ row }">
             <div class="progress-cell">
               <div class="progress-track">
@@ -369,7 +369,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" align="center" width="100">
+        <el-table-column label="状态" align="center" min-width="100">
           <template #default="{ row }">
             <el-tag
               :color="statusMap[row.status].bgColor"
@@ -385,7 +385,13 @@ onMounted(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="160" fixed="right">
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="160"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button link type="primary" @click="goDetail(row.ticketId)">
               查看
@@ -584,6 +590,19 @@ onMounted(() => {
 :deep(.table-header) {
   th {
     background: #f5f7fa;
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 </style>

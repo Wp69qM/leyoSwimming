@@ -208,6 +208,93 @@ class UserPackageTemplateControllerIT {
         .andExpect(jsonPath("$.code").value(420001));
   }
 
+  @Test
+  @DisplayName("POST /api/package/list 存在全局配置和公开教练时返回自定义套餐")
+  void list_withCustomConfig_includesCustomPackage() throws Exception {
+    createActiveTemplate("标准 6 节", "standard", 6);
+    Coach coach = createCoach("王教练", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    createCustomConfig(1, 50);
+
+    mockMvc
+        .perform(
+            post("/api/package/list")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"page\":1,\"pageSize\":10}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(0))
+        .andExpect(jsonPath("$.data.items.length()").value(2))
+        .andExpect(jsonPath("$.data.total").value(2))
+        .andExpect(jsonPath("$.data.items[1].id").value(-1))
+        .andExpect(jsonPath("$.data.items[1].packageMode").value("custom"))
+        .andExpect(jsonPath("$.data.items[1].name").value("自定义课时"));
+  }
+
+  @Test
+  @DisplayName("POST /api/package/detail 自定义套餐 ID 返回合成详情")
+  void detail_customPackageId_returnsSyntheticDetail() throws Exception {
+    Coach c1 = createCoach("王教练", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    Coach c2 = createCoach("李教练", CoachStatus.APPROVED.getValue(), new BigDecimal("180.00"));
+    createCustomConfig(1, 50);
+
+    mockMvc
+        .perform(
+            post("/api/package/detail")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"packageId\":-1}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(0))
+        .andExpect(jsonPath("$.data.id").value(-1))
+        .andExpect(jsonPath("$.data.packageMode").value("custom"))
+        .andExpect(jsonPath("$.data.applicableCoaches.length()").value(2));
+  }
+
+  @Test
+  @DisplayName("POST /api/package/detail 自定义套餐传入 coachId 仅返回选中教练")
+  void detail_customPackageWithCoachId_returnsSelectedCoach() throws Exception {
+    Coach c1 = createCoach("王教练", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    createCoach("李教练", CoachStatus.APPROVED.getValue(), new BigDecimal("180.00"));
+    createCustomConfig(1, 50);
+
+    mockMvc
+        .perform(
+            post("/api/package/detail")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"packageId\":-1,\"coachId\":%d}", c1.getId())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(0))
+        .andExpect(jsonPath("$.data.applicableCoaches.length()").value(1))
+        .andExpect(jsonPath("$.data.applicableCoaches[0].coachId").value(c1.getId().intValue()));
+  }
+
+  @Test
+  @DisplayName("POST /api/package/detail synthetic id 与标准模板 id 不冲突")
+  void detail_customSyntheticId_doesNotConflictWithTemplateId() throws Exception {
+    Coach c1 = createCoach("王教练", CoachStatus.APPROVED.getValue(), new BigDecimal("200.00"));
+    PackageTemplate template = createActiveTemplate("标准 6 节", "standard", 6);
+    createCustomConfig(1, 50);
+    linkTemplateToCoach(template, c1);
+
+    mockMvc
+        .perform(
+            post("/api/package/detail")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"packageId\":%d}", template.getId())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(0))
+        .andExpect(jsonPath("$.data.id").value(template.getId().intValue()))
+        .andExpect(jsonPath("$.data.packageMode").value("standard"));
+
+    mockMvc
+        .perform(
+            post("/api/package/detail")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"packageId\":-1}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(0))
+        .andExpect(jsonPath("$.data.id").value(-1))
+        .andExpect(jsonPath("$.data.packageMode").value("custom"));
+  }
+
   private Coach createCoach(String name, int status, BigDecimal referencePrice) throws Exception {
     Coach coach = new Coach();
     coach.setOpenid(name + System.nanoTime());
@@ -253,12 +340,14 @@ class UserPackageTemplateControllerIT {
     packageTemplateCoachMapper.insert(link);
   }
 
-  private void createCustomConfig(int minHours, int maxHours) {
+  private CustomPackageConfig createCustomConfig(int minHours, int maxHours) {
     CustomPackageConfig config = new CustomPackageConfig();
-    config.setConfigKey("global");
+    config.setConfigKey("g" + System.nanoTime());
     config.setMinHours(minHours);
     config.setMaxHours(maxHours);
     config.setDefaultValidDays(30);
     customPackageConfigMapper.insert(config);
+    assertThat(config.getId()).isNotNull();
+    return config;
   }
 }

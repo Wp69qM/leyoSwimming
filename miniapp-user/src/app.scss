@@ -17,12 +17,20 @@ body {
 
 // H5 下 Taro Input 内部 .weui-input 高度默认固定，导致与外框不同高、文字不居中
 .weui-input,
-.weui-textarea {
-  height: 100%;
+.weui-textarea,
+.taro-textarea {
+  height: 100% !important;
 }
 
-// H5 适配：>=430px（平板/桌面）时居中展示 375px 内容，<430px（手机）时全屏等比缩放
-@media (width >= 430px) {
+// 隐藏 H5 textarea 右下角拖拽尺寸控制柄
+.weui-textarea,
+.taro-textarea {
+  resize: none;
+}
+
+// H5 适配：>=768px（web/桌面）时居中展示 375px 内容，<768px（手机/平板）时全屏等比缩放
+@media (width >=768px) {
+
   html,
   body,
   #app {

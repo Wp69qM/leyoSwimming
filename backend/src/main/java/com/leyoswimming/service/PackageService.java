@@ -108,6 +108,18 @@ public class PackageService {
       refundOrder.setCoachId(coursePackage.getCoachId());
       refundOrder.setPackageId(coursePackage.getId());
       refundOrder.setPurchaseOrderId(purchaseOrder.getId());
+      refundOrder.setPackageName(purchaseOrder.getPackageName());
+      refundOrder.setCoachName(purchaseOrder.getCoachName());
+      refundOrder.setTeachingType(purchaseOrder.getTeachingType());
+      refundOrder.setPackageMode(purchaseOrder.getPackageMode());
+      refundOrder.setTotalHours(purchaseOrder.getTotalHours());
+      refundOrder.setDurationMinutes(purchaseOrder.getDurationMinutes());
+      refundOrder.setValidDays(purchaseOrder.getValidDays());
+      refundOrder.setRefundEnabled(purchaseOrder.getRefundEnabled());
+      refundOrder.setRefundRatio(purchaseOrder.getRefundRatio());
+      refundOrder.setRefundValidDays(purchaseOrder.getRefundValidDays());
+      refundOrder.setPaidAt(purchaseOrder.getPaidAt());
+      refundOrder.setPaymentMethod(purchaseOrder.getPaymentMethod());
       refundOrder.setOriginalAmount(refundAmount);
       refundOrder.setPaidAmount(refundAmount);
       refundOrder.setReason(request.reason());

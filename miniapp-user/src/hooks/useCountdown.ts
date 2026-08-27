@@ -18,7 +18,12 @@ export function useCountdown(
   const { initialSeconds = 60 } = options;
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const isRunningRef = useRef(isRunning);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -27,28 +32,34 @@ export function useCountdown(
     }
   }, []);
 
+  const stop = useCallback(() => {
+    clearTimer();
+    setIsRunning(false);
+  }, [clearTimer]);
+
+  const tick = useCallback(() => {
+    setSeconds((prev) => (prev <= 1 ? 0 : prev - 1));
+  }, []);
+
   const start = useCallback(() => {
-    if (isRunning) return;
+    if (isRunningRef.current) return;
     clearTimer();
     setSeconds(initialSeconds);
     setIsRunning(true);
-    timerRef.current = setInterval(() => {
-      setSeconds((prev) => {
-        if (prev <= 1) {
-          clearTimer();
-          setIsRunning(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [initialSeconds, isRunning, clearTimer]);
+    timerRef.current = setInterval(tick, 1000);
+  }, [initialSeconds, clearTimer, tick]);
 
   const reset = useCallback(() => {
     clearTimer();
     setSeconds(0);
     setIsRunning(false);
   }, [clearTimer]);
+
+  useEffect(() => {
+    if (seconds === 0 && isRunning) {
+      stop();
+    }
+  }, [seconds, isRunning, stop]);
 
   useEffect(() => {
     return () => {

@@ -295,7 +295,10 @@ describe('OrderConfirmPage', () => {
     fireEvent.click(screen.getByText('提交订单'));
 
     await waitFor(() => {
-      expect(orderApi.createTrialOrder).toHaveBeenCalledWith({ coachId: 10 });
+      expect(orderApi.createTrialOrder).toHaveBeenCalledWith({
+        coachId: 10,
+        packageId: 1,
+      });
     });
 
     expect(Taro.navigateTo).toHaveBeenCalledWith({
@@ -406,7 +409,7 @@ describe('OrderConfirmPage', () => {
       expect(screen.getByText('张明远')).toBeInTheDocument();
     });
 
-    fireEvent.click(document.querySelector('.coach-card') as Element);
+    fireEvent.click(document.querySelector('.order-coach-card') as Element);
 
     expect(Taro.navigateTo).toHaveBeenCalledWith({
       url: '/pages/coach/detail/index?id=10',

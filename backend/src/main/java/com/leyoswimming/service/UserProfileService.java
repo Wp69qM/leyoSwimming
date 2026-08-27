@@ -222,6 +222,8 @@ public class UserProfileService {
     String phone = user.getPhone() == null ? null : decryptPhone(user.getPhone());
     String guardianPhone =
         user.getGuardianPhone() == null ? null : decryptPhone(user.getGuardianPhone());
+    List<String> swimStrokes =
+        user.getSwimStrokes() == null ? List.of() : user.getSwimStrokes();
     return new UserProfileResponse(
         user.getId(),
         user.getName(),
@@ -232,7 +234,7 @@ public class UserProfileService {
         user.getGuardianName(),
         guardianPhone,
         user.getHasSwimBasis(),
-        user.getSwimStrokes(),
+        swimStrokes,
         user.getSwimYears(),
         user.getPersonalDesc(),
         Boolean.TRUE.equals(user.getProfileCompleted()),

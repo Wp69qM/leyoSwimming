@@ -4,6 +4,7 @@ import Taro, { useReachBottom } from '@tarojs/taro';
 import { fetchCoachList } from '@/api/coach';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
+import clearIcon from '@/assets/calicat/icons/icon-clear.svg';
 import type { CoachListItem, CoachSortType } from '@/types/coach';
 
 import './index.scss';
@@ -85,7 +86,7 @@ export default function CoachListPage() {
         setItems((prev) => (nextPage === 1 ? list : [...prev, ...list]));
         setHasMore(
           list.length === PAGE_SIZE &&
-            list.length + (nextPage === 1 ? 0 : items.length) < data.total
+          list.length + (nextPage === 1 ? 0 : items.length) < data.total
         );
         setPage(nextPage);
       } catch (err) {
@@ -170,7 +171,7 @@ export default function CoachListPage() {
         />
         <View className='coach-list__error'>
           <Icon name='error-circle' className='coach-list__error-icon' />
-          <Text className='coach-list__error-text'>{error}</Text>
+          <View className='coach-list__error-text'>{error}</View>
           <View
             className='coach-list__error-btn'
             onClick={() => loadCoaches({ isRefresh: true })}
@@ -197,7 +198,7 @@ export default function CoachListPage() {
             className={`coach-list__sort-item ${sortBy === option.key ? 'coach-list__sort-item--active' : ''}`}
             onClick={() => handleSortChange(option.key)}
           >
-            <Text className='coach-list__sort-text'>{option.label}</Text>
+            <View className='coach-list__sort-text'>{option.label}</View>
             {option.key === 'price' && sortBy === 'price' && (
               <Icon
                 name={priceOrder === 'asc' ? 'arrow-up' : 'arrow-down'}
@@ -217,10 +218,10 @@ export default function CoachListPage() {
             <View className='coach-list__empty-illustration'>
               <Icon name='empty' className='coach-list__empty-icon' />
             </View>
-            <Text className='coach-list__empty-title'>暂无教练</Text>
-            <Text className='coach-list__empty-text'>
+            <View className='coach-list__empty-title'>暂无教练</View>
+            <View className='coach-list__empty-text'>
               换个关键词或筛选条件试试
-            </Text>
+            </View>
           </View>
         ) : (
           <>
@@ -233,9 +234,9 @@ export default function CoachListPage() {
             ))}
             {error && items.length > 0 && (
               <View className='coach-list__load-more-error'>
-                <Text className='coach-list__load-more-error-text'>
+                <View className='coach-list__load-more-error-text'>
                   {error}
-                </Text>
+                </View>
                 <View
                   className='coach-list__load-more-error-btn'
                   onClick={() => loadCoaches({ nextPage: page })}
@@ -272,23 +273,29 @@ function CoachListHeader({
       style={{ paddingTop: `${STATUS_BAR_HEIGHT}px` }}
     >
       <View className='coach-list__navbar'>
-        <Text className='coach-list__title'>教练</Text>
+        <View className='coach-list__title'>教练</View>
       </View>
-      <View className='coach-list__search'>
-        <Icon name='search' className='coach-list__search-icon' />
-        <Input
-          className='coach-list__search-input'
-          type='text'
-          placeholder='搜索教练姓名'
-          value={keyword}
-          onInput={(e) => onKeywordChange(e.detail.value)}
-          confirmType='search'
-        />
-        {keyword && (
-          <View className='coach-list__search-clear' onClick={onClear}>
-            <Icon name='close' className='coach-list__search-clear-icon' />
-          </View>
-        )}
+      <View className='coach-list__search-container'>
+        <View className='coach-list__search'>
+          <Icon name='search' className='coach-list__search-icon' />
+          <Input
+            className='coach-list__search-input'
+            type='text'
+            placeholder='搜索教练姓名'
+            value={keyword}
+            onInput={(e) => onKeywordChange(e.detail.value)}
+            confirmType='search'
+          />
+          {keyword && (
+            <View className='coach-list__search-clear' onClick={onClear}>
+              <Image
+                src={clearIcon}
+                className='coach-list__search-clear-icon'
+                mode='aspectFit'
+              />
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -335,11 +342,11 @@ function CoachCard({
       )}
       <View className='coach-list-card__info'>
         <View className='coach-list-card__row'>
-          <Text className='coach-list-card__name'>{coach.name}</Text>
+          <View className='coach-list-card__name'>{coach.name}</View>
           <View className={`coach-list-card__status ${statusClass}`}>
-            <Text className='coach-list-card__status-text'>
+            <View className='coach-list-card__status-text'>
               {coach.realTimeStatus}
-            </Text>
+            </View>
           </View>
         </View>
         <View className='coach-list-card__row coach-list-card__row--meta'>
@@ -353,7 +360,7 @@ function CoachCard({
         <View className='coach-list-card__strokes'>
           {coach.teachingStrokes.slice(0, 2).map((stroke) => (
             <View key={stroke} className='coach-list-card__stroke-tag'>
-              <Text className='coach-list-card__stroke-text'>{stroke}</Text>
+              <View className='coach-list-card__stroke-text'>{stroke}</View>
             </View>
           ))}
         </View>

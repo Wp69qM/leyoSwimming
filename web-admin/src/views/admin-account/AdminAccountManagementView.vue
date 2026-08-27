@@ -274,7 +274,51 @@ onMounted(() => {
     </div>
 
     <div class="filter-card">
-      <div class="filter-header">
+      <el-form :model="queryForm" inline class="filter-form">
+        <el-form-item>
+          <el-select
+            v-model="queryForm.role"
+            placeholder="全部角色"
+            style="width: 160px"
+            clearable
+          >
+            <el-option
+              v-for="option in roleOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-select
+            v-model="queryForm.status"
+            placeholder="全部状态"
+            style="width: 160px"
+            clearable
+          >
+            <el-option
+              v-for="option in statusOptions"
+              :key="String(option.value)"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-input
+            v-model="queryForm.keyword"
+            placeholder="姓名 / 登录账号 / ID"
+            clearable
+            style="width: 240px"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="operation-bar">
         <el-button
           v-if="isSuperAdmin"
           type="primary"
@@ -283,50 +327,6 @@ onMounted(() => {
         >
           新建管理员
         </el-button>
-        <el-form :model="queryForm" inline>
-          <el-form-item>
-            <el-select
-              v-model="queryForm.role"
-              placeholder="全部角色"
-              style="width: 160px"
-              clearable
-            >
-              <el-option
-                v-for="option in roleOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select
-              v-model="queryForm.status"
-              placeholder="全部状态"
-              style="width: 160px"
-              clearable
-            >
-              <el-option
-                v-for="option in statusOptions"
-                :key="String(option.value)"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-input
-              v-model="queryForm.keyword"
-              placeholder="姓名 / 登录账号 / ID"
-              clearable
-              style="width: 240px"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
-          </el-form-item>
-        </el-form>
       </div>
     </div>
 
@@ -350,14 +350,14 @@ onMounted(() => {
         style="width: 100%"
       >
         <el-table-column label="账号" prop="username" min-width="140" />
-        <el-table-column label="姓名" width="120">
+        <el-table-column label="姓名" min-width="120">
           <template #default="{ row }">
             <el-button link type="primary" @click="openView(row)">
               {{ row.name || '未设置' }}
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="角色" align="center" width="120">
+        <el-table-column label="角色" align="center" min-width="120">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -370,12 +370,12 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="手机号" width="140">
+        <el-table-column label="手机号" min-width="160">
           <template #default="{ row }">
             {{ row.phone || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="状态" align="center" width="100">
+        <el-table-column label="状态" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -388,17 +388,23 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="最后登录" width="160">
+        <el-table-column label="最后登录" min-width="160">
           <template #default="{ row }">
             {{ formatLastLogin(row.lastLoginAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="170">
+        <el-table-column label="创建时间" min-width="170">
           <template #default="{ row }">
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="220" fixed="right">
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="220"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button
               v-if="hasAction(row, 'VIEW')"
@@ -510,6 +516,9 @@ onMounted(() => {
 }
 
 .filter-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 16px;
   margin-bottom: 16px;
   background: #ffffff;
@@ -517,11 +526,14 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.filter-header {
+.filter-form {
+  margin-bottom: 0;
+}
+
+.operation-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: flex-start;
 }
 
 .table-card {
@@ -555,6 +567,19 @@ onMounted(() => {
     font-weight: 500;
     color: #262626;
     background: #f5f7fa;
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 </style>

@@ -8,7 +8,7 @@
 
   &__search {
     background-color: $color-surface;
-    padding: 0 $spacing-md $spacing-sm;
+    padding: 8px $spacing-md $spacing-sm;
   }
 
   &__search-box {
@@ -21,7 +21,7 @@
   }
 
   &__search-icon {
-    font-size: 18rpx;
+    font-size: 9px;
     margin-right: $spacing-xs;
     color: $color-text-secondary;
   }
@@ -241,7 +241,7 @@
   }
 
   &__arrow {
-    font-size: 20rpx;
+    font-size: 20px;
     color: $color-text-disabled;
     margin-left: $spacing-xs;
     flex-shrink: 0;

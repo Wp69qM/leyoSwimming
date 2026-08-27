@@ -13,6 +13,7 @@ import com.leyoswimming.dto.request.PackageDetailRequest;
 import com.leyoswimming.dto.request.PackageListRequest;
 import com.leyoswimming.dto.response.CoachPackageListResponse;
 import com.leyoswimming.dto.response.PackageDetailResponse;
+import com.leyoswimming.dto.response.PackageListItemResponse;
 import com.leyoswimming.dto.response.PackageListResponse;
 import com.leyoswimming.entity.Coach;
 import com.leyoswimming.entity.CustomPackageConfig;
@@ -20,6 +21,7 @@ import com.leyoswimming.entity.PackageTemplate;
 import com.leyoswimming.entity.PackageTemplateCoach;
 import com.leyoswimming.enums.CoachStatus;
 import com.leyoswimming.exception.BusinessException;
+import com.leyoswimming.repository.CoachCertificateMapper;
 import com.leyoswimming.repository.CoachMapper;
 import com.leyoswimming.repository.CustomPackageConfigMapper;
 import com.leyoswimming.repository.PackageTemplateCoachMapper;
@@ -39,6 +41,7 @@ class UserPackageTemplateServiceTest {
   @Mock private PackageTemplateMapper packageTemplateMapper;
   @Mock private PackageTemplateCoachMapper packageTemplateCoachMapper;
   @Mock private CoachMapper coachMapper;
+  @Mock private CoachCertificateMapper coachCertificateMapper;
   @Mock private CustomPackageConfigMapper customPackageConfigMapper;
 
   private UserPackageTemplateService service;
@@ -50,6 +53,7 @@ class UserPackageTemplateServiceTest {
             packageTemplateMapper,
             packageTemplateCoachMapper,
             coachMapper,
+            coachCertificateMapper,
             customPackageConfigMapper);
   }
 
@@ -82,6 +86,61 @@ class UserPackageTemplateServiceTest {
 
     assertThat(response.items()).isEmpty();
     assertThat(response.total()).isZero();
+  }
+
+  @Test
+  @DisplayName("list: 存在全局配置和公开教练时合成自定义套餐项")
+  void list_withConfigAndCoach_includesCustomPackage() {
+    PackageTemplate t1 = activeTemplate(1L, "标准 6 节", "standard", 6);
+    Page<PackageTemplate> pageResult = new Page<>(1, 10, 1);
+    pageResult.setRecords(List.of(t1));
+    when(packageTemplateMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class)))
+        .thenReturn(pageResult);
+    when(customPackageConfigMapper.findFirst()).thenReturn(customConfigWithId(100L, 1, 50));
+    when(coachMapper.selectList(any(LambdaQueryWrapper.class)))
+        .thenReturn(List.of(approvedCoach(1L, new BigDecimal("200.00"))));
+
+    PackageListResponse response = service.list(new PackageListRequest(1, 10));
+
+    assertThat(response.items()).hasSize(2);
+    assertThat(response.total()).isEqualTo(2L);
+    PackageListItemResponse custom = response.items().get(1);
+    assertThat(custom.id()).isEqualTo(-1L);
+    assertThat(custom.name()).isEqualTo("自定义课时");
+    assertThat(custom.packageMode()).isEqualTo("custom");
+  }
+
+  @Test
+  @DisplayName("list: 无全局配置时不合成自定义套餐项")
+  void list_withoutConfig_excludesCustomPackage() {
+    PackageTemplate t1 = activeTemplate(1L, "标准 6 节", "standard", 6);
+    Page<PackageTemplate> pageResult = new Page<>(1, 10, 1);
+    pageResult.setRecords(List.of(t1));
+    when(packageTemplateMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class)))
+        .thenReturn(pageResult);
+    when(customPackageConfigMapper.findFirst()).thenReturn(null);
+
+    PackageListResponse response = service.list(new PackageListRequest(1, 10));
+
+    assertThat(response.items()).hasSize(1);
+    assertThat(response.total()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("list: 无公开教练设参考单价时不合成自定义套餐项")
+  void list_withoutPublicCoach_excludesCustomPackage() {
+    PackageTemplate t1 = activeTemplate(1L, "标准 6 节", "standard", 6);
+    Page<PackageTemplate> pageResult = new Page<>(1, 10, 1);
+    pageResult.setRecords(List.of(t1));
+    when(packageTemplateMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class)))
+        .thenReturn(pageResult);
+    when(customPackageConfigMapper.findFirst()).thenReturn(customConfigWithId(100L, 1, 50));
+    when(coachMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+    PackageListResponse response = service.list(new PackageListRequest(1, 10));
+
+    assertThat(response.items()).hasSize(1);
+    assertThat(response.total()).isEqualTo(1L);
   }
 
   @Test
@@ -232,6 +291,51 @@ class UserPackageTemplateServiceTest {
             ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.PACKAGE_NOT_FOUND));
   }
 
+  @Test
+  @DisplayName("detail: 自定义套餐 ID 返回合成详情和全部适用教练")
+  void detail_customPackageId_returnsSyntheticDetail() {
+    when(customPackageConfigMapper.findFirst()).thenReturn(customConfigWithId(100L, 1, 50));
+    when(coachMapper.selectList(any(LambdaQueryWrapper.class)))
+        .thenReturn(List.of(
+            approvedCoach(1L, new BigDecimal("200.00")),
+            approvedCoach(2L, new BigDecimal("180.00"))));
+
+    PackageDetailResponse response = service.detail(new PackageDetailRequest(-1L, null));
+
+    assertThat(response.id()).isEqualTo(-1L);
+    assertThat(response.packageMode()).isEqualTo("custom");
+    assertThat(response.applicableCoaches()).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("detail: 自定义套餐传入 coachId 仅返回选中教练")
+  void detail_customPackageWithCoachId_returnsSelectedCoach() {
+    when(customPackageConfigMapper.findFirst()).thenReturn(customConfigWithId(100L, 1, 50));
+    Coach c1 = approvedCoach(1L, new BigDecimal("200.00"));
+    Coach c2 = approvedCoach(2L, new BigDecimal("180.00"));
+    when(coachMapper.selectList(any(LambdaQueryWrapper.class)))
+        .thenReturn(List.of(c1, c2));
+    when(coachMapper.selectById(1L)).thenReturn(c1);
+
+    PackageDetailResponse response = service.detail(new PackageDetailRequest(-1L, 1L));
+
+    assertThat(response.id()).isEqualTo(-1L);
+    assertThat(response.applicableCoaches()).hasSize(1);
+    assertThat(response.applicableCoaches().get(0).coachId()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("detail: 自定义套餐无公开教练返回 PACKAGE_NOT_FOUND")
+  void detail_customPackageNoCoach_notFound() {
+    when(customPackageConfigMapper.findFirst()).thenReturn(customConfigWithId(100L, 1, 50));
+    when(coachMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+    assertThatThrownBy(() -> service.detail(new PackageDetailRequest(-1L, null)))
+        .isInstanceOf(BusinessException.class)
+        .satisfies(
+            ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.PACKAGE_NOT_FOUND));
+  }
+
   private Coach approvedCoach(Long id, BigDecimal referencePrice) {
     Coach coach = new Coach();
     coach.setId(id);
@@ -281,6 +385,12 @@ class UserPackageTemplateServiceTest {
     config.setMinHours(minHours);
     config.setMaxHours(maxHours);
     config.setDefaultValidDays(30);
+    return config;
+  }
+
+  private CustomPackageConfig customConfigWithId(Long id, int minHours, int maxHours) {
+    CustomPackageConfig config = customConfig(minHours, maxHours);
+    config.setId(id);
     return config;
   }
 }

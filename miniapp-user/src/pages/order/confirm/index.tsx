@@ -6,6 +6,7 @@ import { fetchPackageDetail } from '@/api/package';
 import { getProfile } from '@/api/profile';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
+import { getTeachingTypeLabel } from '@/constants/teachingType';
 import type { PackageDetail, PackageDetailCoach } from '@/types/package';
 import type { UserProfile } from '@/api/profile';
 
@@ -167,7 +168,7 @@ export default function OrderConfirmPage() {
     setSubmitting(true);
     try {
       const result = isExperience
-        ? await createTrialOrder({ coachId })
+        ? await createTrialOrder({ coachId, packageId })
         : await createFormalOrder({
             coachId,
             packageId,
@@ -270,7 +271,7 @@ function StatusBarAndNavBar({
         <View className='order-confirm__back' onClick={onBack}>
           <Icon name='arrow-left' className='order-confirm__back-icon' />
         </View>
-        <Text className='order-confirm__title'>{title}</Text>
+        <View className='order-confirm__title'>{title}</View>
         <View className='order-confirm__navbar-placeholder' />
       </View>
     </View>
@@ -350,37 +351,37 @@ function CoachInfoCard({
 }) {
   if (!coach) {
     return (
-      <View className='section-card coach-card coach-card--missing'>
-        <Text className='coach-card__missing-text'>未找到教练信息</Text>
+      <View className='section-card order-coach-card order-coach-card--missing'>
+        <Text className='order-coach-card__missing-text'>未找到教练信息</Text>
       </View>
     );
   }
 
   return (
-    <View className='section-card coach-card' onClick={onClick}>
-      <View className='coach-card__body'>
+    <View className='section-card order-coach-card' onClick={onClick}>
+      <View className='order-coach-card__body'>
         {coach.avatarUrl ? (
           <Image
-            className='coach-card__avatar'
+            className='order-coach-card__avatar'
             src={coach.avatarUrl}
             mode='aspectFill'
           />
         ) : (
-          <View className='coach-card__avatar coach-card__avatar--placeholder'>
-            <Text className='coach-card__avatar-text'>
+          <View className='order-coach-card__avatar order-coach-card__avatar--placeholder'>
+            <View className='order-coach-card__avatar-text'>
               {coach.name.charAt(0)}
-            </Text>
+            </View>
           </View>
         )}
-        <View className='coach-card__info'>
-          <View className='coach-card__name-row'>
-            <Text className='coach-card__name'>{coach.name}</Text>
+        <View className='order-coach-card__info'>
+          <View className='order-coach-card__name-row'>
+            <View className='order-coach-card__name'>{coach.name}</View>
           </View>
-          <Text className='coach-card__meta'>
+          <View className='order-coach-card__meta'>
             任教 {coach.teachingYears} 年 · 评分 {coach.rating}
-          </Text>
+          </View>
         </View>
-        <Icon name='arrow-right' className='coach-card__arrow' />
+        <Icon name='arrow-right' className='order-coach-card__arrow' />
       </View>
     </View>
   );
@@ -398,16 +399,16 @@ function PackageInfoCard({
   const modeTag = isExperience ? '体验套餐' : '正价套餐';
   const quantity = isExperience ? 1 : detail.totalHours;
   const metaFirstLine = teachingStrokes.length
-    ? `${detail.teachingType} · 泳姿：${teachingStrokes.join('/')}`
-    : detail.teachingType;
+    ? `${getTeachingTypeLabel(detail.teachingType)} · 泳姿：${teachingStrokes.join('/')}`
+    : getTeachingTypeLabel(detail.teachingType);
 
   return (
     <View className='section-card package-info-card'>
       <View className='package-info-card__header'>
         <View className='package-info-card__badge'>
-          <Text className='package-info-card__badge-text'>{modeTag}</Text>
+          <View className='package-info-card__badge-text'>{modeTag}</View>
         </View>
-        <Text className='package-info-card__name'>{detail.name}</Text>
+        <View className='package-info-card__name'>{detail.name}</View>
       </View>
 
       <View className='package-info-card__meta'>
@@ -422,16 +423,16 @@ function PackageInfoCard({
         <View className='package-info-card__price-column'>
           {Number(detail.originalPrice) > 0 &&
             Number(detail.originalPrice) > Number(detail.price) && (
-              <Text className='package-info-card__original-price'>
+              <View className='package-info-card__original-price'>
                 ¥{formatPrice(detail.originalPrice)}
-              </Text>
+              </View>
             )}
-          <Text className='package-info-card__price'>
+          <View className='package-info-card__price'>
             ¥{formatPrice(detail.price)}
-          </Text>
-          <Text className='package-info-card__quantity-value'>
+          </View>
+          <View className='package-info-card__quantity-value'>
             {quantity} 节
-          </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -445,15 +446,15 @@ function PriceBreakdown({ detail }: { detail: PackageDetail }) {
 
   return (
     <View className='section-card price-breakdown'>
-      <Text className='section-card__title'>价格明细</Text>
+      <View className='section-card__title'>价格明细</View>
       <View className='price-breakdown__row'>
-        <Text className='price-breakdown__label'>商品总价</Text>
-        <Text className='price-breakdown__value'>
+        <View className='price-breakdown__label'>商品总价</View>
+        <View className='price-breakdown__value'>
           ¥{formatPrice(total.toFixed(2))}
-        </Text>
+        </View>
       </View>
       <View className='price-breakdown__row'>
-        <Text className='price-breakdown__label'>优惠减免</Text>
+        <View className='price-breakdown__label'>优惠减免</View>
         <Text className='price-breakdown__value price-breakdown__value--discount'>
           -¥{formatPrice(discount.toFixed(2))}
         </Text>
@@ -463,9 +464,9 @@ function PriceBreakdown({ detail }: { detail: PackageDetail }) {
         <Text className='price-breakdown__label price-breakdown__label--total'>
           应付总额
         </Text>
-        <Text className='price-breakdown__total'>
+        <View className='price-breakdown__total'>
           ¥{formatPrice(detail.price)}
-        </Text>
+        </View>
       </View>
     </View>
   );
@@ -502,7 +503,7 @@ function AgreementSection({
 }) {
   return (
     <View className='section-card agreement-section'>
-      <Text className='section-card__title'>购买协议</Text>
+      <View className='section-card__title'>购买协议</View>
       <View className='agreement-section__list'>
         {AGREEMENT_ITEMS.map((item) => {
           if (!required.includes(item.key)) return null;
@@ -548,10 +549,10 @@ function GuardianSection({
 }) {
   return (
     <View className='section-card guardian-section'>
-      <Text className='section-card__title'>监护人信息</Text>
-      <Text className='guardian-section__desc'>
+      <View className='section-card__title'>监护人信息</View>
+      <View className='guardian-section__desc'>
         您尚未成年，购买正价课需填写监护人手机号
-      </Text>
+      </View>
       <View className='guardian-section__input-wrap'>
         <Text className='guardian-section__input-label'>监护人手机号</Text>
         <Input
@@ -580,16 +581,16 @@ function BottomSubmitBar({
   return (
     <View className='bottom-submit-bar'>
       <View className='bottom-submit-bar__price-wrap'>
-        <Text className='bottom-submit-bar__price-label'>应付总额</Text>
-        <Text className='bottom-submit-bar__price'>¥{formatPrice(amount)}</Text>
+        <View className='bottom-submit-bar__price-label'>应付总额</View>
+        <View className='bottom-submit-bar__price'>¥{formatPrice(amount)}</View>
       </View>
       <View
         className={`bottom-submit-bar__button ${disabled ? 'bottom-submit-bar__button--disabled' : ''}`}
         onClick={disabled ? undefined : onSubmit}
       >
-        <Text className='bottom-submit-bar__button-text'>
+        <View className='bottom-submit-bar__button-text'>
           {submitting ? '提交中...' : '提交订单'}
-        </Text>
+        </View>
       </View>
     </View>
   );
@@ -624,7 +625,7 @@ function EmptyState({
     <View className='order-confirm-empty'>
       <StatusBarAndNavBar title='确认订单' onBack={onBack} />
       <View className='order-confirm-empty__content'>
-        <Text className='order-confirm-empty__title'>暂无订单信息</Text>
+        <View className='order-confirm-empty__title'>暂无订单信息</View>
         <Text className='order-confirm-empty__action' onClick={onHome}>
           返回首页
         </Text>
@@ -648,7 +649,7 @@ function ErrorState({
     <View className='order-confirm-error'>
       <StatusBarAndNavBar title='确认订单' onBack={onBack} />
       <View className='order-confirm-error__content'>
-        <Text className='order-confirm-error__title'>加载失败，点击重试</Text>
+        <View className='order-confirm-error__title'>加载失败，点击重试</View>
         <Text className='order-confirm-error__text'>{message}</Text>
         <View className='order-confirm-error__actions'>
           <Text className='order-confirm-error__action' onClick={onRetry}>

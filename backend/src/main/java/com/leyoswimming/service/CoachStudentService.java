@@ -17,12 +17,14 @@ import com.leyoswimming.entity.CoursePackage;
 import com.leyoswimming.entity.User;
 import com.leyoswimming.enums.ActorType;
 import com.leyoswimming.enums.SwimStroke;
+import com.leyoswimming.enums.TeachingType;
 import com.leyoswimming.exception.BusinessException;
 import com.leyoswimming.repository.BookingMapper;
 import com.leyoswimming.repository.CoachStudentProfileMapper;
 import com.leyoswimming.repository.PackageMapper;
 import com.leyoswimming.repository.UserMapper;
 import com.leyoswimming.util.HtmlUtils;
+import com.leyoswimming.util.PhoneEncryptor;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +62,7 @@ public class CoachStudentService {
   private final UserMapper userMapper;
   private final BookingMapper bookingMapper;
   private final IdempotencyHelper idempotencyHelper;
+  private final PhoneEncryptor phoneEncryptor;
 
   @Transactional(readOnly = true)
   public CoachStudentListResponse list(Long coachId, CoachStudentListRequest request) {
@@ -176,8 +179,10 @@ public class CoachStudentService {
     CoachStudentProfile profile = findOrCreateProfile(coachId, studentId);
 
     List<CoursePackage> packages = getCoachStudentPackages(coachId, studentId);
-    int totalHours = packages.stream().mapToInt(CoursePackage::getTotalHours).sum();
-    int remainingHours = packages.stream().mapToInt(CoursePackage::getAvailableCount).sum();
+    List<CoursePackage> validPackages =
+        packages.stream().filter(pkg -> !"refunded".equals(pkg.getStatus())).toList();
+    int totalHours = validPackages.stream().mapToInt(CoursePackage::getTotalHours).sum();
+    int remainingHours = validPackages.stream().mapToInt(CoursePackage::getAvailableCount).sum();
 
     String lastClassDate = null;
     LambdaQueryWrapper<Booking> bookingWrapper = new LambdaQueryWrapper<>();
@@ -197,7 +202,7 @@ public class CoachStudentService {
         new CoachStudentDetailResponse.UserProfile(
             user.getAvatarUrl(),
             maskName(user),
-            maskPhone(user.getPhone()),
+            decryptPhone(user.getPhone()),
             user.getAge(),
             user.getGender(),
             user.getHasSwimBasis(),
@@ -206,7 +211,7 @@ public class CoachStudentService {
             user.getPersonalDesc(),
             isMinor(user),
             user.getGuardianName(),
-            maskPhone(user.getGuardianPhone())),
+            decryptPhone(user.getGuardianPhone())),
         new CoachStudentDetailResponse.CoachSlice(
             profile.getLearningStrokes(),
             profile.getSwimLevel(),
@@ -223,7 +228,10 @@ public class CoachStudentService {
     if (strokes == null || strokes.isEmpty()) {
       return null;
     }
-    return String.join("、", strokes);
+    return strokes.stream()
+        .map(SwimStroke::toLabel)
+        .filter(StringUtils::isNotBlank)
+        .collect(Collectors.joining("、"));
   }
 
   private String formatSwimYears(Integer years) {
@@ -233,11 +241,16 @@ public class CoachStudentService {
     return years + "年";
   }
 
-  private String maskPhone(String phone) {
-    if (phone == null || phone.length() < 7) {
-      return phone;
+  private String decryptPhone(String encryptedPhone) {
+    if (StringUtils.isBlank(encryptedPhone)) {
+      return encryptedPhone;
     }
-    return phone.substring(0, 3) + "****" + phone.substring(7);
+    try {
+      return phoneEncryptor.decrypt(encryptedPhone);
+    } catch (Exception e) {
+      log.warn("解密学员手机号失败", e);
+      return null;
+    }
   }
 
   @Transactional
@@ -342,7 +355,7 @@ public class CoachStudentService {
         pkg.getPackageMode(),
         pkg.getStatus(),
         mapPackageStatusLabel(pkg),
-        pkg.getTeachingType(),
+        formatTeachingType(pkg.getTeachingType()),
         formatStrokeNames(pkg.getStrokeIds()),
         pkg.getDurationMinutes(),
         pkg.getCreatedAt() != null ? pkg.getCreatedAt().format(DATE_FORMATTER) : null,
@@ -357,7 +370,7 @@ public class CoachStudentService {
             user != null ? maskName(user) : null,
             user != null ? user.getAvatarUrl() : null,
             user != null ? user.getAge() : null,
-            user != null ? user.getGender() : null),
+            user != null ? formatGender(user.getGender()) : null),
         bookings.stream().map(this::toUsageRecord).toList());
   }
 
@@ -366,9 +379,25 @@ public class CoachStudentService {
       return null;
     }
     return strokeIds.stream()
-        .map(id -> SwimStroke.toLabel(String.valueOf(id)))
+        .map(SwimStroke::labelFromId)
         .filter(Objects::nonNull)
         .collect(Collectors.joining("、"));
+  }
+
+  private String formatTeachingType(String teachingType) {
+    if (StringUtils.isBlank(teachingType)) {
+      return teachingType;
+    }
+    TeachingType type = TeachingType.fromValue(teachingType);
+    return type != null ? type.getLabel() : teachingType;
+  }
+
+  private String formatGender(String gender) {
+    return switch (gender) {
+      case "male" -> "男";
+      case "female" -> "女";
+      default -> gender;
+    };
   }
 
   private CoachPackageDetailResponse.UsageRecord toUsageRecord(Booking booking) {

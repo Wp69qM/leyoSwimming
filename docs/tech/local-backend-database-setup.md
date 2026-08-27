@@ -170,9 +170,15 @@ Write-Host "JWT_SECRET=" $env:JWT_SECRET
 Write-Host "MYSQL_HOST=" $env:MYSQL_HOST
 Write-Host "REDIS_PASSWORD=" $env:REDIS_PASSWORD
 
-# 启动 Spring Boot
+# 方式一：使用 Maven 启动（开发推荐，支持热重载）
 cd backend
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
+
+# 方式二：先打包再用 JAR 启动（验证生产包或排查构建问题时使用）
+cd backend
+.\mvnw.cmd clean package -DskipTests
+cd ..
+java -jar backend/target/leyo-swimming-backend-0.1.0-SNAPSHOT.jar --spring.profiles.active=dev
 ```
 
 > **注意**：加载环境变量和启动 Spring Boot 必须在**同一个 PowerShell 窗口**中执行。如果中间打开了新窗口，需要重新加载环境变量。
@@ -181,6 +187,8 @@ cd backend
 
 - 日志出现 `Started LeyoSwimmingApplication`
 - 访问 `http://localhost:8080/api/user/auth/wechat-login`（GET/POST 均可），返回 401/200001 即表示服务已启动
+- **Swagger 接口文档**：http://localhost:8080/swagger-ui.html
+- **OpenAPI 文档**：http://localhost:8080/v3/api-docs
 - Flyway 迁移会在首次启动时自动执行
 
 ---
@@ -195,17 +203,29 @@ cd backend
 
 ### 3.2 启动 FastAPI 服务
 
+推荐在虚拟环境中使用模块方式启动，避免 `ModuleNotFoundError: No module named 'app'`：
+
 ```powershell
 cd ai-service
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
+python -m app.main
+```
+
+启动后会自动监听 `0.0.0.0:8000` 并启用热重载（已配置在 `app/main.py` 中）。
+
+如果习惯直接使用 uvicorn，需确保工作目录为 `ai-service` 且 PYTHONPATH 包含当前目录：
+
+```powershell
+cd ai-service
+.venv\Scripts\Activate.ps1
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 3.3 验证启动
 
 - 日志出现 `Uvicorn running on http://0.0.0.0:8000`
-- 访问 `http://localhost:8000/docs` 可看到 Swagger 文档
-- 访问 `http://localhost:8000/health` 返回服务健康状态
+- **Swagger 接口文档**：http://localhost:8000/docs
+- **健康检查**：http://localhost:8000/health
 
 ### 3.4 常用 AI 服务配置
 
@@ -363,6 +383,39 @@ jdbc:mysql://localhost:3306/leyo_dev?useUnicode=true&characterEncoding=utf-8&use
 2. 检查 `.env` 中 `SPRING_DATA_REDIS_HOST`、`SPRING_DATA_REDIS_PORT`、`SPRING_DATA_REDIS_PASSWORD` 是否正确
 3. 重新执行 2.1 加载环境变量后再启动
 
+### 6.5 前端头像/上传图片无法显示
+
+**现象**：教练端或用户端页面中，头像、证书、运营图片等无法显示；浏览器里图片地址类似 `http://localhost:10087/uploads/xxx.png`，请求返回 500 或 404。
+
+**原因**：
+1. 后端上传接口返回的是相对路径 `/uploads/xxx.png`，前端 H5 中 `<Image src="/uploads/xxx.png" />` 会请求当前 dev server 的 `localhost:10087/uploads/xxx.png`，而不是后端 `8080`。
+2. 后端 `WebConfig` 的静态资源映射使用相对路径 `file:uploads/`，如果服务工作目录与实际文件存储目录不一致，会导致 `GET /uploads/xxx.png` 直接 500。
+
+**本地开发解决方案**：
+1. 在 `application-dev.yml` 中配置完整 URL：
+   ```yaml
+   app:
+     file:
+       upload-dir: ./uploads
+       base-url: http://localhost:8080/uploads/
+   ```
+2. 确保 `WebConfig` 使用绝对路径注册资源处理器：
+   ```java
+   Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+   registry
+       .addResourceHandler("/uploads/**")
+       .addResourceLocations("file:" + uploadPath.toString().replace("\\", "/") + "/");
+   ```
+3. 上传文件目录 `uploads/` 应与服务工作目录对齐（通常放在项目根目录）。如果从 `backend/` 目录启动过服务，需把 `backend/uploads/` 下的文件复制到项目根目录 `uploads/`。
+4. 数据库中已保存的旧相对路径（如 `/uploads/xxx.png`）需要更新为完整 URL：
+   ```sql
+   UPDATE coach SET avatar_url = CONCAT('http://localhost:8080', avatar_url) WHERE avatar_url LIKE '/uploads/%';
+   ```
+
+**微信小程序补充**：
+- 真机预览时 `localhost:8080` 不在微信下载域名白名单，请在微信开发者工具中勾选「不校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书」。
+- 上线前应将 `app.file.base-url` 配置为正式 CDN / 对象存储域名，而不是 `localhost`。
+
 ---
 
 ## 7. 常用验证命令
@@ -383,3 +436,4 @@ Get-Content backend\target\spring.log -Wait -Tail 50
 |---|---|---|---|
 | v1.0 | 2026-08-17 | AI Agent | 初稿：后端启动、DBeaver 连接、常见问题 |
 | v1.1 | 2026-08-20 | AI Agent | 新增 AI 服务启动、前端三个项目启动命令、MySQL 与 Redis 启动及验证命令、管理员权限说明、环境变量加载与启动合并为一键命令并加入验证输出、修复环境变量加载脚本兼容性、补充 Redis 无密码修复方案 |
+| v1.2 | 2026-08-26 | AI Agent | 新增 §6.5「前端头像/上传图片无法显示」常见问题，总结后端返回相对路径、静态资源映射工作目录不一致导致 H5 头像 500/404 的排查与修复方案 |

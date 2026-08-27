@@ -90,20 +90,7 @@ export default function CoachOnboardingPendingPage() {
   }
 
   function handleContact() {
-    try {
-      if (Taro.openCustomerServiceChat) {
-        // @ts-expect-error Taro typing does not include openCustomerServiceChat
-        Taro.openCustomerServiceChat({})
-        return
-      }
-    } catch {
-      // ignore
-    }
-    Taro.showModal({
-      title: '联系客服',
-      content: '请在「我的」页面联系客服',
-      showCancel: false,
-    })
+    // 空实现：联系客服/帮助功能暂未开放，避免调用小程序客服 API 报错
   }
 
   const portraitUrl = detail?.certificates?.find((c) => c.certType === 'PORTRAIT')?.imageUrl
@@ -111,14 +98,14 @@ export default function CoachOnboardingPendingPage() {
   return (
     <View className='coach-onboarding-pending'>
       <View className='coach-onboarding-pending__navbar'>
-        <Text className='coach-onboarding-pending__nav-title'>等待审核</Text>
+        <View className='coach-onboarding-pending__nav-title'>等待审核</View>
       </View>
 
-      {loading && <Text className='coach-onboarding-pending__loading'>加载中...</Text>}
+      {loading && <View className='coach-onboarding-pending__loading'>加载中...</View>}
 
       {!loading && errorTip && (
         <View className='coach-onboarding-pending__error'>
-          <Text className='coach-onboarding-pending__error-text'>{errorTip}</Text>
+          <View className='coach-onboarding-pending__error-text'>{errorTip}</View>
           <Button className='coach-onboarding-pending__error-btn' onClick={loadDetail}>
             点击重试
           </Button>
@@ -135,14 +122,14 @@ export default function CoachOnboardingPendingPage() {
                 mode='aspectFit'
               />
             </View>
-            <Text className='coach-onboarding-pending__status-title'>审核中，请耐心等待</Text>
-            <Text className='coach-onboarding-pending__status-subtitle'>预计 1-3 个工作日内完成审核</Text>
+            <View className='coach-onboarding-pending__status-title'>审核中，请耐心等待</View>
+            <View className='coach-onboarding-pending__status-subtitle'>预计 1-3 个工作日内完成审核</View>
           </View>
 
           <View className='coach-onboarding-pending__card'>
             <View className='coach-onboarding-pending__card-header'>
-              <Text className='coach-onboarding-pending__card-title'>已提交资料</Text>
-              <Text className='coach-onboarding-pending__status-tag'>审核中</Text>
+              <View className='coach-onboarding-pending__card-title'>已提交资料</View>
+              <View className='coach-onboarding-pending__status-tag'>审核中</View>
             </View>
             <View className='coach-onboarding-pending__profile'>
               <Image
@@ -151,19 +138,19 @@ export default function CoachOnboardingPendingPage() {
                 mode='aspectFill'
               />
               <View className='coach-onboarding-pending__profile-info'>
-                <Text className='coach-onboarding-pending__name'>{detail.name || '-'}</Text>
-                <Text className='coach-onboarding-pending__phone'>{maskPhone(detail.phone || '')}</Text>
+                <View className='coach-onboarding-pending__name'>{detail.name || '-'}</View>
+                <View className='coach-onboarding-pending__phone'>{maskPhone(detail.phone || '')}</View>
               </View>
             </View>
             <View className='coach-onboarding-pending__meta'>
-              <Text className='coach-onboarding-pending__meta-item'>
+              <View className='coach-onboarding-pending__meta-item'>
                 参考单价：
                 {detail.referencePrice != null ? Number(detail.referencePrice).toFixed(2) : '-'}
                 {' 元/节'}
-              </Text>
-              <Text className='coach-onboarding-pending__meta-item'>
+              </View>
+              <View className='coach-onboarding-pending__meta-item'>
                 提交时间：{formatDateTime(detail.submittedAt)}
-              </Text>
+              </View>
             </View>
           </View>
 
@@ -174,9 +161,9 @@ export default function CoachOnboardingPendingPage() {
             查看完整入驻资料
           </Button>
 
-          <Text className='coach-onboarding-pending__help' onClick={handleContact}>
+          <View className='coach-onboarding-pending__help' onClick={handleContact}>
             联系客服 / 帮助
-          </Text>
+          </View>
         </>
       )}
 
@@ -184,80 +171,82 @@ export default function CoachOnboardingPendingPage() {
         <View className='coach-onboarding-pending__sheet' onClick={() => setShowSheet(false)}>
           <View className='coach-onboarding-pending__sheet-content' onClick={(e) => e.stopPropagation()}>
             <View className='coach-onboarding-pending__sheet-header'>
-              <Text className='coach-onboarding-pending__sheet-title'>完整入驻资料</Text>
+              <View className='coach-onboarding-pending__sheet-title'>完整入驻资料</View>
               <Text className='coach-onboarding-pending__sheet-close' onClick={() => setShowSheet(false)}>
                 ✕
               </Text>
             </View>
             <ScrollView scrollY className='coach-onboarding-pending__sheet-body'>
-              <View className='coach-onboarding-pending__sheet-section'>
-                <Text className='coach-onboarding-pending__sheet-section-title'>基础信息</Text>
-                <DetailItem label='姓名' value={detail.name} />
-                <DetailItem label='性别' value={GENDER_LABELS[detail.gender || ''] || detail.gender} />
-                <DetailItem label='年龄' value={detail.age != null ? `${detail.age} 岁` : undefined} />
-                <DetailItem label='手机号' value={maskPhone(detail.phone || '')} />
-                <DetailItem label='邮箱' value={detail.email} />
-              </View>
+              <View className='coach-onboarding-pending__sheet-body-inner'>
+                <View className='coach-onboarding-pending__sheet-section'>
+                  <View className='coach-onboarding-pending__sheet-section-title'>基础信息</View>
+                  <DetailItem label='姓名' value={detail.name} />
+                  <DetailItem label='性别' value={GENDER_LABELS[detail.gender || ''] || detail.gender} />
+                  <DetailItem label='年龄' value={detail.age != null ? `${detail.age} 岁` : undefined} />
+                  <DetailItem label='手机号' value={maskPhone(detail.phone || '')} />
+                  <DetailItem label='邮箱' value={detail.email} />
+                </View>
 
-              <View className='coach-onboarding-pending__sheet-section'>
-                <Text className='coach-onboarding-pending__sheet-section-title'>实名与资质</Text>
-                <DetailItem label='身份证号' value={maskIdCard(detail.idCardNo)} />
-                {Object.entries(groupCertificates(detail.certificates || [])).map(([type, certs]) => (
-                  <View key={type} className='coach-onboarding-pending__sheet-cert'>
-                    <Text className='coach-onboarding-pending__sheet-cert-title'>
-                      {CERT_TYPE_LABELS[type] || type}
-                    </Text>
-                    <View className='coach-onboarding-pending__sheet-images'>
-                      {certs.map((cert, idx) => (
-                        <Image
-                          key={cert.imageUrl || idx}
-                          className='coach-onboarding-pending__sheet-image'
-                          src={cert.imageUrl}
-                          mode='aspectFill'
-                          onClick={() =>
-                            handlePreviewCertificate(
-                              cert.imageUrl,
-                              certs.map((c) => c.imageUrl)
-                            )
-                          }
-                        />
-                      ))}
+                <View className='coach-onboarding-pending__sheet-section'>
+                  <View className='coach-onboarding-pending__sheet-section-title'>实名与资质</View>
+                  <DetailItem label='身份证号' value={maskIdCard(detail.idCardNo)} />
+                  {Object.entries(groupCertificates(detail.certificates || [])).map(([type, certs]) => (
+                    <View key={type} className='coach-onboarding-pending__sheet-cert'>
+                      <View className='coach-onboarding-pending__sheet-cert-title'>
+                        {CERT_TYPE_LABELS[type] || type}
+                      </View>
+                      <View className='coach-onboarding-pending__sheet-images'>
+                        {certs.map((cert, idx) => (
+                          <Image
+                            key={cert.imageUrl || idx}
+                            className='coach-onboarding-pending__sheet-image'
+                            src={cert.imageUrl}
+                            mode='aspectFill'
+                            onClick={() =>
+                              handlePreviewCertificate(
+                                cert.imageUrl,
+                                certs.map((c) => c.imageUrl)
+                              )
+                            }
+                          />
+                        ))}
+                      </View>
                     </View>
-                  </View>
-                ))}
-              </View>
+                  ))}
+                </View>
 
-              <View className='coach-onboarding-pending__sheet-section'>
-                <Text className='coach-onboarding-pending__sheet-section-title'>教学履历</Text>
-                <DetailItem
-                  label='任教年限'
-                  value={detail.teachingYears != null ? `${detail.teachingYears} 年` : undefined}
-                />
-                <DetailItem
-                  label='总学员数'
-                  value={detail.totalStudents != null ? `${detail.totalStudents} 人` : undefined}
-                />
-                <DetailItem
-                  label='总课时数'
-                  value={detail.totalHours != null ? `${detail.totalHours} 课时` : undefined}
-                />
-                <DetailItem
-                  label='擅长泳姿'
-                  value={detail.teachingStrokes?.length ? detail.teachingStrokes.join(' / ') : undefined}
-                />
-                <DetailItem label='个人简介' value={detail.bio} />
-              </View>
+                <View className='coach-onboarding-pending__sheet-section'>
+                  <View className='coach-onboarding-pending__sheet-section-title'>教学履历</View>
+                  <DetailItem
+                    label='任教年限'
+                    value={detail.teachingYears != null ? `${detail.teachingYears} 年` : undefined}
+                  />
+                  <DetailItem
+                    label='总学员数'
+                    value={detail.totalStudents != null ? `${detail.totalStudents} 人` : undefined}
+                  />
+                  <DetailItem
+                    label='总课时数'
+                    value={detail.totalHours != null ? `${detail.totalHours} 课时` : undefined}
+                  />
+                  <DetailItem
+                    label='擅长泳姿'
+                    value={detail.teachingStrokes?.length ? detail.teachingStrokes.join(' / ') : undefined}
+                  />
+                  <DetailItem label='个人简介' value={detail.bio} />
+                </View>
 
-              <View className='coach-onboarding-pending__sheet-section'>
-                <Text className='coach-onboarding-pending__sheet-section-title'>服务设置</Text>
-                <DetailItem
-                  label='参考单价'
-                  value={
-                    detail.referencePrice != null
-                      ? `${Number(detail.referencePrice).toFixed(2)} 元/节`
-                      : undefined
-                  }
-                />
+                <View className='coach-onboarding-pending__sheet-section'>
+                  <View className='coach-onboarding-pending__sheet-section-title'>服务设置</View>
+                  <DetailItem
+                    label='参考单价'
+                    value={
+                      detail.referencePrice != null
+                        ? `${Number(detail.referencePrice).toFixed(2)} 元/节`
+                        : undefined
+                    }
+                  />
+                </View>
               </View>
             </ScrollView>
           </View>
@@ -270,8 +259,8 @@ export default function CoachOnboardingPendingPage() {
 function DetailItem({ label, value }: { label: string; value?: string | null }) {
   return (
     <View className='coach-onboarding-pending__sheet-item'>
-      <Text className='coach-onboarding-pending__sheet-label'>{label}</Text>
-      <Text className='coach-onboarding-pending__sheet-value'>{value || '-'}</Text>
+      <View className='coach-onboarding-pending__sheet-label'>{label}</View>
+      <View className='coach-onboarding-pending__sheet-value'>{value || '-'}</View>
     </View>
   )
 }

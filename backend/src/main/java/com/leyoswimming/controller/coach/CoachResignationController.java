@@ -2,6 +2,7 @@ package com.leyoswimming.controller.coach;
 
 import com.leyoswimming.common.ApiResponse;
 import com.leyoswimming.dto.request.CoachResignationApplyRequest;
+import com.leyoswimming.dto.request.CoachResignationDetailRequest;
 import com.leyoswimming.dto.request.CoachResignationPackageActionRequest;
 import com.leyoswimming.dto.request.CoachResignationSubmitRequest;
 import com.leyoswimming.dto.response.CoachResignationApplyResponse;
@@ -34,8 +35,9 @@ public class CoachResignationController {
 
   @PostMapping("/detail")
   public ApiResponse<CoachResignationDetailResponse> detail(
-      @AuthenticationPrincipal Long coachId) {
-    return ApiResponse.ok(coachResignationService.detail(coachId));
+      @AuthenticationPrincipal Long coachId,
+      @Valid @RequestBody CoachResignationDetailRequest request) {
+    return ApiResponse.ok(coachResignationService.detail(coachId, request.ticketId()));
   }
 
   @PostMapping("/package/action")

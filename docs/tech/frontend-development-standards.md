@@ -119,6 +119,11 @@ src/
 3. 只有纯粹的布局框、分割线、背景色块、圆角卡片等简单元素，才允许用 CSS 实现。
 4. 不要为了「像素级还原」而写出大量 hack 式 CSS，应在理解设计意图的基础上，用整洁合理的布局重构。
 5. **禁止使用 Element Plus / NutUI 等组件库默认样式作为最终视觉。** 组件库仅提供交互基础，最终样式必须覆盖为 Calicat 定义的值。
+6. **H5 桌面端必须保持 1:1 还原比例**：
+   - 以 375px 为视觉基准宽度，桌面端浏览器中内容区域固定为 375px 并居中。
+   - 禁止通过全局缩放、vw/vh 拉伸、或依赖视口宽度自适应来「填满」大屏。
+   - 所有固定定位元素（标题栏、底部栏、弹窗、浮层）必须在桌面端同步居中，避免偏离内容区。
+   - 视觉还原检查必须包含 H5 桌面端截图，并与 Calicat 375px 画布并排对比。
 
 ### 4.2 导出规范
 
@@ -149,10 +154,84 @@ import logoPng from '@/assets/images/logo.png';
 
 ### 3.4 响应式与适配
 
-- **小程序**：按 iPhone 6/7/8 的 375px 宽度为基准设计，使用 `rpx` 或等比例单位，确保在 320px ~ 430px 宽度的手机上正常显示。
+#### 通用断点
+
+- **H5 / 小程序**：以 **375px** 为视觉基准宽度。
+  - 视口宽度 `< 768px`（手机/平板）：页面内容跟随移动端宽度全宽等比展示。
+  - 视口宽度 `>= 768px`（Web/桌面）：页面内容区域固定为 **375px 并居中**，禁止拉伸或依赖视口宽度自适应。
 - **管理后台**：使用 Flex / Grid 布局，页面主体宽度自适应，最小支持 1280px 宽度，主流笔记本（1366px 及以上）正常显示。
 - 禁止使用固定宽度导致在小屏设备上出现横向滚动或元素被截断。
 - 关键区域（按钮、输入框、卡片）在 hover / focus / 点击态下保持良好的可用性。
+
+#### 固定定位元素（顶部标题栏 / 底部操作栏）
+
+所有 `position: fixed` 的顶部标题栏、底部操作栏、浮层，必须同步遵循响应式规则：
+
+```scss
+.fixed-element {
+  position: fixed;
+  left: 0;
+  right: 0;
+
+  @media (width >=768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
+}
+```
+
+- 高度必须使用设计 token（如 `$calicat-bottom-bar-height`），禁止写死超大值。
+- 底部操作栏高度禁止超过设计稿规范，避免占用过多可视区域。
+
+### 3.5 Icon 与字体图标规范
+
+- 项目内 `Icon` 组件基于字体图标（`remixicon`）实现，渲染为 `<Text className="leyo-icon">`。
+- 控制图标尺寸时，**必须使用 `font-size` + `line-height: 1`**，禁止使用 `width/height`：
+
+  ```scss
+  .my-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
+  ```
+
+- 若设计稿中的图标无法通过字体图标表达（如复杂插画、品牌 Logo、渐变图形），必须从 Calicat 导出为 PNG/SVG/WebP，使用 `Image` 组件展示。
+- 图标颜色通过 `color` 属性或 CSS `color` 控制，优先引用设计 token。
+
+### 3.6 View 与 Text 标签使用规范（Taro）
+
+- **普通文本、标题、标签、价格、状态、提示**等，优先使用 `<View>` 标签，并通过 `className` 精确控制样式。
+- **尽量减少 `<Text>` 标签使用**，因为 Taro 的 `<Text>` 在不同端（H5、小程序、RN）带有默认行高、换行、继承等样式，容易干扰 1:1 视觉还原。
+- 仅在需要文本特定行为时使用 `<Text>`，例如：
+  - `selectable`（可选中复制）
+  - `numberOfLines` / `ellipsis`（文本截断省略）
+  - `decode`（解码 HTML 实体）
+  - 嵌套在 `<Text>` 内部需要特殊行内样式的片段
+
+### 3.7 Button 禁用态规范
+
+- **禁止**使用 `<Button disabled>` 或组件库的 `disabled` 属性作为禁用态主要控制手段。
+- 禁用态应通过以下方式实现：
+  1. **视觉**：给按钮添加禁用样式 `className`（如 `.button--disabled`）。
+  2. **逻辑**：在点击事件处理函数中判断状态，未满足条件时直接 `return`，不执行业务逻辑。
+
+  ```tsx
+  <View
+    className={`action-button ${!canSubmit ? 'action-button--disabled' : ''}`}
+    onClick={handleSubmit}
+  >
+    提交
+  </View>
+
+  function handleSubmit() {
+    if (!canSubmit) return;
+    // 提交逻辑
+  }
+  ```
+
+- 这样可以保证禁用态视觉与交互在项目内完全一致，避免原生 `disabled` 在不同端的行为差异（如事件冒泡、样式不可控、点击穿透等）。
 
 ### 4.4 禁止直接写死设计稿尺寸
 
@@ -329,6 +408,94 @@ layouts/
   ```
 - 搜索表单一行时，不需要为了「撑满」而额外增加下边距，统一使用 `$space-md`（12px）。
 
+### 9.4 查询表单与操作按钮布局
+
+列表页查询/筛选区与操作按钮必须采用上下布局：
+
+- **禁止**把「新增、导出」等操作按钮与查询表单放在同一行做左右弹性布局（`space-between`）。
+- 标准结构：
+  1. 第一行：查询/筛选表单（含基础筛选项、查询/重置按钮）。
+  2. 第二行：操作按钮区，按钮左对齐，与上方表单一一对应模块关系清晰。
+- 展开高级筛选时，高级筛选表单项应插入在基础筛选项之后、**查询/重置按钮之前**，保持从上到下阅读顺序：
+  `基础筛选 → 高级筛选 → 查询/重置`。
+- 查询、重置按钮始终与筛选表单处于同一行，位于该行末尾。
+
+### 9.5 表格列宽自适应
+
+表格必须在大屏下占满内容区宽度，操作列始终固定在最右侧：
+
+- 数据列不使用固定 `width`，统一使用 `min-width`。
+- 操作列必须设置 `fixed="right"`，并配置合适的 `min-width`。
+- 表格外层容器宽度设为 `100%`，左侧数据列自适应撑开剩余空间。
+- 手机号、名称、描述等不确定长度内容列，给较大 `min-width`，让内容列随页面宽度变化。
+
+操作列单元格样式必须统一为 flex 居中对齐：
+
+```scss
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+}
+```
+
+同时覆盖 Element Plus 按钮默认 `margin-left`：
+
+```scss
+:deep(.el-table__cell.operation-cell .cell) {
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+}
+```
+
+### 9.6 操作列与「更多」按钮
+
+操作列中超过 3 个操作时，优先把次要操作收进「更多」下拉菜单：
+
+- 「更多」下拉触发器统一使用 Element Plus 按钮样式，**禁止**用自定义 `<span>` / `<div>` 并手写高度/对齐：
+
+  ```vue
+  <el-dropdown trigger="click" @command="handleCommand">
+    <el-button link type="primary">
+      更多
+      <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+    </el-button>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item command="view">查看日志</el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
+  ```
+
+- 操作列按钮之间保持 8px 间距，使用 `gap` 而非按钮默认 `margin`。
+- 操作列文字链接按钮统一使用 `link` 类型，保持视觉高度一致。
+
+### 9.7 图片上传交互
+
+后台图片上传统一使用 `el-upload` 组件，通过 `http-request` 自定义上传逻辑：
+
+- **前端校验**：必须限制文件类型（`image/jpeg, image/png, image/webp`）和文件大小，不符合时给出明确提示。
+- **上传状态**：上传过程中显示 loading/「上传中…」状态，并禁用上传区域，防止重复提交。
+- **单图上传**：使用正方形预览框，hover 时显示遮罩提示「点击上传/上传中」；已上传图片支持删除。
+- **多图上传**：已上传图片以缩略图列表展示，支持预览与删除；上传触发按钮置于列表末尾，使用 Element Plus `Plus` 图标：
+
+  ```vue
+  <el-upload :show-file-list="false" :http-request="handleUpload">
+    <div class="image-upload-btn">
+      <el-icon><Plus /></el-icon>
+      <span>上传图片</span>
+    </div>
+  </el-upload>
+  ```
+
+- **数量限制**：达到最大数量后隐藏上传触发按钮。
+- 删除按钮统一使用 `type="danger" link size="small"` 样式，位于预览图下方或右上角。
+
 ---
 
 ## 10. 小程序开发专项规范
@@ -382,6 +549,10 @@ layouts/
 - [ ] TypeScript 类型完整
 - [ ] 页面规格中 Calicat 链接存在，且已拉取图层数据核对
 - [ ] 所有视觉样式（颜色、尺寸、间距、阴影、图标）与 Calicat 一致
+- [ ] H5 桌面端保持 375px 居中 1:1 还原，固定栏/浮层同步居中
+- [ ] Icon 尺寸使用 `font-size` + `line-height: 1` 控制，非字体图标使用 `Image`
+- [ ] 普通文本优先使用 `<View>`，避免 `<Text>` 默认样式干扰
+- [ ] Button 禁用态使用 `className` + JS 拦截，不使用 `disabled` 属性
 - [ ] 未自行发挥 page-spec 未覆盖的视觉元素
 
 ---
@@ -391,3 +562,5 @@ layouts/
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-08-09 | PM | 初版：定义三端前端开发规范 |
+| v1.1 | 2026-08-22 | AI | 新增 §9.4~§9.7：管理后台列表页查询表单、表格列宽自适应、操作列/更多按钮、图片上传交互规范 |
+| v1.2 | 2026-08-25 | AI | 更新 §3.4 响应式断点与固定元素居中规则；新增 §3.5 Icon 字体图标规范、§3.6 View/Text 标签规范、§3.7 Button 禁用态规范；§4.1 补充 H5 1:1 还原要求；§12 检查清单补充对应条目 |

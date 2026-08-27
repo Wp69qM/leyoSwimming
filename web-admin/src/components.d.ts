@@ -46,6 +46,7 @@ declare module 'vue' {
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
     ImageInput: typeof import('./components/common/ImageInput.vue')['default']
     PhoneReveal: typeof import('./components/common/PhoneReveal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

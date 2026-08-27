@@ -1,7 +1,7 @@
 export interface PackageListItem {
   id: number;
   name: string;
-  packageMode: 'experience' | 'standard';
+  packageMode: 'experience' | 'standard' | 'custom';
   teachingType: string;
   totalHours: number;
   durationMinutes: number;

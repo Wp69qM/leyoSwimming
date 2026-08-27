@@ -9,7 +9,7 @@ import CustomPackageConfigPage from './index';
 jest.mock('@tarojs/taro', () => ({
   getSystemInfoSync: jest.fn().mockReturnValue({ statusBarHeight: 20 }),
   getCurrentInstance: jest.fn().mockReturnValue({
-    router: { params: { packageId: '1', coachId: '10' } },
+    router: { params: { packageId: '-1', coachId: '10' } },
   }),
   navigateBack: jest.fn(),
   navigateTo: jest.fn().mockResolvedValue(undefined),
@@ -94,7 +94,7 @@ const mockCoach = {
 };
 
 const mockCustomDetail = {
-  id: 1,
+  id: -1,
   name: '自定义正价课',
   packageMode: 'custom',
   teachingType: '一对一',
@@ -171,7 +171,7 @@ describe('CustomPackageConfigPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Taro.getCurrentInstance as jest.Mock).mockReturnValue({
-      router: { params: { packageId: '1', coachId: '10' } },
+      router: { params: { packageId: '-1', coachId: '10' } },
     });
     (packageApi.fetchPackageDetail as jest.Mock).mockReset();
     (packageApi.fetchCustomPackageConfig as jest.Mock).mockReset();
@@ -380,7 +380,7 @@ describe('CustomPackageConfigPage', () => {
 
     await waitFor(() => {
       expect(orderApi.createFormalOrder).toHaveBeenCalledWith({
-        packageId: 1,
+        packageId: -1,
         coachId: 10,
         hours: 8,
         validDays: 30,
@@ -433,6 +433,22 @@ describe('CustomPackageConfigPage', () => {
 
     fireEvent.click(screen.getByText('返回首页'));
     expect(Taro.switchTab).toHaveBeenCalledWith({ url: '/pages/index/index' });
+  });
+
+  test('accepts synthetic custom package id -1', async () => {
+    (Taro.getCurrentInstance as jest.Mock).mockReturnValue({
+      router: { params: { packageId: '-1', coachId: '10' } },
+    });
+    setupMocks();
+    render(<CustomPackageConfigPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('张明远', { selector: '.selected-coach-card__name' })
+      ).toBeInTheDocument();
+    });
+
+    expect(packageApi.fetchPackageDetail).toHaveBeenCalledWith(-1, 10);
   });
 
   test('shows conflict banner when user has active package with another coach', async () => {

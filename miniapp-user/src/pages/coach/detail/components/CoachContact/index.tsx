@@ -24,7 +24,9 @@ export function CoachContact({
 }: CoachContactProps) {
   return (
     <View className='coach-detail-card'>
-      <Text className='coach-detail-card__title'>联系方式</Text>
+      <View className='coach-detail-card__header'>
+        <View className='coach-detail-card__title'>联系方式</View>
+      </View>
       {!isLoggedIn && (
         <View className='coach-detail-contact__login' onClick={onLogin}>
           <Text className='coach-detail-contact__login-text'>
@@ -51,10 +53,10 @@ export function CoachContact({
               <Icon name='phone' className='coach-detail-contact__icon-inner' />
             </View>
             <View className='coach-detail-contact__info'>
-              <Text className='coach-detail-contact__label'>电话联系</Text>
-              <Text className='coach-detail-contact__value'>
+              <View className='coach-detail-contact__label'>电话联系</View>
+              <View className='coach-detail-contact__value'>
                 {phone || '未设置'}
-              </Text>
+              </View>
             </View>
             <Icon name='arrow-right' className='coach-detail-contact__arrow' />
           </View>
@@ -70,8 +72,8 @@ export function CoachContact({
                 />
               </View>
               <View className='coach-detail-contact__info'>
-                <Text className='coach-detail-contact__label'>微信二维码</Text>
-                <Text className='coach-detail-contact__value'>点击查看</Text>
+                <View className='coach-detail-contact__label'>微信二维码</View>
+                <View className='coach-detail-contact__value'>点击查看</View>
               </View>
               <Icon
                 name='arrow-right'

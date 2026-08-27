@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { AdminOrderListItem, OrderType, OrderStatus } from '@/types/api';
 import { getOrderList } from '@/api/orderManagement';
@@ -31,6 +32,8 @@ const paymentMethodOptions = [
   { label: '微信支付', value: 'wechat' },
   { label: '支付宝', value: 'alipay' },
 ];
+
+const route = useRoute();
 
 const queryForm = reactive({
   type: '',
@@ -142,6 +145,10 @@ watch(detailVisible, (val) => {
 });
 
 onMounted(() => {
+  const queryType = route.query.type as string;
+  if (queryType && typeOptions.some((option) => option.value === queryType)) {
+    queryForm.type = queryType;
+  }
   fetchList();
 });
 </script>
@@ -256,14 +263,14 @@ onMounted(() => {
         row-class-name="table-row"
         style="width: 100%"
       >
-        <el-table-column label="订单号" width="140">
+        <el-table-column label="订单号" min-width="160">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)">
               {{ row.orderNo }}
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="类型" align="center" width="100">
+        <el-table-column label="类型" align="center" min-width="100">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -276,27 +283,27 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="用户" width="100">
+        <el-table-column label="用户" min-width="120">
           <template #default="{ row }">
             {{ row.userName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="教练" width="100">
+        <el-table-column label="教练" min-width="120">
           <template #default="{ row }">
             {{ row.coachName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="套餐" width="140">
+        <el-table-column label="套餐" min-width="160">
           <template #default="{ row }">
             {{ formatPackage(row) }}
           </template>
         </el-table-column>
-        <el-table-column label="金额" align="right" width="120">
+        <el-table-column label="金额" align="right" min-width="120">
           <template #default="{ row }">
             {{ formatOrderAmount(row.paidAmount) }}
           </template>
         </el-table-column>
-        <el-table-column label="状态" align="center" width="120">
+        <el-table-column label="状态" align="center" min-width="120">
           <template #default="{ row }">
             <span
               class="status-tag"
@@ -309,12 +316,18 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="160">
+        <el-table-column label="创建时间" min-width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="220" fixed="right">
+        <el-table-column
+          label="操作"
+          align="center"
+          min-width="220"
+          fixed="right"
+          class-name="operation-cell"
+        >
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)">
               查看
@@ -471,6 +484,19 @@ onMounted(() => {
 :deep(.el-table__body) {
   .el-table__row:last-child td {
     border-bottom: none;
+  }
+}
+
+:deep(.el-table__cell.operation-cell .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  height: 100%;
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 </style>

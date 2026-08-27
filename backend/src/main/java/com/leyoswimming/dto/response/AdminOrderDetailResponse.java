@@ -30,6 +30,7 @@ public record AdminOrderDetailResponse(
     Long approvedBy,
     LocalDateTime approvedAt,
     LocalDateTime refundedAt,
+    LocalDateTime paidAt,
     LocalDateTime createdAt,
     List<OrderStatusLog> statusTimeline,
     PackageSnapshot packageSnapshot) {

@@ -1,6 +1,6 @@
 @use '@/styles/calicat-overrides' as *;
 
-$payment-bottom-bar-height: 102px;
+$payment-bottom-bar-height: calc($calicat-bottom-bar-height + $calicat-safe-bottom);
 
 .payment-page {
   min-height: 100vh;
@@ -437,9 +437,17 @@ $payment-bottom-bar-height: 102px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px $calicat-page-horizontal calc(12px + $calicat-safe-bottom);
+  padding: $calicat-bottom-bar-padding-top $calicat-page-horizontal
+    $calicat-bottom-bar-padding-bottom;
   background-color: $calicat-card-bg;
   box-shadow: $calicat-bottom-bar-shadow;
+
+  @media (width >=768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
 
   &__amount {
     display: flex;
@@ -466,12 +474,12 @@ $payment-bottom-bar-height: 102px;
 
   &__cancel {
     width: 90px;
-    height: 44px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid $calicat-border;
-    border-radius: 22px;
+    border-radius: 20px;
     background-color: $calicat-white;
   }
 
@@ -483,11 +491,11 @@ $payment-bottom-bar-height: 102px;
 
   &__confirm {
     width: 120px;
-    height: 44px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 22px;
+    border-radius: 20px;
     background: linear-gradient(
       90deg,
       $calicat-primary 0%,
@@ -508,11 +516,11 @@ $payment-bottom-bar-height: 102px;
 
   &__reorder {
     width: 120px;
-    height: 44px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 22px;
+    border-radius: 20px;
     background: linear-gradient(
       90deg,
       $calicat-primary 0%,

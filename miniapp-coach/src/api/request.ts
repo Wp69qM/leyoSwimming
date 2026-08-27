@@ -21,7 +21,7 @@ export class ApiError extends Error {
   }
 }
 
-function getAccessToken(): string | null {
+export function getAccessToken(): string | null {
   return storage.get<string>(STORAGE_KEYS.ACCESS_TOKEN)
 }
 
@@ -105,9 +105,11 @@ export async function request<T>(options: RequestOptions): Promise<T> {
 
   if (needToken) {
     const token = getAccessToken()
-    if (token) {
-      requestHeaders.Authorization = `Bearer ${token}`
+    if (!token) {
+      redirectToLogin()
+      throw new ApiError(200002, '登录已过期，请重新登录')
     }
+    requestHeaders.Authorization = `Bearer ${token}`
   }
 
   try {

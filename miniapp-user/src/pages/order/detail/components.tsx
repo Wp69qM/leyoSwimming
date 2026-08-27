@@ -176,7 +176,7 @@ export function StatusBarAndNavBar({
         <View className='order-detail-page__back' onClick={onBack}>
           <Icon name='arrow-left' className='order-detail-page__back-icon' />
         </View>
-        <Text className='order-detail-page__title'>{title}</Text>
+        <View className='order-detail-page__title'>{title}</View>
         <View className='order-detail-page__navbar-placeholder' />
       </View>
     </View>
@@ -217,7 +217,7 @@ export function StatusHeader({
           <Icon name={theme.icon} className='order-detail-header__icon' />
         </View>
         <View className='order-detail-header__text'>
-          <Text className='order-detail-header__status'>{statusLabel}</Text>
+          <View className='order-detail-header__status'>{statusLabel}</View>
           <Text className='order-detail-header__amount'>
             ¥{formatPrice(displayAmount)}
           </Text>
@@ -251,7 +251,7 @@ export function PurchaseSnapshotCard({ order }: { order: OrderDetail }) {
     { label: '课时数', value: `${order.totalHours} 节` },
     { label: '每节课时长', value: `${order.durationMinutes} 分钟` },
     { label: '有效期', value: `${order.validDays} 天` },
-    { label: '原价', value: `¥${formatPrice(order.originalPrice)}` },
+    { label: '原价', value: `¥${formatPrice(order.originalAmount)}` },
     {
       label: '实付价',
       value: `¥${formatPrice(order.amount)}`,
@@ -263,14 +263,14 @@ export function PurchaseSnapshotCard({ order }: { order: OrderDetail }) {
   return (
     <View className='order-detail-card'>
       <View className='order-detail-card__header'>
-        <Text className='order-detail-card__title'>购买时套餐信息</Text>
+        <View className='order-detail-card__title'>购买时套餐信息</View>
         <View className='order-detail-card__tag'>
-          <Text className='order-detail-card__tag-text'>购买时快照</Text>
+          <View className='order-detail-card__tag-text'>购买时快照</View>
         </View>
       </View>
       {rows.map((row) => (
         <View key={row.label} className='order-detail-info-row'>
-          <Text className='order-detail-info-row__label'>{row.label}</Text>
+          <View className='order-detail-info-row__label'>{row.label}</View>
           <Text
             className={`order-detail-info-row__value ${
               row.highlight ? 'order-detail-info-row__value--highlight' : ''
@@ -317,6 +317,29 @@ function PackageStatusTag({
   );
 }
 
+const ORDER_STATUS_TAG_THEME: Record<
+  OrderStatus,
+  { text: string; className: string }
+> = {
+  pending_payment: { text: '待支付', className: 'package-status-tag--warning' },
+  paid: { text: '已支付', className: 'package-status-tag--success' },
+  cancelled: { text: '已取消', className: 'package-status-tag--default' },
+  refund_pending: { text: '退款审批中', className: 'package-status-tag--warning' },
+  refund_processing: { text: '退款处理中', className: 'package-status-tag--warning' },
+  refunded: { text: '已退款', className: 'package-status-tag--default' },
+  rejected: { text: '退款未通过', className: 'package-status-tag--danger' },
+  dispute_processing: { text: '争议处理中', className: 'package-status-tag--warning' },
+};
+
+function OrderStatusTag({ status }: { status: OrderStatus }) {
+  const theme = ORDER_STATUS_TAG_THEME[status];
+  return (
+    <View className={`package-status-tag ${theme.className}`}>
+      <Text className='package-status-tag__text'>{theme.text}</Text>
+    </View>
+  );
+}
+
 export function PackageUsageCard({ order }: { order: OrderDetail }) {
   const hasExpiredNotice = order.packageStatus === 'expired';
   const hasFrozenNotice =
@@ -325,9 +348,11 @@ export function PackageUsageCard({ order }: { order: OrderDetail }) {
       order.status
     );
 
+  const showOrderStatus = order.status !== 'paid';
+
   return (
     <View className='order-detail-card'>
-      <Text className='order-detail-card__title'>套餐状态</Text>
+      <View className='order-detail-card__title'>套餐状态</View>
 
       {hasExpiredNotice && (
         <View className='order-detail-notice order-detail-notice--expired'>
@@ -356,18 +381,24 @@ export function PackageUsageCard({ order }: { order: OrderDetail }) {
           />
         ) : (
           <View className='package-usage-card__avatar package-usage-card__avatar--placeholder'>
-            <Text className='package-usage-card__avatar-text'>
+            <View className='package-usage-card__avatar-text'>
               {order.coachName.slice(0, 1)}
-            </Text>
+            </View>
           </View>
         )}
         <View className='package-usage-card__coach-info'>
           <View className='package-usage-card__name-row'>
-            <Text className='package-usage-card__name'>{order.coachName}</Text>
-            <PackageStatusTag status={order.packageStatus} />
+            <View className='package-usage-card__name'>{order.coachName}</View>
           </View>
-          <Text className='package-usage-card__desc'>{order.packageName}</Text>
+          <View className='package-usage-card__desc'>
+            {formatTeachingType(order.teachingType)} · {order.durationMinutes} 分钟/节
+          </View>
         </View>
+        {showOrderStatus ? (
+          <OrderStatusTag status={order.status} />
+        ) : (
+          <PackageStatusTag status={order.packageStatus} />
+        )}
       </View>
 
       <View className='package-usage-card__hours'>
@@ -397,7 +428,9 @@ export function PackageUsageCard({ order }: { order: OrderDetail }) {
       <View className='package-usage-card__validity'>
         <Icon name='time' className='package-usage-card__validity-icon' />
         <Text className='package-usage-card__validity-text'>
-          有效期至 {formatDateTime(order.packageExpireAt)}
+          {order.packageExpireAt
+            ? `有效期至 ${formatDateTime(order.packageExpireAt)}`
+            : '支付后生效'}
         </Text>
       </View>
     </View>
@@ -448,11 +481,11 @@ export function OrderInfoCard({ order }: { order: OrderDetail }) {
 
   return (
     <View className='order-detail-card'>
-      <Text className='order-detail-card__title'>订单信息</Text>
+      <View className='order-detail-card__title'>订单信息</View>
       {rows.map((row) => (
         <View key={row.label} className='order-detail-info-row'>
-          <Text className='order-detail-info-row__label'>{row.label}</Text>
-          <Text className='order-detail-info-row__value'>{row.value}</Text>
+          <View className='order-detail-info-row__label'>{row.label}</View>
+          <View className='order-detail-info-row__value'>{row.value}</View>
         </View>
       ))}
     </View>
@@ -503,7 +536,7 @@ export function RefundProgressCard({ status }: { status: OrderStatus }) {
 
   return (
     <View className='order-detail-card'>
-      <Text className='order-detail-card__title'>退款进度</Text>
+      <View className='order-detail-card__title'>退款进度</View>
       <View className='refund-progress'>
         <View className='refund-progress__track'>
           {REFUND_STEPS.map((_, index) => {
@@ -529,9 +562,9 @@ export function RefundProgressCard({ status }: { status: OrderStatus }) {
         </View>
         <View className='refund-progress__labels'>
           {REFUND_STEPS.map((label) => (
-            <Text key={label} className='refund-progress__label'>
+            <View key={label} className='refund-progress__label'>
               {label}
-            </Text>
+            </View>
           ))}
         </View>
       </View>
@@ -569,7 +602,7 @@ export function RefundAmountInfo({ order }: { order: OrderDetail }) {
 
   return (
     <View className='order-detail-card'>
-      <Text className='order-detail-card__title'>退款金额计算</Text>
+      <View className='order-detail-card__title'>退款金额计算</View>
       <View className='refund-amount-info__box'>
         <View className='refund-amount-info__formula'>
           <Icon name='notice' className='refund-amount-info__icon' />
@@ -582,9 +615,9 @@ export function RefundAmountInfo({ order }: { order: OrderDetail }) {
           {available} 节、已预约 {reserved} 节，预计可退 ¥
           {formatPrice(displayRefundAmount)}
         </Text>
-        <Text className='refund-amount-info__tip'>
+        <View className='refund-amount-info__tip'>
           MVP 阶段不收取退款手续费，最终以管理员审批结果为准。
-        </Text>
+        </View>
         {order.frozenReason === 'coach_resigned' && (
           <Text className='refund-amount-info__tip refund-amount-info__tip--highlight'>
             教练离职场景下可申请 100% 全额退款。
@@ -732,13 +765,13 @@ export function OrderDetailErrorState({
         <Text className='order-detail-empty__text'>{message}</Text>
         <View className='order-detail-empty__actions'>
           <View className='order-detail-empty__btn' onClick={onRetry}>
-            <Text className='order-detail-empty__btn-text'>重新加载</Text>
+            <View className='order-detail-empty__btn-text'>重新加载</View>
           </View>
           <View
             className='order-detail-empty__btn order-detail-empty__btn--secondary'
             onClick={onBack}
           >
-            <Text className='order-detail-empty__btn-text'>返回订单列表</Text>
+            <View className='order-detail-empty__btn-text'>返回订单列表</View>
           </View>
         </View>
       </View>
@@ -756,7 +789,7 @@ export function OrderDetailEmptyState({ onBack }: { onBack: () => void }) {
         </View>
         <Text className='order-detail-empty__text'>暂无订单信息</Text>
         <View className='order-detail-empty__btn' onClick={onBack}>
-          <Text className='order-detail-empty__btn-text'>返回订单列表</Text>
+          <View className='order-detail-empty__btn-text'>返回订单列表</View>
         </View>
       </View>
     </View>

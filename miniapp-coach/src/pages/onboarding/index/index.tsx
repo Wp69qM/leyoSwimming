@@ -11,6 +11,7 @@ import {
 import { uploadFile } from '@/api/common'
 import { handleBusinessError } from '@/api/request'
 import { COACH_STATUS } from '@/constants'
+import { useAuthStore } from '@/stores/authStore'
 import './index.scss'
 
 const CERT_TYPES: { key: string; label: string; multiple: boolean }[] = [
@@ -50,6 +51,8 @@ export default function CoachOnboardingPage() {
     let cancelled = false
     async function load() {
       try {
+        const { restoreFromStorage } = useAuthStore.getState()
+        restoreFromStorage()
         const data = await getApplicationDetail()
         if (cancelled) return
         handleStatusRedirect(data)
@@ -230,6 +233,7 @@ export default function CoachOnboardingPage() {
     teachingYears: number
     totalStudents: number
     totalHours: number
+    teachingStrokes: string[]
     bio: string
     referencePrice: number
     certificates: CoachCertificate[]
@@ -245,6 +249,7 @@ export default function CoachOnboardingPage() {
       teachingYears: Number(teachingYears),
       totalStudents: Number(totalStudents),
       totalHours: Number(totalHours),
+      teachingStrokes,
       bio: bio.trim(),
       referencePrice: Number(referencePrice),
       certificates,
@@ -298,7 +303,7 @@ export default function CoachOnboardingPage() {
   if (initialLoading) {
     return (
       <View className='coach-onboarding'>
-        <Text className='coach-onboarding__loading'>加载中…</Text>
+        <View className='coach-onboarding__loading'>加载中…</View>
       </View>
     )
   }
@@ -306,14 +311,14 @@ export default function CoachOnboardingPage() {
   return (
     <View className='coach-onboarding'>
       <View className='coach-onboarding__navbar'>
-        <Text className='coach-onboarding__title'>{getTitle()}</Text>
+        <View className='coach-onboarding__title'>{getTitle()}</View>
       </View>
 
       {detail?.status === COACH_STATUS.REJECTED && showRejection && detail.promptMessage && (
         <View className='coach-onboarding__rejection'>
           <View className='coach-onboarding__rejection-content'>
-            <Text className='coach-onboarding__rejection-title'>审核未通过</Text>
-            <Text className='coach-onboarding__rejection-reason'>{detail.promptMessage}</Text>
+            <View className='coach-onboarding__rejection-title'>审核未通过</View>
+            <View className='coach-onboarding__rejection-reason'>{detail.promptMessage}</View>
           </View>
           <Text className='coach-onboarding__rejection-close' onClick={() => setShowRejection(false)}>
             ✕
@@ -322,9 +327,9 @@ export default function CoachOnboardingPage() {
       )}
 
       <View className='coach-onboarding__card'>
-        <Text className='coach-onboarding__card-title'>实名与资质</Text>
+        <View className='coach-onboarding__card-title'>实名与资质</View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>身份证号</Text>
+          <View className='coach-onboarding__label'>身份证号</View>
           <Input
             className='coach-onboarding__input'
             placeholder='请输入18位身份证号'
@@ -336,7 +341,7 @@ export default function CoachOnboardingPage() {
         </View>
         {CERT_TYPES.map((cert) => (
           <View key={cert.key} className='coach-onboarding__upload-field'>
-            <Text className='coach-onboarding__label'>{cert.label}</Text>
+            <View className='coach-onboarding__label'>{cert.label}</View>
             <View className='coach-onboarding__upload-list'>
               {getCertImages(cert.key).map((url) => (
                 <View key={url} className='coach-onboarding__upload-item'>
@@ -363,9 +368,9 @@ export default function CoachOnboardingPage() {
       </View>
 
       <View className='coach-onboarding__card'>
-        <Text className='coach-onboarding__card-title'>服务设置</Text>
+        <View className='coach-onboarding__card-title'>服务设置</View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>参考单价</Text>
+          <View className='coach-onboarding__label'>参考单价</View>
           <Input
             className='coach-onboarding__input'
             type='digit'
@@ -374,15 +379,15 @@ export default function CoachOnboardingPage() {
             onInput={(e) => setReferencePrice(e.detail.value)}
             disabled={isFormDisabled}
           />
-          <Text className='coach-onboarding__unit'>元/节</Text>
+          <View className='coach-onboarding__unit'>元/节</View>
         </View>
-        <Text className='coach-onboarding__hint'>参考单价范围 50-2000 元/节</Text>
+        <View className='coach-onboarding__hint'>参考单价范围 50-2000 元/节</View>
       </View>
 
       <View className='coach-onboarding__card'>
-        <Text className='coach-onboarding__card-title'>基础信息</Text>
+        <View className='coach-onboarding__card-title'>基础信息</View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>姓名/昵称</Text>
+          <View className='coach-onboarding__label'>姓名/昵称</View>
           <Input
             className='coach-onboarding__input'
             placeholder='请输入姓名'
@@ -393,28 +398,51 @@ export default function CoachOnboardingPage() {
           />
         </View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>手机号</Text>
-          <Text className='coach-onboarding__readonly'>{detail?.phone || ''}</Text>
+          <View className='coach-onboarding__label'>手机号</View>
+          <View className='coach-onboarding__readonly'>{detail?.phone || ''}</View>
         </View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>性别</Text>
+          <View className='coach-onboarding__label'>性别</View>
           <View className='coach-onboarding__radio-group'>
-            <Text
+            <View
               className={`coach-onboarding__radio ${gender === 'male' ? 'coach-onboarding__radio--active' : ''}`}
               onClick={() => !isFormDisabled && setGender('male')}
             >
               男
-            </Text>
-            <Text
+            </View>
+            <View
               className={`coach-onboarding__radio ${gender === 'female' ? 'coach-onboarding__radio--active' : ''}`}
               onClick={() => !isFormDisabled && setGender('female')}
             >
               女
-            </Text>
+            </View>
           </View>
         </View>
+        <View className='coach-onboarding__field'>
+          <View className='coach-onboarding__label'>年龄</View>
+          <Input
+            className='coach-onboarding__input'
+            type='number'
+            placeholder='请输入年龄'
+            value={age}
+            onInput={(e) => setAge(e.detail.value)}
+            maxlength={3}
+            disabled={isFormDisabled}
+          />
+        </View>
+        <View className='coach-onboarding__field'>
+          <View className='coach-onboarding__label'>邮箱</View>
+          <Input
+            className='coach-onboarding__input'
+            placeholder='请输入邮箱'
+            value={email}
+            onInput={(e) => setEmail(e.detail.value)}
+            maxlength={64}
+            disabled={isFormDisabled}
+          />
+        </View>
         <View className='coach-onboarding__field coach-onboarding__field--column'>
-          <Text className='coach-onboarding__label'>微信二维码</Text>
+          <View className='coach-onboarding__label'>微信二维码</View>
           <View className='coach-onboarding__upload-list'>
             {wechatQrUrl ? (
               <View className='coach-onboarding__upload-item'>
@@ -439,9 +467,9 @@ export default function CoachOnboardingPage() {
       </View>
 
       <View className='coach-onboarding__card'>
-        <Text className='coach-onboarding__card-title'>教学履历</Text>
+        <View className='coach-onboarding__card-title'>教学履历</View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>任教年限</Text>
+          <View className='coach-onboarding__label'>任教年限</View>
           <Input
             className='coach-onboarding__input'
             type='number'
@@ -450,10 +478,10 @@ export default function CoachOnboardingPage() {
             onInput={(e) => setTeachingYears(e.detail.value.replace(/\D/g, '').slice(0, 2))}
             disabled={isFormDisabled}
           />
-          <Text className='coach-onboarding__unit'>年</Text>
+          <View className='coach-onboarding__unit'>年</View>
         </View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>总学员数</Text>
+          <View className='coach-onboarding__label'>总学员数</View>
           <Input
             className='coach-onboarding__input'
             type='number'
@@ -462,10 +490,10 @@ export default function CoachOnboardingPage() {
             onInput={(e) => setTotalStudents(e.detail.value.replace(/\D/g, '').slice(0, 5))}
             disabled={isFormDisabled}
           />
-          <Text className='coach-onboarding__unit'>人</Text>
+          <View className='coach-onboarding__unit'>人</View>
         </View>
         <View className='coach-onboarding__field'>
-          <Text className='coach-onboarding__label'>总课时数</Text>
+          <View className='coach-onboarding__label'>总课时数</View>
           <Input
             className='coach-onboarding__input'
             type='number'
@@ -474,24 +502,24 @@ export default function CoachOnboardingPage() {
             onInput={(e) => setTotalHours(e.detail.value.replace(/\D/g, '').slice(0, 5))}
             disabled={isFormDisabled}
           />
-          <Text className='coach-onboarding__unit'>节</Text>
+          <View className='coach-onboarding__unit'>节</View>
         </View>
         <View className='coach-onboarding__field coach-onboarding__field--column'>
-          <Text className='coach-onboarding__label'>擅长泳姿</Text>
+          <View className='coach-onboarding__label'>擅长泳姿</View>
           <View className='coach-onboarding__stroke-list'>
             {STROKE_OPTIONS.map((stroke) => (
-              <Text
+              <View
                 key={stroke}
                 className={`coach-onboarding__stroke-tag ${teachingStrokes.includes(stroke) ? 'coach-onboarding__stroke-tag--active' : ''}`}
                 onClick={() => toggleStroke(stroke)}
               >
                 {stroke}
-              </Text>
+              </View>
             ))}
           </View>
         </View>
         <View className='coach-onboarding__field coach-onboarding__field--column'>
-          <Text className='coach-onboarding__label'>个人简介</Text>
+          <View className='coach-onboarding__label'>个人简介</View>
           <Textarea
             className='coach-onboarding__textarea'
             placeholder='请介绍您的教学经历和特长'
@@ -500,29 +528,33 @@ export default function CoachOnboardingPage() {
             maxlength={500}
             disabled={isFormDisabled}
           />
-          <Text className='coach-onboarding__char-count'>{bio.length}/500</Text>
+          <View className='coach-onboarding__char-count'>{bio.length}/500</View>
         </View>
       </View>
 
       {errorTip && (
         <View className='coach-onboarding__error'>
-          <Text className='coach-onboarding__error-text'>{errorTip}</Text>
+          <View className='coach-onboarding__error-text'>{errorTip}</View>
         </View>
       )}
 
       <View className='coach-onboarding__actions'>
         <Button
-          className='coach-onboarding__btn-draft'
-          onClick={handleSaveDraft}
-          disabled={loading || isFormDisabled}
+          className={`coach-onboarding__btn-draft ${loading || isFormDisabled ? 'coach-onboarding__btn-draft--disabled' : ''}`}
+          onClick={() => {
+            if (loading || isFormDisabled) return
+            handleSaveDraft()
+          }}
         >
           保存草稿
         </Button>
         <Button
-          className={`coach-onboarding__btn-submit ${loading ? 'coach-onboarding__btn-submit--loading' : ''}`}
-          onClick={handleSubmit}
+          className={`coach-onboarding__btn-submit ${loading ? 'coach-onboarding__btn-submit--loading' : ''} ${loading || isFormDisabled ? 'coach-onboarding__btn-submit--disabled' : ''}`}
+          onClick={() => {
+            if (loading || isFormDisabled) return
+            handleSubmit()
+          }}
           loading={loading}
-          disabled={loading || isFormDisabled}
         >
           {detail?.status === COACH_STATUS.REJECTED ? '重新提交' : '提交审核'}
         </Button>

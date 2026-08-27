@@ -1,15 +1,21 @@
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Button } from '@tarojs/components'
+import { View, Button, Image } from '@tarojs/components'
 import { ProtocolCheckbox } from '@/components/auth/ProtocolCheckbox'
+import wechatIcon from '@/assets/calicat/icons/wechat.png'
+import logoIcon from '@/assets/calicat/icons/logo-swimming.png'
+import {
+  ProtocolDrawer,
+  type ProtocolTab,
+} from '@/pages/login/protocol/ProtocolDrawer'
 import { wechatLogin } from '@/api/auth'
-import { handleBusinessError, getErrorCode, ApiError } from '@/api/request'
+import { handleBusinessError, getErrorCode } from '@/api/request'
 import { useAuthStore, getRedirectPageByStatus } from '@/stores/authStore'
 import { usePolicyVersions } from '@/hooks/usePolicy'
 import { APP_NAME } from '@/constants'
 import './index.scss'
 
-const ERROR_CODE_MESSAGES: Record<number, string> = {
+const ERROR_MESSAGES: Record<number, string> = {
   440001: '请阅读并同意《用户须知》和《隐私协议》',
   430002: '微信服务暂时不可用，请稍后重试',
   430001: '登录凭证已失效，请重新点击登录',
@@ -18,16 +24,35 @@ const ERROR_CODE_MESSAGES: Record<number, string> = {
 
 export default function WechatLoginPage() {
   const [protocolChecked, setProtocolChecked] = useState(false)
+  const [protocolVisible, setProtocolVisible] = useState(false)
+  const [protocolInitialTab, setProtocolInitialTab] =
+    useState<ProtocolTab>('terms')
   const [loading, setLoading] = useState(false)
   const [errorTip, setErrorTip] = useState('')
   const [showReauth, setShowReauth] = useState(false)
   const login = useAuthStore((state) => state.login)
-  const { termsVersion, privacyVersion, loading: policyLoading, error: policyError } =
-    usePolicyVersions()
+  const {
+    termsVersion,
+    privacyVersion,
+    loading: policyLoading,
+    error: policyError,
+  } = usePolicyVersions()
 
   function validateProtocol(): boolean {
     if (!protocolChecked) {
+      Taro.showToast({
+        title: '请阅读并同意《用户须知》和《隐私协议》',
+        icon: 'none',
+      })
       setErrorTip('请阅读并同意《用户须知》和《隐私协议》')
+      return false
+    }
+    if (policyLoading || !termsVersion || !privacyVersion) {
+      Taro.showToast({ title: '协议加载中，请稍候', icon: 'none' })
+      return false
+    }
+    if (policyError) {
+      Taro.showToast({ title: policyError, icon: 'none' })
       return false
     }
     return true
@@ -37,22 +62,22 @@ export default function WechatLoginPage() {
     Taro.navigateTo({ url: '/pages/login/phone/index' })
   }
 
-  function openProtocolPage(type: 'terms' | 'privacy') {
-    Taro.navigateTo({ url: `/pages/login/protocol/index?type=${type}` })
+  function openProtocolModal(type: 'terms' | 'privacy') {
+    setProtocolInitialTab(type)
+    setProtocolVisible(true)
+  }
+
+  function handleCloseProtocol() {
+    setProtocolVisible(false)
+  }
+
+  function handleAgreeProtocol() {
+    setProtocolChecked(true)
+    setProtocolVisible(false)
   }
 
   async function handleLogin(phoneEncryptedData?: string, phoneIv?: string) {
     if (!validateProtocol()) return
-
-    if (policyLoading || !termsVersion || !privacyVersion) {
-      Taro.showToast({ title: '协议加载中，请稍候', icon: 'none' })
-      return
-    }
-
-    if (policyError) {
-      Taro.showToast({ title: policyError, icon: 'none' })
-      return
-    }
 
     setLoading(true)
     setErrorTip('')
@@ -90,13 +115,11 @@ export default function WechatLoginPage() {
         Taro.redirectTo({ url: redirectUrl })
       }
     } catch (error) {
-      const errCode = getErrorCode(error)
-      const message = errCode && ERROR_CODE_MESSAGES[errCode]
-        ? ERROR_CODE_MESSAGES[errCode]
-        : handleBusinessError(error)
-      setErrorTip(message)
-      if (errCode === 430002 || errCode === 430001 || (error instanceof ApiError && errCode === 0)) {
-        setShowReauth(false)
+      const message = handleBusinessError(error)
+      const code = getErrorCode(error)
+      setErrorTip(ERROR_MESSAGES[code ?? 0] || message)
+      if (code === 430001) {
+        setShowReauth(true)
       }
     } finally {
       setLoading(false)
@@ -123,48 +146,64 @@ export default function WechatLoginPage() {
   }
 
   return (
-    <View className="wechat-login">
-      <View className="wechat-login__brand">
-        <View className="wechat-login__logo">
-          <View className="wechat-login__logo-icon" />
+    <View className='wechat-login'>
+      <View
+        className={`wechat-login__brand ${errorTip ? 'wechat-login__brand--dimmed' : ''}`}
+      >
+        <Image className='wechat-login__logo' src={logoIcon} />
+        <View className='wechat-login__name'>{APP_NAME}</View>
+        <View className='wechat-login__slogan'>专业游泳约课平台</View>
+        <View className='wechat-login__guide'>
+          登录后即可预约课程、购买套餐
         </View>
-        <Text className="wechat-login__name">{APP_NAME}</Text>
-        <Text className="wechat-login__slogan">专业游泳约课平台</Text>
-        <Text className="wechat-login__guide">登录后即可预约课程、购买套餐</Text>
       </View>
 
-      {errorTip && (
-        <View className="wechat-login__error">
-          <Text className="wechat-login__error-text">{errorTip}</Text>
-        </View>
-      )}
+      <View className='wechat-login__footer'>
+        {errorTip && (
+          <View className='wechat-login__error'>
+            <View className='wechat-login__error-icon' />
+            <View className='wechat-login__error-text'>{errorTip}</View>
+          </View>
+        )}
 
-      {showReauth && (
-        <Button className="wechat-login__reauth" onClick={handleReauth}>
-          重新授权
-        </Button>
-      )}
+        {showReauth && (
+          <Button className='wechat-login__reauth' onClick={handleReauth}>
+            重新授权
+          </Button>
+        )}
 
-      <View className="wechat-login__footer">
         <ProtocolCheckbox
           checked={protocolChecked}
           onChange={setProtocolChecked}
-          onOpenTerms={() => openProtocolPage('terms')}
-          onOpenPrivacy={() => openProtocolPage('privacy')}
+          onOpenTerms={() => openProtocolModal('terms')}
+          onOpenPrivacy={() => openProtocolModal('privacy')}
         />
         <Button
           className={`wechat-login__button ${loading ? 'wechat-login__button--loading' : ''}`}
-          openType="getPhoneNumber"
+          openType='getPhoneNumber'
           onGetPhoneNumber={handleGetPhoneNumber}
           loading={loading}
           disabled={loading}
         >
+          {!loading && (
+            <Image className='wechat-login__button-icon' src={wechatIcon} />
+          )}
           {loading ? '登录中…' : '微信一键登录'}
         </Button>
-        <Text className="wechat-login__phone-link" onClick={navigateToPhoneLogin}>
+        <View
+          className='wechat-login__phone-link'
+          onClick={navigateToPhoneLogin}
+        >
           使用手机号登录
-        </Text>
+        </View>
       </View>
+
+      <ProtocolDrawer
+        visible={protocolVisible}
+        initialTab={protocolInitialTab}
+        onClose={handleCloseProtocol}
+        onAgree={handleAgreeProtocol}
+      />
     </View>
   )
 }

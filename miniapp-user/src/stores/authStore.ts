@@ -26,13 +26,13 @@ export interface AuthState {
   setTokens: (
     accessToken: string,
     refreshToken: string,
-    expiresIn: number
+    expiresInSeconds: number
   ) => void;
   setUserInfo: (userInfo: UserInfo | null) => void;
   login: (
     accessToken: string,
     refreshToken: string,
-    expiresIn: number,
+    expiresInSeconds: number,
     userInfo: UserInfo
   ) => void;
   logout: () => void;
@@ -40,23 +40,38 @@ export interface AuthState {
   restoreFromStorage: () => void;
 }
 
-export function calculateExpiresAt(expiresIn: number): number {
-  return Date.now() + expiresIn * 1000;
+export function calculateExpiresAt(expiresInSeconds: number): number {
+  return Date.now() + expiresInSeconds * 1000;
+}
+
+function loadAuthStateFromStorage(): Pick<
+  AuthState,
+  'accessToken' | 'refreshToken' | 'tokenExpiresAt' | 'userInfo' | 'isLoggedIn'
+> {
+  const accessToken = getStorageItem<string>(STORAGE_KEYS.ACCESS_TOKEN);
+  const refreshToken = getStorageItem<string>(STORAGE_KEYS.REFRESH_TOKEN);
+  let tokenExpiresAt = getStorageItem<number>(STORAGE_KEYS.TOKEN_EXPIRES_AT);
+  const userInfo = getStorageItem<PersistedUserInfo>(STORAGE_KEYS.USER_INFO);
+  // 兼容旧版本只存了 accessToken、没有存过期时间的情况
+  if (accessToken && !tokenExpiresAt) {
+    tokenExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    setStorageItem(STORAGE_KEYS.TOKEN_EXPIRES_AT, tokenExpiresAt);
+  }
+  const isLoggedIn = Boolean(
+    accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt
+  );
+  return { accessToken, refreshToken, tokenExpiresAt, userInfo, isLoggedIn };
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  tokenExpiresAt: null,
-  userInfo: null,
-  isLoggedIn: false,
+  ...loadAuthStateFromStorage(),
 
-  setTokens: (accessToken, refreshToken, expiresIn) => {
-    const tokenExpiresAt = calculateExpiresAt(expiresIn);
+  setTokens: (accessToken, refreshToken, expiresInSeconds) => {
+    const tokenExpiresAt = calculateExpiresAt(expiresInSeconds);
     setStorageItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
     setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
     setStorageItem(STORAGE_KEYS.TOKEN_EXPIRES_AT, tokenExpiresAt);
-    set({ accessToken, refreshToken, tokenExpiresAt });
+    set({ accessToken, refreshToken, tokenExpiresAt, isLoggedIn: true });
   },
 
   setUserInfo: (userInfo) => {
@@ -72,8 +87,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ userInfo });
   },
 
-  login: (accessToken, refreshToken, expiresIn, userInfo) => {
-    const tokenExpiresAt = calculateExpiresAt(expiresIn);
+  login: (accessToken, refreshToken, expiresInSeconds, userInfo) => {
+    const tokenExpiresAt = calculateExpiresAt(expiresInSeconds);
     const persisted: PersistedUserInfo = {
       userId: userInfo.userId,
       profileCompleted: userInfo.profileCompleted,
@@ -120,15 +135,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   restoreFromStorage: () => {
-    const accessToken = getStorageItem<string>(STORAGE_KEYS.ACCESS_TOKEN);
-    const refreshToken = getStorageItem<string>(STORAGE_KEYS.REFRESH_TOKEN);
-    const tokenExpiresAt = getStorageItem<number>(
-      STORAGE_KEYS.TOKEN_EXPIRES_AT
-    );
-    const userInfo = getStorageItem<PersistedUserInfo>(STORAGE_KEYS.USER_INFO);
-    const isLoggedIn = Boolean(
-      accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt
-    );
-    set({ accessToken, refreshToken, tokenExpiresAt, userInfo, isLoggedIn });
+    set(loadAuthStateFromStorage());
   },
 }));

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.leyoswimming.common.StringListJsonTypeHandler;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Data;
@@ -53,7 +53,7 @@ public class User {
 
   private Boolean hasSwimBasis;
 
-  @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
+  @TableField(typeHandler = StringListJsonTypeHandler.class, updateStrategy = FieldStrategy.IGNORED)
   private List<String> swimStrokes;
 
   @TableField(updateStrategy = FieldStrategy.IGNORED)

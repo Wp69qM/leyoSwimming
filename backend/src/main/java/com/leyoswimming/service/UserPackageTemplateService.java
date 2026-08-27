@@ -13,12 +13,15 @@ import com.leyoswimming.dto.response.PackageListItemResponse;
 import com.leyoswimming.dto.response.PackageListResponse;
 import com.leyoswimming.dto.response.UserPackageTemplateCustomConfigResponse;
 import com.leyoswimming.entity.Coach;
+import com.leyoswimming.entity.CoachCertificate;
 import com.leyoswimming.entity.CustomPackageConfig;
 import com.leyoswimming.entity.PackageTemplate;
 import com.leyoswimming.entity.PackageTemplateCoach;
 import com.leyoswimming.enums.CoachStatus;
+import com.leyoswimming.enums.PackageMode;
 import com.leyoswimming.enums.PackageTemplateStatus;
 import com.leyoswimming.exception.BusinessException;
+import com.leyoswimming.repository.CoachCertificateMapper;
 import com.leyoswimming.repository.CoachMapper;
 import com.leyoswimming.repository.CustomPackageConfigMapper;
 import com.leyoswimming.repository.PackageTemplateCoachMapper;
@@ -29,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,11 +49,17 @@ public class UserPackageTemplateService {
   private static final int DEFAULT_CUSTOM_HOURS_MIN = 1;
   private static final int DEFAULT_CUSTOM_HOURS_MAX = 50;
   private static final int DEFAULT_CUSTOM_VALID_DAYS = 30;
+  private static final int CUSTOM_PACKAGE_TOTAL_HOURS = 0;
+  private static final int CUSTOM_PACKAGE_DURATION_MINUTES = 60;
   private static final List<Integer> ALLOWED_VALID_DAYS = List.of(30, 60, 90, 180);
+  private static final String CUSTOM_PACKAGE_NAME = "自定义课时";
+  private static final String CUSTOM_PACKAGE_TEACHING_TYPE = "one_on_one";
+  private static final Long CUSTOM_PACKAGE_SYNTHETIC_ID = -1L;
 
   private final PackageTemplateMapper packageTemplateMapper;
   private final PackageTemplateCoachMapper packageTemplateCoachMapper;
   private final CoachMapper coachMapper;
+  private final CoachCertificateMapper coachCertificateMapper;
   private final CustomPackageConfigMapper customPackageConfigMapper;
 
   @Transactional(readOnly = true)
@@ -58,15 +68,22 @@ public class UserPackageTemplateService {
     wrapper.eq(PackageTemplate::getStatus, PackageTemplateStatus.ACTIVE.getValue());
     wrapper.orderByDesc(PackageTemplate::getCreatedAt);
 
-    Page<PackageTemplate> page = new Page<>(request.page(), request.pageSize());
+    Optional<PackageListItemResponse> customItem = buildCustomPackageListItem();
+    int pageSize = Math.max(1, request.pageSize() - (customItem.isPresent() ? 1 : 0));
+
+    Page<PackageTemplate> page = new Page<>(request.page(), pageSize);
     Page<PackageTemplate> result = packageTemplateMapper.selectPage(page, wrapper);
 
-    List<PackageListItemResponse> items = result.getRecords().stream()
+    List<PackageListItemResponse> items = new ArrayList<>(result.getRecords().stream()
         .map(this::toListItem)
-        .toList();
+        .toList());
+
+    boolean customAdded = customItem.isPresent() && items.size() < request.pageSize()
+        && items.add(customItem.orElseThrow());
+    long total = result.getTotal() + (customItem.isPresent() ? 1 : 0);
 
     return new PackageListResponse(
-        items, result.getTotal(), (int) result.getCurrent(), (int) result.getSize());
+        items, total, (int) result.getCurrent(), (int) result.getSize());
   }
 
   @Transactional(readOnly = true)
@@ -114,6 +131,12 @@ public class UserPackageTemplateService {
 
   @Transactional(readOnly = true)
   public PackageDetailResponse detail(PackageDetailRequest request) {
+    Optional<PackageDetailResponse> customDetail = buildCustomPackageDetail(
+        request.packageId(), request.coachId());
+    if (customDetail.isPresent()) {
+      return customDetail.get();
+    }
+
     PackageTemplate template = packageTemplateMapper.selectById(request.packageId());
     if (template == null
         || !PackageTemplateStatus.ACTIVE.getValue().equals(template.getStatus())) {
@@ -138,11 +161,12 @@ public class UserPackageTemplateService {
     }
 
     Map<Long, Coach> coachMap = findCoachMap(coachIds);
+    Map<Long, String> avatarMap = resolveAvatars(coachIds);
     List<PackageDetailCoachResponse> applicableCoaches = coachIds.stream()
         .map(coachMap::get)
         .filter(Objects::nonNull)
         .filter(coach -> isPublicCoachStatus(coach.getStatus()))
-        .map(this::toDetailCoach)
+        .map(coach -> toDetailCoach(coach, avatarMap.get(coach.getId())))
         .toList();
 
     return new PackageDetailResponse(
@@ -176,6 +200,110 @@ public class UserPackageTemplateService {
         ? config.getDefaultValidDays() : DEFAULT_CUSTOM_VALID_DAYS;
     return new UserPackageTemplateCustomConfigResponse(
         minHours, maxHours, defaultValidDays, ALLOWED_VALID_DAYS);
+  }
+
+  /**
+   * 构建合成的自定义套餐列表项。当全局自定义套餐配置存在且至少有一位公开教练设置参考单价时返回。
+   * 使用固定的 {@link #CUSTOM_PACKAGE_SYNTHETIC_ID} 作为 synthetic package id，避免与标准模板 id 冲突。
+   */
+  private Optional<PackageListItemResponse> buildCustomPackageListItem() {
+    CustomPackageConfig config = customPackageConfigMapper.findFirst();
+    if (config == null || config.getId() == null) {
+      return Optional.empty();
+    }
+    List<Coach> coaches = findCoachesWithReferencePrice();
+    if (coaches.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(new PackageListItemResponse(
+        CUSTOM_PACKAGE_SYNTHETIC_ID,
+        CUSTOM_PACKAGE_NAME,
+        PackageMode.CUSTOM.getValue(),
+        CUSTOM_PACKAGE_TEACHING_TYPE,
+        CUSTOM_PACKAGE_TOTAL_HOURS,
+        CUSTOM_PACKAGE_DURATION_MINUTES,
+        config.getDefaultValidDays() != null
+            ? config.getDefaultValidDays() : DEFAULT_CUSTOM_VALID_DAYS,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        List.of(),
+        null,
+        buildCustomRefundPolicySummary()));
+  }
+
+  /**
+   * 构建合成的自定义套餐详情。当请求 packageId 为合成自定义套餐 ID 时返回。
+   */
+  private Optional<PackageDetailResponse> buildCustomPackageDetail(
+      Long packageId, Long selectedCoachId) {
+    if (!CUSTOM_PACKAGE_SYNTHETIC_ID.equals(packageId)) {
+      return Optional.empty();
+    }
+
+    CustomPackageConfig config = customPackageConfigMapper.findFirst();
+    if (config == null || config.getId() == null) {
+      throw new BusinessException(ErrorCode.PACKAGE_NOT_FOUND);
+    }
+
+    List<Coach> coaches = findCoachesWithReferencePrice();
+    if (coaches.isEmpty()) {
+      throw new BusinessException(ErrorCode.PACKAGE_NOT_FOUND);
+    }
+
+    Set<Long> coachIds = coaches.stream()
+        .map(Coach::getId)
+        .collect(Collectors.toSet());
+
+    if (selectedCoachId != null) {
+      Coach selectedCoach = coachMapper.selectById(selectedCoachId);
+      if (selectedCoach == null || !isPublicCoachStatus(selectedCoach.getStatus())) {
+        throw new BusinessException(ErrorCode.COACH_NOT_FOUND);
+      }
+      if (!coachIds.contains(selectedCoachId)) {
+        throw new BusinessException(ErrorCode.PACKAGE_NOT_FOUND);
+      }
+      coachIds = Set.of(selectedCoachId);
+    }
+
+    Set<Long> coachIdSet = coachIds;
+    Map<Long, String> avatarMap = resolveAvatars(coachIdSet);
+    List<PackageDetailCoachResponse> applicableCoaches = coachIds.stream()
+        .map(id -> coaches.stream().filter(c -> c.getId().equals(id)).findFirst().orElse(null))
+        .filter(Objects::nonNull)
+        .map(coach -> toDetailCoach(coach, avatarMap.get(coach.getId())))
+        .toList();
+
+    return Optional.of(new PackageDetailResponse(
+        CUSTOM_PACKAGE_SYNTHETIC_ID,
+        CUSTOM_PACKAGE_NAME,
+        PackageMode.CUSTOM.getValue(),
+        CUSTOM_PACKAGE_TEACHING_TYPE,
+        CUSTOM_PACKAGE_TOTAL_HOURS,
+        CUSTOM_PACKAGE_DURATION_MINUTES,
+        config.getDefaultValidDays() != null
+            ? config.getDefaultValidDays() : DEFAULT_CUSTOM_VALID_DAYS,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        true,
+        BigDecimal.ONE,
+        0,
+        buildCustomRefundPolicySummary(),
+        List.of(),
+        null,
+        List.of(),
+        applicableCoaches));
+  }
+
+  private List<Coach> findCoachesWithReferencePrice() {
+    LambdaQueryWrapper<Coach> wrapper = new LambdaQueryWrapper<Coach>()
+        .gt(Coach::getReferencePrice, BigDecimal.ZERO)
+        .in(Coach::getStatus,
+            CoachStatus.APPROVED.getValue(), CoachStatus.RESIGNING.getValue());
+    return coachMapper.selectList(wrapper);
+  }
+
+  private String buildCustomRefundPolicySummary() {
+    return "按实际购买课时退款，详见购买须知";
   }
 
   /**
@@ -216,17 +344,33 @@ public class UserPackageTemplateService {
         buildRefundPolicySummary(template));
   }
 
-  private PackageDetailCoachResponse toDetailCoach(Coach coach) {
+  private PackageDetailCoachResponse toDetailCoach(Coach coach, String avatarUrl) {
     return new PackageDetailCoachResponse(
         coach.getId(),
         coach.getName(),
-        coach.getAvatarUrl(),
+        avatarUrl,
         coach.getRating(),
         coach.getTeachingYears(),
         coach.getTotalStudents(),
         coach.getReferencePrice(),
         parseTeachingStrokes(coach.getTeachingStrokes()),
         coach.getStatus());
+  }
+
+  private Map<Long, String> resolveAvatars(Set<Long> coachIds) {
+    if (CollectionUtils.isEmpty(coachIds)) {
+      return Map.of();
+    }
+    List<CoachCertificate> certificates = coachCertificateMapper.findByCoachIds(new ArrayList<>(coachIds));
+    if (certificates == null) {
+      return Map.of();
+    }
+    return certificates.stream()
+        .filter(cert -> "PORTRAIT".equalsIgnoreCase(cert.getCertType()))
+        .collect(Collectors.toMap(
+            CoachCertificate::getCoachId,
+            CoachCertificate::getImageUrl,
+            (a, b) -> a));
   }
 
   private List<String> parseTeachingStrokes(String strokes) {

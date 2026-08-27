@@ -101,7 +101,7 @@ export function StatusBarAndNavBar({
         <View className='custom-config__back' onClick={onBack}>
           <Icon name='arrow-left' className='custom-config__back-icon' />
         </View>
-        <Text className='custom-config__title'>{title}</Text>
+        <View className='custom-config__title'>{title}</View>
         <View className='custom-config__navbar-placeholder' />
       </View>
     </View>
@@ -125,28 +125,28 @@ export function SelectedCoachCard({
         />
       ) : (
         <View className='selected-coach-card__avatar selected-coach-card__avatar--placeholder'>
-          <Text className='selected-coach-card__avatar-text'>
+          <View className='selected-coach-card__avatar-text'>
             {coach.name.charAt(0)}
-          </Text>
+          </View>
         </View>
       )}
       <View className='selected-coach-card__info'>
         <View className='selected-coach-card__name-row'>
-          <Text className='selected-coach-card__name'>{coach.name}</Text>
+          <View className='selected-coach-card__name'>{coach.name}</View>
           <View className='selected-coach-card__rating'>
             <Icon name='star' className='selected-coach-card__star' />
-            <Text className='selected-coach-card__rating-text'>
+            <View className='selected-coach-card__rating-text'>
               {coach.rating}
-            </Text>
+            </View>
           </View>
         </View>
-        <Text className='selected-coach-card__meta'>
+        <View className='selected-coach-card__meta'>
           擅长：{coach.teachingStrokes.join('/')} · 教龄 {coach.teachingYears}{' '}
           年 · 学员 {coach.totalStudents} 人
-        </Text>
-        <Text className='selected-coach-card__price'>
+        </View>
+        <View className='selected-coach-card__price'>
           参考单价 ¥{formatPrice(coach.referencePrice)}/节
-        </Text>
+        </View>
       </View>
       <Icon name='arrow-right' className='selected-coach-card__arrow' />
     </View>
@@ -221,15 +221,15 @@ export function HoursSelector({
           >
             <Text className='hours-selector__adjust-icon'>+</Text>
           </View>
-          <Text className='hours-selector__unit'>节</Text>
+          <View className='hours-selector__unit'>节</View>
         </View>
       </View>
       {error ? (
         <Text className='hours-selector__error'>{error}</Text>
       ) : (
-        <Text className='hours-selector__hint'>
+        <View className='hours-selector__hint'>
           可选范围 {min} ~ {max} 节
-        </Text>
+        </View>
       )}
     </View>
   );
@@ -342,8 +342,8 @@ export function PriceBreakdown({
 function PriceRow({ label, value }: { label: string; value: string }) {
   return (
     <View className='price-breakdown__row'>
-      <Text className='price-breakdown__label'>{label}</Text>
-      <Text className='price-breakdown__value'>{value}</Text>
+      <View className='price-breakdown__label'>{label}</View>
+      <View className='price-breakdown__value'>{value}</View>
     </View>
   );
 }
@@ -363,7 +363,7 @@ export function AgreementSection({
 
   return (
     <View className='section-card agreement-section'>
-      <Text className='agreement-section__title'>购买协议</Text>
+      <View className='agreement-section__title'>购买协议</View>
       <View className='agreement-section__list'>
         {AGREEMENT_ITEMS.map((item) => {
           const checked = values[item.key];
@@ -409,7 +409,7 @@ export function GuardianSection({
 }) {
   return (
     <View className='section-card guardian-section'>
-      <Text className='guardian-section__title'>监护人信息</Text>
+      <View className='guardian-section__title'>监护人信息</View>
       <Text className='guardian-section__subtitle'>
         您为未成年人，购买正价套餐需填写监护人手机号
       </Text>
@@ -443,18 +443,18 @@ export function BottomSubmitBar({
     <View className='bottom-submit-bar'>
       <View className='bottom-submit-bar__total'>
         <Text className='bottom-submit-bar__symbol'>¥</Text>
-        <Text className='bottom-submit-bar__price'>
+        <View className='bottom-submit-bar__price'>
           {formatPrice(totalPrice)}
-        </Text>
+        </View>
       </View>
       <View
         className={`bottom-submit-bar__button ${disabled ? 'bottom-submit-bar__button--disabled' : ''}`}
         data-testid='submit-button'
         onClick={!disabled ? onSubmit : undefined}
       >
-        <Text className='bottom-submit-bar__button-text'>
+        <View className='bottom-submit-bar__button-text'>
           {loading ? '提交中...' : '提交订单'}
-        </Text>
+        </View>
         <Icon name='arrow-right' className='bottom-submit-bar__button-icon' />
       </View>
     </View>

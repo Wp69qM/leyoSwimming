@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text } from '@tarojs/components';
+import { strokeCodesToLabels } from '@/constants/swimStrokes';
 import type { CoachDetail } from '@/types/coach';
 
 import './index.scss';
@@ -15,7 +16,7 @@ export function CoachBio({ coach }: CoachBioProps) {
 
   return (
     <View className='coach-detail-card'>
-      <Text className='coach-detail-card__title'>教练简介</Text>
+      <View className='coach-detail-card__title'>教练简介</View>
       {hasBio && (
         <View className='coach-detail-bio__content'>
           <Text
@@ -33,12 +34,12 @@ export function CoachBio({ coach }: CoachBioProps) {
           )}
         </View>
       )}
-      {!hasBio && <Text className='coach-detail-card__empty'>暂无简介</Text>}
+      {!hasBio && <View className='coach-detail-card__empty'>暂无简介</View>}
       {hasStrokes && (
         <View className='coach-detail-bio__strokes'>
-          {coach.teachingStrokes.map((stroke) => (
+          {strokeCodesToLabels(coach.teachingStrokes).map((stroke) => (
             <View key={stroke} className='coach-detail-bio__stroke'>
-              <Text className='coach-detail-bio__stroke-text'>{stroke}</Text>
+              <View className='coach-detail-bio__stroke-text'>{stroke}</View>
             </View>
           ))}
         </View>

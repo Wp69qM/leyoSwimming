@@ -36,7 +36,7 @@ const baseOrder = {
   packageId: 200,
   packageName: '10 节正价课',
   packageMode: 'standard' as const,
-  originalPrice: '2000.00',
+  originalAmount: '2000.00',
   coachName: '张明远',
   teachingType: 'one_on_one',
   totalHours: 10,

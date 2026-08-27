@@ -79,21 +79,23 @@
 
 // Status Header
 .order-detail-header {
-  padding: 28px $calicat-page-horizontal 24px;
+  padding: 24px $calicat-page-horizontal 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  gap: 12px;
 }
 
 .order-detail-header__main {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .order-detail-header__icon-wrap {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background-color: rgb(255 255 255 / 20%);
   display: flex;
@@ -103,39 +105,39 @@
 }
 
 .order-detail-header__icon {
-  font-size: 32px;
+  font-size: 24px;
   color: $calicat-white;
 }
 
 .order-detail-header__text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
 }
 
 .order-detail-header__status {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: $calicat-white;
   line-height: 1.2;
 }
 
 .order-detail-header__amount {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: $calicat-white;
   line-height: 1.2;
 }
 
 .order-detail-header__desc {
-  align-self: flex-start;
   padding: 6px 12px;
   border-radius: 14px;
   background-color: rgb(255 255 255 / 20%);
 }
 
 .order-detail-header__desc-text {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: $calicat-white;
   line-height: 1.4;
@@ -155,6 +157,7 @@
 .order-detail-card__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
@@ -166,16 +169,19 @@
 }
 
 .order-detail-card__tag {
-  padding: 2px 8px;
+  height: 18px;
+  padding: 0 8px;
   border-radius: 9px;
   background-color: $calicat-tag-default-bg;
+  display: inline-flex;
+  align-items: center;
 }
 
 .order-detail-card__tag-text {
   font-size: 10px;
   font-weight: 400;
   color: $calicat-text-secondary;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .order-detail-info-row {
@@ -216,9 +222,9 @@
 }
 
 .package-usage-card__avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
   flex-shrink: 0;
 }
 
@@ -230,7 +236,7 @@
 }
 
 .package-usage-card__avatar-text {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: $calicat-coach-avatar-text;
 }
@@ -249,7 +255,7 @@
 }
 
 .package-usage-card__name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: $calicat-text-primary;
 }
@@ -261,14 +267,18 @@
 }
 
 .package-status-tag {
-  padding: 2px 8px;
+  height: 18px;
+  padding: 0 8px;
   border-radius: $calicat-tag-radius;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .package-status-tag__text {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .package-status-tag--active {
@@ -281,11 +291,36 @@
 
 .package-status-tag--expired,
 .package-status-tag--frozen,
-.package-status-tag--exhausted {
+.package-status-tag--exhausted,
+.package-status-tag--default {
   background-color: $calicat-tag-default-bg;
 
   .package-status-tag__text {
     color: $calicat-text-secondary;
+  }
+}
+
+.package-status-tag--warning {
+  background-color: $calicat-tag-warning-bg;
+
+  .package-status-tag__text {
+    color: $calicat-tag-warning-text;
+  }
+}
+
+.package-status-tag--success {
+  background-color: $calicat-tag-success-bg;
+
+  .package-status-tag__text {
+    color: $calicat-tag-success-text;
+  }
+}
+
+.package-status-tag--danger {
+  background-color: $calicat-tag-danger-bg;
+
+  .package-status-tag__text {
+    color: $calicat-tag-danger-text;
   }
 }
 
@@ -529,20 +564,28 @@
   left: 0;
   right: 0;
   bottom: 0;
+  height: $calicat-bottom-bar-height;
+  box-sizing: border-box;
   background-color: $calicat-white;
   box-shadow: $calicat-bottom-bar-shadow;
-  padding: 12px $calicat-page-horizontal $calicat-safe-bottom;
+  padding: 10px $calicat-page-horizontal;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 12px;
   z-index: 10;
+
+  @media screen and (min-width: 768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
 }
 
 .order-detail-bottom-bar__primary {
-  min-width: 140px;
-  height: 46px;
-  border-radius: 23px;
+  flex: 1;
+  height: 40px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -561,9 +604,9 @@
 }
 
 .order-detail-bottom-bar__secondary {
-  min-width: 100px;
-  height: 46px;
-  border-radius: 23px;
+  flex: 1;
+  height: 40px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;

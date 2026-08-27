@@ -90,10 +90,18 @@ public class CoachResignationService {
         "离职申请已提交，请处理学员套餐");
   }
 
-  public CoachResignationDetailResponse detail(Long coachId) {
-    CoachResignationTicket ticket = ticketMapper.findActiveByCoachId(coachId);
-    if (ticket == null) {
-      return null;
+  public CoachResignationDetailResponse detail(Long coachId, Long ticketId) {
+    CoachResignationTicket ticket;
+    if (ticketId != null) {
+      ticket = ticketMapper.selectById(ticketId);
+      if (ticket == null || !ticket.getCoachId().equals(coachId)) {
+        return buildEmptyDetailResponse();
+      }
+    } else {
+      ticket = ticketMapper.findActiveByCoachId(coachId);
+      if (ticket == null) {
+        return buildDraftDetailResponse(coachId);
+      }
     }
     return buildDetailResponse(ticket);
   }
@@ -192,34 +200,92 @@ public class CoachResignationService {
         actions.stream()
             .collect(Collectors.toMap(CoachResignationAction::getPackageId, Function.identity()));
 
+    Set<Long> targetCoachIds =
+        actions.stream()
+            .map(CoachResignationAction::getTargetCoachId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Map<Long, Coach> targetCoachMap =
+        targetCoachIds.isEmpty()
+            ? Map.of()
+            : coachMapper.selectBatchIds(targetCoachIds).stream()
+                .collect(Collectors.toMap(Coach::getId, Function.identity()));
+
     List<CoachResignationDetailResponse.PackageItem> items =
         packages.stream()
             .map(
                 pkg -> {
                   CoachResignationAction action = actionMap.get(pkg.getId());
                   User user = userMapper.selectById(pkg.getUserId());
+                  Coach targetCoach =
+                      action != null && action.getTargetCoachId() != null
+                          ? targetCoachMap.get(action.getTargetCoachId())
+                          : null;
                   return new CoachResignationDetailResponse.PackageItem(
                       pkg.getId(),
+                      pkg.getPackageNo(),
                       pkg.getUserId(),
                       user != null ? user.getName() : null,
+                      pkg.getPackageName(),
+                      pkg.getPackageMode(),
                       pkg.getTotalHours(),
                       pkg.getAvailableCount(),
                       pkg.getReservedCount(),
                       pkg.getPricePerHour(),
                       action != null ? action.getAction() : null,
-                      action != null ? action.getTargetCoachId() : null);
+                      action != null ? action.getTargetCoachId() : null,
+                      targetCoach != null ? targetCoach.getName() : null,
+                      targetCoach != null ? decryptPhone(targetCoach.getPhone()) : null);
                 })
             .collect(Collectors.toList());
+
+    int totalPackages = items.size();
+    int handledPackages = (int) packages.stream().filter(pkg -> actionMap.containsKey(pkg.getId())).count();
 
     return new CoachResignationDetailResponse(
         ticket.getId(),
         ticket.getTicketNo(),
         ticket.getStatus(),
         ticket.getReason(),
-        ticket.getTotalPackages(),
-        ticket.getHandledPackages(),
+        totalPackages,
+        handledPackages,
         ticket.getSubmittedAt(),
         items);
+  }
+
+  private CoachResignationDetailResponse buildDraftDetailResponse(Long coachId) {
+    List<CoursePackage> packages = packageMapper.findActiveByCoachId(coachId);
+
+    List<CoachResignationDetailResponse.PackageItem> items =
+        packages.stream()
+            .map(
+                pkg -> {
+                  User user = userMapper.selectById(pkg.getUserId());
+                  return new CoachResignationDetailResponse.PackageItem(
+                      pkg.getId(),
+                      pkg.getPackageNo(),
+                      pkg.getUserId(),
+                      user != null ? user.getName() : null,
+                      pkg.getPackageName(),
+                      pkg.getPackageMode(),
+                      pkg.getTotalHours(),
+                      pkg.getAvailableCount(),
+                      pkg.getReservedCount(),
+                      pkg.getPricePerHour(),
+                      null,
+                      null,
+                      null,
+                      null);
+                })
+            .collect(Collectors.toList());
+
+    return new CoachResignationDetailResponse(
+        null, null, "none", null, items.size(), 0, null, items);
+  }
+
+  private CoachResignationDetailResponse buildEmptyDetailResponse() {
+    return new CoachResignationDetailResponse(
+        null, null, "none", null, 0, 0, null, List.of());
   }
 
   private void createAction(Long ticketId, Long packageId, String action, Long targetCoachId) {
@@ -265,5 +331,16 @@ public class CoachResignationService {
     return "CR"
         + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
         + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+  }
+
+  private String decryptPhone(String encryptedPhone) {
+    if (encryptedPhone == null) {
+      return null;
+    }
+    try {
+      return phoneEncryptor.decrypt(encryptedPhone);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

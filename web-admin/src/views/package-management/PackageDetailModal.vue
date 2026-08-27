@@ -42,6 +42,7 @@ const modeMap: Record<
 > = {
   standard: { label: '正价套餐', color: '#1890FF', bgColor: '#E6F7FF' },
   experience: { label: '体验课', color: '#FAAD14', bgColor: '#FFFBE6' },
+  custom: { label: '自定义套餐', color: '#52C41A', bgColor: '#F6FFED' },
 };
 
 const subModal = reactive({
@@ -237,7 +238,7 @@ watch(
           </div>
           <div class="detail-item">
             <span class="label">退款比例</span>
-            <span class="value">{{ Number(pkg.refundRatio).toFixed(0) }}%</span>
+            <span class="value">{{ Number((pkg.refundRatio ?? 0) * 100).toFixed(0) }}%</span>
           </div>
           <div class="detail-item">
             <span class="label">退款有效天数</span>

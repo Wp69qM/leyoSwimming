@@ -31,6 +31,7 @@ import com.leyoswimming.repository.RefundRecordMapper;
 import com.leyoswimming.repository.UserMapper;
 import com.leyoswimming.service.DistributedLockHelper.LockToken;
 import com.leyoswimming.util.OrderNoGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -38,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +59,8 @@ public class AdminPackageService {
   private static final String REFUND_ORDER_PREFIX = "R";
   private static final String REFUND_FROZEN_REASON = "refund_pending";
   private static final String ADMIN_FROZEN_REASON = "admin_frozen";
+  private static final ObjectMapper SNAPSHOT_MAPPER = new ObjectMapper();
+
   private static final String STATUS_ACTIVE = "active";
   private static final String STATUS_FROZEN = "frozen";
   private static final String STATUS_EXPIRED = "expired";
@@ -441,6 +445,17 @@ public class AdminPackageService {
       refundOrder.setCoachId(coursePackage.getCoachId());
       refundOrder.setPackageId(coursePackage.getId());
       refundOrder.setPurchaseOrderId(purchaseOrder.getId());
+      refundOrder.setPackageName(purchaseOrder.getPackageName());
+      refundOrder.setCoachName(purchaseOrder.getCoachName());
+      refundOrder.setTeachingType(purchaseOrder.getTeachingType());
+      refundOrder.setTotalHours(purchaseOrder.getTotalHours());
+      refundOrder.setDurationMinutes(purchaseOrder.getDurationMinutes());
+      refundOrder.setValidDays(purchaseOrder.getValidDays());
+      refundOrder.setRefundEnabled(purchaseOrder.getRefundEnabled());
+      refundOrder.setRefundRatio(purchaseOrder.getRefundRatio());
+      refundOrder.setRefundValidDays(purchaseOrder.getRefundValidDays());
+      refundOrder.setPaidAt(purchaseOrder.getPaidAt());
+      refundOrder.setPaymentMethod(purchaseOrder.getPaymentMethod());
       refundOrder.setOriginalAmount(refundAmount);
       refundOrder.setPaidAmount(refundAmount);
       refundOrder.setReason(request.reason());
@@ -595,13 +610,19 @@ public class AdminPackageService {
   }
 
   private String snapshot(CoursePackage coursePackage) {
-    return String.format(
-        "status=%s, frozenReason=%s, reserved=%s, available=%s, expireAt=%s, extendReason=%s",
-        coursePackage.getStatus(),
-        coursePackage.getFrozenReason(),
-        coursePackage.getReservedCount(),
-        coursePackage.getAvailableCount(),
-        coursePackage.getExpireAt(),
-        coursePackage.getExtendReason());
+    Map<String, Object> map = new HashMap<>();
+    map.put("status", coursePackage.getStatus());
+    map.put("frozenReason", coursePackage.getFrozenReason());
+    map.put("reserved", coursePackage.getReservedCount());
+    map.put("available", coursePackage.getAvailableCount());
+    map.put("expireAt", coursePackage.getExpireAt());
+    map.put("extendReason", coursePackage.getExtendReason());
+    try {
+      return SNAPSHOT_MAPPER.writeValueAsString(map);
+    } catch (Exception e) {
+      log.warn("Failed to serialize package snapshot", e);
+      return "{}";
+    }
   }
+
 }

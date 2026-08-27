@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { AdminUserDetail } from '@/types/api';
 import { getUserDetail } from '@/api/userManagement';
 import { formatDateTime, maskPhone } from '@/utils/format';
@@ -20,6 +20,16 @@ const emit = defineEmits<{
 const user = ref<AdminUserDetail | null>(null);
 const loading = ref(false);
 const error = ref('');
+
+const localVisible = computed({
+  get: () => props.visible,
+  set: (value) => emit('update:visible', value),
+});
+
+const DEFAULT_AVATAR =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y1ZjdmYSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzgiIHI9IjE4IiBmaWxsPSIjYzBjNGNjIi8+PHBhdGggZD0iTTIwIDg1YzAtMTYgMTktMjggMzAtMjhzMzAgMTIgMzAgMjgiIGZpbGw9IiNjMGM0Y2MiLz48L3N2Zz4=';
+
+const avatarUrl = computed(() => user.value?.avatarUrl || DEFAULT_AVATAR);
 
 const identityTagMap: Record<
   number,
@@ -127,7 +137,7 @@ watch(
 
     <template v-else-if="user">
       <div class="info-card">
-        <el-avatar :size="80" :src="user.avatarUrl" />
+        <el-avatar :size="80" :src="avatarUrl" />
         <div class="info-main">
           <div class="info-title">{{ user.name || '未设置' }}</div>
           <div class="info-subtitle">用户 ID: {{ user.userId }}</div>

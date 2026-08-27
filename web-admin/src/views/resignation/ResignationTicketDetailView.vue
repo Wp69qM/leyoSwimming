@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
+import { ArrowLeft } from '@element-plus/icons-vue';
 import {
   getResignationTicketDetail,
   approveResignationTicket,
@@ -115,13 +116,16 @@ function getResultDisplay(row: ResignationPackageItem) {
 
 function applyAutoChecklist() {
   if (!detail.value) return;
+  const backendChecklist = detail.value.checklist;
+  const allActionsRegistered =
+    backendChecklist?.allActionsRegistered ??
+    (detail.value.packages.length === 0 ||
+      detail.value.packages.every((pkg) => !!pkg.action));
   checklist.value = {
-    activeStudentsCleared: detail.value.packages.length === 0,
-    allActionsRegistered:
-      detail.value.packages.length === 0 ||
-      detail.value.packages.every((pkg) => !!pkg.action),
-    scheduleCleared: detail.value.scheduleCleared,
-    settlementCompleted: detail.value.settlementStatus === 1,
+    activeStudentsCleared: allActionsRegistered,
+    allActionsRegistered,
+    scheduleCleared: true,
+    settlementCompleted: true,
   };
 }
 
@@ -296,7 +300,7 @@ onMounted(() => {
 
     <div class="page-title-row">
       <div class="back-btn" @click="goBack">
-        <i class="ri-arrow-left-line" />
+        <el-icon :size="18"><ArrowLeft /></el-icon>
       </div>
       <h1 class="page-title">工单详情</h1>
     </div>
@@ -408,6 +412,17 @@ onMounted(() => {
             }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="新教练信息" align="center" width="180">
+          <template #default="{ row }">
+            <template v-if="row.action === 'transfer'">
+              <div class="target-coach-name">{{ row.targetCoachName || '-' }}</div>
+              <div class="target-coach-phone text-muted">
+                {{ row.targetCoachPhone ? maskPhone(row.targetCoachPhone) : '-' }}
+              </div>
+            </template>
+            <span v-else class="text-muted">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="处理人" align="center" width="140">
           <template #default="{ row }">
             <span class="text-muted">{{ row.handlerName || '-' }}</span>
@@ -499,7 +514,10 @@ onMounted(() => {
         </div>
       </div>
       <div
-        v-if="!allChecklistPassed && detail.status === 'pending_audit'"
+        v-if="
+          !allChecklistPassed &&
+          (detail.status === 'pending_audit' || detail.status === 'processing')
+        "
         class="checklist-hint"
       >
         请先完成以下检查项：{{ unpassedItems.join('、') }}
@@ -537,7 +555,12 @@ onMounted(() => {
           返回列表
         </el-button>
         <div class="fixed-action-bar__right">
-          <template v-if="detail.status === 'pending_audit'">
+          <template
+            v-if="
+              detail.status === 'pending_audit' ||
+              detail.status === 'processing'
+            "
+          >
             <div class="approval-comment-wrap">
               <span class="approval-comment-label">审批意见</span>
               <el-input
@@ -748,6 +771,15 @@ onMounted(() => {
 .package-no {
   font-size: 13px;
   color: #1d2129;
+}
+
+.target-coach-name {
+  font-size: 14px;
+  color: #1d2129;
+}
+
+.target-coach-phone {
+  font-size: 12px;
 }
 
 .result-tag {

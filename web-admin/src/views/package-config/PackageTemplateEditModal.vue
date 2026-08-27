@@ -13,6 +13,8 @@ import {
   updatePackageTemplate,
 } from '@/api/packageTemplate';
 import { getCoachList } from '@/api/coachManagement';
+import { uploadFile } from '@/api/upload';
+import { Plus } from '@element-plus/icons-vue';
 
 interface Props {
   visible: boolean;
@@ -221,7 +223,7 @@ function fillForm(detail: AdminPackageTemplateDetail) {
   form.originalPrice = detail.originalPrice;
   form.price = detail.price;
   form.refundEnabled = detail.refundEnabled;
-  form.refundRatio = detail.refundRatio;
+  form.refundRatio = detail.refundRatio !== undefined ? detail.refundRatio * 100 : undefined;
   form.refundValidDays = detail.refundValidDays;
   form.tags = detail.tags ?? [];
   form.description = detail.description ?? '';
@@ -283,7 +285,7 @@ function buildAddRequest(): AdminPackageTemplateAddRequest {
     originalPrice: form.originalPrice as number,
     price: form.price as number,
     refundEnabled: form.refundEnabled,
-    refundRatio: form.refundEnabled ? form.refundRatio : undefined,
+    refundRatio: form.refundEnabled && form.refundRatio !== undefined ? form.refundRatio / 100 : undefined,
     refundValidDays: form.refundEnabled ? form.refundValidDays : undefined,
     tags: form.tags.length > 0 ? form.tags : undefined,
     description: form.description || undefined,
@@ -306,7 +308,7 @@ function buildUpdateRequest(): AdminPackageTemplateUpdateRequest {
     originalPrice: form.originalPrice as number,
     price: form.price as number,
     refundEnabled: form.refundEnabled,
-    refundRatio: form.refundEnabled ? form.refundRatio : undefined,
+    refundRatio: form.refundEnabled && form.refundRatio !== undefined ? form.refundRatio / 100 : undefined,
     refundValidDays: form.refundEnabled ? form.refundValidDays : undefined,
     tags: form.tags,
     description: form.description,
@@ -318,7 +320,10 @@ function buildUpdateRequest(): AdminPackageTemplateUpdateRequest {
 async function handleSave() {
   if (!formRef.value) return;
   const valid = await formRef.value.validate().catch(() => false);
-  if (!valid) return;
+  if (!valid) {
+    ElMessage.warning('请检查表单填写是否正确');
+    return;
+  }
 
   saving.value = true;
   try {
@@ -364,8 +369,24 @@ function removeImage(index: number) {
   form.images = form.images.filter((_, i) => i !== index);
 }
 
-function addImage() {
-  form.images = [...form.images, ''];
+async function handleImageUpload(options: { file: File }) {
+  const file = options.file;
+  if (!file.type.startsWith('image/')) {
+    ElMessage.error('请选择图片文件');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 5MB');
+    return;
+  }
+
+  try {
+    const url = await uploadFile(file);
+    form.images = [...form.images, url];
+    ElMessage.success('图片上传成功');
+  } catch (err) {
+    ElMessage.error(err instanceof Error ? err.message : '图片上传失败');
+  }
 }
 
 watch(
@@ -600,36 +621,35 @@ watch(
             :key="index"
             class="image-item"
           >
-            <el-input
-              v-model="form.images[index]"
-              placeholder="图片 URL"
-              :disabled="isReadOnly"
+            <el-image
+              class="image-preview"
+              :src="url"
+              :preview-src-list="form.images"
+              fit="cover"
             />
             <el-button
               v-if="!isReadOnly"
               type="danger"
               link
+              size="small"
               @click="removeImage(index)"
             >
               删除
             </el-button>
           </div>
-          <el-button
+          <el-upload
             v-if="!isReadOnly && form.images.length < 5"
-            type="primary"
-            link
-            @click="addImage"
+            class="image-upload-trigger"
+            :show-file-list="false"
+            :http-request="handleImageUpload"
+            accept="image/jpeg,image/png,image/webp"
           >
-            + 添加图片
-          </el-button>
+            <div class="image-upload-btn">
+              <el-icon><Plus /></el-icon>
+              <span>上传图片</span>
+            </div>
+          </el-upload>
         </div>
-      </el-form-item>
-
-      <el-form-item label="上下架状态">
-        <el-radio-group v-model="form.status" :disabled="isReadOnly">
-          <el-radio label="inactive">未上架</el-radio>
-          <el-radio label="active">已上架</el-radio>
-        </el-radio-group>
       </el-form-item>
     </el-form>
 
@@ -691,13 +711,47 @@ watch(
 
 .image-list {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
 }
 
 .image-item {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   align-items: center;
+}
+
+.image-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e4e7ed;
+}
+
+.image-upload-trigger {
+  cursor: pointer;
+}
+
+.image-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  gap: 8px;
+  color: #8c8c8c;
+  background: #f5f7fa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #409eff;
+    color: #409eff;
+  }
 }
 </style>

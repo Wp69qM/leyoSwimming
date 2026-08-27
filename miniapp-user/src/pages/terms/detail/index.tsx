@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text } from '@tarojs/components';
+import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { Icon } from '@/components/common/Icon';
 
@@ -39,13 +39,13 @@ export default function TermsDetailPage() {
           <View className='terms-detail-page__back' onClick={navigateBack}>
             <Icon name='arrow-left' className='terms-detail-page__back-icon' />
           </View>
-          <Text className='terms-detail-page__title'>{title}</Text>
+          <View className='terms-detail-page__title'>{title}</View>
           <View className='terms-detail-page__navbar-placeholder' />
         </View>
       </View>
 
       <View className='terms-detail-page__content'>
-        <Text className='terms-detail-page__hint'>协议内容开发中</Text>
+        <View className='terms-detail-page__hint'>协议内容开发中</View>
       </View>
     </View>
   );

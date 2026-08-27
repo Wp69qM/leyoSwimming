@@ -33,9 +33,9 @@ describe('authStore', () => {
 
   describe('getRedirectPageByStatus', () => {
     test('returns onboarding page for pending, rejected and resigned statuses', () => {
-      expect(getRedirectPageByStatus(-1)).toBe('/pages/onboarding/index')
-      expect(getRedirectPageByStatus(2)).toBe('/pages/onboarding/index')
-      expect(getRedirectPageByStatus(3)).toBe('/pages/onboarding/index')
+      expect(getRedirectPageByStatus(-1)).toBe('/pages/onboarding/index/index')
+      expect(getRedirectPageByStatus(2)).toBe('/pages/onboarding/index/index')
+      expect(getRedirectPageByStatus(3)).toBe('/pages/onboarding/index/index')
     })
 
     test('returns pending page for under review status', () => {

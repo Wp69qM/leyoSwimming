@@ -27,7 +27,7 @@ export interface CoachStudentListRequest {
 export interface CoachStudentUserProfile {
   avatarUrl: string | null
   name: string
-  phoneMasked: string | null
+  phone: string | null
   age: number | null
   gender: string | null
   hasSwimBasis: boolean | null
@@ -36,7 +36,7 @@ export interface CoachStudentUserProfile {
   personalDesc: string | null
   isMinor: boolean
   guardianName: string | null
-  guardianPhoneMasked: string | null
+  guardianPhone: string | null
 }
 
 export interface CoachStudentSlice {

@@ -8,9 +8,23 @@ import type {
 } from '@/types/student'
 import './index.scss'
 
+const STATUS_BAR_HEIGHT = Taro.getSystemInfoSync().statusBarHeight || 20
+
 const MODE_LABELS: Record<string, string> = {
   standard: '正价课',
-  experience: '体验课'
+  experience: '体验课',
+  custom: '自定义套餐'
+}
+
+const TEACHING_TYPE_LABELS: Record<string, string> = {
+  one_on_one: '一对一',
+  one_on_two: '一对二',
+  one_on_three: '一对三'
+}
+
+const GENDER_LABELS: Record<string, string> = {
+  male: '男',
+  female: '女'
 }
 
 const STATUS_THEME: Record<string, { bg: string; text: string }> = {
@@ -95,83 +109,80 @@ export default function StudentPackageDetailPage() {
 
   const renderError = () => (
     <View className='package-detail__error'>
-      <Text className='package-detail__error-title'>网络异常，请重试</Text>
+      <View className='package-detail__error-title'>网络异常，请重试</View>
       <View className='package-detail__error-button' onClick={() => loadDetail(true)}>
-        <Text className='package-detail__error-button-text'>重新加载</Text>
+        <View className='package-detail__error-button-text'>重新加载</View>
       </View>
     </View>
   )
 
   const renderForbidden = () => (
     <View className='package-detail__error'>
-      <Text className='package-detail__error-title'>无权查看该套餐</Text>
-      <Text className='package-detail__error-desc'>该套餐与当前教练无关联</Text>
+      <View className='package-detail__error-title'>无权查看该套餐</View>
+      <View className='package-detail__error-desc'>该套餐与当前教练无关联</View>
       <View className='package-detail__error-button' onClick={() => Taro.navigateBack()}>
-        <Text className='package-detail__error-button-text'>返回</Text>
+        <View className='package-detail__error-button-text'>返回</View>
       </View>
     </View>
   )
 
-  if (loading) return renderSkeleton()
-  if (forbidden) return renderForbidden()
-  if (error) return renderError()
-  if (!detail) return renderError()
+  const renderDetail = () => {
+    const theme = STATUS_THEME[detail.status] || STATUS_THEME.active
+    const modeLabel = MODE_LABELS[detail.packageMode] || detail.packageMode
 
-  const theme = STATUS_THEME[detail.status] || STATUS_THEME.active
-  const modeLabel = MODE_LABELS[detail.packageMode] || detail.packageMode
-
-  return (
-    <View className='package-detail'>
+    return (
       <View className='package-detail__content'>
         {/* 套餐主信息卡 */}
         <View className='pd-card pd-card--main'>
           <View className='pd-main__header'>
-            <View className='pd-main__title-row'>
+            <View className='pd-main__name'>{detail.packageName}</View>
+            <View className='pd-main__tags'>
               <View
                 className={`pd-badge pd-badge--mode pd-badge--${detail.packageMode}`}
               >
-                <Text className='pd-badge__text'>{modeLabel}</Text>
+                <View className='pd-badge__text'>{modeLabel}</View>
               </View>
-              <Text className='pd-main__name'>{detail.packageName}</Text>
-            </View>
-            <View
-              className='pd-badge pd-badge--status'
-              style={{ backgroundColor: theme.bg }}
-            >
-              <Text className='pd-badge__text' style={{ color: theme.text }}>
-                {detail.statusLabel}
-              </Text>
+              <View
+                className='pd-badge pd-badge--status'
+                style={{ backgroundColor: theme.bg }}
+              >
+                <View className='pd-badge__text' style={{ color: theme.text }}>
+                  {detail.statusLabel}
+                </View>
+              </View>
             </View>
           </View>
 
           <View className='pd-info-list'>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>有效期</Text>
-              <Text className='pd-info-row__value'>
+              <View className='pd-info-row__label'>有效期</View>
+              <View className='pd-info-row__value'>
                 {formatValidRange(detail.validStart, detail.validEnd)}
-              </Text>
+              </View>
             </View>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>教学类型</Text>
-              <Text className='pd-info-row__value'>{detail.teachingType || '-'}</Text>
+              <View className='pd-info-row__label'>教学类型</View>
+              <View className='pd-info-row__value'>
+                {TEACHING_TYPE_LABELS[detail.teachingType || ''] || detail.teachingType || '-'}
+              </View>
             </View>
             {detail.strokeNames && (
               <View className='pd-info-row'>
-                <Text className='pd-info-row__label'>泳姿</Text>
-                <Text className='pd-info-row__value'>{detail.strokeNames}</Text>
+                <View className='pd-info-row__label'>泳姿</View>
+                <View className='pd-info-row__value'>{detail.strokeNames}</View>
               </View>
             )}
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>每节课时长</Text>
-              <Text className='pd-info-row__value'>
+              <View className='pd-info-row__label'>每节课时长</View>
+              <View className='pd-info-row__value'>
                 {detail.durationMinutes ? `${detail.durationMinutes} 分钟/节` : '-'}
-              </Text>
+              </View>
             </View>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>课时</Text>
-              <Text className='pd-info-row__value'>
+              <View className='pd-info-row__label'>课时</View>
+              <View className='pd-info-row__value'>
                 剩余 {detail.availableHours} 课时 · 共 {detail.totalHours} 课时
-              </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -179,22 +190,22 @@ export default function StudentPackageDetailPage() {
         {/* 套餐统计摘要 */}
         <View className='pd-card pd-card--summary'>
           <View className='pd-summary__item'>
-            <Text className='pd-summary__value'>{detail.totalHours}</Text>
-            <Text className='pd-summary__label'>总课时</Text>
+            <View className='pd-summary__value'>{detail.totalHours}</View>
+            <View className='pd-summary__label'>总课时</View>
           </View>
           <View className='pd-summary__divider' />
           <View className='pd-summary__item'>
-            <Text className='pd-summary__value pd-summary__value--orange'>
+            <View className='pd-summary__value pd-summary__value--orange'>
               {detail.consumedHours}
-            </Text>
-            <Text className='pd-summary__label'>已用课时</Text>
+            </View>
+            <View className='pd-summary__label'>已用课时</View>
           </View>
           <View className='pd-summary__divider' />
           <View className='pd-summary__item'>
-            <Text className='pd-summary__value pd-summary__value--primary'>
+            <View className='pd-summary__value pd-summary__value--primary'>
               {detail.availableHours}
-            </Text>
-            <Text className='pd-summary__label'>剩余课时</Text>
+            </View>
+            <View className='pd-summary__label'>剩余课时</View>
           </View>
         </View>
 
@@ -208,16 +219,16 @@ export default function StudentPackageDetailPage() {
                 mode='aspectFill'
               />
             ) : (
-              <Text className='pd-student__avatar-text'>
+              <View className='pd-student__avatar-text'>
                 {detail.student.name ? detail.student.name.charAt(0) : '?'}
-              </Text>
+              </View>
             )}
           </View>
           <View className='pd-student__info'>
-            <Text className='pd-student__name'>{detail.student.name}</Text>
-            <Text className='pd-student__meta'>
+            <View className='pd-student__name'>{detail.student.name}</View>
+            <View className='pd-student__meta'>
               {formatStudentMeta(detail.student.age, detail.student.gender)}
-            </Text>
+            </View>
           </View>
           <Text className='pd-student__arrow'>›</Text>
         </View>
@@ -226,11 +237,11 @@ export default function StudentPackageDetailPage() {
         <View className='pd-card pd-card--records'>
           <View className='pd-section-title'>
             <Text className='pd-section-title__icon'>📋</Text>
-            <Text className='pd-section-title__text'>使用记录</Text>
+            <View className='pd-section-title__text'>使用记录</View>
           </View>
           {detail.usageRecords.length === 0 ? (
             <View className='pd-records__empty'>
-              <Text className='pd-records__empty-text'>暂无使用记录</Text>
+              <View className='pd-records__empty-text'>暂无使用记录</View>
             </View>
           ) : (
             <View className='pd-records__list'>
@@ -245,38 +256,64 @@ export default function StudentPackageDetailPage() {
         <View className='pd-card pd-card--rules'>
           <View className='pd-section-title'>
             <Text className='pd-section-title__icon'>📖</Text>
-            <Text className='pd-section-title__text'>套餐规则</Text>
+            <View className='pd-section-title__text'>套餐规则</View>
           </View>
           <View className='pd-info-list'>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>购买时间</Text>
-              <Text className='pd-info-row__value'>{detail.validStart || '-'}</Text>
+              <View className='pd-info-row__label'>购买时间</View>
+              <View className='pd-info-row__value'>{detail.validStart || '-'}</View>
             </View>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>退款规则</Text>
-              <Text className='pd-info-row__value'>
+              <View className='pd-info-row__label'>退款规则</View>
+              <View className='pd-info-row__value'>
                 {detail.packageMode === 'experience'
                   ? '体验课不支持退款。'
                   : '已使用课时超过 50% 不支持退款；未超过可申请按剩余课时比例退款。'}
-              </Text>
+              </View>
             </View>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>过期规则</Text>
-              <Text className='pd-info-row__value'>
+              <View className='pd-info-row__label'>过期规则</View>
+              <View className='pd-info-row__value'>
                 套餐有效期至 {detail.validEnd || '-'}，过期后剩余课时自动作废。
-              </Text>
+              </View>
             </View>
             <View className='pd-info-row'>
-              <Text className='pd-info-row__label'>冻结规则</Text>
-              <Text className='pd-info-row__value'>
+              <View className='pd-info-row__label'>冻结规则</View>
+              <View className='pd-info-row__value'>
                 套餐冻结期间不计入有效期，每次冻结最长 30 天。
-              </Text>
+              </View>
             </View>
           </View>
         </View>
 
         <View className='package-detail__bottom-space' />
       </View>
+    )
+  }
+
+  const renderContent = () => {
+    if (loading) return renderSkeleton()
+    if (forbidden) return renderForbidden()
+    if (error) return renderError()
+    if (!detail) return renderError()
+    return renderDetail()
+  }
+
+  const handleBack = () => Taro.navigateBack()
+
+  return (
+    <View className='package-detail'>
+      <View
+        className='package-detail__status-bar'
+        style={{ height: `${STATUS_BAR_HEIGHT}px` }}
+      />
+      <View className='package-detail__navbar'>
+        <View className='package-detail__navbar-back' onClick={handleBack}>
+          <Text className='package-detail__navbar-back-icon'>‹</Text>
+        </View>
+        <View className='package-detail__navbar-title'>套餐详情</View>
+      </View>
+      {renderContent()}
     </View>
   )
 }
@@ -296,13 +333,13 @@ function UsageRecordItem({ record }: { record: CoachPackageUsageRecord }) {
         </Text>
       </View>
       <View className='pd-record-item__info'>
-        <Text className='pd-record-item__time'>{record.startTime}</Text>
-        <Text className='pd-record-item__meta'>{metaParts.join(' · ')}</Text>
+        <View className='pd-record-item__time'>{record.startTime}</View>
+        <View className='pd-record-item__meta'>{metaParts.join(' · ')}</View>
       </View>
       <View className='pd-badge pd-badge--status' style={{ backgroundColor: theme.bg }}>
-        <Text className='pd-badge__text' style={{ color: theme.text }}>
+        <View className='pd-badge__text' style={{ color: theme.text }}>
           {record.statusLabel}
-        </Text>
+        </View>
       </View>
     </View>
   )
@@ -316,6 +353,6 @@ function formatValidRange(start: string | null, end: string | null): string {
 function formatStudentMeta(age: number | null, gender: string | null): string {
   const parts: string[] = []
   if (age != null) parts.push(`${age} 岁`)
-  if (gender) parts.push(gender)
+  if (gender) parts.push(GENDER_LABELS[gender] || gender)
   return parts.join(' · ') || '-'
 }

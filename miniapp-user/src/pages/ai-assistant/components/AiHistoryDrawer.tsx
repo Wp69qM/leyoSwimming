@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components';
+import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { Icon } from '@/components/common/Icon';
 import type { SessionListItem } from '@/types/ai-assistant';
@@ -32,7 +32,7 @@ export function AiHistoryDrawer({
         <View className='ai-history-drawer__header'>
           <View className='ai-history-drawer__title-wrap'>
             <Icon name='history' className='ai-history-drawer__title-icon' />
-            <Text className='ai-history-drawer__title'>历史会话</Text>
+            <View className='ai-history-drawer__title'>历史会话</View>
           </View>
           <View className='ai-history-drawer__close' onClick={onClose}>
             <Icon name='close' className='ai-history-drawer__close-icon' />
@@ -49,19 +49,19 @@ export function AiHistoryDrawer({
                 onClick={() => onSelectSession(session.sessionId)}
               >
                 <View className='ai-history-drawer__item-main'>
-                  <Text className='ai-history-drawer__item-title'>
+                  <View className='ai-history-drawer__item-title'>
                     {session.title}
-                  </Text>
-                  <Text className='ai-history-drawer__item-time'>
+                  </View>
+                  <View className='ai-history-drawer__item-time'>
                     {session.lastMessageTime}
-                  </Text>
+                  </View>
                 </View>
                 <View className='ai-history-drawer__item-right'>
                   {isCurrent && (
                     <View className='ai-history-drawer__current-tag'>
-                      <Text className='ai-history-drawer__current-tag-text'>
+                      <View className='ai-history-drawer__current-tag-text'>
                         当前
-                      </Text>
+                      </View>
                     </View>
                   )}
                   <Icon

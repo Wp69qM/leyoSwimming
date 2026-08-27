@@ -30,10 +30,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
       chain.doFilter(request, response);
       return;
     }
-    if (path.startsWith("/api/user/")
-        || path.startsWith("/api/order/")
-        || path.startsWith("/api/payment/")
-        || path.startsWith("/api/ai-assistant/")) {
+    if (requiresUserAuth(path)) {
       String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
       if (token != null
           && jwtTokenProvider.isTokenValid(token)
@@ -47,6 +44,16 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
       }
     }
     chain.doFilter(request, response);
+  }
+
+  private boolean requiresUserAuth(String path) {
+    return path.startsWith("/api/user/")
+        || path.startsWith("/api/order/")
+        || path.startsWith("/api/payment/")
+        || path.startsWith("/api/ai-assistant/")
+        || path.startsWith("/api/coach/list")
+        || path.startsWith("/api/coach/detail")
+        || path.startsWith("/api/package/custom-config");
   }
 
   private boolean isPublic(String path) {

@@ -212,7 +212,7 @@
 
   &__textarea {
     width: 100%;
-    min-height: 96rpx;
+    height: 114rpx;
     padding: 8rpx;
     margin-top: 8rpx;
     font-size: 14rpx;
@@ -220,6 +220,17 @@
     background-color: #F5F7FA;
     border-radius: 4rpx;
     box-sizing: border-box;
+    overflow-y: auto;
+
+    .weui-textarea,
+    .taro-textarea {
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .taro-textarea {
+      background-color: #F5F7FA;
+    }
   }
 
   &__char-count {
@@ -264,7 +275,7 @@
     background-color: #fff;
     border-radius: 8rpx;
 
-    &[disabled] {
+    &--disabled {
       opacity: 0.6;
     }
 
@@ -282,7 +293,7 @@
     background: linear-gradient(90deg, #1890FF 0%, #36CFC9 100%);
     border-radius: 8rpx;
 
-    &[disabled] {
+    &--disabled {
       opacity: 0.6;
     }
 

@@ -28,6 +28,7 @@ public record AdminResignationTicketDetailResponse(
 
   public record PackageItem(
       Long packageId,
+      String packageNo,
       Long userId,
       String userName,
       Integer totalHours,
@@ -36,7 +37,11 @@ public record AdminResignationTicketDetailResponse(
       BigDecimal pricePerHour,
       String action,
       Long targetCoachId,
-      BigDecimal refundAmount) {}
+      String targetCoachName,
+      String targetCoachPhone,
+      BigDecimal refundAmount,
+      String handlerName,
+      LocalDateTime handledAt) {}
 
   public record Checklist(
       boolean allActionsRegistered,

@@ -2,8 +2,7 @@
 
 .reference-price {
   min-height: 100vh;
-  padding: 16rpx;
-  padding-bottom: 48rpx;
+  padding: 0 16rpx 48rpx;
   background-color: #F5F7FA;
   box-sizing: border-box;
 
@@ -18,8 +17,46 @@
     font-size: $font-size-md;
   }
 
+  &__status-bar {
+    background-color: #ffffff;
+  }
+
+  &__navbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44rpx;
+    padding: 0 16rpx;
+    margin: 0 -16rpx;
+    background-color: #ffffff;
+  }
+
+  &__navbar-back {
+    position: absolute;
+    left: 16rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32rpx;
+    height: 32rpx;
+  }
+
+  &__navbar-back-icon {
+    color: #262626;
+    font-size: 24rpx;
+    line-height: 1;
+  }
+
+  &__navbar-title {
+    color: #262626;
+    font-size: 17rpx;
+    font-weight: 500;
+  }
+
   &__info-card {
     padding: 16rpx;
+    margin-top: 16rpx;
     margin-bottom: 16rpx;
     background-color: #E6F7FF;
     border-radius: 12rpx;
@@ -173,7 +210,7 @@
       opacity: 0.9;
     }
 
-    &[disabled] {
+    &--disabled {
       opacity: 0.5;
     }
 

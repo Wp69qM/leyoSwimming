@@ -165,7 +165,7 @@
     font-size: 14rpx;
     font-weight: 500;
     color: #262626;
-    margin-bottom: 16rpx;
+    margin-bottom: 8rpx;
   }
 
   &__required {
@@ -188,7 +188,7 @@
     color: #262626;
     background: #fff;
     border: 1rpx solid #e8e8e8;
-    border-radius: 16rpx;
+    border-radius: 8rpx;
     box-sizing: border-box;
     line-height: 46rpx;
 
@@ -219,7 +219,7 @@
     align-items: center;
     justify-content: center;
     border: 1rpx solid #e8e8e8;
-    border-radius: 16rpx;
+    border-radius: 8rpx;
     background: #fff;
 
     &--error {
@@ -363,7 +363,7 @@
     font-weight: 500;
     color: #fff;
     background: linear-gradient(135deg, #1890ff 0%, #0050b3 100%);
-    border-radius: 16rpx;
+    border-radius: 8rpx;
     border: none;
 
     &--loading {

@@ -11,6 +11,13 @@
     right: 0;
     z-index: 100;
     background-color: $calicat-white;
+
+    @media (width >=768px) {
+      left: 50%;
+      right: auto;
+      width: 375px;
+      transform: translateX(-50%);
+    }
   }
 
   &__status-bar {
@@ -34,8 +41,8 @@
   }
 
   &__back-icon {
-    width: 26px;
-    height: 26px;
+    font-size: 26px;
+    line-height: 1;
     color: $calicat-text-primary;
   }
 
@@ -65,8 +72,8 @@
   }
 
   &__error-icon {
-    width: 80px;
-    height: 80px;
+    font-size: 80px;
+    line-height: 1;
     color: $calicat-text-disabled;
     margin-bottom: 16px;
   }
@@ -315,8 +322,8 @@
   }
 
   &__notice-icon {
-    width: 16px;
-    height: 16px;
+    font-size: 16px;
+    line-height: 1;
   }
 
   &__notice-text {
@@ -333,8 +340,8 @@
   }
 
   &__expire-icon {
-    width: 16px;
-    height: 16px;
+    font-size: 16px;
+    line-height: 1;
     color: $calicat-text-secondary;
   }
 
@@ -353,8 +360,8 @@
   background-color: $calicat-warning-bg;
 
   &__icon {
-    width: 18px;
-    height: 18px;
+    font-size: 18px;
+    line-height: 1;
     color: $calicat-warning;
     flex-shrink: 0;
   }
@@ -390,8 +397,8 @@
   }
 
   &__icon {
-    width: 20px;
-    height: 20px;
+    font-size: 20px;
+    line-height: 1;
     color: $calicat-danger;
   }
 

@@ -16,6 +16,7 @@ public record AdminResignationTicketListResponse(
       String status,
       Integer totalPackages,
       Integer handledPackages,
+      Integer activeStudentCount,
       LocalDateTime submittedAt,
       LocalDateTime createdAt,
       LocalDateTime coachJoinedAt) {}

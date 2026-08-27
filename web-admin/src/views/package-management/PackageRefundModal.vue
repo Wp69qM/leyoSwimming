@@ -170,7 +170,7 @@ async function handleConfirm() {
       </div>
       <div class="summary-row">
         <span class="label">退款比例：</span>
-        <span class="value">{{ Number(refundRatio).toFixed(0) }}%</span>
+        <span class="value">{{ Number((Number(refundRatio) || 0) * 100).toFixed(0) }}%</span>
       </div>
     </div>
 

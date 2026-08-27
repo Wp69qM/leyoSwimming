@@ -41,7 +41,7 @@ const ICON_MAP: Record<IconName, string> = {
   'arrow-right': '\uea6e',
   'arrow-up': '\uea76',
   'arrow-down': '\uea4e',
-  close: '\ueb66',
+  close: '\ueb96',
   calendar: '\uf20f',
   user: '\uf263',
   time: '\uf215',

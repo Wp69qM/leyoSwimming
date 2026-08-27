@@ -60,7 +60,7 @@ export function AiMessageBubble({
                     name='suggested'
                     className='ai-message__suggested-icon'
                   />
-                  <Text className='ai-message__suggested-text'>{question}</Text>
+                  <View className='ai-message__suggested-text'>{question}</View>
                 </View>
               ))}
             </View>

@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components';
+import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { Icon } from '@/components/common/Icon';
 
@@ -22,18 +22,18 @@ export function AiHeader({
       <View className='ai-header__inner'>
         <View className='ai-header__button' onClick={onNewSession}>
           <Icon name='plus' className='ai-header__button-icon' />
-          <Text className='ai-header__button-text'>新会话</Text>
+          <View className='ai-header__button-text'>新会话</View>
         </View>
 
         <View className='ai-header__title-wrap'>
-          <Text className='ai-header__title'>leyo</Text>
+          <View className='ai-header__title'>leyo</View>
         </View>
 
         <View className='ai-header__actions'>
           {isLoggedIn && (
             <View className='ai-header__button' onClick={onOpenHistory}>
               <Icon name='history' className='ai-header__button-icon' />
-              <Text className='ai-header__button-text'>历史</Text>
+              <View className='ai-header__button-text'>历史</View>
             </View>
           )}
           <View

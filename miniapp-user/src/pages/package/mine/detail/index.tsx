@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro';
 import { fetchMyPackageDetail } from '@/api/package';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
+import { getTeachingTypeLabel } from '@/constants/teachingType';
 import type { UserPackageDetail, UserPackageStatus } from '@/types/package';
 
 import './index.scss';
@@ -100,16 +101,16 @@ export default function MyPackageDetailPage() {
         <StatusBarAndNavBar title='套餐详情' onBack={navigateBack} />
         <View className='my-package-detail__error'>
           <Icon name='error-circle' className='my-package-detail__error-icon' />
-          <Text className='my-package-detail__error-text'>
+          <View className='my-package-detail__error-text'>
             {error ?? '套餐不存在'}
-          </Text>
+          </View>
           <View
             className='my-package-detail__error-button'
             onClick={navigateToMyPackages}
           >
-            <Text className='my-package-detail__error-button-text'>
+            <View className='my-package-detail__error-button-text'>
               返回我的套餐
-            </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -157,7 +158,7 @@ function StatusBarAndNavBar({
         <View className='my-package-detail__back' onClick={onBack}>
           <Icon name='arrow-left' className='my-package-detail__back-icon' />
         </View>
-        <Text className='my-package-detail__title'>{title}</Text>
+        <View className='my-package-detail__title'>{title}</View>
         <View className='my-package-detail__navbar-placeholder' />
       </View>
     </View>
@@ -181,7 +182,7 @@ function InfoCard({
 
   const rows = [
     { label: '教练', value: detail.coachName },
-    { label: '教学类型', value: detail.teachingType },
+    { label: '教学类型', value: getTeachingTypeLabel(detail.teachingType) },
     { label: '泳姿', value: strokeText },
     { label: '课时数', value: `${detail.totalHours} 节` },
     { label: '每节课时长', value: `${detail.durationMinutes} 分钟/节` },
@@ -195,10 +196,10 @@ function InfoCard({
     <View className='info-card'>
       <View className='info-card__header'>
         <View className='info-card__title-row'>
-          <Text className='info-card__name'>{detail.packageName}</Text>
+          <View className='info-card__name'>{detail.packageName}</View>
           <View className='info-card__tags'>
             <View className='info-card__mode-tag'>
-              <Text className='info-card__mode-tag-text'>{modeLabel}</Text>
+              <View className='info-card__mode-tag-text'>{modeLabel}</View>
             </View>
             <View className={`info-card__status-tag ${statusConfig.tagClass}`}>
               <Text className='info-card__status-tag-text'>
@@ -214,8 +215,8 @@ function InfoCard({
       <View className='info-card__body'>
         {rows.map((row) => (
           <View key={row.label} className='info-card__row'>
-            <Text className='info-card__row-label'>{row.label}</Text>
-            <Text className='info-card__row-value'>{row.value}</Text>
+            <View className='info-card__row-label'>{row.label}</View>
+            <View className='info-card__row-value'>{row.value}</View>
           </View>
         ))}
       </View>
@@ -223,14 +224,14 @@ function InfoCard({
       <View className='info-card__divider' />
 
       <View className='info-card__footer'>
-        <Text className='info-card__price-label'>实付</Text>
-        <Text className='info-card__price'>
+        <View className='info-card__price-label'>实付</View>
+        <View className='info-card__price'>
           ¥{formatPrice(detail.paidAmount)}
-        </Text>
+        </View>
         {Number(detail.originalPrice) > Number(detail.paidAmount) && (
-          <Text className='info-card__original-price'>
+          <View className='info-card__original-price'>
             ¥{formatPrice(detail.originalPrice)}
-          </Text>
+          </View>
         )}
       </View>
     </View>
@@ -243,7 +244,7 @@ function UsageCard({ detail }: { detail: UserPackageDetail }) {
 
   return (
     <View className='usage-card'>
-      <Text className='usage-card__title'>使用进度</Text>
+      <View className='usage-card__title'>使用进度</View>
 
       <View className='usage-card__stats'>
         <View className='usage-card__stat'>
@@ -269,18 +270,18 @@ function UsageCard({ detail }: { detail: UserPackageDetail }) {
       {isExpired && (
         <View className='usage-card__notice usage-card__notice--expired'>
           <Icon name='warning' className='usage-card__notice-icon' />
-          <Text className='usage-card__notice-text'>
+          <View className='usage-card__notice-text'>
             套餐已过期，无法再预约课程
-          </Text>
+          </View>
         </View>
       )}
 
       {isFrozen && (
         <View className='usage-card__notice usage-card__notice--frozen'>
           <Icon name='warning' className='usage-card__notice-icon' />
-          <Text className='usage-card__notice-text'>
+          <View className='usage-card__notice-text'>
             套餐已冻结，暂时无法预约课程
-          </Text>
+          </View>
         </View>
       )}
 
@@ -315,14 +316,14 @@ function RefundEntry({ onClick }: { onClick: () => void }) {
           <Icon name='notice' className='refund-entry__icon' />
         </View>
         <View className='refund-entry__text'>
-          <Text className='refund-entry__title'>申请退款</Text>
+          <View className='refund-entry__title'>申请退款</View>
           <Text className='refund-entry__subtitle'>
             按套餐快照规则计算可退金额
           </Text>
         </View>
       </View>
       <View className='refund-entry__button' data-testid='refund-entry-button'>
-        <Text className='refund-entry__button-text'>申请退款</Text>
+        <View className='refund-entry__button-text'>申请退款</View>
       </View>
     </View>
   );

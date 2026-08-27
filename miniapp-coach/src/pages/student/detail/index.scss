@@ -6,6 +6,45 @@
   display: flex;
   flex-direction: column;
 
+
+  &__status-bar {
+    background-color: $color-surface;
+    flex-shrink: 0;
+  }
+
+  &__navbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44rpx;
+    padding: 0 $spacing-md;
+    background-color: $color-surface;
+    flex-shrink: 0;
+  }
+
+  &__navbar-back {
+    position: absolute;
+    left: $spacing-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32rpx;
+    height: 32rpx;
+  }
+
+  &__navbar-back-icon {
+    color: $color-text-primary;
+    font-size: 24rpx;
+    line-height: 1;
+  }
+
+  &__navbar-title {
+    color: $color-text-primary;
+    font-size: 17rpx;
+    font-weight: 500;
+  }
+
   &__content {
     flex: 1;
     padding: $spacing-sm $spacing-md 100rpx;
@@ -20,6 +59,13 @@
     background-color: $color-surface;
     padding: $spacing-sm $spacing-md 34rpx;
     box-shadow: $shadow-tab-bar;
+
+    @media (width >=768px) {
+      left: 50%;
+      right: auto;
+      width: 375px;
+      transform: translateX(-50%);
+    }
   }
 
   &__save {
@@ -249,7 +295,7 @@
     gap: $spacing-sm;
   }
 
-  &__row + &__row {
+  &__row+&__row {
     margin-top: $spacing-sm;
   }
 
@@ -310,12 +356,14 @@
   background-color: $color-divider;
 }
 
-.detail-edit__title,
-.detail-packages__title {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  margin-bottom: $spacing-md;
+.detail-edit,
+.detail-packages {
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-bottom: $spacing-md;
+  }
 
   &__icon {
     font-size: 16rpx;
@@ -391,6 +439,10 @@
   font-size: 13rpx;
   color: $color-text-primary;
   box-sizing: border-box;
+
+  .taro-textarea {
+    background-color: inherit;
+  }
 }
 
 .detail-packages__empty {

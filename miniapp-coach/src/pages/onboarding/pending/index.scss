@@ -174,6 +174,7 @@
     background-color: #fff;
     border: 1rpx solid #1890FF;
     border-radius: 8rpx;
+    width: calc(100% - 32rpx);
   }
 
   &__help {
@@ -227,6 +228,9 @@
 
   &__sheet-body {
     flex: 1;
+  }
+
+  &__sheet-body-inner {
     padding: 12rpx 16rpx;
   }
 

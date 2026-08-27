@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components';
+import { View } from '@tarojs/components';
 import { Icon } from '@/components/common/Icon';
 
 import './index.scss';
@@ -15,13 +15,13 @@ export function CoachReferencePrice({ price }: CoachReferencePriceProps) {
         <Icon name='stack' className='coach-detail-price__icon-inner' />
       </View>
       <View className='coach-detail-price__info'>
-        <Text className='coach-detail-card__title'>参考单价</Text>
+        <View className='coach-detail-card__title'>参考单价</View>
         {hasPrice ? (
-          <Text className='coach-detail-price__value'>¥{price}/节</Text>
+          <View className='coach-detail-price__value'>¥{price}/节</View>
         ) : (
-          <Text className='coach-detail-price__empty'>
+          <View className='coach-detail-price__empty'>
             教练尚未设置参考单价
-          </Text>
+          </View>
         )}
       </View>
     </View>

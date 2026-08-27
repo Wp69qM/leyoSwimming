@@ -10,11 +10,9 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: linear-gradient(
-      90deg,
-      $calicat-primary 0%,
-      $calicat-primary-dark 100%
-    );
+    background: linear-gradient(90deg,
+        $calicat-primary 0%,
+        $calicat-primary-dark 100%);
   }
 
   &__status-bar {
@@ -62,23 +60,46 @@
 .main-info-card {
   padding: $calicat-card-padding;
   border-radius: $calicat-card-radius;
+  background-color: $calicat-white;
   box-shadow: $calicat-standard-card-shadow;
 
   &--standard {
-    background: linear-gradient(
-      90deg,
-      $calicat-standard-card-start 0%,
-      $calicat-standard-card-end 100%
-    );
+    background: linear-gradient(90deg,
+        $calicat-standard-card-start 0%,
+        $calicat-standard-card-end 100%);
   }
 
   &--experience {
-    background: linear-gradient(
-      90deg,
-      $calicat-experience-start 0%,
-      $calicat-experience-end 100%
-    );
+    background: linear-gradient(90deg,
+        $calicat-experience-start 0%,
+        $calicat-experience-end 100%);
     box-shadow: $calicat-experience-shadow;
+  }
+
+  &--custom {
+    background-color: $calicat-white;
+
+    .main-info-card__badge,
+    .main-info-card__tag {
+      background-color: $calicat-tag-default-bg;
+    }
+
+    .main-info-card__badge-text,
+    .main-info-card__name,
+    .main-info-card__tag-text {
+      color: $calicat-text-primary;
+    }
+
+    .main-info-card__info-icon,
+    .main-info-card__info-text,
+    .main-info-card__price-unit,
+    .main-info-card__price-note {
+      color: $calicat-text-secondary;
+    }
+
+    .main-info-card__price-value {
+      color: $calicat-text-price;
+    }
   }
 
   &__badge {
@@ -264,14 +285,20 @@
 
   &__icon-wrap {
     padding: 2px 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
   }
 
   &__icon {
     font-size: 12px;
+    line-height: 1;
     color: $calicat-notice-icon;
     background-color: $calicat-notice-icon-bg;
-    border-radius: 4px;
-    padding: 2px;
+
   }
 
   &__text {
@@ -290,10 +317,19 @@
     flex-direction: row;
     gap: 12px;
     overflow-x: auto;
+
+    &::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 }
 
-.coach-card {
+.package-coach-card {
   width: 104px;
   flex-shrink: 0;
   display: flex;
@@ -471,11 +507,9 @@
     width: 151px;
     height: 44px;
     border-radius: 8px;
-    background: linear-gradient(
-      90deg,
-      $calicat-primary 0%,
-      $calicat-primary-dark 100%
-    );
+    background: linear-gradient(90deg,
+        $calicat-primary 0%,
+        $calicat-primary-dark 100%);
     box-shadow: $calicat-button-shadow;
     display: flex;
     align-items: center;
@@ -557,5 +591,14 @@
 
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (width >=768px) {
+  .bottom-bar {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
   }
 }

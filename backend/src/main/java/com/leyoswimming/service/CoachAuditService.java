@@ -9,6 +9,7 @@ import com.leyoswimming.dto.request.AdminCoachApplicationRejectRequest;
 import com.leyoswimming.dto.response.AdminCoachApplicationDetailResponse;
 import com.leyoswimming.dto.response.AdminCoachApplicationListItemResponse;
 import com.leyoswimming.dto.response.AdminCoachApplicationListResponse;
+import com.leyoswimming.dto.response.AdminCoachApplicationStatsResponse;
 import com.leyoswimming.dto.response.CoachApplicationCertificateResponse;
 import com.leyoswimming.entity.Coach;
 import com.leyoswimming.entity.CoachApplication;
@@ -19,8 +20,6 @@ import com.leyoswimming.enums.CoachApplicationStatus;
 import com.leyoswimming.enums.CoachAuditAction;
 import com.leyoswimming.enums.CoachStatus;
 import com.leyoswimming.exception.BusinessException;
-import com.leyoswimming.entity.AdminUser;
-import com.leyoswimming.repository.AdminUserMapper;
 import com.leyoswimming.repository.CoachApplicationMapper;
 import com.leyoswimming.repository.CoachAuditLogMapper;
 import com.leyoswimming.repository.CoachCertificateApplicationMapper;
@@ -40,6 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Slf4j
 @Service
@@ -58,7 +60,7 @@ public class CoachAuditService {
   private final PhoneEncryptor phoneEncryptor;
   private final IdCardEncryptor idCardEncryptor;
   private final DistributedLockHelper distributedLockHelper;
-  private final AdminUserMapper adminUserMapper;
+  private final AdminPermissionHelper adminPermissionHelper;
 
   @Transactional(readOnly = true)
   public AdminCoachApplicationListResponse list(AdminCoachApplicationListRequest request) {
@@ -92,6 +94,45 @@ public class CoachAuditService {
   }
 
   @Transactional(readOnly = true)
+  public AdminCoachApplicationStatsResponse stats() {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
+    LocalDateTime yesterdayStart = todayStart.minusDays(1);
+
+    long pendingCount =
+        applicationMapper.selectCount(
+            new LambdaQueryWrapper<CoachApplication>()
+                .eq(CoachApplication::getStatus, CoachApplicationStatus.PENDING.getValue()));
+
+    long todayNewCount =
+        applicationMapper.selectCount(
+            new LambdaQueryWrapper<CoachApplication>()
+                .ge(CoachApplication::getCreatedAt, todayStart)
+                .ne(CoachApplication::getStatus, CoachApplicationStatus.DRAFT.getValue()));
+
+    long overdue24hCount =
+        applicationMapper.selectCount(
+            new LambdaQueryWrapper<CoachApplication>()
+                .eq(CoachApplication::getStatus, CoachApplicationStatus.PENDING.getValue())
+                .lt(CoachApplication::getSubmittedAt, yesterdayStart));
+
+    long todayApprovedCount =
+        applicationMapper.selectCount(
+            new LambdaQueryWrapper<CoachApplication>()
+                .eq(CoachApplication::getStatus, CoachApplicationStatus.APPROVED.getValue())
+                .ge(CoachApplication::getApprovedAt, todayStart));
+
+    long todayRejectedCount =
+        applicationMapper.selectCount(
+            new LambdaQueryWrapper<CoachApplication>()
+                .eq(CoachApplication::getStatus, CoachApplicationStatus.REJECTED.getValue())
+                .ge(CoachApplication::getUpdatedAt, todayStart));
+
+    return new AdminCoachApplicationStatsResponse(
+        pendingCount, todayNewCount, overdue24hCount, todayApprovedCount, todayRejectedCount);
+  }
+
+  @Transactional(readOnly = true)
   public AdminCoachApplicationDetailResponse detail(Long applicationId) {
     CoachApplication application =
         applicationMapper.selectById(Objects.requireNonNull(applicationId));
@@ -109,7 +150,7 @@ public class CoachAuditService {
 
   @Transactional
   public void approve(Long adminId, AdminCoachApplicationApproveRequest request) {
-    validateAdminRole(adminId);
+    adminPermissionHelper.checkPermission(adminId, AdminPermissionHelper.PERM_COACH_WRITE);
     var lockToken =
         distributedLockHelper.lock(
             "coach_audit", String.valueOf(request.applicationId()), AUDIT_LOCK_TTL);
@@ -152,7 +193,7 @@ public class CoachAuditService {
 
   @Transactional
   public void reject(Long adminId, AdminCoachApplicationRejectRequest request) {
-    validateAdminRole(adminId);
+    adminPermissionHelper.checkPermission(adminId, AdminPermissionHelper.PERM_COACH_WRITE);
     var lockToken =
         distributedLockHelper.lock(
             "coach_audit", String.valueOf(request.applicationId()), AUDIT_LOCK_TTL);
@@ -266,18 +307,11 @@ public class CoachAuditService {
     coachMapper.updateById(coach);
   }
 
-  private void validateAdminRole(Long adminId) {
-    AdminUser admin = adminUserMapper.selectById(adminId);
-    if (admin == null
-        || (!"SUPER_ADMIN".equals(admin.getRole()) && !"COACH_MANAGER".equals(admin.getRole()))) {
-      throw new BusinessException(ErrorCode.FORBIDDEN);
-    }
-  }
-
   private List<CoachApplication> findHistoryByCoachId(Long coachId) {
     LambdaQueryWrapper<CoachApplication> wrapper =
         new LambdaQueryWrapper<CoachApplication>()
             .eq(CoachApplication::getCoachId, coachId)
+            .ne(CoachApplication::getStatus, CoachApplicationStatus.DRAFT.getValue())
             .orderByDesc(CoachApplication::getCreatedAt)
             .last("LIMIT " + MAX_HISTORY_RECORDS);
     return applicationMapper.selectList(wrapper);
@@ -287,6 +321,7 @@ public class CoachAuditService {
     LambdaQueryWrapper<CoachAuditLog> wrapper =
         new LambdaQueryWrapper<CoachAuditLog>()
             .eq(CoachAuditLog::getCoachId, coachId)
+            .ne(CoachAuditLog::getAction, CoachAuditAction.DRAFT_SAVE.getValue())
             .orderByDesc(CoachAuditLog::getCreatedAt)
             .last("LIMIT " + MAX_AUDIT_LOG_RECORDS);
     return auditLogMapper.selectList(wrapper);
@@ -342,7 +377,7 @@ public class CoachAuditService {
         application.getGender(),
         application.getAge(),
         application.getEmail(),
-        application.getWechatQrUrl(),
+        toAbsoluteUrl(application.getWechatQrUrl()),
         application.getIdCardNo() != null
             ? IdCardEncryptor.mask(decryptIdCard(application.getIdCardNo()))
             : null,
@@ -392,8 +427,23 @@ public class CoachAuditService {
         .map(
             c ->
                 new CoachApplicationCertificateResponse(
-                    c.getId(), c.getCertType(), c.getImageUrl(), c.getSortOrder()))
+                    c.getId(), c.getCertType(), toAbsoluteUrl(c.getImageUrl()), c.getSortOrder()))
         .toList();
+  }
+
+  private String toAbsoluteUrl(String path) {
+    if (path == null || path.isBlank() || path.startsWith("http://") || path.startsWith("https://")) {
+      return path;
+    }
+    ServletRequestAttributes attributes =
+        (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    if (attributes == null) {
+      return path;
+    }
+    String normalizedPath = path.startsWith("/") ? path : "/" + path;
+    return ServletUriComponentsBuilder.fromRequestUri(attributes.getRequest())
+        .replacePath(normalizedPath)
+        .toUriString();
   }
 
   private String decryptPhone(String encrypted) {

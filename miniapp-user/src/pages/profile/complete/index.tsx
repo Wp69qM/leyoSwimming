@@ -171,6 +171,7 @@ export default function ProfileCompletePage() {
   const isFormValid = !validate();
 
   async function handleSubmit() {
+    if (loading || !isFormValid) return;
     setGlobalError('');
     const fieldErrors = validate();
     if (fieldErrors) {
@@ -204,7 +205,7 @@ export default function ProfileCompletePage() {
         phone: data.phone,
         avatarUrl: data.avatarUrl,
         nickName: data.name,
-        profileCompleted: true,
+        profileCompleted: data.profileCompleted,
       });
       Taro.showToast({ title: '保存成功', icon: 'success' });
       navigateTimerRef.current = setTimeout(() => {
@@ -241,9 +242,9 @@ export default function ProfileCompletePage() {
             className='profile-complete__navbar-inner'
             style={{ height: `${NAV_BAR_HEIGHT}px` }}
           >
-            <Text className='profile-complete__navbar-title'>
+            <View className='profile-complete__navbar-title'>
               {isEditMode ? '编辑资料' : '完善资料'}
-            </Text>
+            </View>
           </View>
         </View>
         <Text className='profile-complete__loading'>加载中…</Text>
@@ -273,7 +274,7 @@ export default function ProfileCompletePage() {
               <Text className='profile-complete__navbar-back-icon'>‹</Text>
             </View>
           )}
-          <Text className='profile-complete__navbar-title'>{pageTitle}</Text>
+          <View className='profile-complete__navbar-title'>{pageTitle}</View>
         </View>
       </View>
 
@@ -305,9 +306,9 @@ export default function ProfileCompletePage() {
 
         <View className='profile-complete__card'>
           <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>
+            <View className='profile-complete__label'>
               手机号<Text className='profile-complete__required'>*</Text>
-            </Text>
+            </View>
             <Input
               className={`profile-complete__input ${errors.phone ? 'profile-complete__input--error' : ''}`}
               type='number'
@@ -332,9 +333,9 @@ export default function ProfileCompletePage() {
           </View>
 
           <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>
+            <View className='profile-complete__label'>
               姓名<Text className='profile-complete__required'>*</Text>
-            </Text>
+            </View>
             <Input
               className={`profile-complete__input ${errors.name ? 'profile-complete__input--error' : ''}`}
               placeholder='请输入真实姓名'
@@ -353,9 +354,9 @@ export default function ProfileCompletePage() {
           </View>
 
           <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>
+            <View className='profile-complete__label'>
               年龄<Text className='profile-complete__required'>*</Text>
-            </Text>
+            </View>
             <Input
               className={`profile-complete__input ${errors.age ? 'profile-complete__input--error' : ''}`}
               type='number'
@@ -375,9 +376,9 @@ export default function ProfileCompletePage() {
           </View>
 
           <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>
+            <View className='profile-complete__label'>
               性别<Text className='profile-complete__required'>*</Text>
-            </Text>
+            </View>
             <View className='profile-complete__radio-group'>
               {GENDER_OPTIONS.map((option) => (
                 <View
@@ -388,9 +389,9 @@ export default function ProfileCompletePage() {
                     clearFieldError('gender');
                   }}
                 >
-                  <Text className='profile-complete__radio-text'>
+                  <View className='profile-complete__radio-text'>
                     {option.label}
-                  </Text>
+                  </View>
                 </View>
               ))}
             </View>
@@ -405,15 +406,15 @@ export default function ProfileCompletePage() {
             <>
               <View className='profile-complete__guardian-header'>
                 <View className='profile-complete__guardian-icon' />
-                <Text className='profile-complete__guardian-title'>
+                <View className='profile-complete__guardian-title'>
                   监护人信息（未成年人必填）
-                </Text>
+                </View>
               </View>
               <View className='profile-complete__field'>
-                <Text className='profile-complete__label'>
+                <View className='profile-complete__label'>
                   监护人姓名
                   <Text className='profile-complete__required'>*</Text>
-                </Text>
+                </View>
                 <Input
                   className={`profile-complete__input ${errors.guardianName ? 'profile-complete__input--error' : ''}`}
                   placeholder='请输入监护人真实姓名'
@@ -431,10 +432,10 @@ export default function ProfileCompletePage() {
                 )}
               </View>
               <View className='profile-complete__field'>
-                <Text className='profile-complete__label'>
+                <View className='profile-complete__label'>
                   监护人手机号
                   <Text className='profile-complete__required'>*</Text>
-                </Text>
+                </View>
                 <Input
                   className={`profile-complete__input ${errors.guardianPhone ? 'profile-complete__input--error' : ''}`}
                   type='number'
@@ -458,7 +459,7 @@ export default function ProfileCompletePage() {
           )}
 
           <View className='profile-complete__field'>
-            <Text className='profile-complete__label'>是否有游泳基础</Text>
+            <View className='profile-complete__label'>是否有游泳基础</View>
             <View className='profile-complete__radio-group'>
               {SWIM_BASIS_OPTIONS.map((option) => (
                 <View
@@ -472,52 +473,60 @@ export default function ProfileCompletePage() {
                     }
                   }}
                 >
-                  <Text className='profile-complete__radio-text'>
+                  <View className='profile-complete__radio-text'>
                     {option.label}
-                  </Text>
+                  </View>
                 </View>
               ))}
             </View>
           </View>
 
           {showSwimDetail && (
-            <View className='profile-complete__field'>
-              <Text className='profile-complete__label'>会游哪些泳姿</Text>
-              <View className='profile-complete__stroke-list'>
-                {SWIM_STROKES.map((stroke) => (
-                  <View
-                    key={stroke.value}
-                    className={`profile-complete__stroke ${swimStrokes.includes(stroke.value) ? 'profile-complete__stroke--active' : ''} ${errors.swimStrokes ? 'profile-complete__stroke--error' : ''}`}
-                    onClick={() => toggleStroke(stroke.value)}
-                  >
-                    <Text className='profile-complete__stroke-text'>
-                      {stroke.label}
-                    </Text>
-                  </View>
-                ))}
+            <>
+              <View className='profile-complete__field'>
+                <View className='profile-complete__label'>会游哪些泳姿</View>
+                <View className='profile-complete__stroke-list'>
+                  {SWIM_STROKES.map((stroke) => (
+                    <View
+                      key={stroke.value}
+                      className={`profile-complete__stroke ${swimStrokes.includes(stroke.value) ? 'profile-complete__stroke--active' : ''} ${errors.swimStrokes ? 'profile-complete__stroke--error' : ''}`}
+                      onClick={() => toggleStroke(stroke.value)}
+                    >
+                      <View className='profile-complete__stroke-text'>
+                        {stroke.label}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+                {errors.swimStrokes && (
+                  <Text className='profile-complete__field-error'>
+                    {errors.swimStrokes}
+                  </Text>
+                )}
               </View>
-              {errors.swimStrokes && (
-                <Text className='profile-complete__field-error'>
-                  {errors.swimStrokes}
-                </Text>
-              )}
-              <Input
-                className='profile-complete__input profile-complete__input--mt'
-                type='number'
-                placeholder='请输入游泳年限（年）'
-                value={swimYears}
-                onInput={(e) =>
-                  setSwimYears(e.detail.value.replace(/\D/g, '').slice(0, 2))
-                }
-              />
-            </View>
+              <View className='profile-complete__field'>
+                <View className='profile-complete__label'>
+                  游泳年限
+                </View>
+                <Input
+                  className='profile-complete__input'
+                  type='number'
+                  placeholder='请输入游泳年限（年）'
+                  value={swimYears}
+                  onInput={(e) =>
+                    setSwimYears(e.detail.value.replace(/\D/g, '').slice(0, 2))
+                  }
+                />
+              </View>
+            </>
+
           )}
 
           <View className='profile-complete__field profile-complete__field--last'>
-            <Text className='profile-complete__label'>
+            <View className='profile-complete__label'>
               个人描述
               <Text className='profile-complete__label-note'>（选填）</Text>
-            </Text>
+            </View>
             <Textarea
               className='profile-complete__textarea'
               placeholder='可填写游泳目标、身体状况、特殊需求等，方便教练备课'
@@ -525,9 +534,9 @@ export default function ProfileCompletePage() {
               onInput={(e) => setPersonalDesc(e.detail.value)}
               maxlength={200}
             />
-            <Text className='profile-complete__counter'>
+            <View className='profile-complete__counter'>
               {personalDesc.length}/200
-            </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -535,18 +544,17 @@ export default function ProfileCompletePage() {
       <View className='profile-complete__footer'>
         {globalError && (
           <View className='profile-complete__error'>
-            <Text className='profile-complete__error-text'>{globalError}</Text>
+            <View className='profile-complete__error-text'>{globalError}</View>
           </View>
         )}
         <Button
           className={`profile-complete__submit ${loading ? 'profile-complete__submit--loading' : ''} ${!isFormValid ? 'profile-complete__submit--disabled' : ''}`}
           onClick={handleSubmit}
           loading={loading}
-          disabled={loading || !isFormValid}
         >
           {loading ? '保存中…' : isEditMode ? '保存' : '保存并进入首页'}
         </Button>
       </View>
-    </View>
+    </View >
   );
 }

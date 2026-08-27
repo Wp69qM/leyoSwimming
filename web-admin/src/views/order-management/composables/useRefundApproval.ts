@@ -49,7 +49,7 @@ export function useRefundApproval(onSuccess: () => void | Promise<void>) {
       );
       await approveRefund({
         orderId,
-        refundAmount: value.trim(),
+        refundAmount: String(value).trim(),
         adjustReason: adjustReason.trim(),
       });
       ElMessage.success('退款申请已通过');

@@ -36,6 +36,8 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -55,14 +57,13 @@ public class UserOrderService {
   private static final int ORDER_EXPIRE_HOURS = 24;
   private static final String LOCK_RESOURCE_ORDER_CREATE = "order:create";
   private static final Duration LOCK_TTL_ORDER_CREATE = Duration.ofSeconds(30);
-  private static final int TRIAL_DURATION_MINUTES = 60;
-  private static final int TRIAL_VALID_DAYS = 30;
-  private static final int TRIAL_TOTAL_HOURS = 1;
-  private static final String PACKAGE_NAME_TRIAL = "体验课";
   private static final String PACKAGE_NAME_CUSTOM = "自定义套餐";
-  private static final String TEACHING_TYPE_ONE_ON_ONE = "one_on_one";
   private static final String COURSE_PACKAGE_STATUS_ACTIVE = "active";
   private static final String COURSE_PACKAGE_STATUS_EXHAUSTED = "exhausted";
+  private static final Long CUSTOM_PACKAGE_SYNTHETIC_ID = -1L;
+  private static final String CUSTOM_PACKAGE_TEACHING_TYPE = "one_on_one";
+  private static final int CUSTOM_PACKAGE_DURATION_MINUTES = 60;
+  private static final String CUSTOM_PACKAGE_NAME = "自定义课时";
 
   private final OrderMapper orderMapper;
   private final PackageMapper packageMapper;
@@ -85,9 +86,34 @@ public class UserOrderService {
       throw new BusinessException(ErrorCode.COACH_NOT_FOUND);
     }
 
+    PackageTemplate template = packageTemplateMapper.selectById(request.packageId());
+    if (template == null
+        || !PackageTemplateStatus.ACTIVE.getValue().equals(template.getStatus())) {
+      throw new BusinessException(ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND);
+    }
+
+    if (!PackageMode.EXPERIENCE.getValue().equals(template.getPackageMode())) {
+      throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "该套餐不是体验课");
+    }
+
+    if (template.getPrice() == null
+        || template.getPrice().compareTo(BigDecimal.ZERO) <= 0
+        || template.getTotalHours() == null
+        || template.getTotalHours() <= 0) {
+      throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "体验课模板价格或课时配置无效");
+    }
+
+    LambdaQueryWrapper<PackageTemplateCoach> linkWrapper = new LambdaQueryWrapper<>();
+    linkWrapper
+        .eq(PackageTemplateCoach::getPackageTemplateId, template.getId())
+        .eq(PackageTemplateCoach::getCoachId, coach.getId());
+    if (packageTemplateCoachMapper.selectCount(linkWrapper) == 0) {
+      throw new BusinessException(ErrorCode.PACKAGE_NOT_FOUND, "该教练不适用此体验课");
+    }
+
     LockToken lock = lockHelper.lock(LOCK_RESOURCE_ORDER_CREATE, "user:" + userId, LOCK_TTL_ORDER_CREATE);
     try {
-      ensureNoActivePackage(userId);
+      ensureNoActivePackage(userId, coach.getId());
 
       LambdaQueryWrapper<CoursePackage> packageWrapper = new LambdaQueryWrapper<>();
       packageWrapper
@@ -98,22 +124,23 @@ public class UserOrderService {
         throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "您已购买过体验课，无法重复购买");
       }
 
-      Order order = buildPurchaseOrder(user, coach, null, null);
+      Order order = buildPurchaseOrder(user, coach, template, template.getPrice());
+      order.setPackageTemplateId(template.getId());
       order.setPackageMode(PackageMode.EXPERIENCE.getValue());
-      order.setPackageName(PACKAGE_NAME_TRIAL);
+      order.setPackageName(template.getName());
       order.setCoachName(coach.getName());
-      order.setTeachingType(TEACHING_TYPE_ONE_ON_ONE);
-      order.setTotalHours(TRIAL_TOTAL_HOURS);
-      order.setDurationMinutes(TRIAL_DURATION_MINUTES);
-      order.setValidDays(TRIAL_VALID_DAYS);
+      order.setTeachingType(template.getTeachingType());
+      order.setTotalHours(template.getTotalHours());
+      order.setDurationMinutes(template.getDurationMinutes());
+      order.setValidDays(template.getValidDays());
       order.setRefundEnabled(Boolean.FALSE);
       order.setRefundRatio(BigDecimal.ZERO);
       order.setRefundValidDays(0);
-      order.setOriginalAmount(BigDecimal.ZERO);
+      order.setOriginalAmount(template.getPrice());
       order.setPaidAmount(BigDecimal.ZERO);
       orderMapper.insert(order);
 
-      log.info("Trial order created: userId={}, orderId={}, coachId={}", userId, order.getId(), coach.getId());
+      log.info("Trial order created: userId={}, orderId={}, templateId={}, coachId={}", userId, order.getId(), template.getId(), coach.getId());
       return new OrderCreateResponse(order.getId(), order.getOrderNo(), order.getOriginalAmount(), order.getExpireAt());
     } finally {
       lockHelper.unlockAfterTransaction(lock);
@@ -132,30 +159,12 @@ public class UserOrderService {
       throw new BusinessException(ErrorCode.COACH_NOT_FOUND);
     }
 
-    PackageTemplate template = packageTemplateMapper.selectById(request.packageId());
-    if (template == null
-        || !PackageTemplateStatus.ACTIVE.getValue().equals(template.getStatus())) {
-      throw new BusinessException(ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND);
-    }
-
+    PackageTemplate template = resolveFormalTemplate(request.packageId(), coach.getId());
     boolean isCustom = PackageMode.CUSTOM.getValue().equals(template.getPackageMode());
-    if (!isCustom && !PackageMode.STANDARD.getValue().equals(template.getPackageMode())) {
-      throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "不支持的套餐模式");
-    }
-
-    if (!isCustom) {
-      LambdaQueryWrapper<PackageTemplateCoach> linkWrapper = new LambdaQueryWrapper<>();
-      linkWrapper
-          .eq(PackageTemplateCoach::getPackageTemplateId, template.getId())
-          .eq(PackageTemplateCoach::getCoachId, coach.getId());
-      if (packageTemplateCoachMapper.selectCount(linkWrapper) == 0) {
-        throw new BusinessException(ErrorCode.PACKAGE_NOT_FOUND, "该教练不适用此套餐");
-      }
-    }
 
     LockToken lock = lockHelper.lock(LOCK_RESOURCE_ORDER_CREATE, "user:" + userId, LOCK_TTL_ORDER_CREATE);
     try {
-      ensureNoActivePackage(userId);
+      ensureNoActivePackage(userId, coach.getId());
 
       validateFormalTemplate(template, isCustom);
       OrderPriceResult priceResult = calculateFormalPrice(template, coach, request, isCustom);
@@ -251,11 +260,12 @@ public class UserOrderService {
     return order;
   }
 
-  private void ensureNoActivePackage(Long userId) {
+  private void ensureNoActivePackage(Long userId, Long currentCoachId) {
     LambdaQueryWrapper<CoursePackage> wrapper = new LambdaQueryWrapper<>();
     wrapper
         .eq(CoursePackage::getUserId, userId)
-        .eq(CoursePackage::getStatus, COURSE_PACKAGE_STATUS_ACTIVE);
+        .eq(CoursePackage::getStatus, COURSE_PACKAGE_STATUS_ACTIVE)
+        .ne(currentCoachId != null, CoursePackage::getCoachId, currentCoachId);
     if (packageMapper.selectCount(wrapper) > 0) {
       throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "您已拥有 active 套餐，请先完成或退款后再购买");
     }
@@ -265,6 +275,51 @@ public class UserOrderService {
     return status != null
         && (status == CoachStatus.APPROVED.getValue()
             || status == CoachStatus.RESIGNING.getValue());
+  }
+
+  private PackageTemplate resolveFormalTemplate(Long packageId, Long coachId) {
+    if (CUSTOM_PACKAGE_SYNTHETIC_ID.equals(packageId)) {
+      CustomPackageConfig config = customPackageConfigMapper.findFirst();
+      if (config == null || config.getId() == null) {
+        throw new BusinessException(ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND, "自定义套餐未开启");
+      }
+      return buildCustomTemplate();
+    }
+
+    PackageTemplate template = packageTemplateMapper.selectById(packageId);
+    if (template == null
+        || !PackageTemplateStatus.ACTIVE.getValue().equals(template.getStatus())) {
+      throw new BusinessException(ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND);
+    }
+
+    boolean isCustomTemplate = PackageMode.CUSTOM.getValue().equals(template.getPackageMode());
+    if (!isCustomTemplate && !PackageMode.STANDARD.getValue().equals(template.getPackageMode())) {
+      throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "不支持的套餐模式");
+    }
+
+    if (!isCustomTemplate) {
+      LambdaQueryWrapper<PackageTemplateCoach> linkWrapper = new LambdaQueryWrapper<>();
+      linkWrapper
+          .eq(PackageTemplateCoach::getPackageTemplateId, template.getId())
+          .eq(PackageTemplateCoach::getCoachId, coachId);
+      if (packageTemplateCoachMapper.selectCount(linkWrapper) == 0) {
+        throw new BusinessException(ErrorCode.PACKAGE_NOT_FOUND, "该教练不适用此套餐");
+      }
+    }
+    return template;
+  }
+
+  private PackageTemplate buildCustomTemplate() {
+    PackageTemplate template = new PackageTemplate();
+    template.setId(CUSTOM_PACKAGE_SYNTHETIC_ID);
+    template.setName(CUSTOM_PACKAGE_NAME);
+    template.setPackageMode(PackageMode.CUSTOM.getValue());
+    template.setTeachingType(CUSTOM_PACKAGE_TEACHING_TYPE);
+    template.setDurationMinutes(CUSTOM_PACKAGE_DURATION_MINUTES);
+    template.setRefundEnabled(Boolean.TRUE);
+    template.setRefundRatio(BigDecimal.ONE);
+    template.setRefundValidDays(0);
+    return template;
   }
 
   private void validateFormalTemplate(PackageTemplate template, boolean isCustom) {
@@ -317,6 +372,40 @@ public class UserOrderService {
   }
 
   private OrderDetailResponse toDetailResponse(Order order) {
+    CoursePackage coursePackage = null;
+    Long packageId = order.getPackageId();
+    if (packageId != null) {
+      coursePackage = packageMapper.selectById(packageId);
+    }
+
+    String coachAvatar = null;
+    Long coachId = order.getCoachId();
+    if (coachId != null) {
+      Coach coach = coachMapper.selectById(coachId);
+      if (coach != null) {
+        coachAvatar = coach.getAvatarUrl();
+      }
+    }
+
+    List<Integer> strokeIds = order.getStrokeIds();
+    String strokeNames = null;
+    if (strokeIds != null && !strokeIds.isEmpty()) {
+      strokeNames = strokeIds.stream()
+          .map(this::getStrokeName)
+          .filter(Objects::nonNull)
+          .collect(Collectors.joining("、"));
+    }
+
+    Integer availableHours = coursePackage != null ? coursePackage.getAvailableCount() : null;
+    Integer reservedHours = coursePackage != null ? coursePackage.getReservedCount() : null;
+    Integer usedHours = null;
+    Integer totalHours = order.getTotalHours();
+    if (coursePackage != null && totalHours != null) {
+      usedHours = totalHours
+          - (coursePackage.getAvailableCount() == null ? 0 : coursePackage.getAvailableCount())
+          - (coursePackage.getReservedCount() == null ? 0 : coursePackage.getReservedCount());
+    }
+
     return new OrderDetailResponse(
         order.getId(),
         order.getOrderNo(),
@@ -331,10 +420,37 @@ public class UserOrderService {
         order.getPackageMode(),
         order.getOriginalAmount(),
         order.getCoachName(),
+        coachAvatar,
         order.getTeachingType(),
         order.getTotalHours(),
         order.getDurationMinutes(),
         order.getValidDays(),
-        order.getCreatedAt());
+        order.getCreatedAt(),
+        coursePackage != null ? coursePackage.getExpireAt() : null,
+        availableHours,
+        reservedHours,
+        usedHours,
+        order.getRefundEnabled(),
+        order.getRefundRatio(),
+        order.getRefundValidDays(),
+        order.getReason(),
+        order.getPaidAmount(),
+        order.getPaymentMethod(),
+        order.getRejectedReason(),
+        order.getRefundedAt(),
+        strokeNames);
+  }
+
+  private String getStrokeName(Integer strokeId) {
+    if (strokeId == null) {
+      return null;
+    }
+    return switch (strokeId) {
+      case 1 -> "自由泳";
+      case 2 -> "蛙泳";
+      case 3 -> "仰泳";
+      case 4 -> "蝶泳";
+      default -> null;
+    };
   }
 }

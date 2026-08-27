@@ -145,6 +145,16 @@ export interface AdminCoachCertificate {
   sortOrder: number;
 }
 
+export interface AdminCoachAuditLog {
+  logId: number;
+  adminId: number;
+  action: string;
+  fromStatus?: string;
+  toStatus?: string;
+  reason?: string;
+  createdAt: string;
+}
+
 export interface AdminCoachDetail {
   coachId: number;
   avatarUrl: string;
@@ -167,6 +177,7 @@ export interface AdminCoachDetail {
   updatedAt: string;
   version: number;
   certificates: AdminCoachCertificate[];
+  auditLogs: AdminCoachAuditLog[];
 }
 
 export interface CoachCertificateItem {
@@ -365,6 +376,7 @@ export interface AdminOrderDetail {
   approvedBy: number | null;
   approvedAt: string | null;
   refundedAt: string | null;
+  paidAt: string | null;
   createdAt: string;
   statusTimeline: AdminOrderStatusLog[];
   packageSnapshot: AdminOrderPackageSnapshot | null;
@@ -387,7 +399,7 @@ export interface AdminOrderRefundRejectRequest {
 
 export type PackageStatus =
   'active' | 'exhausted' | 'expired' | 'frozen' | 'refunded';
-export type PackageMode = 'standard' | 'experience';
+export type PackageMode = 'standard' | 'experience' | 'custom';
 
 export interface AdminPackageListRequest extends PageRequest {
   status?: PackageStatus | '';

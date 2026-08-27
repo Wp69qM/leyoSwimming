@@ -63,21 +63,25 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    padding: 8px $calicat-page-horizontal;
+    height: 36px;
+    padding: 0 $calicat-page-horizontal;
     background-color: $calicat-white;
     box-shadow: 0 1px 0 $calicat-divider;
   }
 
   &__tab {
     position: relative;
-    padding: 8px 4px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 4px;
   }
 
   &__tab-text {
     font-size: 14px;
     font-weight: 400;
     color: $calicat-order-tab-normal;
-    line-height: 1.2;
+    line-height: 1;
 
     &--active {
       font-weight: 500;
@@ -186,7 +190,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
   }
 
@@ -206,8 +210,7 @@
     white-space: nowrap;
   }
 
-  &__coach,
-  &__hours {
+  &__coach {
     font-size: 12px;
     color: $calicat-text-secondary;
     line-height: 1.2;
@@ -293,13 +296,16 @@
 }
 
 .status-badge {
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
   border-radius: 10px;
 
   &__text {
     font-size: 10px;
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1;
   }
 
   &--pulse {
@@ -322,7 +328,10 @@
 }
 
 .package-mode-tag {
-  padding: 1px 6px;
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
   border-radius: 4px;
   background-color: $calicat-tag-default-bg;
   flex-shrink: 0;
@@ -330,15 +339,16 @@
   &__text {
     font-size: 10px;
     color: $calicat-text-secondary;
-    line-height: 1.2;
+    line-height: 1;
   }
 }
 
 .countdown-tag {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  height: 18px;
   gap: 2px;
-  padding: 2px 6px;
+  padding: 0 6px;
   border-radius: 4px;
   background-color: #fff7e6;
 
@@ -350,7 +360,7 @@
   &__text {
     font-size: 10px;
     color: #fa8c16;
-    line-height: 1.2;
+    line-height: 1;
   }
 
   &--urgent {

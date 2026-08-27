@@ -52,7 +52,7 @@ public class AdminPackageTemplateService {
   private static final int MAX_NAME_LENGTH = 64;
   private static final int MAX_TAG_LENGTH = 20;
   private static final int MAX_HOURS = 100;
-  private static final BigDecimal MAX_REFUND_RATIO = new BigDecimal("100");
+  private static final BigDecimal MAX_REFUND_RATIO = new BigDecimal("1");
   private static final String TAG_PATTERN = "[\\u4e00-\\u9fa5a-zA-Z0-9_-]+";
   private static final String DEFAULT_PACKAGE_MODE = PackageMode.STANDARD.getValue();
   private static final String DEFAULT_TEACHING_TYPE = TeachingType.ONE_ON_ONE.getValue();
@@ -412,7 +412,7 @@ public class AdminPackageTemplateService {
     if (refundEnabled != null && refundEnabled) {
       if (refundRatio == null || refundRatio.compareTo(BigDecimal.ZERO) < 0
           || refundRatio.compareTo(MAX_REFUND_RATIO) > 0) {
-        throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "退款比例需在 0-100 之间");
+        throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "退款比例需在 0-1 之间");
       }
       if (refundValidDays == null || refundValidDays < 0) {
         throw new BusinessException(ErrorCode.INVALID_PACKAGE_PARAM, "退款有效期不能为负数");
@@ -596,4 +596,5 @@ public class AdminPackageTemplateService {
         template.getUpdatedAt(),
         template.getVersion());
   }
+
 }

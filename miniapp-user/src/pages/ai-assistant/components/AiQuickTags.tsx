@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components';
+import { View } from '@tarojs/components';
 import { Icon } from '@/components/common/Icon';
 import type { QuickTag } from '@/types/ai-assistant';
 
@@ -21,11 +21,11 @@ export function AiQuickTags({ tags, onTagClick, onRefresh }: AiQuickTagsProps) {
   return (
     <View className='ai-quick-tags'>
       <View className='ai-quick-tags__header'>
-        <Text className='ai-quick-tags__title'>大家都在问</Text>
+        <View className='ai-quick-tags__title'>大家都在问</View>
         {onRefresh && (
           <View className='ai-quick-tags__refresh' onClick={onRefresh}>
             <Icon name='refresh' className='ai-quick-tags__refresh-icon' />
-            <Text className='ai-quick-tags__refresh-text'>换一批</Text>
+            <View className='ai-quick-tags__refresh-text'>换一批</View>
           </View>
         )}
       </View>
@@ -46,10 +46,10 @@ export function AiQuickTags({ tags, onTagClick, onRefresh }: AiQuickTagsProps) {
               />
             </View>
             <View className='ai-quick-tags__info'>
-              <Text className='ai-quick-tags__card-title'>{tag.title}</Text>
-              <Text className='ai-quick-tags__card-subtitle'>
+              <View className='ai-quick-tags__card-title'>{tag.title}</View>
+              <View className='ai-quick-tags__card-subtitle'>
                 {tag.subtitle}
-              </Text>
+              </View>
             </View>
           </View>
         ))}

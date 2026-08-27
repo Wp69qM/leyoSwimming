@@ -98,7 +98,7 @@ export function StatusBarAndNavBar({ title }: { title: string }) {
       />
       <View className='payment-page__navbar'>
         <View className='payment-page__navbar-placeholder' />
-        <Text className='payment-page__title'>{title}</Text>
+        <View className='payment-page__title'>{title}</View>
         <View className='payment-page__navbar-placeholder' />
       </View>
     </View>
@@ -119,29 +119,29 @@ export function AmountHeader({
   return (
     <View className='payment-amount-header'>
       <View className='payment-amount-header__order-row'>
-        <Text className='payment-amount-header__label'>订单编号</Text>
+        <View className='payment-amount-header__label'>订单编号</View>
         <Text className='payment-amount-header__order-no'>{order.orderNo}</Text>
-        <Text className='payment-amount-header__copy' onClick={onCopy}>
+        <View className='payment-amount-header__copy' onClick={onCopy}>
           复制
-        </Text>
+        </View>
       </View>
-      <Text className='payment-amount-header__amount-label'>应付金额</Text>
+      <View className='payment-amount-header__amount-label'>应付金额</View>
       <Text className='payment-amount-header__amount'>
         ¥{formatPrice(order.amount)}
       </Text>
       <View className='payment-amount-header__countdown'>
-        <Text className='payment-amount-header__countdown-label'>
+        <View className='payment-amount-header__countdown-label'>
           支付剩余时间
-        </Text>
-        <Text className='payment-amount-header__countdown-value'>
+        </View>
+        <View className='payment-amount-header__countdown-value'>
           {formatCountdown(remainingSeconds)}
-        </Text>
+        </View>
       </View>
       {isExpired && (
         <View className='payment-amount-header__expired-tag'>
-          <Text className='payment-amount-header__expired-tag-text'>
+          <View className='payment-amount-header__expired-tag-text'>
             订单已过期
-          </Text>
+          </View>
         </View>
       )}
     </View>
@@ -169,21 +169,21 @@ export function OrderInfoCard({
     <View className='payment-order-card' onClick={onClick}>
       <View className='payment-order-card__header'>
         <View className='payment-order-card__icon'>
-          <Text className='payment-order-card__icon-text'>课</Text>
+          <View className='payment-order-card__icon-text'>课</View>
         </View>
         <View className='payment-order-card__info'>
           <View className='payment-order-card__name-row'>
-            <Text className='payment-order-card__name'>
+            <View className='payment-order-card__name'>
               {order.packageName}
-            </Text>
+            </View>
             <View className={`payment-page__tag ${modeClass}`}>
-              <Text className='payment-page__tag-text'>{modeLabel}</Text>
+              <View className='payment-page__tag-text'>{modeLabel}</View>
             </View>
           </View>
-          <Text className='payment-order-card__desc'>
+          <View className='payment-order-card__desc'>
             教练：{order.coachName} · {formatTeachingType(order.teachingType)} ·{' '}
             {order.totalHours} 节
-          </Text>
+          </View>
         </View>
         <View className={`payment-page__status-tag ${statusClass}`}>
           <Text className='payment-page__status-tag-text'>
@@ -193,22 +193,22 @@ export function OrderInfoCard({
       </View>
       <View className='payment-order-card__divider' />
       <View className='payment-order-card__row'>
-        <Text className='payment-order-card__row-label'>原价 / 售价</Text>
-        <Text className='payment-order-card__row-value'>
-          ¥{formatPrice(order.originalPrice)} / ¥{formatPrice(order.amount)}
-        </Text>
+        <View className='payment-order-card__row-label'>售价</View>
+        <View className='payment-order-card__row-value'>
+          ¥{formatPrice(order.amount)}
+        </View>
       </View>
       <View className='payment-order-card__row'>
-        <Text className='payment-order-card__row-label'>创建时间</Text>
-        <Text className='payment-order-card__row-value'>
+        <View className='payment-order-card__row-label'>创建时间</View>
+        <View className='payment-order-card__row-value'>
           {formatDateTime(order.createdAt)}
-        </Text>
+        </View>
       </View>
       <View className='payment-order-card__row'>
-        <Text className='payment-order-card__row-label'>有效期至</Text>
-        <Text className='payment-order-card__row-value'>
+        <View className='payment-order-card__row-label'>有效期至</View>
+        <View className='payment-order-card__row-value'>
           {formatDateTime(order.expireAt)}
-        </Text>
+        </View>
       </View>
     </View>
   );
@@ -218,13 +218,13 @@ function ChannelIcon({ channel }: { channel: number }) {
   if (channel === 0) {
     return (
       <View className='payment-method__icon payment-method__icon--wechat'>
-        <Text className='payment-method__icon-text'>微</Text>
+        <View className='payment-method__icon-text'>微</View>
       </View>
     );
   }
   return (
     <View className='payment-method__icon payment-method__icon--alipay'>
-      <Text className='payment-method__icon-text'>支</Text>
+      <View className='payment-method__icon-text'>支</View>
     </View>
   );
 }
@@ -238,7 +238,7 @@ export function PaymentMethodSection({
 }) {
   return (
     <View className='payment-method-section'>
-      <Text className='payment-method-section__title'>支付方式</Text>
+      <View className='payment-method-section__title'>支付方式</View>
       <View
         className={`payment-method__item ${
           selectedChannel === 0 ? 'payment-method__item--selected' : ''
@@ -246,9 +246,9 @@ export function PaymentMethodSection({
         onClick={() => onSelect(0)}
       >
         <ChannelIcon channel={0} />
-        <Text className='payment-method__name'>微信支付</Text>
+        <View className='payment-method__name'>微信支付</View>
         <View className='payment-method__recommend'>
-          <Text className='payment-method__recommend-text'>推荐</Text>
+          <View className='payment-method__recommend-text'>推荐</View>
         </View>
         <View className='payment-method__radio'>
           {selectedChannel === 0 ? (
@@ -267,7 +267,7 @@ export function PaymentMethodSection({
         onClick={() => onSelect(1)}
       >
         <ChannelIcon channel={1} />
-        <Text className='payment-method__name'>支付宝支付</Text>
+        <View className='payment-method__name'>支付宝支付</View>
         <View className='payment-method__radio'>
           {selectedChannel === 1 ? (
             <View className='payment-method__radio-checked'>
@@ -279,9 +279,9 @@ export function PaymentMethodSection({
         </View>
       </View>
       <View className='payment-method__notice'>
-        <Text className='payment-method__notice-text'>
+        <View className='payment-method__notice-text'>
           MVP 阶段调用后端 Mock 支付，不真正调起微信/支付宝 SDK
-        </Text>
+        </View>
       </View>
     </View>
   );
@@ -318,14 +318,14 @@ export function BottomPaymentBar({
   return (
     <View className='payment-bottom-bar'>
       <View className='payment-bottom-bar__amount'>
-        <Text className='payment-bottom-bar__amount-label'>应付金额</Text>
-        <Text className='payment-bottom-bar__amount-value'>
+        <View className='payment-bottom-bar__amount-label'>应付金额</View>
+        <View className='payment-bottom-bar__amount-value'>
           ¥{formatPrice(amount)}
-        </Text>
+        </View>
       </View>
       {expired ? (
         <View className='payment-bottom-bar__reorder' onClick={onReorder}>
-          <Text className='payment-bottom-bar__reorder-text'>重新下单</Text>
+          <View className='payment-bottom-bar__reorder-text'>重新下单</View>
         </View>
       ) : (
         <View className='payment-bottom-bar__actions'>
@@ -333,7 +333,7 @@ export function BottomPaymentBar({
             className='payment-bottom-bar__cancel'
             onClick={!loading && !disabled ? onCancel : undefined}
           >
-            <Text className='payment-bottom-bar__cancel-text'>取消支付</Text>
+            <View className='payment-bottom-bar__cancel-text'>取消支付</View>
           </View>
           <View
             className={`payment-bottom-bar__confirm ${
@@ -341,9 +341,9 @@ export function BottomPaymentBar({
             }`}
             onClick={!loading && !disabled ? onConfirm : undefined}
           >
-            <Text className='payment-bottom-bar__confirm-text'>
+            <View className='payment-bottom-bar__confirm-text'>
               {loading ? '支付中...' : '确认支付'}
-            </Text>
+            </View>
           </View>
         </View>
       )}
@@ -363,7 +363,7 @@ export function PaymentSuccessOverlay({
       <View className='payment-result-overlay__icon payment-result-overlay__icon--success'>
         <Icon name='check' className='payment-result-overlay__check' />
       </View>
-      <Text className='payment-result-overlay__title'>支付成功</Text>
+      <View className='payment-result-overlay__title'>支付成功</View>
       <Text className='payment-result-overlay__subtitle'>
         您已获得 {totalHours} 节课程，快去预约吧
       </Text>
@@ -389,22 +389,22 @@ export function PaymentFailureSheet({
           className='payment-result-sheet__error-icon'
         />
       </View>
-      <Text className='payment-result-sheet__title'>支付未完成</Text>
-      <Text className='payment-result-sheet__desc'>
+      <View className='payment-result-sheet__title'>支付未完成</View>
+      <View className='payment-result-sheet__desc'>
         您可在 24 小时内继续支付，逾期订单将自动取消
-      </Text>
+      </View>
       <View className='payment-result-sheet__actions'>
         <View
           className='payment-result-sheet__btn payment-result-sheet__btn--primary'
           onClick={onRetry}
         >
-          <Text className='payment-result-sheet__btn-text'>重新支付</Text>
+          <View className='payment-result-sheet__btn-text'>重新支付</View>
         </View>
         <View
           className='payment-result-sheet__btn payment-result-sheet__btn--secondary'
           onClick={onBack}
         >
-          <Text className='payment-result-sheet__btn-text'>返回订单详情</Text>
+          <View className='payment-result-sheet__btn-text'>返回订单详情</View>
         </View>
       </View>
     </View>
@@ -427,22 +427,22 @@ export function CancelConfirmModal({
         <View className='payment-cancel-modal__icon'>
           <Icon name='warning' className='payment-cancel-modal__warning-icon' />
         </View>
-        <Text className='payment-cancel-modal__title'>是否放弃当前支付？</Text>
-        <Text className='payment-cancel-modal__desc'>
+        <View className='payment-cancel-modal__title'>是否放弃当前支付？</View>
+        <View className='payment-cancel-modal__desc'>
           订单将保留 24 小时，可在订单列表中继续支付
-        </Text>
+        </View>
         <View className='payment-cancel-modal__actions'>
           <View
             className='payment-cancel-modal__btn payment-cancel-modal__btn--secondary'
             onClick={onContinue}
           >
-            <Text className='payment-cancel-modal__btn-text'>继续支付</Text>
+            <View className='payment-cancel-modal__btn-text'>继续支付</View>
           </View>
           <View
             className='payment-cancel-modal__btn payment-cancel-modal__btn--primary'
             onClick={onCancel}
           >
-            <Text className='payment-cancel-modal__btn-text'>确认取消</Text>
+            <View className='payment-cancel-modal__btn-text'>确认取消</View>
           </View>
         </View>
       </View>
@@ -457,12 +457,12 @@ export function PaymentCancelledState({ onBack }: { onBack: () => void }) {
         name='error-circle'
         className='payment-status-state__icon payment-status-state__icon--cancelled'
       />
-      <Text className='payment-status-state__title'>订单已取消</Text>
-      <Text className='payment-status-state__desc'>
+      <View className='payment-status-state__title'>订单已取消</View>
+      <View className='payment-status-state__desc'>
         该订单已取消，请重新下单或查看其他订单
-      </Text>
+      </View>
       <View className='payment-status-state__btn' onClick={onBack}>
-        <Text className='payment-status-state__btn-text'>返回首页</Text>
+        <View className='payment-status-state__btn-text'>返回首页</View>
       </View>
     </View>
   );
@@ -503,13 +503,13 @@ export function PaymentErrorState({
         <Text className='payment-empty__text'>{message}</Text>
         <View className='payment-empty__actions'>
           <View className='payment-empty__btn' onClick={onRetry}>
-            <Text className='payment-empty__btn-text'>重新加载</Text>
+            <View className='payment-empty__btn-text'>重新加载</View>
           </View>
           <View
             className='payment-empty__btn payment-empty__btn--secondary'
             onClick={onHome}
           >
-            <Text className='payment-empty__btn-text'>返回首页</Text>
+            <View className='payment-empty__btn-text'>返回首页</View>
           </View>
         </View>
       </View>
@@ -527,7 +527,7 @@ export function PaymentEmptyState({ onHome }: { onHome: () => void }) {
         </View>
         <Text className='payment-empty__text'>暂无订单信息</Text>
         <View className='payment-empty__btn' onClick={onHome}>
-          <Text className='payment-empty__btn-text'>返回首页</Text>
+          <View className='payment-empty__btn-text'>返回首页</View>
         </View>
       </View>
     </View>

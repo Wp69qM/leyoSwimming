@@ -35,8 +35,9 @@ class App extends Component<PropsWithChildren<unknown>> {
   }
 
   onShow() {
-    const { restoreFromStorage, isLoggedIn, logout } = useAuthStore.getState();
+    const { restoreFromStorage, logout } = useAuthStore.getState();
     restoreFromStorage();
+    const { isLoggedIn } = useAuthStore.getState();
 
     if (isLoggedIn && isTokenExpired()) {
       logout();

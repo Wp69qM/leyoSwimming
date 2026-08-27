@@ -2,6 +2,10 @@
 import { ref, reactive, computed, watch } from 'vue';
 import type { AdminUserUpdateRequest, AdminUserDetail } from '@/types/api';
 import { getUserDetail, updateUser } from '@/api/userManagement';
+import {
+  SWIM_STROKE_OPTIONS,
+  strokeLabelsToCodes,
+} from '@/constants/swimStrokes';
 
 const props = defineProps<{
   visible: boolean;
@@ -101,7 +105,6 @@ const rules = computed(() => ({
   ],
 }));
 
-const swimStrokeOptions = ['蛙泳', '自由泳', '仰泳', '蝶泳'];
 
 const localVisible = computed({
   get: () => props.visible,
@@ -124,7 +127,6 @@ function resetForm() {
   form.guardianName = '';
   form.guardianPhone = '';
   form.version = 0;
-  formRef.value?.resetFields();
 }
 
 function fillFromUser(data: AdminUserDetail) {
@@ -136,7 +138,7 @@ function fillFromUser(data: AdminUserDetail) {
   form.gender = data.gender ?? 1;
   form.age = data.age ?? 0;
   form.hasSwimBasis = !!data.hasSwimBasis;
-  form.swimStrokes = data.swimStrokes || [];
+  form.swimStrokes = strokeLabelsToCodes(data.swimStrokes || []);
   form.swimYears = data.swimYears ?? 0;
   form.personalDesc = data.personalDesc || '';
   form.guardianName = data.guardianName || '';
@@ -167,7 +169,10 @@ function handleClose() {
 async function handleSubmit() {
   error.value = '';
   const valid = await formRef.value?.validate().catch(() => false);
-  if (!valid) return;
+  if (!valid) {
+    error.value = '请检查表单填写是否正确';
+    return;
+  }
 
   saving.value = true;
   try {
@@ -200,6 +205,16 @@ watch(
     if (visible) {
       resetForm();
       fetchDetail();
+    }
+  }
+);
+
+watch(
+  () => form.hasSwimBasis,
+  (hasBasis) => {
+    if (!hasBasis) {
+      form.swimStrokes = [];
+      form.swimYears = 0;
     }
   }
 );
@@ -278,15 +293,15 @@ watch(
         />
       </el-form-item>
 
-      <template v-if="form.hasSwimBasis">
+      <div v-show="form.hasSwimBasis">
         <el-form-item label="会什么泳姿" prop="swimStrokes">
           <el-checkbox-group v-model="form.swimStrokes">
             <el-checkbox
-              v-for="stroke in swimStrokeOptions"
-              :key="stroke"
-              :label="stroke"
+              v-for="option in SWIM_STROKE_OPTIONS"
+              :key="option.code"
+              :label="option.code"
             >
-              {{ stroke }}
+              {{ option.label }}
             </el-checkbox>
           </el-checkbox-group>
         </el-form-item>
@@ -298,7 +313,7 @@ watch(
             controls-position="right"
           />
         </el-form-item>
-      </template>
+      </div>
 
       <el-form-item label="个人描述">
         <el-input

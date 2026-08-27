@@ -7,6 +7,7 @@ import com.leyoswimming.dto.request.AdminCoachApplicationListRequest;
 import com.leyoswimming.dto.request.AdminCoachApplicationRejectRequest;
 import com.leyoswimming.dto.response.AdminCoachApplicationDetailResponse;
 import com.leyoswimming.dto.response.AdminCoachApplicationListResponse;
+import com.leyoswimming.dto.response.AdminCoachApplicationStatsResponse;
 import com.leyoswimming.service.CoachAuditService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,11 @@ public class AdminCoachApplicationController {
   public ApiResponse<AdminCoachApplicationListResponse> list(
       @Valid @RequestBody AdminCoachApplicationListRequest request) {
     return ApiResponse.ok(coachAuditService.list(request));
+  }
+
+  @PostMapping("/stats")
+  public ApiResponse<AdminCoachApplicationStatsResponse> stats() {
+    return ApiResponse.ok(coachAuditService.stats());
   }
 
   @PostMapping("/detail")

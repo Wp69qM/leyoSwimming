@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Button, Image } from '@tarojs/components'
+import { View, Button, Image } from '@tarojs/components'
 import { getApplicationDetail, type CoachApplication } from '@/api/onboarding'
 import { handleBusinessError } from '@/api/request'
 import { maskPhone } from '@/utils/phone'
@@ -71,23 +71,23 @@ export default function CoachOnboardingSuccessPage() {
           mode='aspectFit'
         />
       </View>
-      <Text className='coach-onboarding-success__title'>
+      <View className='coach-onboarding-success__title'>
         {isReapply ? '重新入驻申请已提交' : '提交成功'}
-      </Text>
-      <Text className='coach-onboarding-success__subtitle'>提交成功，等待审核</Text>
+      </View>
+      <View className='coach-onboarding-success__subtitle'>提交成功，等待审核</View>
       {isReapply && (
-        <Text className='coach-onboarding-success__history-tip'>
+        <View className='coach-onboarding-success__history-tip'>
           历史评分仅对老学员可见
-        </Text>
+        </View>
       )}
-      <Text className='coach-onboarding-success__countdown'>
+      <View className='coach-onboarding-success__countdown'>
         {countdown} 秒后自动跳转等待审核页
-      </Text>
+      </View>
 
       <View className='coach-onboarding-success__card'>
         <View className='coach-onboarding-success__card-header'>
-          <Text className='coach-onboarding-success__card-title'>已提交资料</Text>
-          <Text className='coach-onboarding-success__status-tag'>审核中</Text>
+          <View className='coach-onboarding-success__card-title'>已提交资料</View>
+          <View className='coach-onboarding-success__status-tag'>审核中</View>
         </View>
         <View className='coach-onboarding-success__profile'>
           <Image
@@ -96,27 +96,27 @@ export default function CoachOnboardingSuccessPage() {
             mode='aspectFill'
           />
           <View className='coach-onboarding-success__profile-info'>
-            <Text className='coach-onboarding-success__name'>{detail?.name || '-'}</Text>
-            <Text className='coach-onboarding-success__phone'>
+            <View className='coach-onboarding-success__name'>{detail?.name || '-'}</View>
+            <View className='coach-onboarding-success__phone'>
               {maskPhone(detail?.phone || '')}
-            </Text>
+            </View>
           </View>
         </View>
         <View className='coach-onboarding-success__meta'>
-          <Text className='coach-onboarding-success__meta-item'>
+          <View className='coach-onboarding-success__meta-item'>
             任教年限：
             {detail?.teachingYears != null ? `${detail.teachingYears} 年` : '-'}
-          </Text>
-          <Text className='coach-onboarding-success__meta-item'>
+          </View>
+          <View className='coach-onboarding-success__meta-item'>
             参考单价：
             {detail?.referencePrice != null
               ? `${Number(detail.referencePrice).toFixed(2)} 元/节`
               : '-'}
-          </Text>
+          </View>
         </View>
-        <Text className='coach-onboarding-success__card-tip'>
+        <View className='coach-onboarding-success__card-tip'>
           审核结果将通过服务通知推送
-        </Text>
+        </View>
       </View>
 
       <Button

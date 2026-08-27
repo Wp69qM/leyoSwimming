@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Taro, { useRouter } from '@tarojs/taro'
 import { View, Text, Textarea, Image } from '@tarojs/components'
+import Taro, { useRouter } from '@tarojs/taro'
 import {
   fetchCoachStudentDetail,
   fetchCoachStudentPackageList,
@@ -12,6 +12,8 @@ import type {
   CoachStudentSlice
 } from '@/types/student'
 import './index.scss'
+
+const STATUS_BAR_HEIGHT = Taro.getSystemInfoSync().statusBarHeight || 20
 
 const STROKE_OPTIONS = ['自由泳', '蛙泳', '仰泳', '蝶泳']
 const LEVEL_OPTIONS = [
@@ -132,12 +134,18 @@ export default function StudentDetailPage() {
     })
   }
 
+  const handleBack = () => {
+    Taro.navigateBack().catch(() => {
+      Taro.switchTab({ url: '/pages/student/index' })
+    })
+  }
+
   const renderAvatar = (name: string, avatarUrl: string | null) => {
     if (avatarUrl) {
       return <Image className='detail-avatar__img' src={avatarUrl} mode='aspectFill' />
     }
     const char = name ? name.charAt(0) : '?'
-    return <Text className='detail-avatar__text'>{char}</Text>
+    return <View className='detail-avatar__text'>{char}</View>
   }
 
   const renderSkeleton = () => (
@@ -151,19 +159,19 @@ export default function StudentDetailPage() {
 
   const renderError = () => (
     <View className='student-detail__error'>
-      <Text className='student-detail__error-title'>网络异常，请重试</Text>
+      <View className='student-detail__error-title'>网络异常，请重试</View>
       <View className='student-detail__error-button' onClick={() => loadDetail(true)}>
-        <Text className='student-detail__error-button-text'>重新加载</Text>
+        <View className='student-detail__error-button-text'>重新加载</View>
       </View>
     </View>
   )
 
   const renderForbidden = () => (
     <View className='student-detail__error'>
-      <Text className='student-detail__error-title'>无权查看该学员</Text>
-      <Text className='student-detail__error-desc'>该学员与当前教练无关联</Text>
+      <View className='student-detail__error-title'>无权查看该学员</View>
+      <View className='student-detail__error-desc'>该学员与当前教练无关联</View>
       <View className='student-detail__error-button' onClick={() => Taro.navigateBack()}>
-        <Text className='student-detail__error-button-text'>返回</Text>
+        <View className='student-detail__error-button-text'>返回</View>
       </View>
     </View>
   )
@@ -177,6 +185,17 @@ export default function StudentDetailPage() {
 
   return (
     <View className='student-detail'>
+      <View
+        className='student-detail__status-bar'
+        style={{ height: `${STATUS_BAR_HEIGHT}px` }}
+      />
+      <View className='student-detail__navbar'>
+        <View className='student-detail__navbar-back' onClick={handleBack}>
+          <Text className='student-detail__navbar-back-icon'>‹</Text>
+        </View>
+        <View className='student-detail__navbar-title'>学员详情</View>
+      </View>
+
       <View className='student-detail__content'>
         {/* 学员基础信息区 */}
         <View className='detail-card detail-card--basic'>
@@ -184,21 +203,21 @@ export default function StudentDetailPage() {
             <View className='detail-avatar'>{renderAvatar(userProfile.name, userProfile.avatarUrl)}</View>
             <View className='detail-basic__info'>
               <View className='detail-basic__name-row'>
-                <Text className='detail-basic__name'>{userProfile.name}</Text>
-                <Text className='detail-basic__meta'>
+                <View className='detail-basic__name'>{userProfile.name}</View>
+                <View className='detail-basic__meta'>
                   {formatGenderAge(userProfile.gender, userProfile.age)}
-                </Text>
+                </View>
                 {userProfile.isMinor && (
                   <View className='detail-basic__minor-tag'>
-                    <Text className='detail-basic__minor-tag-text'>未成年</Text>
+                    <View className='detail-basic__minor-tag-text'>未成年</View>
                   </View>
                 )}
               </View>
               <View className='detail-basic__phone-row'>
                 <Text className='detail-basic__phone-icon'>📱</Text>
-                <Text className='detail-basic__phone'>
-                  {userProfile.phoneMasked || '-'}
-                </Text>
+                <View className='detail-basic__phone'>
+                  {userProfile.phone || '-'}
+                </View>
               </View>
             </View>
           </View>
@@ -207,53 +226,53 @@ export default function StudentDetailPage() {
           <View className='detail-readonly'>
             <View className='detail-readonly__title'>
               <Text className='detail-readonly__icon'>📝</Text>
-              <Text className='detail-readonly__text'>自主档案</Text>
+              <View className='detail-readonly__text'>自主档案</View>
               <View className='detail-readonly__badge'>
-                <Text className='detail-readonly__badge-text'>只读</Text>
+                <View className='detail-readonly__badge-text'>只读</View>
               </View>
             </View>
             <View className='detail-readonly__rows'>
               <View className='detail-readonly__row'>
-                <Text className='detail-readonly__label'>有无游泳基础</Text>
-                <Text className='detail-readonly__value'>
+                <View className='detail-readonly__label'>有无游泳基础</View>
+                <View className='detail-readonly__value'>
                   {userProfile.hasSwimBasis == null
                     ? '-'
                     : userProfile.hasSwimBasis
                       ? '有'
                       : '无'}
-                </Text>
+                </View>
               </View>
               <View className='detail-readonly__row'>
-                <Text className='detail-readonly__label'>会什么泳姿</Text>
-                <Text className='detail-readonly__value'>
+                <View className='detail-readonly__label'>会什么泳姿</View>
+                <View className='detail-readonly__value'>
                   {userProfile.swimStrokes || '-'}
-                </Text>
+                </View>
               </View>
               <View className='detail-readonly__row'>
-                <Text className='detail-readonly__label'>游泳年限</Text>
-                <Text className='detail-readonly__value'>
+                <View className='detail-readonly__label'>游泳年限</View>
+                <View className='detail-readonly__value'>
                   {userProfile.swimYears || '-'}
-                </Text>
+                </View>
               </View>
               <View className='detail-readonly__row'>
-                <Text className='detail-readonly__label'>个人描述</Text>
-                <Text className='detail-readonly__value'>
+                <View className='detail-readonly__label'>个人描述</View>
+                <View className='detail-readonly__value'>
                   {userProfile.personalDesc || '-'}
-                </Text>
+                </View>
               </View>
               {userProfile.isMinor && (
                 <>
                   <View className='detail-readonly__row'>
-                    <Text className='detail-readonly__label'>监护人姓名</Text>
-                    <Text className='detail-readonly__value'>
+                    <View className='detail-readonly__label'>监护人姓名</View>
+                    <View className='detail-readonly__value'>
                       {userProfile.guardianName || '-'}
-                    </Text>
+                    </View>
                   </View>
                   <View className='detail-readonly__row'>
-                    <Text className='detail-readonly__label'>监护人手机号</Text>
-                    <Text className='detail-readonly__value'>
-                      {userProfile.guardianPhoneMasked || '-'}
-                    </Text>
+                    <View className='detail-readonly__label'>监护人手机号</View>
+                    <View className='detail-readonly__value'>
+                      {userProfile.guardianPhone || '-'}
+                    </View>
                   </View>
                 </>
               )}
@@ -264,22 +283,22 @@ export default function StudentDetailPage() {
         {/* 关联数据摘要 */}
         <View className='detail-card detail-card--summary'>
           <View className='detail-summary__item'>
-            <Text className='detail-summary__value'>{summary.totalHours}</Text>
-            <Text className='detail-summary__label'>累计课时</Text>
+            <View className='detail-summary__value'>{summary.totalHours}</View>
+            <View className='detail-summary__label'>累计课时</View>
           </View>
           <View className='detail-summary__divider' />
           <View className='detail-summary__item'>
-            <Text className='detail-summary__value detail-summary__value--primary'>
+            <View className='detail-summary__value detail-summary__value--primary'>
               {summary.remainingHours}
-            </Text>
-            <Text className='detail-summary__label'>剩余课时</Text>
+            </View>
+            <View className='detail-summary__label'>剩余课时</View>
           </View>
           <View className='detail-summary__divider' />
           <View className='detail-summary__item'>
-            <Text className='detail-summary__value detail-summary__value--small'>
+            <View className='detail-summary__value detail-summary__value--small'>
               {summary.lastClassDate || '-'}
-            </Text>
-            <Text className='detail-summary__label'>最近上课</Text>
+            </View>
+            <View className='detail-summary__label'>最近上课</View>
           </View>
         </View>
 
@@ -287,11 +306,11 @@ export default function StudentDetailPage() {
         <View className='detail-card detail-card--edit'>
           <View className='detail-edit__title'>
             <Text className='detail-edit__icon'>🏊</Text>
-            <Text className='detail-edit__text'>教学信息</Text>
+            <View className='detail-edit__text'>教学信息</View>
           </View>
 
           <View className='detail-edit__field'>
-            <Text className='detail-edit__label'>学习泳姿</Text>
+            <View className='detail-edit__label'>学习泳姿</View>
             <View className='detail-edit__options'>
               {STROKE_OPTIONS.map(stroke => {
                 const selected = slice.learningStrokes?.includes(stroke)
@@ -301,11 +320,11 @@ export default function StudentDetailPage() {
                     className={`detail-edit__option ${selected ? 'detail-edit__option--active' : ''}`}
                     onClick={() => toggleStroke(stroke)}
                   >
-                    <Text
+                    <View
                       className={`detail-edit__option-text ${selected ? 'detail-edit__option-text--active' : ''}`}
                     >
                       {stroke}
-                    </Text>
+                    </View>
                   </View>
                 )
               })}
@@ -313,7 +332,7 @@ export default function StudentDetailPage() {
           </View>
 
           <View className='detail-edit__field'>
-            <Text className='detail-edit__label'>游泳等级</Text>
+            <View className='detail-edit__label'>游泳等级</View>
             <View className='detail-edit__options'>
               {LEVEL_OPTIONS.map(level => {
                 const selected = slice.swimLevel === level.value
@@ -323,11 +342,11 @@ export default function StudentDetailPage() {
                     className={`detail-edit__option ${selected ? 'detail-edit__option--active' : ''}`}
                     onClick={() => selectLevel(level.value)}
                   >
-                    <Text
+                    <View
                       className={`detail-edit__option-text ${selected ? 'detail-edit__option-text--active' : ''}`}
                     >
                       {level.label}
-                    </Text>
+                    </View>
                   </View>
                 )
               })}
@@ -336,10 +355,10 @@ export default function StudentDetailPage() {
 
           <View className='detail-edit__field'>
             <View className='detail-edit__label-row'>
-              <Text className='detail-edit__label'>基础情况</Text>
-              <Text className='detail-edit__count'>
+              <View className='detail-edit__label'>基础情况</View>
+              <View className='detail-edit__count'>
                 {(slice.basics || '').length}/{MAX_BASICS_LENGTH}
-              </Text>
+              </View>
             </View>
             <Textarea
               className='detail-edit__textarea'
@@ -352,10 +371,10 @@ export default function StudentDetailPage() {
 
           <View className='detail-edit__field'>
             <View className='detail-edit__label-row'>
-              <Text className='detail-edit__label'>沟通备注</Text>
-              <Text className='detail-edit__count'>
+              <View className='detail-edit__label'>沟通备注</View>
+              <View className='detail-edit__count'>
                 {(slice.notes || '').length}/{MAX_NOTES_LENGTH}
-              </Text>
+              </View>
             </View>
             <Textarea
               className='detail-edit__textarea'
@@ -371,11 +390,11 @@ export default function StudentDetailPage() {
         <View className='detail-card detail-card--packages'>
           <View className='detail-packages__title'>
             <Text className='detail-packages__icon'>📦</Text>
-            <Text className='detail-packages__text'>关联套餐</Text>
+            <View className='detail-packages__text'>关联套餐</View>
           </View>
           {packages.length === 0 ? (
             <View className='detail-packages__empty'>
-              <Text className='detail-packages__empty-text'>暂无关联套餐</Text>
+              <View className='detail-packages__empty-text'>暂无关联套餐</View>
             </View>
           ) : (
             <View className='detail-packages__list'>
@@ -388,20 +407,20 @@ export default function StudentDetailPage() {
                   <View
                     className={`detail-package-card__icon detail-package-card__icon--${pkg.packageMode}`}
                   >
-                    <Text className='detail-package-card__icon-text'>
+                    <View className='detail-package-card__icon-text'>
                       {pkg.packageMode === 'experience' ? '体' : '课'}
-                    </Text>
+                    </View>
                   </View>
                   <View className='detail-package-card__info'>
                     <View className='detail-package-card__name-row'>
-                      <Text className='detail-package-card__name'>{pkg.packageName}</Text>
+                      <View className='detail-package-card__name'>{pkg.packageName}</View>
                       <View className={`detail-package-card__status detail-package-card__status--${pkg.status}`}>
-                        <Text className='detail-package-card__status-text'>{pkg.statusLabel}</Text>
+                        <View className='detail-package-card__status-text'>{pkg.statusLabel}</View>
                       </View>
                     </View>
-                    <Text className='detail-package-card__meta'>
+                    <View className='detail-package-card__meta'>
                       {formatPackageMeta(pkg)}
-                    </Text>
+                    </View>
                   </View>
                   <Text className='detail-package-card__arrow'>›</Text>
                 </View>
@@ -417,7 +436,7 @@ export default function StudentDetailPage() {
           className={`student-detail__save ${saving ? 'student-detail__save--disabled' : ''}`}
           onClick={handleSave}
         >
-          <Text className='student-detail__save-text'>{saving ? '保存中...' : '保存'}</Text>
+          <View className='student-detail__save-text'>{saving ? '保存中...' : '保存'}</View>
         </View>
       </View>
     </View>
@@ -426,7 +445,9 @@ export default function StudentDetailPage() {
 
 function formatGenderAge(gender: string | null, age: number | null): string {
   const parts: string[] = []
-  if (gender) parts.push(gender)
+  if (gender) {
+    parts.push(gender === 'male' ? '男' : gender === 'female' ? '女' : gender)
+  }
   if (age != null) parts.push(`${age}岁`)
   return parts.join(' · ') || ''
 }

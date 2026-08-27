@@ -31,6 +31,12 @@ app:
     upload-dir: uploads
     base-url: /uploads/
 
+mybatis-plus:
+  # 自定义 TypeHandler 通过实体字段上的 @TableField(typeHandler = ...) 显式指定。
+  # 额外只扫描 com.leyoswimming.common.typehandler 子包，把 StringListJsonTypeHandler
+  # 注册为全局 List 处理器，避免与 CoachCertificateListJsonTypeHandler 冲突。
+  type-handlers-package: com.leyoswimming.common.typehandler
+
 logging:
   level:
     root: INFO
