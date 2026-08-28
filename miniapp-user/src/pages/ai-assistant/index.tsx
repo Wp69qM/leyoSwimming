@@ -62,7 +62,24 @@ export default function AiAssistantPage() {
   }, [initSession]);
 
   async function handleSend(message: string) {
-    if (!sessionId) return;
+    if (isLoading) return;
+
+    let currentSessionId = sessionId;
+    if (!currentSessionId) {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await createSession();
+        currentSessionId = data.sessionId;
+        setSessionId(currentSessionId);
+        setWelcomeMessage(data.welcomeMessage);
+      } catch (err) {
+        setError(handleBusinessError(err));
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(false);
+    }
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -75,7 +92,7 @@ export default function AiAssistantPage() {
     setError(null);
 
     try {
-      const response = await chat({ sessionId, message });
+      const response = await chat({ sessionId: currentSessionId, message });
       setSessionId(response.sessionId);
       setMessages((prev) => [...prev, response.message]);
     } catch (err) {
@@ -98,7 +115,7 @@ export default function AiAssistantPage() {
     setHistoryVisible(true);
     try {
       const data = await listSessions();
-      setHistorySessions(data.sessions);
+      setHistorySessions(data.sessions ?? []);
     } catch (err) {
       Taro.showToast({
         title: handleBusinessError(err),
@@ -152,7 +169,6 @@ export default function AiAssistantPage() {
   return (
     <View className='ai-assistant-page'>
       <AiHeader
-        isLoggedIn={isLoggedIn}
         onNewSession={handleNewSession}
         onOpenHistory={handleOpenHistory}
         onClose={handleClose}
@@ -173,7 +189,7 @@ export default function AiAssistantPage() {
         )}
       </View>
 
-      <AiInputBar onSend={handleSend} disabled={isLoading || !sessionId} />
+      <AiInputBar onSend={handleSend} disabled={isLoading} />
 
       <AiHistoryDrawer
         visible={historyVisible}

@@ -44,71 +44,73 @@ export function AiChatArea({
           : ''
       }
     >
-      {!hasMessages && (
-        <View className='ai-chat-area__welcome'>
-          <View className='ai-chat-area__avatar-wrap'>
+      <View className='ai-chat-area__scroll-content'>
+        {!hasMessages && (
+          <View className='ai-chat-area__welcome'>
+            <View className='ai-chat-area__avatar-wrap'>
+              <Image
+                className='ai-chat-area__avatar'
+                src={require('@/assets/calicat/icons/AI助理.png')}
+                mode='aspectFill'
+              />
+              <View className='ai-chat-area__online-dot' />
+            </View>
+            <View className='ai-chat-area__welcome-title'>
+              你好，我是 leyo 👋
+            </View>
+            <View className='ai-chat-area__welcome-subtitle'>
+              你的专属游泳教练助理，有什么可以帮你的？
+            </View>
+          </View>
+        )}
+
+        {hasMessages && (
+          <View className='ai-chat-area__messages'>
+            <AiMessageBubble
+              message={{ role: 'assistant', content: welcomeMessage }}
+              onSuggestedQuestionClick={onSuggestedQuestionClick}
+            />
+            {messages.map((message) => (
+              <View
+                key={message.id ?? `msg-${message.content}`}
+                id={`msg-${message.id ?? 'bottom'}`}
+              >
+                <AiMessageBubble
+                  message={message}
+                  onSuggestedQuestionClick={onSuggestedQuestionClick}
+                />
+              </View>
+            ))}
+          </View>
+        )}
+
+        {isLoading && (
+          <View className='ai-chat-area__loading'>
             <Image
-              className='ai-chat-area__avatar'
-              src={require('@/assets/calicat/images/leyo-avatar-large.jpg')}
+              className='ai-chat-area__loading-avatar'
+              src={require('@/assets/calicat/icons/AI助理.png')}
               mode='aspectFill'
             />
-            <View className='ai-chat-area__online-dot' />
-          </View>
-          <View className='ai-chat-area__welcome-title'>
-            你好，我是 leyo 👋
-          </View>
-          <View className='ai-chat-area__welcome-subtitle'>
-            你的专属游泳教练助理，有什么可以帮你的？
-          </View>
-        </View>
-      )}
-
-      {hasMessages && (
-        <View className='ai-chat-area__messages'>
-          <AiMessageBubble
-            message={{ role: 'assistant', content: welcomeMessage }}
-            onSuggestedQuestionClick={onSuggestedQuestionClick}
-          />
-          {messages.map((message) => (
-            <View
-              key={message.id ?? `msg-${message.content}`}
-              id={`msg-${message.id ?? 'bottom'}`}
-            >
-              <AiMessageBubble
-                message={message}
-                onSuggestedQuestionClick={onSuggestedQuestionClick}
-              />
+            <View className='ai-chat-area__loading-bubble'>
+              <View className='ai-chat-area__loading-dot' />
+              <View className='ai-chat-area__loading-dot' />
+              <View className='ai-chat-area__loading-dot' />
             </View>
-          ))}
-        </View>
-      )}
-
-      {isLoading && (
-        <View className='ai-chat-area__loading'>
-          <Image
-            className='ai-chat-area__loading-avatar'
-            src={require('@/assets/calicat/images/leyo-avatar-small.jpg')}
-            mode='aspectFill'
-          />
-          <View className='ai-chat-area__loading-bubble'>
-            <View className='ai-chat-area__loading-dot' />
-            <View className='ai-chat-area__loading-dot' />
-            <View className='ai-chat-area__loading-dot' />
           </View>
-        </View>
-      )}
+        )}
 
-      {error && (
-        <View className='ai-chat-area__error'>
-          <Icon name='error-circle' className='ai-chat-area__error-icon' />
-          <View className='ai-chat-area__error-text'>{error}</View>
-          <View className='ai-chat-area__error-button' onClick={onRetry}>
-            <View className='ai-chat-area__error-button-text'>重试</View>
+        {error && (
+          <View className='ai-chat-area__error'>
+            <Icon name='error-circle' className='ai-chat-area__error-icon' />
+            <View className='ai-chat-area__error-text'>{error}</View>
+            <View className='ai-chat-area__error-button' onClick={onRetry}>
+              <View className='ai-chat-area__error-button-text'>重试</View>
+            </View>
           </View>
-        </View>
-      )}
+        )}
 
-      <View className='ai-chat-area__bottom-spacer' />
+        <View className='ai-chat-area__bottom-spacer' />
+      </View>
     </ScrollView>
   );
 }

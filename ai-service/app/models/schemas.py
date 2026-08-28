@@ -38,6 +38,7 @@ class RecommendationItem(BaseModel):
     strokes: list[str] | None = None
     coach_id: int | None = None
     coach_name: str | None = None
+    description: str | None = None
 
 
 class ChatReply(BaseModel):

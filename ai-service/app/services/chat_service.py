@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import time
 import uuid
 from typing import Any
@@ -12,6 +13,7 @@ from app.clients.java_client import JavaInternalClient, generate_message_id
 from app.config import Settings, get_settings
 from app.models.schemas import ChatReply, ChatRequest, ChatResponse, RecommendationItem
 from app.tools import build_tools
+from app.tools.recommendation_tools import normalize_stroke
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -23,16 +25,45 @@ DEFAULT_SUGGESTED_QUESTIONS = [
     "儿童可以学自由泳吗？",
 ]
 
+RECOMMENDATION_KEYWORDS = [
+    "推荐",
+    "教练",
+    "课程",
+    "套餐",
+    "私教",
+    "体验课",
+    "学游泳",
+    "游泳",
+    "自由泳",
+    "蛙泳",
+    "仰泳",
+    "蝶泳",
+    "课",
+    "价",
+    "钱",
+]
+
 SYSTEM_PROMPT = """你是 leyo，一位专业、友好的游泳学习助手。你的任务是根据用户的需求，推荐合适的游泳教练和课程套餐。
 
-注意：
-1. 如果用户未提供关键信息（年龄、目标泳姿、预算、游泳基础），可以主动询问 1-2 个问题。
-2. 推荐时必须调用 query_coaches 或 query_packages 工具获取真实数据，不能编造。
-3. 已登录用户可以调用 get_user_profile 和 get_user_packages 做个性化推荐；游客用户只能调用 query_coaches、query_packages、get_hot_recommendations。
-4. 如果用户询问自己的套餐、订单、个人资料等，但你是游客模式（没有 user_hash），请友好地引导用户登录。
-5. 当标准/体验套餐无法满足用户需求（如课时数、班级规模不匹配）时，调用 query_packages 并设置 package_mode="custom" 推荐自定义套餐；自定义套餐必须给出 coach_id、hours、class_size、price_per_hour、total_price。
-6. 回复要简洁、口语化、友好，突出推荐理由，每条推荐理由控制在 30 字以内。
-7. 最后可以给出 2-3 个用户可能想继续问的问题，用「追问：」开头并换行列出。
+重要规则：
+1. 当用户提到任何与教练、课程、套餐、泳姿相关的需求时，你必须先调用工具获取真实数据，不能仅凭猜测回复。
+2. 仔细判断用户意图：
+   - 用户明确提到"教练""老师""私教"时，只调用 query_coaches 推荐教练。
+   - 用户明确提到"套餐""课程""体验课""多少钱""课时"时，只调用 query_packages 推荐套餐。
+   - 用户提到预算（如"1000元左右"）时，必须将 max_price 传给对应工具，只返回不超过预算的结果。
+   - 用户只提到泳姿（如"推荐自由泳"）但没有明确教练或套餐时，可以同时调用 query_coaches 和 query_packages。
+   - 用户只说"推荐"或"热门"时，调用 get_hot_recommendations。
+3. 只有用户明确在闲聊、打招呼、或询问与游泳无关的问题时，才可以不调用工具直接回复。
+4. 推荐时必须调用工具获取真实数据，不能编造。
+5. 已登录用户可以调用 get_user_profile 和 get_user_packages 做个性化推荐；游客用户只能调用 query_coaches、query_packages、get_hot_recommendations。
+6. 如果用户询问自己的套餐、订单、个人资料等，但你是游客模式（没有 user_hash），请友好地引导用户登录。
+7. 当标准/体验套餐无法满足用户需求（如课时数、班级规模不匹配）时，必须推荐自定义套餐（custom_package）；自定义套餐必须给出 coach_id、hours、class_size、price_per_hour、total_price，且 total_price = price_per_hour * hours。
+8. 回复要简洁、口语化、友好，突出推荐理由，每条推荐理由控制在 30 字以内。
+9. 不要每次推荐都列出相同的教练或套餐，优先根据用户的具体需求（预算、泳姿、课时、班级规模、教练描述、套餐描述）筛选最匹配的项。
+10. 你收到的工具结果中已经包含教练的 description（个人介绍/擅长方向）和套餐的 description（课程介绍/适合人群），请重点参考这些描述来判断是否匹配用户需求，并在推荐理由中体现关键信息。
+11. 你生成的文字回复中提到的教练或套餐，必须和最终返回的 recommendations 列表完全一致：不能提到列表里没有的项，也不能漏掉列表里要展示的关键项。介绍顺序必须严格按照 recommendations 列表从上到下，不要重新排序。
+12. 如果推荐项是 custom_package（自定义套餐），请在理由中引用教练 description 里的核心优势，让用户感受到推荐的针对性。
+13. 最后可以给出 2-3 个用户可能想继续问的问题，用「追问：」开头并换行列出。
 
 当前时间：{current_time}
 用户身份：{user_identity}
@@ -109,21 +140,29 @@ class ChatService:
 
     def _history_to_messages(self, history: list[dict[str, Any]]) -> list[BaseMessage]:
         messages: list[BaseMessage] = []
-        for msg in history[-6:]:
+        # 跳过没有对应 assistant_tool_calls 的孤立 tool 消息（历史数据可能损坏）
+        after_tool_calls = False
+        for msg in history[-self.settings.session_max_messages :]:
             role = msg.get("role")
             if role == "user":
                 messages.append(HumanMessage(content=msg.get("content", "")))
+                after_tool_calls = False
             elif role == "assistant":
                 messages.append(AIMessage(content=msg.get("content", "")))
+                after_tool_calls = False
             elif role == "assistant_tool_calls":
                 messages.append(AIMessage(content="", tool_calls=msg.get("tool_calls", [])))
+                after_tool_calls = True
             elif role == "tool":
-                messages.append(
-                    ToolMessage(
-                        content=json.dumps(msg.get("output"), ensure_ascii=False),
-                        tool_call_id=msg.get("tool_call_id", ""),
+                if after_tool_calls:
+                    messages.append(
+                        ToolMessage(
+                            content=json.dumps(msg.get("output"), ensure_ascii=False),
+                            tool_call_id=msg.get("tool_call_id", ""),
+                        )
                     )
-                )
+                else:
+                    logger.warning("skip_orphan_tool_message", tool_call_id=msg.get("tool_call_id"))
         return messages
 
     def _parse_suggested_questions(self, text: str) -> tuple[str, list[str]]:
@@ -135,6 +174,55 @@ class ChatService:
         questions = [q.strip("-0123456789. \n") for q in questions_text.split("\n") if q.strip()]
         return main_text, questions[:3] or DEFAULT_SUGGESTED_QUESTIONS[:3]
 
+    def _build_default_reason(self, item: RecommendationItem) -> str:
+        parts: list[str] = []
+        if item.type == "coach":
+            if item.teaching_years:
+                parts.append(f"{item.teaching_years} 年教学经验")
+            if item.rating:
+                parts.append(f"评分 {item.rating}")
+            if item.reference_price:
+                parts.append(f"参考价 ¥{item.reference_price}/课时")
+            if item.strokes:
+                parts.append(f"擅长 {', '.join(item.strokes[:3])}")
+            if not parts:
+                return "推荐该教练"
+        elif item.type == "package":
+            if item.price is not None and item.hours:
+                avg = item.price // item.hours if item.hours else None
+                if avg:
+                    parts.append(f"{item.hours} 课时 ¥{item.price}，均价 ¥{avg}/课时")
+                else:
+                    parts.append(f"{item.hours} 课时 ¥{item.price}")
+            elif item.price is not None:
+                parts.append(f"总价 ¥{item.price}")
+            elif item.hours:
+                parts.append(f"共 {item.hours} 课时")
+            if item.validity_days:
+                parts.append(f"有效期 {item.validity_days} 天")
+            if item.class_size:
+                parts.append(f"{item.class_size}")
+            if item.strokes:
+                parts.append(f"适合 {', '.join(item.strokes[:3])}")
+            if not parts:
+                return "推荐该套餐"
+        elif item.type == "custom_package":
+            if item.description:
+                return item.description
+            if item.coach_name:
+                parts.append(f"{item.coach_name} 定制")
+            if item.hours:
+                parts.append(f"{item.hours} 课时")
+            if item.total_price is not None:
+                parts.append(f"预估 ¥{item.total_price}")
+            elif item.price_per_hour and item.hours:
+                parts.append(f"预估 ¥{item.price_per_hour * item.hours}")
+            if item.class_size:
+                parts.append(f"{item.class_size}")
+            if not parts:
+                return "推荐该定制方案"
+        return "，".join(parts)
+
     def _extract_recommendations(self, tool_outputs: list[Any]) -> list[RecommendationItem]:
         recommendations: list[RecommendationItem] = []
         for output in tool_outputs:
@@ -144,23 +232,10 @@ class ChatService:
                 if not isinstance(item, dict):
                     continue
                 item_type = item.get("type") or item.get("package_mode")
-                if item_type == "coach" or "coach_hash" in item:
-                    source_id = item.get("coach_hash") or item.get("name", "")
-                    recommendations.append(
-                        RecommendationItem(
-                            type="coach",
-                            id=deterministic_id(f"coach:{source_id}"),
-                            name=item.get("name", ""),
-                            reason=item.get("reason", ""),
-                            avatar_url=item.get("avatar_url"),
-                            rating=item.get("rating"),
-                            teaching_years=item.get("teaching_years"),
-                            reference_price=item.get("reference_price"),
-                            strokes=item.get("teaching_strokes") or item.get("strokes"),
-                        )
-                    )
-                elif item_type == "custom" or item_type == "custom_package" or (item.get("package_mode") == "custom"):
-                    source_id = item.get("package_hash") or item.get("coach_hash") or item.get("name", "")
+                if item_type == "custom" or item_type == "custom_package" or item.get("package_mode") == "custom":
+                    package_id = item.get("package_id")
+                    coach_id = item.get("coach_id")
+                    source_id = package_id or item.get("package_hash") or coach_id or item.get("name", "")
                     hours = item.get("hours")
                     price_per_hour = item.get("price_per_hour") or item.get("reference_price")
                     total_price = item.get("total_price")
@@ -169,7 +244,7 @@ class ChatService:
                     recommendations.append(
                         RecommendationItem(
                             type="custom_package",
-                            id=deterministic_id(f"custom_package:{source_id}"),
+                            id=package_id if package_id is not None else deterministic_id(f"custom_package:{source_id}"),
                             name=item.get("name", ""),
                             reason=item.get("reason", ""),
                             avatar_url=item.get("avatar_url"),
@@ -179,16 +254,36 @@ class ChatService:
                             class_size=item.get("class_size") or item.get("teaching_type"),
                             validity_days=item.get("validity_days"),
                             strokes=item.get("strokes") or item.get("teaching_strokes"),
-                            coach_id=item.get("coach_id"),
+                            coach_id=coach_id,
                             coach_name=item.get("coach_name") or item.get("name", ""),
+                            description=item.get("description"),
                         )
                     )
-                elif item_type == "package" or "package_hash" in item:
-                    source_id = item.get("package_hash") or item.get("name", "")
+                elif item_type == "coach" or "coach_hash" in item or "coach_id" in item:
+                    coach_id = item.get("coach_id")
+                    source_id = item.get("coach_hash") or coach_id or item.get("name", "")
+                    recommendations.append(
+                        RecommendationItem(
+                            type="coach",
+                            id=coach_id if coach_id is not None else deterministic_id(f"coach:{source_id}"),
+                            coach_id=coach_id,
+                            name=item.get("name", ""),
+                            reason=item.get("reason", ""),
+                            avatar_url=item.get("avatar_url"),
+                            rating=item.get("rating"),
+                            teaching_years=item.get("teaching_years"),
+                            reference_price=item.get("reference_price"),
+                            strokes=item.get("teaching_strokes") or item.get("strokes"),
+                            description=item.get("description"),
+                        )
+                    )
+                elif item_type == "package" or "package_hash" in item or "package_id" in item:
+                    package_id = item.get("package_id")
+                    source_id = item.get("package_hash") or package_id or item.get("name", "")
                     recommendations.append(
                         RecommendationItem(
                             type="package",
-                            id=deterministic_id(f"package:{source_id}"),
+                            id=package_id if package_id is not None else deterministic_id(f"package:{source_id}"),
                             name=item.get("name", ""),
                             reason=item.get("reason", ""),
                             price=item.get("price"),
@@ -197,9 +292,268 @@ class ChatService:
                             class_size=item.get("class_size") or item.get("teaching_type"),
                             validity_days=item.get("validity_days"),
                             strokes=item.get("strokes"),
+                            description=item.get("description"),
                         )
                     )
+        for rec in recommendations:
+            if not rec.reason:
+                rec.reason = self._build_default_reason(rec)
+        if not recommendations:
+            return recommendations
+
+        # 对模糊推荐做类型均衡：避免只返回单一类型
+        coach_items = [r for r in recommendations if r.type == "coach"]
+        package_items = [r for r in recommendations if r.type in {"package", "custom_package"}]
+
+        if coach_items and package_items:
+            mixed: list[RecommendationItem] = []
+            coach_iter = iter(coach_items)
+            package_iter = iter(package_items)
+            while len(mixed) < 5:
+                added = False
+                if len(mixed) % 2 == 0:
+                    for item in coach_iter:
+                        mixed.append(item)
+                        added = True
+                        break
+                else:
+                    for item in package_iter:
+                        mixed.append(item)
+                        added = True
+                        break
+                if not added:
+                    break
+            remaining = list(coach_iter) + list(package_iter)
+            mixed.extend(remaining[: 5 - len(mixed)])
+            return mixed
+
         return recommendations[:5]
+
+    def _collect_items_from_outputs(self, tool_outputs: list[Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        """从工具输出中分离教练和套餐原始数据。"""
+        coaches: list[dict[str, Any]] = []
+        packages: list[dict[str, Any]] = []
+        for output in tool_outputs:
+            if not isinstance(output, list):
+                continue
+            for item in output:
+                if not isinstance(item, dict):
+                    continue
+                item_type = item.get("type") or item.get("package_mode")
+                if item_type == "coach" or "coach_hash" in item or "coach_id" in item:
+                    coaches.append(item)
+                elif item_type in {"package", "custom", "custom_package"} or "package_hash" in item or "package_id" in item:
+                    packages.append(item)
+        return coaches, packages
+
+    def _coach_to_recommendation(self, item: dict[str, Any]) -> RecommendationItem:
+        coach_id = item.get("coach_id")
+        source_id = item.get("coach_hash") or coach_id or item.get("name", "")
+        reason = item.get("reason", "")
+        if item.get("_gender_fallback"):
+            reason = f"（性别信息未录入）{reason}" if reason else "性别信息未录入"
+        return RecommendationItem(
+            type="coach",
+            id=coach_id if coach_id is not None else deterministic_id(f"coach:{source_id}"),
+            coach_id=coach_id,
+            name=item.get("name", ""),
+            reason=reason,
+            avatar_url=item.get("avatar_url"),
+            rating=item.get("rating"),
+            teaching_years=item.get("teaching_years"),
+            reference_price=item.get("reference_price"),
+            strokes=item.get("teaching_strokes") or item.get("strokes"),
+            description=item.get("description"),
+        )
+
+    def _package_to_recommendation(self, item: dict[str, Any]) -> RecommendationItem:
+        package_id = item.get("package_id")
+        source_id = item.get("package_hash") or package_id or item.get("name", "")
+        return RecommendationItem(
+            type="package",
+            id=package_id if package_id is not None else deterministic_id(f"package:{source_id}"),
+            name=item.get("name", ""),
+            reason=item.get("reason", ""),
+            price=item.get("price"),
+            hours=item.get("hours"),
+            price_per_hour=item.get("price_per_hour"),
+            class_size=item.get("class_size") or item.get("teaching_type"),
+            validity_days=item.get("validity_days"),
+            strokes=item.get("strokes"),
+            description=item.get("description"),
+        )
+
+    def _custom_package_to_recommendation(
+        self,
+        coach: dict[str, Any],
+        hours: int,
+        class_size: str,
+        stroke: str | None,
+    ) -> RecommendationItem:
+        coach_id = coach.get("coach_id")
+        price_per_hour = coach.get("reference_price") or 0
+        total_price = price_per_hour * hours
+        strokes = coach.get("teaching_strokes") or []
+        if stroke and stroke not in strokes:
+            strokes = [stroke, *strokes]
+        return RecommendationItem(
+            type="custom_package",
+            id=deterministic_id(f"custom_package:{coach_id or coach.get('name', '')}:{hours}:{class_size}"),
+            name=f"{coach.get('name', '教练')} 定制 {class_size} 课程",
+            reason=coach.get("description") or coach.get("reason") or f"按你要求的 {hours} 节 {class_size} 定制，灵活匹配",
+            avatar_url=coach.get("avatar_url"),
+            hours=hours,
+            price_per_hour=price_per_hour,
+            total_price=total_price,
+            class_size=class_size,
+            strokes=strokes,
+            coach_id=coach_id,
+            coach_name=coach.get("name", ""),
+            description=coach.get("description"),
+        )
+
+    def _has_exact_package_match(
+        self,
+        packages: list[dict[str, Any]],
+        hours: int | None,
+        class_size: str | None,
+    ) -> bool:
+        """判断标准套餐列表中是否存在同时匹配课时和班型的套餐。"""
+        for pkg in packages:
+            if not isinstance(pkg, dict):
+                continue
+            if self._matches_hours(pkg, hours) and self._matches_class_size(pkg, class_size):
+                return True
+        return False
+
+    def _bootstrap_record(
+        self,
+        name: str,
+        args: dict[str, Any],
+        output: Any,
+    ) -> dict[str, Any]:
+        return {
+            "id": f"bootstrap_{name}_{int(time.time() * 1000)}",
+            "name": name,
+            "args": args,
+            "output": output,
+        }
+
+    def _matches_class_size(self, item: dict[str, Any], class_size: str | None) -> bool:
+        """判断套餐/教练是否匹配指定班型。MVP 阶段教练不维护班型，默认匹配。"""
+        if not class_size:
+            return True
+        item_class_size = item.get("class_size") or item.get("teaching_type") or ""
+        if not item_class_size:
+            return True
+        return class_size in str(item_class_size)
+
+    def _matches_hours(self, item: dict[str, Any], hours: int | None) -> bool:
+        if hours is None:
+            return True
+        item_hours = item.get("hours")
+        return item_hours == hours
+
+    def _matches_stroke(self, item: dict[str, Any], stroke: str | None) -> bool:
+        if not stroke:
+            return True
+        strokes = item.get("strokes") or item.get("teaching_strokes") or []
+        if isinstance(strokes, str):
+            strokes = [s.strip() for s in strokes.split(",") if s.strip()]
+        normalized_strokes = {normalize_stroke(str(s)) or str(s).lower() for s in strokes}
+        return stroke.lower() in normalized_strokes
+
+    def _score_package_match(self, item: dict[str, Any], stroke: str | None, hours: int | None, class_size: str | None) -> int:
+        """套餐匹配度评分，越高越优先。"""
+        score = 0
+        if self._matches_stroke(item, stroke):
+            score += 10
+        if self._matches_hours(item, hours):
+            score += 8
+        if self._matches_class_size(item, class_size):
+            score += 6
+        return score
+
+    def _build_recommendations(
+        self,
+        tool_outputs: list[Any],
+        focus: str,
+        stroke: str | None,
+        hours: int | None,
+        class_size: str | None,
+        max_price: int | None,
+        all_strokes: list[str] | None = None,
+    ) -> list[RecommendationItem]:
+        """根据用户意图和过滤条件，从工具输出中构建最终推荐列表（最多 5 条）。"""
+        normalized_stroke = normalize_stroke(stroke)
+        coaches, packages = self._collect_items_from_outputs(tool_outputs)
+        recommendations: list[RecommendationItem] = []
+
+        if focus == "coach":
+            # 如果用户提到多个泳姿，要求教练同时会所有提到的泳姿
+            required_strokes = all_strokes or ([stroke] if stroke else [])
+            for coach in coaches:
+                if required_strokes and not all(
+                    self._matches_stroke(coach, normalize_stroke(s)) for s in required_strokes
+                ):
+                    continue
+                recommendations.append(self._coach_to_recommendation(coach))
+                if len(recommendations) >= 5:
+                    break
+            return recommendations
+
+        if focus == "package":
+            # 过滤并排序套餐：优先完全匹配泳姿、课时、班型
+            filtered_packages = [p for p in packages if self._matches_stroke(p, normalized_stroke)]
+            filtered_packages.sort(key=lambda p: self._score_package_match(p, normalized_stroke, hours, class_size), reverse=True)
+
+            # 如果存在完全匹配课时和班型的标准套餐，直接返回
+            exact_matches = [p for p in filtered_packages if self._matches_hours(p, hours) and self._matches_class_size(p, class_size)]
+            if exact_matches:
+                for pkg in exact_matches[:5]:
+                    recommendations.append(self._package_to_recommendation(pkg))
+                return recommendations
+
+            # 否则优先返回最匹配的标准套餐（最多 3 条），再用教练生成自定义套餐补足
+            for pkg in filtered_packages[:3]:
+                recommendations.append(self._package_to_recommendation(pkg))
+
+            # 当用户明确指定了课时或班型但标准套餐不完全匹配时，生成 custom_package
+            if (hours or class_size) and coaches:
+                effective_class_size = class_size or "一对一"
+                effective_hours = hours or 10
+                for coach in coaches[: 5 - len(recommendations)]:
+                    recommendations.append(
+                        self._custom_package_to_recommendation(coach, effective_hours, effective_class_size, normalized_stroke)
+                    )
+
+            # 统一按总价升序排列，让文字介绍和卡片顺序一致
+            recommendations.sort(key=lambda r: (r.total_price or r.price or 0))
+            return recommendations[:5]
+
+        # mixed / 默认：教练和套餐混排
+        coach_recs = [self._coach_to_recommendation(c) for c in coaches[:3]]
+        package_recs = [self._package_to_recommendation(p) for p in packages[:3] if self._matches_stroke(p, normalized_stroke)]
+        mixed: list[RecommendationItem] = []
+        coach_iter = iter(coach_recs)
+        package_iter = iter(package_recs)
+        while len(mixed) < 5:
+            added = False
+            if len(mixed) % 2 == 0:
+                for item in coach_iter:
+                    mixed.append(item)
+                    added = True
+                    break
+            else:
+                for item in package_iter:
+                    mixed.append(item)
+                    added = True
+                    break
+            if not added:
+                break
+        remaining = list(coach_iter) + list(package_iter)
+        mixed.extend(remaining[: 5 - len(mixed)])
+        return mixed
 
     async def _call_tools(
         self,
@@ -254,16 +608,282 @@ class ChatService:
                 return False
         return True
 
+    def _is_recommendation_intent(self, message: str) -> bool:
+        return any(keyword in message for keyword in RECOMMENDATION_KEYWORDS)
+
+    def _detect_recommendation_focus(self, message: str) -> str:
+        msg = message.lower()
+        coach_keywords = {"教练", "老师", "私教"}
+        package_keywords = {"套餐", "课程", "课", "体验课", "多少钱", "课时", "节", "价格", "钱"}
+        has_coach = any(k in msg for k in coach_keywords)
+        has_package = any(k in msg for k in package_keywords)
+        if has_package and not has_coach:
+            return "package"
+        if has_coach and not has_package:
+            return "coach"
+        return "mixed"
+
+    def _extract_price_limit(self, message: str) -> int | None:
+        match = re.search(r"(\d{3,})\s*(?:元|块|块钱)?", message)
+        if match:
+            return int(match.group(1))
+        return None
+
+    def _extract_gender(self, message: str) -> str | None:
+        msg = message.lower()
+        if "女" in msg:
+            return "female"
+        if "男" in msg:
+            return "male"
+        return None
+
+    def _extract_age_limit(self, message: str) -> int | None:
+        match = re.search(r"(\d{1,3})\s*岁\s*以\s*下", message)
+        if match:
+            return int(match.group(1))
+        return None
+
+    def _extract_hours(self, message: str) -> int | None:
+        """从用户消息中提取课时数，如 '7节'、'10节课'。"""
+        match = re.search(r"(\d+)\s*节", message)
+        if match:
+            return int(match.group(1))
+        return None
+
+    def _extract_class_size(self, message: str) -> str | None:
+        """从用户消息中提取班型，如一对一、一对二、一对三。"""
+        msg = message.lower()
+        if "一对二" in msg or "1对2" in msg or "一对 2" in msg:
+            return "一对二"
+        if "一对三" in msg or "1对3" in msg or "一对 3" in msg:
+            return "一对三"
+        if "一对一" in msg or "1对1" in msg or "一对 1" in msg:
+            return "一对一"
+        return None
+
+    def _build_intent_context(self, history: list[dict[str, Any]]) -> str:
+        """从完整会话历史中提取用户问题，用于累积需求识别。"""
+        user_messages = [
+            str(msg.get("content", ""))
+            for msg in history
+            if msg.get("role") == "user"
+        ]
+        return "\n".join(user_messages[-10:])
+
+    async def _bootstrap_recommendation_data(
+        self,
+        tools: list[Any],
+        messages: list[BaseMessage],
+        history: list[dict[str, Any]],
+        user_hash: str | None,
+    ) -> tuple[list[dict[str, Any]], list[Any], list[BaseMessage], list[RecommendationItem]]:
+        """针对推荐类请求，主动调用工具获取真实数据，并生成最终 recommendations 列表。"""
+        tool_map = {tool.name: tool for tool in tools}
+        selected_tools: list[tuple[str, dict[str, Any]]] = []
+
+        context_text = self._build_intent_context(history)
+        last_message = str(getattr(messages[-1], "content", "")) if messages else ""
+
+        stroke_keywords = {"自由泳", "蛙泳", "仰泳", "蝶泳"}
+        strokes = [s for s in stroke_keywords if s in context_text]
+        stroke = strokes[0] if strokes else None
+        # 推荐类型只看当前消息，避免历史中的教练/套餐关键词互相干扰
+        focus = self._detect_recommendation_focus(last_message)
+        # 过滤条件（预算、性别、年龄、课时、班型）允许跨轮累积
+        max_price = self._extract_price_limit(context_text)
+        gender = self._extract_gender(context_text)
+        max_age = self._extract_age_limit(context_text)
+        hours = self._extract_hours(context_text)
+        class_size = self._extract_class_size(context_text)
+        logger.info(
+            "bootstrap_intent_extracted",
+            focus=focus,
+            gender=gender,
+            max_age=max_age,
+            max_price=max_price,
+            hours=hours,
+            class_size=class_size,
+        )
+
+        if user_hash and "我" in context_text:
+            selected_tools.append(("get_user_profile", {}))
+            selected_tools.append(("get_user_packages", {}))
+
+        async def invoke_tool(name: str, args: dict[str, Any]) -> Any:
+            tool = tool_map.get(name)
+            if tool is None:
+                return {"error": f"工具 {name} 未找到"}
+            try:
+                return await tool.ainvoke(args)
+            except Exception as exc:
+                logger.error("bootstrap_tool_failed", name=name, error=str(exc))
+                return {"error": f"工具调用失败：{exc}"}
+
+        tool_call_records: list[dict[str, Any]] = []
+        tool_outputs: list[Any] = []
+
+        if user_hash and "我" in context_text:
+            for name, args in [("get_user_profile", {}), ("get_user_packages", {})]:
+                output = await invoke_tool(name, args)
+                tool_outputs.append(output)
+                tool_call_records.append(self._bootstrap_record(name, args, output))
+
+        if focus == "coach":
+            coach_args = {"stroke": stroke, "gender": gender, "max_price": max_price, "max_age": max_age, "limit": 5}
+            output = await invoke_tool("query_coaches", coach_args)
+            # 如果按性别严格过滤没有结果，回退到忽略性别，避免数据不完整导致漏推
+            if (not output or len(output) == 0) and gender:
+                logger.info("coach_gender_filter_empty_fallback", gender=gender, stroke=stroke)
+                fallback_args = {**coach_args, "gender": None}
+                output = await invoke_tool("query_coaches", fallback_args)
+                for item in output if isinstance(output, list) else []:
+                    item["_gender_fallback"] = True
+            tool_outputs.append(output)
+            tool_call_records.append(self._bootstrap_record("query_coaches", coach_args, output))
+        elif focus == "package":
+            package_output = await invoke_tool(
+                "query_packages",
+                {"stroke": stroke, "hours": hours, "max_price": max_price, "limit": 10},
+            )
+            tool_outputs.append(package_output)
+            tool_call_records.append(
+                self._bootstrap_record(
+                    "query_packages",
+                    {"stroke": stroke, "hours": hours, "max_price": max_price, "limit": 10},
+                    package_output,
+                )
+            )
+            # 当用户指定课时/班型且标准套餐没有精确匹配时，再查教练生成 custom_package
+            if (hours or class_size) and not self._has_exact_package_match(
+                package_output if isinstance(package_output, list) else [], hours, class_size
+            ):
+                coach_output = await invoke_tool(
+                    "query_coaches",
+                    {"stroke": stroke, "gender": gender, "max_age": max_age, "limit": 5},
+                )
+                tool_outputs.append(coach_output)
+                tool_call_records.append(
+                    self._bootstrap_record(
+                        "query_coaches",
+                        {"stroke": stroke, "gender": gender, "max_age": max_age, "limit": 5},
+                        coach_output,
+                    )
+                )
+        elif stroke:
+            for name, args in [
+                ("query_coaches", {"stroke": stroke, "gender": gender, "max_price": max_price, "max_age": max_age, "limit": 5}),
+                ("query_packages", {"stroke": stroke, "max_price": max_price, "limit": 5}),
+            ]:
+                output = await invoke_tool(name, args)
+                tool_outputs.append(output)
+                tool_call_records.append(self._bootstrap_record(name, args, output))
+        else:
+            for name, args in [
+                ("get_hot_recommendations", {"limit": 5}),
+                ("query_coaches", {"gender": gender, "max_price": max_price, "max_age": max_age, "limit": 3}),
+                ("query_packages", {"max_price": max_price, "limit": 3}),
+            ]:
+                output = await invoke_tool(name, args)
+                tool_outputs.append(output)
+                tool_call_records.append(self._bootstrap_record(name, args, output))
+
+        recommendations = self._build_recommendations(
+            tool_outputs=tool_outputs,
+            focus=focus,
+            stroke=stroke,
+            hours=hours,
+            class_size=class_size,
+            max_price=max_price,
+            all_strokes=strokes,
+        )
+
+        focus_desc = {
+            "coach": "教练",
+            "package": "套餐/课程",
+            "mixed": "教练和套餐",
+        }.get(focus, "教练和套餐")
+
+        filters: list[str] = []
+        if stroke:
+            filters.append(f"泳姿：{stroke}")
+        if gender:
+            filters.append(f"性别：{'女' if gender == 'female' else '男'}")
+        if max_age:
+            filters.append(f"年龄：{max_age}岁以下")
+        if max_price:
+            filters.append(f"预算上限：{max_price}元")
+        if hours:
+            filters.append(f"课时：{hours}节")
+        if class_size:
+            filters.append(f"班型：{class_size}")
+        filter_desc = "；".join(filters) if filters else "无额外筛选条件"
+
+        rec_details = []
+        for rec in recommendations:
+            detail = {
+                "type": rec.type,
+                "name": rec.name,
+                "reason": rec.reason,
+            }
+            if rec.rating is not None:
+                detail["rating"] = rec.rating
+            if rec.teaching_years is not None:
+                detail["teaching_years"] = rec.teaching_years
+            if rec.reference_price is not None:
+                detail["reference_price"] = rec.reference_price
+            if rec.price is not None:
+                detail["price"] = rec.price
+            if rec.hours is not None:
+                detail["hours"] = rec.hours
+            if rec.price_per_hour is not None:
+                detail["price_per_hour"] = rec.price_per_hour
+            if rec.total_price is not None:
+                detail["total_price"] = rec.total_price
+            if rec.class_size is not None:
+                detail["class_size"] = rec.class_size
+            if rec.validity_days is not None:
+                detail["validity_days"] = rec.validity_days
+            if rec.strokes:
+                detail["strokes"] = rec.strokes
+            if rec.coach_name:
+                detail["coach_name"] = rec.coach_name
+            if rec.description:
+                detail["description"] = rec.description
+            rec_details.append(detail)
+
+        context = (
+            f"用户请求重点：{focus_desc}。已根据筛选条件整理出最终要展示给用户的推荐列表（最多 5 条）。"
+            f"请结合用户最新问题{'（' + last_message + '）' if last_message else ''}和上下文理解需求。"
+            f"当前已识别的筛选条件：{filter_desc}。"
+            "你最终生成的文字回复中，只能提到下面「最终推荐列表」中的教练或套餐，不能编造、不能补充列表之外的项。"
+            "请直接基于这些推荐项，向用户做出口语化、简洁的推荐说明，不要再调用工具。"
+            "优先根据用户具体需求（预算、泳姿、课时、班型、教练/套餐描述）筛选最匹配的项，并在推荐理由中体现关键信息。\n\n"
+            "最终推荐列表（JSON）：\n"
+            f"{json.dumps(rec_details, ensure_ascii=False, indent=2)}"
+        )
+        return tool_call_records, tool_outputs, [AIMessage(content=context)], recommendations
+
     async def _run_agent(
         self,
         tools: list[Any],
         messages: list[BaseMessage],
+        session_id: str,
+        user_hash: str | None,
     ) -> tuple[str, list[dict[str, Any]], list[Any]]:
         llm_with_tools = self.llm.bind_tools(tools)
 
+        config = {
+            "metadata": {
+                "session_id": session_id,
+                "user_hash": user_hash or "guest",
+                "user_identity": "logged_in" if user_hash else "guest",
+            },
+            "tags": ["chat", "leyo"],
+        }
+
         all_tool_call_records: list[dict[str, Any]] = []
         all_tool_outputs: list[Any] = []
-        response = await llm_with_tools.ainvoke(messages)
+        response = await llm_with_tools.ainvoke(messages, config=config)
 
         max_iterations = 3
         for _ in range(max_iterations):
@@ -285,7 +905,7 @@ class ChatService:
             all_tool_outputs.extend(outputs)
             messages.extend(tool_messages)
 
-            response = await llm_with_tools.ainvoke(messages)
+            response = await llm_with_tools.ainvoke(messages, config=config)
 
         if not isinstance(response, AIMessage):
             raise RuntimeError("LLM response is not an AIMessage")
@@ -294,14 +914,14 @@ class ChatService:
 
     async def _prepare_messages(
         self, session_id: str, user_hash: str | None, message: str
-    ) -> tuple[list[Any], list[BaseMessage]]:
+    ) -> tuple[list[Any], list[BaseMessage], list[dict[str, Any]]]:
         user_identity = "已登录用户" if user_hash else "游客"
         tools = build_tools(self.client, user_hash)
         history = await self._load_messages(session_id)
         messages: list[BaseMessage] = [self._build_system_message(user_identity)]
         messages.extend(self._history_to_messages(history))
         messages.append(HumanMessage(content=message))
-        return tools, messages
+        return tools, messages, history
 
     async def _persist_turn(
         self,
@@ -367,18 +987,70 @@ class ChatService:
             user_hash=request.user_hash,
         )
 
-        tools, messages = await self._prepare_messages(
+        tools, messages, history = await self._prepare_messages(
             request.session_id, request.user_hash, request.message
         )
 
+        tool_call_records: list[dict[str, Any]] = []
+        tool_outputs: list[Any] = []
+        bootstrap_records: list[dict[str, Any]] = []
+        bootstrap_outputs: list[Any] = []
+        bootstrap_messages: list[BaseMessage] = []
+        bootstrap_recommendations: list[RecommendationItem] = []
+
+        context_history = history + [{"role": "user", "content": request.message}]
+        context_text = self._build_intent_context(context_history)
+        if self._is_recommendation_intent(request.message) or self._is_recommendation_intent(context_text):
+            (
+                bootstrap_records,
+                bootstrap_outputs,
+                bootstrap_messages,
+                bootstrap_recommendations,
+            ) = await self._bootstrap_recommendation_data(
+                tools, messages, context_history, request.user_hash
+            )
+            tool_call_records.extend(bootstrap_records)
+            tool_outputs.extend(bootstrap_outputs)
+            messages.extend(bootstrap_messages)
+
+        config = {
+            "metadata": {
+                "session_id": request.session_id,
+                "user_hash": request.user_hash or "guest",
+                "user_identity": "logged_in" if request.user_hash else "guest",
+            },
+            "tags": ["chat", "leyo"],
+        }
+
         try:
-            output_text, tool_call_records, tool_outputs = await self._run_agent(tools, messages)
+            if bootstrap_records:
+                # 已经预取到真实数据，直接让 LLM 基于数据生成回复，避免重复调用工具
+                direct_response = await self.llm.ainvoke(messages, config=config)
+                agent_text = str(getattr(direct_response, "content", ""))
+                agent_records: list[dict[str, Any]] = []
+                agent_outputs: list[Any] = []
+            else:
+                agent_text, agent_records, agent_outputs = await self._run_agent(
+                    tools, messages, request.session_id, request.user_hash
+                )
         except Exception as exc:
             logger.error("agent_execution_failed", error=str(exc))
             raise
 
+        output_text = agent_text
+        tool_call_records.extend(agent_records)
+        tool_outputs.extend(agent_outputs)
+
         main_text, suggested_questions = self._parse_suggested_questions(output_text)
-        recommendations = self._extract_recommendations(tool_outputs)
+        if bootstrap_recommendations:
+            # bootstrap 模式下已由服务端生成最终推荐列表，保证和 text 一致
+            recommendations = bootstrap_recommendations[:5]
+        else:
+            recommendations = self._extract_recommendations(tool_outputs)
+
+        for rec in recommendations:
+            if not rec.reason:
+                rec.reason = self._build_default_reason(rec)
 
         await self._persist_turn(request.session_id, request.message, tool_call_records, main_text)
 

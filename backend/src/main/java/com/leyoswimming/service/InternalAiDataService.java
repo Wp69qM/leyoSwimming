@@ -51,7 +51,7 @@ public class InternalAiDataService {
   @Transactional(readOnly = true)
   public List<InternalCoachItemResponse> queryCoaches(
       String strokeCode, String genderCode, Integer minPrice, Integer maxPrice,
-      String classSize, Integer limit) {
+      Integer maxAge, String classSize, Integer limit) {
     int effectiveLimit = effectiveLimit(limit);
     String strokeLabel = StringUtils.isBlank(strokeCode) ? null : SwimStroke.toLabel(strokeCode);
     String genderLabel = normalizeGender(genderCode);
@@ -60,13 +60,27 @@ public class InternalAiDataService {
         new LambdaQueryWrapper<Coach>().in(Coach::getStatus, PUBLIC_COACH_STATUSES);
 
     if (StringUtils.isNotBlank(genderLabel)) {
-      wrapper.eq(Coach::getGender, genderLabel);
+      // 数据库中可能存中文（男/女）也可能存英文（male/female），同时匹配两种写法
+      String altGenderLabel =
+          "女".equals(genderLabel) ? "female" : ("男".equals(genderLabel) ? "male" : null);
+      if (StringUtils.isNotBlank(altGenderLabel)) {
+        wrapper.and(
+            w ->
+                w.eq(Coach::getGender, genderLabel)
+                    .or()
+                    .eq(Coach::getGender, altGenderLabel));
+      } else {
+        wrapper.eq(Coach::getGender, genderLabel);
+      }
     }
     if (minPrice != null) {
       wrapper.ge(Coach::getReferencePrice, BigDecimal.valueOf(minPrice));
     }
     if (maxPrice != null) {
       wrapper.le(Coach::getReferencePrice, BigDecimal.valueOf(maxPrice));
+    }
+    if (maxAge != null) {
+      wrapper.le(Coach::getAge, maxAge);
     }
     // MVP 阶段教练不维护班级规模，classSize 过滤暂不生效
 
@@ -174,7 +188,7 @@ public class InternalAiDataService {
   public List<Object> queryHotRecommendations(InternalHotRecommendationsRequest request) {
     List<Object> results = new ArrayList<>();
     results.addAll(
-        queryCoaches(request.stroke(), null, null, null, null, request.limit()));
+        queryCoaches(request.stroke(), null, null, null, null, null, request.limit()));
     results.addAll(
         queryPackages(request.stroke(), null, null, null, null, request.limit()));
     return results.stream().limit(effectiveLimit(request.limit())).toList();
@@ -187,10 +201,12 @@ public class InternalAiDataService {
         coach.getName(),
         coach.getAvatarUrl(),
         normalizeGenderCode(coach.getGender()),
+        coach.getAge(),
         coach.getRating() == null ? null : coach.getRating().doubleValue(),
         coach.getReferencePrice() == null ? null : coach.getReferencePrice().intValue(),
         coach.getTeachingYears(),
-        parseTeachingStrokes(coach.getTeachingStrokes()));
+        parseTeachingStrokes(coach.getTeachingStrokes()),
+        coach.getBio());
   }
 
   private InternalPackageItemResponse toPackageItem(PackageTemplate template) {
@@ -209,7 +225,8 @@ public class InternalAiDataService {
         mapStrokeIds(template.getStrokeIds()),
         null,
         null,
-        null);
+        null,
+        template.getDescription());
   }
 
   private InternalPackageItemResponse toCustomPackageItem(Coach coach) {
@@ -226,7 +243,8 @@ public class InternalAiDataService {
         parseTeachingStrokes(coach.getTeachingStrokes()),
         coach.getId(),
         coach.getName(),
-        coach.getReferencePrice() == null ? null : coach.getReferencePrice().intValue());
+        coach.getReferencePrice() == null ? null : coach.getReferencePrice().intValue(),
+        coach.getBio());
   }
 
   private InternalUserPackageItemResponse toUserPackageItem(CoursePackage pkg) {
@@ -301,13 +319,14 @@ public class InternalAiDataService {
   }
 
   private String normalizeGenderCode(String gender) {
-    if ("女".equals(gender)) {
-      return "female";
+    if (StringUtils.isBlank(gender)) {
+      return null;
     }
-    if ("男".equals(gender)) {
-      return "male";
-    }
-    return null;
+    return switch (gender.toLowerCase()) {
+      case "女", "female", "f" -> "female";
+      case "男", "male", "m" -> "male";
+      default -> null;
+    };
   }
 
   private String resolveSwimmingLevel(User user) {

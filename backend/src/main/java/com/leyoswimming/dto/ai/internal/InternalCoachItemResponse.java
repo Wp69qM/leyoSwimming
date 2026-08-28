@@ -8,8 +8,10 @@ public record InternalCoachItemResponse(
     String name,
     String avatarUrl,
     String gender,
+    Integer age,
     Double rating,
     Integer referencePrice,
     Integer teachingYears,
-    List<String> teachingStrokes) {
+    List<String> teachingStrokes,
+    String description) {
 }

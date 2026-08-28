@@ -78,7 +78,7 @@ async def test_session_detail(fake_redis):
 async def test_chat_mock_mode(fake_redis, monkeypatch):
     transport = ASGITransport(app=app)
 
-    async def mock_run_agent(self, tools, messages):
+    async def mock_run_agent(self, tools, messages, session_id, user_hash):
         return (
             "为你推荐王教练，他有 8 年教学经验。追问：\n1. 这个教练能约什么时候？\n2. 一对二课程多少钱？",
             [],

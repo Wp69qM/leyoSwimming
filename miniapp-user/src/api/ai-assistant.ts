@@ -3,8 +3,10 @@ import type {
   ChatRequest,
   ChatResponse,
   CreateSessionResponse,
+  MessageRole,
   Recommendation,
   SessionDetailResponse,
+  SessionListItem,
   SessionListResponse,
 } from '@/types/ai-assistant';
 import { request } from './request';
@@ -12,19 +14,19 @@ import { request } from './request';
 interface BackendRecommendation {
   type: 'coach' | 'package' | 'custom_package';
   id?: number;
-  coach_id?: number;
-  coach_name?: string;
+  coachId?: number;
+  coachName?: string;
   name?: string;
-  avatar_url?: string | null;
+  avatarUrl?: string | null;
   rating?: number | string;
-  teaching_years?: number;
-  reference_price?: number;
+  teachingYears?: number;
+  referencePrice?: number;
   price?: number;
   hours?: number;
-  price_per_hour?: number;
-  total_price?: number;
-  class_size?: string;
-  validity_days?: number;
+  pricePerHour?: number;
+  totalPrice?: number;
+  classSize?: string;
+  validityDays?: number;
   strokes?: string[];
   reason?: string;
 }
@@ -39,6 +41,38 @@ interface BackendChatResponse {
   };
 }
 
+interface BackendCreateSessionResponse {
+  sessionId: string;
+  welcomeMessage: string;
+  suggestedQuestions: string[];
+}
+
+interface BackendSessionListItem {
+  sessionId: string;
+  title: string;
+  lastMessageAt: string;
+  messageCount: number;
+}
+
+interface BackendSessionListResponse {
+  items: BackendSessionListItem[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+interface BackendSessionDetailResponse {
+  sessionId: string;
+  messages: BackendRawMessage[];
+}
+
+interface BackendRawMessage {
+  role: MessageRole | string;
+  content?: string;
+  recommendations?: BackendRecommendation[];
+  suggestedQuestions?: string[];
+}
+
 function mapRecommendation(item: BackendRecommendation): Recommendation {
   const base = {
     reason: item.reason ?? '',
@@ -48,13 +82,13 @@ function mapRecommendation(item: BackendRecommendation): Recommendation {
     return {
       type: 'coach',
       ...base,
-      coachId: item.coach_id ?? 0,
+      coachId: item.coachId ?? 0,
       name: item.name ?? '',
-      avatarUrl: item.avatar_url ?? null,
+      avatarUrl: item.avatarUrl ?? null,
       rating: String(item.rating ?? ''),
-      teachingYears: item.teaching_years ?? 0,
+      teachingYears: item.teachingYears ?? 0,
       gender: '',
-      referencePrice: String(item.reference_price ?? ''),
+      referencePrice: String(item.referencePrice ?? ''),
       teachingStrokes: item.strokes ?? [],
     };
   }
@@ -67,8 +101,8 @@ function mapRecommendation(item: BackendRecommendation): Recommendation {
       name: item.name ?? '',
       price: String(item.price ?? ''),
       totalHours: item.hours ?? 0,
-      teachingType: item.class_size ?? '',
-      validDays: item.validity_days ?? 0,
+      teachingType: item.classSize ?? '',
+      validDays: item.validityDays ?? 0,
       stroke: item.strokes?.[0] ?? '',
     };
   }
@@ -76,13 +110,25 @@ function mapRecommendation(item: BackendRecommendation): Recommendation {
   return {
     type: 'custom_package',
     ...base,
-    coachId: item.coach_id ?? 0,
-    coachName: item.coach_name ?? '',
-    referencePrice: String(item.reference_price ?? ''),
+    coachId: item.coachId ?? 0,
+    coachName: item.coachName ?? '',
+    referencePrice: String(item.referencePrice ?? ''),
     hours: item.hours ?? 0,
-    estimatedTotalPrice: String(item.total_price ?? ''),
-    teachingType: item.class_size ?? '',
+    estimatedTotalPrice: String(item.totalPrice ?? ''),
+    teachingType: item.classSize ?? '',
     stroke: item.strokes?.[0] ?? '',
+  };
+}
+
+function mapBackendMessage(msg: BackendRawMessage): ChatMessage | null {
+  if (msg.role !== 'user' && msg.role !== 'assistant') {
+    return null;
+  }
+  return {
+    role: msg.role,
+    content: msg.content ?? '',
+    recommendations: (msg.recommendations ?? []).map(mapRecommendation),
+    suggestedQuestions: msg.suggestedQuestions ?? [],
   };
 }
 
@@ -109,30 +155,49 @@ export function chat(data: ChatRequest): Promise<ChatResponse> {
 }
 
 export function createSession(): Promise<CreateSessionResponse> {
-  return request<CreateSessionResponse>({
+  return request<BackendCreateSessionResponse>({
     url: '/ai-assistant/session/create',
     method: 'POST',
     data: {},
-    needToken: false,
-  });
+    needToken: true,
+  }).then((res) => ({
+    sessionId: res.sessionId,
+    title: '',
+    welcomeMessage: res.welcomeMessage,
+    suggestedQuestions: res.suggestedQuestions ?? [],
+  }));
 }
 
 export function listSessions(): Promise<SessionListResponse> {
-  return request<SessionListResponse>({
+  return request<BackendSessionListResponse>({
     url: '/ai-assistant/session/list',
     method: 'POST',
     data: {},
     needToken: true,
-  });
+  }).then((res) => ({
+    sessions: (res.items ?? []).map(
+      (item): SessionListItem => ({
+        sessionId: item.sessionId,
+        title: item.title,
+        lastMessageTime: item.lastMessageAt,
+      })
+    ),
+  }));
 }
 
 export function getSessionDetail(
   sessionId: string
 ): Promise<SessionDetailResponse> {
-  return request<SessionDetailResponse>({
+  return request<BackendSessionDetailResponse>({
     url: '/ai-assistant/session/detail',
     method: 'POST',
     data: { sessionId },
     needToken: true,
-  });
+  }).then((res) => ({
+    sessionId: res.sessionId,
+    title: '',
+    messages: (res.messages ?? [])
+      .map(mapBackendMessage)
+      .filter((m): m is ChatMessage => m !== null),
+  }));
 }

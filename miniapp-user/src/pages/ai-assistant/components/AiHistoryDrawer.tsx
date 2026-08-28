@@ -40,7 +40,12 @@ export function AiHistoryDrawer({
         </View>
 
         <View className='ai-history-drawer__list'>
-          {sessions.map((session) => {
+          {sessions?.length === 0 && (
+            <View className='ai-history-drawer__empty'>
+              <View className='ai-history-drawer__empty-text'>暂无历史会话</View>
+            </View>
+          )}
+          {sessions?.map((session) => {
             const isCurrent = session.sessionId === currentSessionId;
             return (
               <View
@@ -70,7 +75,7 @@ export function AiHistoryDrawer({
                   />
                 </View>
               </View>
-            );
+            )
           })}
         </View>
       </View>

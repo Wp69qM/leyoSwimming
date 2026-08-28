@@ -15,5 +15,6 @@ public record InternalPackageItemResponse(
     List<String> strokes,
     Long coachId,
     String coachName,
-    Integer referencePrice) {
+    Integer referencePrice,
+    String description) {
 }

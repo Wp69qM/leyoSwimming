@@ -2,6 +2,7 @@ import { View, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { Icon } from '@/components/common/Icon';
 import { getTeachingTypeLabel } from '@/constants/teachingType';
+import { strokeCodeToLabel, strokeCodesToLabels } from '@/constants/swimStrokes';
 import type { Recommendation } from '@/types/ai-assistant';
 
 interface AiRecommendationCardProps {
@@ -19,7 +20,7 @@ export function AiRecommendationCard({ item }: AiRecommendationCardProps) {
 
     if (item.type === 'package') {
       void Taro.navigateTo({
-        url: `/pages/package/detail/index?templateId=${item.id}`,
+        url: `/pages/package/detail/index?id=${item.id}&source=detail`,
       });
       return;
     }
@@ -63,7 +64,7 @@ export function AiRecommendationCard({ item }: AiRecommendationCardProps) {
               </View>
             </View>
             <View className='ai-rec-card__skills'>
-              {item.teachingStrokes.map((stroke) => (
+              {strokeCodesToLabels(item.teachingStrokes).map((stroke) => (
                 <View key={stroke} className='ai-rec-card__skill-tag'>
                   <View className='ai-rec-card__skill-tag-text'>{stroke}</View>
                 </View>
@@ -113,7 +114,7 @@ export function AiRecommendationCard({ item }: AiRecommendationCardProps) {
         </View>
 
         <View className='ai-rec-card__meta ai-rec-card__meta--stroke'>
-          适合泳姿：{item.stroke}
+          适合泳姿：{strokeCodeToLabel(item.stroke)}
         </View>
 
         <View className='ai-rec-card__reason ai-rec-card__reason--package'>
@@ -155,7 +156,7 @@ export function AiRecommendationCard({ item }: AiRecommendationCardProps) {
       </View>
 
       <View className='ai-rec-card__meta ai-rec-card__meta--stroke'>
-        适合泳姿：{item.stroke}
+        适合泳姿：{strokeCodeToLabel(item.stroke)}
       </View>
 
       <View className='ai-rec-card__reason ai-rec-card__reason--package'>

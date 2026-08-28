@@ -36,6 +36,7 @@ public class InternalAiController {
             request.gender(),
             request.minPrice(),
             request.maxPrice(),
+            request.maxAge(),
             request.classSize(),
             request.limit());
     return ApiResponse.ok(new InternalListResponse<>(data));

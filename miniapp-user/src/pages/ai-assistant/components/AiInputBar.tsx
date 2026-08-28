@@ -19,47 +19,23 @@ export function AiInputBar({ onSend, disabled = false }: AiInputBarProps) {
     setInputValue('');
   }
 
-  function handleInput(
-    event:
-      React.ChangeEvent<HTMLTextAreaElement> | { detail: { value: string } }
-  ) {
-    if (
-      'detail' in event &&
-      event.detail &&
-      typeof event.detail.value === 'string'
-    ) {
-      setInputValue(event.detail.value);
-      return;
-    }
-    if (
-      'target' in event &&
-      event.target &&
-      typeof event.target.value === 'string'
-    ) {
-      setInputValue(event.target.value);
-    }
-  }
-
-  function handleConfirm() {
-    handleSend();
+  function handleInput(event: { detail: { value: string } }) {
+    setInputValue(event.detail.value);
   }
 
   return (
     <View className='ai-input-bar'>
       <View className='ai-input-bar__container'>
-        <Icon name='input-icon' className='ai-input-bar__input-icon' />
         <Textarea
           className='ai-input-bar__textarea'
           value={inputValue}
           onInput={handleInput}
-          onConfirm={handleConfirm}
           placeholder='输入问题，如：推荐自由泳教练'
           placeholderClass='ai-input-bar__placeholder'
           disabled={disabled}
           maxlength={500}
           autoHeight
           showConfirmBar={false}
-          fixed
         />
         <View
           className={`ai-input-bar__send ${canSend ? 'ai-input-bar__send--active' : 'ai-input-bar__send--disabled'}`}

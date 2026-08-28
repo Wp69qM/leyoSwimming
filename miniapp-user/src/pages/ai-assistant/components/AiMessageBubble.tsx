@@ -1,4 +1,4 @@
-import { View, Text, Image } from '@tarojs/components';
+import { View, Image } from '@tarojs/components';
 import { Icon } from '@/components/common/Icon';
 import type { ChatMessage } from '@/types/ai-assistant';
 import { AiRecommendationCard } from './AiRecommendationCard';
@@ -6,6 +6,64 @@ import { AiRecommendationCard } from './AiRecommendationCard';
 interface AiMessageBubbleProps {
   message: ChatMessage;
   onSuggestedQuestionClick?: (question: string) => void;
+}
+
+function renderInlineMarkdown(text: string): JSX.Element[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <View key={index} className='ai-message__markdown-bold'>
+          {part.slice(2, -2)}
+        </View>
+      );
+    }
+    return (
+      <View key={index} className='ai-message__markdown-inline'>
+        {part}
+      </View>
+    );
+  });
+}
+
+function AiMarkdownContent({ content }: { content: string }) {
+  const lines = content.split('\n');
+  return (
+    <View className='ai-message__markdown'>
+      {lines.map((line, index) => {
+        const trimmed = line.trim();
+        if (trimmed === '') {
+          return <View key={index} className='ai-message__markdown-empty' />;
+        }
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          return (
+            <View key={index} className='ai-message__markdown-list'>
+              <View className='ai-message__markdown-bullet'>•</View>
+              <View className='ai-message__markdown-list-content'>
+                {renderInlineMarkdown(trimmed.slice(2))}
+              </View>
+            </View>
+          );
+        }
+        const olMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+        if (olMatch) {
+          return (
+            <View key={index} className='ai-message__markdown-list'>
+              <View className='ai-message__markdown-bullet'>{olMatch[1]}.</View>
+              <View className='ai-message__markdown-list-content'>
+                {renderInlineMarkdown(olMatch[2])}
+              </View>
+            </View>
+          );
+        }
+        return (
+          <View key={index} className='ai-message__markdown-paragraph'>
+            {renderInlineMarkdown(trimmed)}
+          </View>
+        );
+      })}
+    </View>
+  );
 }
 
 export function AiMessageBubble({
@@ -21,7 +79,7 @@ export function AiMessageBubble({
       {!isUser && (
         <Image
           className='ai-message__avatar ai-message__avatar--assistant'
-          src={require('@/assets/calicat/images/leyo-avatar-small.jpg')}
+          src={require('@/assets/calicat/icons/AI助理.png')}
           mode='aspectFill'
         />
       )}
@@ -30,7 +88,11 @@ export function AiMessageBubble({
         <View
           className={`ai-message__bubble ${isUser ? 'ai-message__bubble--user' : 'ai-message__bubble--assistant'}`}
         >
-          <Text className='ai-message__text'>{message.content}</Text>
+          {isUser ? (
+            <View className='ai-message__text'>{message.content}</View>
+          ) : (
+            <AiMarkdownContent content={message.content} />
+          )}
         </View>
 
         {!isUser &&
