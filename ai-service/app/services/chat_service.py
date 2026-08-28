@@ -698,6 +698,8 @@ class ChatService:
         logger.info(
             "bootstrap_intent_extracted",
             focus=focus,
+            stroke=stroke,
+            strokes=strokes,
             gender=gender,
             max_age=max_age,
             max_price=max_price,
@@ -710,11 +712,15 @@ class ChatService:
             selected_tools.append(("get_user_packages", {}))
 
         async def invoke_tool(name: str, args: dict[str, Any]) -> Any:
+            logger.info("bootstrap_invoking_tool", name=name, args=args)
             tool = tool_map.get(name)
             if tool is None:
                 return {"error": f"工具 {name} 未找到"}
             try:
-                return await tool.ainvoke(args)
+                output = await tool.ainvoke(args)
+                result_count = len(output) if isinstance(output, list) else None
+                logger.info("bootstrap_tool_finished", name=name, result_count=result_count)
+                return output
             except Exception as exc:
                 logger.error("bootstrap_tool_failed", name=name, error=str(exc))
                 return {"error": f"工具调用失败：{exc}"}
@@ -817,6 +823,20 @@ class ChatService:
         if class_size:
             filters.append(f"班型：{class_size}")
         filter_desc = "；".join(filters) if filters else "无额外筛选条件"
+
+        logger.info(
+            "build_recommendations_result",
+            focus=focus,
+            stroke=stroke,
+            all_strokes=strokes,
+            gender=gender,
+            max_price=max_price,
+            hours=hours,
+            class_size=class_size,
+            recommendation_count=len(recommendations),
+            recommendation_types=[r.type for r in recommendations],
+            recommendation_names=[r.name for r in recommendations],
+        )
 
         rec_details = []
         for rec in recommendations:
@@ -986,6 +1006,12 @@ class ChatService:
             message_id=message_id,
             user_hash=request.user_hash,
         )
+        logger.info(
+            "chat_user_message",
+            session_id=request.session_id,
+            message_id=message_id,
+            message=request.message,
+        )
 
         tools, messages, history = await self._prepare_messages(
             request.session_id, request.user_hash, request.message
@@ -1051,6 +1077,16 @@ class ChatService:
         for rec in recommendations:
             if not rec.reason:
                 rec.reason = self._build_default_reason(rec)
+
+        logger.info(
+            "chat_ai_response",
+            session_id=request.session_id,
+            message_id=message_id,
+            text=main_text,
+            recommendation_count=len(recommendations),
+            recommendation_names=[r.name for r in recommendations],
+            suggested_questions=suggested_questions,
+        )
 
         await self._persist_turn(request.session_id, request.message, tool_call_records, main_text)
 
