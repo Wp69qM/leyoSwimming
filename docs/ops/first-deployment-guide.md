@@ -321,7 +321,8 @@ PHONE_ENCRYPTION_KEY=your-32-byte-encryption-key-here
 ID_CARD_ENCRYPTION_KEY=your-32-byte-id-card-encryption-key-here
 
 # AI 服务（必填）
-AI_SERVICE_BASE_URL=http://leyo-ai-service:8000
+# 当 AI 服务在宿主机直接运行时，指向宿主机 IP:8000
+AI_SERVICE_BASE_URL=http://<服务器IP>:8000
 INTERNAL_API_TOKEN=your-internal-api-token-at-least-32-characters
 
 # LLM 配置（默认 DeepSeek，按实际情况填写）
@@ -331,6 +332,28 @@ LLM_API_KEY=your-llm-api-key-here
 LLM_TEMPERATURE=0.3
 LLM_MAX_TOKENS=2048
 LLM_TIMEOUT_SECONDS=30
+
+# LangSmith 配置（可选，默认关闭）
+LANGCHAIN_TRACING_V2=false
+LANGCHAIN_API_KEY=
+LANGCHAIN_PROJECT=leyoSwimming
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+
+# AI 服务运行配置
+APP_NAME=leyo-ai-service
+APP_ENV=production
+HOST=0.0.0.0
+PORT=8000
+LOG_LEVEL=INFO
+
+# 会话与限流
+SESSION_MESSAGE_TTL_SECONDS=604800
+SESSION_MAX_MESSAGES=20
+RATE_LIMIT_USER_PER_MINUTE=30
+RATE_LIMIT_IP_PER_MINUTE=60
+
+# 可信代理层数（Nginx 前置填 1）
+TRUSTED_PROXY_COUNT=1
 
 # AI 服务 Mock 模式（生产环境必须设为 false）
 ENABLE_MOCK_DATA=false
@@ -473,24 +496,26 @@ docker exec -i leyo-mysql mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATA
 
 #### 4.1.11 启动服务
 
+本阶段 AI 服务默认在宿主机直接运行（systemd），核心服务（MySQL/Redis/Backend/Nginx）通过 Docker Compose 启动。
+
 ```bash
 cd /opt/leyo-swimming/deploy
 
 # 加载环境变量
 source .env
 
-# 如果 AI 服务镜像通过 tar 上传，先加载镜像（已加载或推送到仓库可跳过）
-docker load -i /opt/leyo-swimming/leyo-ai-service-v1.0.0.tar
-
-# 拉取镜像并启动（使用生产配置）
+# 拉取镜像并启动核心服务（使用生产配置）
 docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d mysql redis backend nginx
 
-# 查看日志
+# 启动宿主机 AI 服务（systemd）
+systemctl start leyo-ai
+
+# 查看核心服务日志
 docker compose -f docker-compose.prod.yml logs -f backend
 
-# 查看 AI 服务日志
-docker compose -f docker-compose.prod.yml logs -f ai-service
+# 查看 AI 服务日志（宿主机 systemd）
+journalctl -u leyo-ai -f
 ```
 
 #### 4.1.12 确认服务状态
@@ -498,6 +523,9 @@ docker compose -f docker-compose.prod.yml logs -f ai-service
 ```bash
 # 查看容器运行状态
 docker compose ps
+
+# 查看 AI 服务状态
+systemctl status leyo-ai
 
 # 测试后端健康检查
 curl http://<服务器IP>/api/actuator/health
@@ -507,8 +535,8 @@ curl -X POST http://<服务器IP>/api/admin/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 
-# 测试 AI 服务健康检查（容器内）
-docker exec leyo-ai-service curl -s http://localhost:8000/health
+# 测试 AI 服务健康检查（宿主机）
+curl -s http://localhost:8000/health
 ```
 
 #### 4.1.13 创建初始管理员账号
@@ -749,11 +777,13 @@ curl http://<服务器IP>/api/actuator/health
 
 ### 6.5 AI 服务验证
 
-```bash
-# 1. 容器内健康检查
-docker exec leyo-ai-service curl -s http://localhost:8000/health
+> 本阶段 AI 服务默认在宿主机直接运行（systemd 服务 `leyo-ai`），端口 8000。
 
-# 2. 从后端容器测试 AI 服务可达性
+```bash
+# 1. 宿主机健康检查
+curl -s http://localhost:8000/health
+
+# 2. 从后端容器测试 AI 服务可达性（后端通过 extra_hosts 将 leyo-ai-service 解析到宿主机）
 docker exec leyo-backend curl -s http://leyo-ai-service:8000/health
 
 # 3. 测试 AI 对话接口（通过 Java 后端网关）
@@ -815,7 +845,49 @@ curl -X POST http://<服务器IP>/api/admin/auth/login \
 
 ## 7. 日常运维
 
-### 7.1 查看日志
+### 7.1 查看服务状态
+
+项目提供了便捷脚本 `scripts/check-leyo-services.sh`，可一次性查看 Docker 服务、容器运行状态、健康状态、资源使用、端口占用和 Compose 服务状态。
+
+**本地通过 SSH 直接运行（推荐）：**
+
+```bash
+ssh root@<服务器IP> 'bash -s' < scripts/check-leyo-services.sh
+```
+
+**上传到服务器后运行：**
+
+```bash
+scp scripts/check-leyo-services.sh root@<服务器IP>:/opt/leyo-swimming/
+ssh root@<服务器IP>
+chmod +x /opt/leyo-swimming/check-leyo-services.sh
+./check-leyo-services.sh
+```
+
+脚本输出内容包括：
+- Docker 服务状态
+- 所有 `leyo-*` 容器的运行状态
+- 各容器健康状态（`leyo-backend`、`leyo-mysql`、`leyo-redis`、`leyo-nginx`）
+- 内存和磁盘资源使用情况
+- 关键端口（80、8080、3306、6379、8000）占用情况
+- Docker Compose 服务状态
+
+也可以手动查看关键状态：
+
+```bash
+# 查看所有 leyo 容器
+docker ps -a | grep leyo
+
+# 查看指定容器状态和健康状态
+docker inspect --format="{{.State.Status}} {{.State.Health.Status}}" leyo-backend
+docker inspect --format="{{.State.Status}} {{.State.Health.Status}}" leyo-mysql
+
+# 查看 Docker Compose 服务状态
+cd /opt/leyo-swimming/deploy
+docker compose -f docker-compose.prod.yml ps
+```
+
+### 7.2 查看日志
 
 ```bash
 cd /opt/leyo-swimming/deploy
@@ -832,11 +904,11 @@ docker compose -f docker-compose.prod.yml logs -f mysql
 # 查看 Nginx 日志
 docker compose -f docker-compose.prod.yml logs -f nginx
 
-# 查看 AI 服务日志
-docker compose -f docker-compose.prod.yml logs -f ai-service
+# 查看 AI 服务日志（宿主机 systemd 运行）
+journalctl -u leyo-ai -f
 ```
 
-### 7.2 备份数据库
+### 7.3 备份数据库
 
 ```bash
 cd /opt/leyo-swimming/deploy
@@ -878,7 +950,115 @@ echo "Backup completed: ${BACKUP_FILE}"
 chmod +x /opt/leyo-swimming/deploy/backup-db.sh
 ```
 
-### 7.3 重启服务
+### 7.4 后端服务一直 restarting 排查
+
+当 `leyo-backend` 容器状态持续为 `restarting` 时，按以下步骤排查。
+
+**方式一：使用一键排查脚本（推荐）**
+
+项目提供了 `scripts/diagnose-leyo-backend.sh`，可一次性输出日志、容器状态、健康状态、`.env` 关键配置、端口占用和资源使用情况。
+
+```bash
+ssh root@<服务器IP> 'bash -s' < scripts/diagnose-leyo-backend.sh
+```
+
+或上传到服务器运行：
+
+```bash
+scp scripts/diagnose-leyo-backend.sh root@<服务器IP>:/opt/leyo-swimming/
+ssh root@<服务器IP>
+chmod +x /opt/leyo-swimming/diagnose-leyo-backend.sh
+./diagnose-leyo-backend.sh
+```
+
+**方式二：手动逐步排查**
+
+1. **查看后端报错日志：**
+   ```bash
+   docker logs -f --tail=200 leyo-backend
+   docker logs leyo-backend 2>&1 | tail -n 100
+   ```
+
+2. **检查 MySQL/Redis 是否健康：**
+   ```bash
+   docker inspect --format="{{.State.Status}} {{.State.Health.Status}}" leyo-mysql
+   docker inspect --format="{{.State.Status}} {{.State.Health.Status}}" leyo-redis
+   ```
+
+3. **检查 .env 关键配置：**
+   ```bash
+   cd /opt/leyo-swimming/deploy
+   grep AI_SERVICE_BASE_URL .env   # 应为 http://<服务器IP>:8000
+   grep DOMAIN .env
+   ```
+
+4. **检查 AI 服务是否可访问：**
+   ```bash
+   curl -s http://localhost:8000/health
+   curl -s http://<服务器IP>:8000/health
+   ```
+
+5. **检查端口占用和资源：**
+   ```bash
+   ss -tlnp | grep -E ':(80|8080|3306|6379|8000)\b'
+   free -h
+   df -h /
+   ```
+
+6. **手动运行后端容器看完整错误：**
+   ```bash
+   docker run --rm -it \
+     -v /opt/leyo-swimming/leyo-swimming-backend-0.1.0-SNAPSHOT.jar:/app/app.jar:ro \
+     -v /opt/leyo-swimming/uploads:/app/uploads \
+     --network leyo-network \
+     -e SPRING_PROFILES_ACTIVE=prod \
+     --env-file /opt/leyo-swimming/deploy/.env \
+     eclipse-temurin:21-jre-alpine \
+     java -jar /app/app.jar
+   ```
+
+常见原因：
+- `.env` 中 `AI_SERVICE_BASE_URL` 指向 `http://leyo-ai-service:8000`（容器名），但 AI 服务实际在宿主机运行，应改为 `http://<服务器IP>:8000`。
+- MySQL 或 Redis 未启动或健康检查失败。
+- 80/8080/3306/6379/8000 端口被其他进程占用。
+- 服务器内存不足导致 JVM 无法启动。
+
+### 7.5 停止所有服务
+
+```bash
+cd /opt/leyo-swimming/deploy
+
+# 停止宿主机 AI 服务
+systemctl stop leyo-ai
+
+# 停止所有 Docker 容器（数据卷保留）
+docker compose -f docker-compose.prod.yml down --remove-orphans
+# 如果使用了宿主机 AI 服务的 override 文件：
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml down --remove-orphans
+```
+
+或者使用部署脚本一键停止（本地执行）：
+
+```powershell
+.\scripts\deploy-first-stage.ps1 -StopOnly
+```
+
+### 7.6 一键重新部署
+
+使用部署脚本可以先停止所有服务，然后按正常流程重新构建/上传/部署：
+
+```powershell
+# 完全重新构建并部署（会询问每个产物是否重新构建）
+.\scripts\deploy-first-stage.ps1 -Redeploy
+
+# 使用已有构建产物重新部署（跳过本地构建）
+.\scripts\deploy-first-stage.ps1 -Redeploy -SkipBuild
+
+# 仅停止服务后重新启动容器（不重新上传、不重新构建）
+.\scripts\deploy-first-stage.ps1 -Redeploy -SkipBuild -SkipUpload
+```
+
+### 7.7 重启服务
 
 ```bash
 cd /opt/leyo-swimming/deploy
@@ -886,7 +1066,7 @@ docker compose -f docker-compose.prod.yml restart backend
 docker compose -f docker-compose.prod.yml restart nginx
 ```
 
-### 7.5 清理旧镜像和日志
+### 7.8 清理旧镜像和日志
 
 ```bash
 # 清理未使用的镜像
@@ -944,32 +1124,33 @@ curl http://<服务器IP>/api/actuator/health
 
 ### 8.3 AI 服务升级
 
-```bash
-# 1. 在本地构建新的 AI 服务镜像
-cd /path/to/leyoSwimming/ai-service
-docker build -t leyo-ai-service:v1.0.1 .
+本阶段 AI 服务在宿主机直接运行（systemd），升级只需更新源码/依赖后重启服务。
 
-# 2. 上传到服务器并加载（方式 A：tar 包）
-docker save leyo-ai-service:v1.0.1 -o leyo-ai-service-v1.0.1.tar
-scp leyo-ai-service-v1.0.1.tar root@<服务器IP>:/opt/leyo-swimming/
+```bash
+# 1. 上传新的 AI 服务源码到服务器
+scp -r /path/to/leyoSwimming/ai-service root@<服务器IP>:/opt/leyo-swimming/ai-service-new
 
 ssh root@<服务器IP>
 cd /opt/leyo-swimming
-docker load -i leyo-ai-service-v1.0.1.tar
 
-# 3. 修改 docker-compose.prod.yml 中的镜像标签为 v1.0.1
-#    image: leyo-ai-service:v1.0.1
+# 2. 备份旧版本并替换
+mv ai-service ai-service-backup-$(date +%Y%m%d)
+mv ai-service-new ai-service
 
-# 4. 重新创建 AI 服务容器
-cd /opt/leyo-swimming/deploy
-docker compose -f docker-compose.prod.yml up -d --no-deps ai-service
+# 3. 重新安装依赖（requirements.txt 有变更时）
+cd /opt/leyo-swimming/ai-service
+source /opt/leyo-swimming/ai-service-venv/bin/activate
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 4. 重启 AI 服务
+systemctl restart leyo-ai
 
 # 5. 验证
-docker compose -f docker-compose.prod.yml logs -f ai-service
-docker exec leyo-ai-service curl -s http://localhost:8000/health
+journalctl -u leyo-ai -f
+curl -s http://localhost:8000/health
 ```
 
-> **注意**：AI 服务升级前请确认 `INTERNAL_API_TOKEN` 和 `JAVA_INTERNAL_BASE_URL` 未变更；若变更需同步修改后端配置并重启后端容器。
+> **注意**：AI 服务升级前请确认 `INTERNAL_API_TOKEN` 未变更；若变更需同步修改后端 `.env` 并重启后端容器。
 
 ### 8.4 管理后台升级
 
@@ -1005,9 +1186,12 @@ docker compose -f docker-compose.prod.yml restart nginx
 ```bash
 ssh root@<服务器IP>
 cd /opt/leyo-swimming/deploy
-source .env
 
-# 重新加载配置
+# 1. 重新加载 systemd 服务以读取新 .env
+systemctl daemon-reload
+systemctl restart leyo-ai
+
+# 2. 重新创建 Docker 容器以读取新 .env
 docker compose -f docker-compose.prod.yml down
 docker compose -f docker-compose.prod.yml up -d
 ```
@@ -1155,7 +1339,9 @@ docker compose -f docker-compose.prod.yml up -d
 
 ## 11. 附录：生产环境 docker-compose.yml 示例
 
-将以下配置保存为 `deploy/docker-compose.prod.yml`，生产环境使用：
+将以下配置保存为 `deploy/docker-compose.prod.yml`，生产环境使用。本阶段 AI 服务在宿主机直接运行（systemd），因此 compose 中**不包含** `ai-service` 容器。
+
+实际使用的 `deploy/docker-compose.prod.yml` 已包含 `pull_policy: never`，避免 Docker Hub 拉取超时；镜像由脚本按需手动拉取。
 
 ```yaml
 version: "3.8"
@@ -1258,56 +1444,11 @@ services:
     networks:
       - leyo-network
 
-  ai-service:
-    image: leyo-ai-service:v1.0.0
-    container_name: leyo-ai-service
-    restart: unless-stopped
-    environment:
-      APP_ENV: production
-      HOST: 0.0.0.0
-      PORT: 8000
-      LOG_LEVEL: INFO
-      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
-      JAVA_INTERNAL_BASE_URL: http://leyo-backend:8080/api/internal/ai
-      LLM_MODEL: ${LLM_MODEL}
-      LLM_BASE_URL: ${LLM_BASE_URL}
-      LLM_API_KEY: ${LLM_API_KEY}
-      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.3}
-      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-2048}
-      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_DB: 0
-      SESSION_MESSAGE_TTL_SECONDS: 604800
-      SESSION_MAX_MESSAGES: 20
-      RATE_LIMIT_USER_PER_MINUTE: 30
-      RATE_LIMIT_IP_PER_MINUTE: 60
-      TRUSTED_PROXY_COUNT: 1
-      ENABLE_MOCK_DATA: ${ENABLE_MOCK_DATA:-false}
-    depends_on:
-      redis:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "5"
-    networks:
-      - leyo-network
-
   nginx:
     image: nginx:alpine
     container_name: leyo-nginx
     restart: unless-stopped
+    pull_policy: never
     ports:
       - "80:80"
     volumes:
@@ -1318,7 +1459,6 @@ services:
       - ../uploads:/usr/share/nginx/html/uploads:ro
     depends_on:
       - backend
-      - ai-service
     logging:
       driver: "json-file"
       options:

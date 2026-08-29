@@ -6,6 +6,7 @@ import uuid
 from typing import Any
 
 import redis.asyncio as redis
+import structlog.contextvars
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 
@@ -483,6 +484,7 @@ class ChatService:
         class_size: str | None,
         max_price: int | None,
         all_strokes: list[str] | None = None,
+        session_id: str | None = None,
     ) -> list[RecommendationItem]:
         """根据用户意图和过滤条件，从工具输出中构建最终推荐列表（最多 5 条）。"""
         normalized_stroke = normalize_stroke(stroke)
@@ -676,6 +678,7 @@ class ChatService:
         messages: list[BaseMessage],
         history: list[dict[str, Any]],
         user_hash: str | None,
+        session_id: str | None = None,
     ) -> tuple[list[dict[str, Any]], list[Any], list[BaseMessage], list[RecommendationItem]]:
         """针对推荐类请求，主动调用工具获取真实数据，并生成最终 recommendations 列表。"""
         tool_map = {tool.name: tool for tool in tools}
@@ -697,6 +700,7 @@ class ChatService:
         class_size = self._extract_class_size(context_text)
         logger.info(
             "bootstrap_intent_extracted",
+            session_id=session_id,
             focus=focus,
             stroke=stroke,
             strokes=strokes,
@@ -712,18 +716,39 @@ class ChatService:
             selected_tools.append(("get_user_packages", {}))
 
         async def invoke_tool(name: str, args: dict[str, Any]) -> Any:
-            logger.info("bootstrap_invoking_tool", name=name, args=args)
-            tool = tool_map.get(name)
-            if tool is None:
-                return {"error": f"工具 {name} 未找到"}
+            if session_id:
+                structlog.contextvars.bind_contextvars(session_id=session_id)
             try:
-                output = await tool.ainvoke(args)
-                result_count = len(output) if isinstance(output, list) else None
-                logger.info("bootstrap_tool_finished", name=name, result_count=result_count)
-                return output
-            except Exception as exc:
-                logger.error("bootstrap_tool_failed", name=name, error=str(exc))
-                return {"error": f"工具调用失败：{exc}"}
+                logger.info(
+                    "bootstrap_invoking_tool",
+                    session_id=session_id,
+                    name=name,
+                    args=args,
+                )
+                tool = tool_map.get(name)
+                if tool is None:
+                    return {"error": f"工具 {name} 未找到"}
+                try:
+                    output = await tool.ainvoke(args)
+                    result_count = len(output) if isinstance(output, list) else None
+                    logger.info(
+                        "bootstrap_tool_finished",
+                        session_id=session_id,
+                        name=name,
+                        result_count=result_count,
+                    )
+                    return output
+                except Exception as exc:
+                    logger.error(
+                        "bootstrap_tool_failed",
+                        session_id=session_id,
+                        name=name,
+                        error=str(exc),
+                    )
+                    return {"error": f"工具调用失败：{exc}"}
+            finally:
+                if session_id:
+                    structlog.contextvars.unbind_contextvars("session_id")
 
         tool_call_records: list[dict[str, Any]] = []
         tool_outputs: list[Any] = []
@@ -826,6 +851,7 @@ class ChatService:
 
         logger.info(
             "build_recommendations_result",
+            session_id=session_id,
             focus=focus,
             stroke=stroke,
             all_strokes=strokes,
@@ -1033,7 +1059,11 @@ class ChatService:
                 bootstrap_messages,
                 bootstrap_recommendations,
             ) = await self._bootstrap_recommendation_data(
-                tools, messages, context_history, request.user_hash
+                tools,
+                messages,
+                context_history,
+                request.user_hash,
+                session_id=request.session_id,
             )
             tool_call_records.extend(bootstrap_records)
             tool_outputs.extend(bootstrap_outputs)

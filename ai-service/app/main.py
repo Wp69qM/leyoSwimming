@@ -32,6 +32,8 @@ chat_service = ChatService(settings)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # uvicorn 启动时会覆盖 logging 配置，在 lifespan 中重新配置确保文件 handler 生效
+    configure_logging()
     logger.info("ai_service_starting", app_name=settings.app_name, env=settings.app_env)
     if len(settings.internal_api_token) < 32:
         logger.error("internal_api_token_too_short")

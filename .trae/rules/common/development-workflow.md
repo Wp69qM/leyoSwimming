@@ -21,15 +21,19 @@ The Feature Implementation Workflow describes the development pipeline: research
    - Identify dependencies and risks
    - Break down into phases
 
-2. **TDD Approach**
-   - Use **tdd-guide** agent
+2. **TDD Approach（强制 Gate）**
+   - 任何新功能、Bug 修复、重构开始前，**必须**先调用 **tdd-guide** agent
+   - 在没有对应测试覆盖的情况下，禁止编写业务实现代码
    - Write tests first (RED)
    - Implement to pass tests (GREEN)
    - Refactor (IMPROVE)
    - Verify 80%+ coverage
+   - 如跳过 tdd-guide，视为流程违规，必须在提交前补测试并由 code-reviewer 确认
 
-3. **Code Review**
-   - Use **code-reviewer** agent immediately after writing code
+3. **Code Review（强制 Gate）**
+   - 代码编写或修改完成后，**必须**立即调用 **code-reviewer** agent
+   - code-reviewer 必须检查 [testing.md](./testing.md) §执行检查清单 与 §code-reviewer 强制检查项
+   - 未通过测试/覆盖率 Gate 的代码，不得进入 Commit & Push 阶段
    - Address CRITICAL and HIGH issues
    - Fix MEDIUM issues when possible
 

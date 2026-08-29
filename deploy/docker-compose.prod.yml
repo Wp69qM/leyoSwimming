@@ -5,6 +5,7 @@ services:
     image: mysql:8.0
     container_name: leyo-mysql
     restart: unless-stopped
+    pull_policy: never
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -33,6 +34,7 @@ services:
     image: redis:7-alpine
     container_name: leyo-redis
     restart: unless-stopped
+    pull_policy: never
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
@@ -56,6 +58,7 @@ services:
     image: eclipse-temurin:21-jre-alpine
     container_name: leyo-backend
     restart: unless-stopped
+    pull_policy: never
     working_dir: /app
     volumes:
       - ../leyo-swimming-backend-0.1.0-SNAPSHOT.jar:/app/app.jar:ro
@@ -102,11 +105,13 @@ services:
     image: leyo-ai-service:v1.0.0
     container_name: leyo-ai-service
     restart: unless-stopped
+    pull_policy: never
     environment:
-      APP_ENV: production
-      HOST: 0.0.0.0
-      PORT: 8000
-      LOG_LEVEL: INFO
+      APP_NAME: ${APP_NAME:-leyo-ai-service}
+      APP_ENV: ${APP_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${PORT:-8000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
       JAVA_INTERNAL_BASE_URL: http://leyo-backend:8080/api/internal/ai
       LLM_MODEL: ${LLM_MODEL}
@@ -115,15 +120,19 @@ services:
       LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.3}
       LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-2048}
       LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-leyoSwimming}
+      LANGCHAIN_ENDPOINT: ${LANGCHAIN_ENDPOINT:-https://api.smith.langchain.com}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: 0
-      SESSION_MESSAGE_TTL_SECONDS: 604800
-      SESSION_MAX_MESSAGES: 20
-      RATE_LIMIT_USER_PER_MINUTE: 30
-      RATE_LIMIT_IP_PER_MINUTE: 60
-      TRUSTED_PROXY_COUNT: 1
+      SESSION_MESSAGE_TTL_SECONDS: ${SESSION_MESSAGE_TTL_SECONDS:-604800}
+      SESSION_MAX_MESSAGES: ${SESSION_MAX_MESSAGES:-20}
+      RATE_LIMIT_USER_PER_MINUTE: ${RATE_LIMIT_USER_PER_MINUTE:-30}
+      RATE_LIMIT_IP_PER_MINUTE: ${RATE_LIMIT_IP_PER_MINUTE:-60}
+      TRUSTED_PROXY_COUNT: ${TRUSTED_PROXY_COUNT:-1}
       ENABLE_MOCK_DATA: ${ENABLE_MOCK_DATA:-false}
     depends_on:
       redis:
@@ -148,6 +157,7 @@ services:
     image: nginx:alpine
     container_name: leyo-nginx
     restart: unless-stopped
+    pull_policy: never
     ports:
       - "80:80"
     volumes:
@@ -158,7 +168,6 @@ services:
       - ../uploads:/usr/share/nginx/html/uploads:ro
     depends_on:
       - backend
-      - ai-service
     logging:
       driver: "json-file"
       options:

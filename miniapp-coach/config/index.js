@@ -34,7 +34,7 @@ const config = {
     },
   },
   h5: {
-    publicPath: '/',
+    publicPath: '/h5/coach/',
     staticDirectory: 'static',
     esnextModules: [],
     postcss: {

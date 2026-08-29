@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     host: str = Field(default="0.0.0.0")
     port: int = Field(default=8000)
     log_level: str = Field(default="INFO")
+    log_dir: str = Field(default="logs")
 
     internal_api_token: str = Field(default="")
     java_internal_base_url: str = Field(default="http://leyo-backend:8080/api/internal/ai")

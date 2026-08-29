@@ -1,14 +1,17 @@
 const path = require('path');
 const webpack = require('webpack');
 
-// Force development mode for the build process so React resolves its
-// development builds (react.development.js, react-jsx-runtime.development.js)
-// instead of the production minified versions that break hooks in Taro H5 dev.
-process.env.NODE_ENV = 'development';
+// Taro H5 开发模式下需要强制使用 React development build 来避免 hooks 问题。
+// 生产构建保持默认的 production 模式，不能带 React Fast Refresh 相关代码。
+const isDev = process.env.NODE_ENV === 'development';
 
-const reactPkgDir = path.dirname(require.resolve('react/package.json'));
-const reactDev = path.join(reactPkgDir, 'cjs', 'react.development.js');
-const reactJsxRuntimeDev = path.join(reactPkgDir, 'cjs', 'react-jsx-runtime.development.js');
+let reactDev;
+let reactJsxRuntimeDev;
+if (isDev) {
+  const reactPkgDir = path.dirname(require.resolve('react/package.json'));
+  reactDev = path.join(reactPkgDir, 'cjs', 'react.development.js');
+  reactJsxRuntimeDev = path.join(reactPkgDir, 'cjs', 'react-jsx-runtime.development.js');
+}
 
 const config = {
   projectName: 'leyo-miniapp-user',
@@ -21,11 +24,15 @@ const config = {
   outputRoot: 'dist',
   plugins: [],
   defineConstants: {},
-  alias: {
-    '@': path.resolve(__dirname, '..', 'src'),
-    'react$': reactDev,
-    'react/jsx-runtime$': reactJsxRuntimeDev,
-  },
+  alias: isDev
+    ? {
+        '@': path.resolve(__dirname, '..', 'src'),
+        'react$': reactDev,
+        'react/jsx-runtime$': reactJsxRuntimeDev,
+      }
+    : {
+        '@': path.resolve(__dirname, '..', 'src'),
+      },
   copy: {
     patterns: [],
     options: {},
@@ -68,29 +75,31 @@ const config = {
     },
   },
   h5: {
-    publicPath: '/',
+    publicPath: '/h5/user/',
     staticDirectory: 'static',
     esnextModules: ['@leyo/shared'],
     webpackChain(chain) {
-      // Force development React build in H5 dev mode. Taro's plugin-framework-react
-      // only handles this for harmony/mini builds, leaving webpack5 H5 builds at the
-      // mercy of NODE_ENV. Without this, react.production.min.js may be loaded and
-      // hooks like useContext become undefined in the bundled output.
-      chain.plugin('define-react-env').use(webpack.DefinePlugin, [
-        {
-          'process.env.NODE_ENV': JSON.stringify('development'),
-        },
-      ]);
-      // Ensure webpack's own nodeEnv optimization stays in development so module
-      // resolution and runtime behaviour both use development builds.
-      chain.mode('development');
-      chain.optimization.nodeEnv('development');
-      // Override Taro's internal react$ alias to always use the development build
-      // in H5 dev mode. React 18's package.json does not export ./cjs/, so we use
-      // the absolute file path directly.
-      chain.resolve.alias
-        .set('react$', reactDev)
-        .set('react/jsx-runtime$', reactJsxRuntimeDev);
+      if (isDev) {
+        // Force development React build in H5 dev mode. Taro's plugin-framework-react
+        // only handles this for harmony/mini builds, leaving webpack5 H5 builds at the
+        // mercy of NODE_ENV. Without this, react.production.min.js may be loaded and
+        // hooks like useContext become undefined in the bundled output.
+        chain.plugin('define-react-env').use(webpack.DefinePlugin, [
+          {
+            'process.env.NODE_ENV': JSON.stringify('development'),
+          },
+        ]);
+        // Ensure webpack's own nodeEnv optimization stays in development so module
+        // resolution and runtime behaviour both use development builds.
+        chain.mode('development');
+        chain.optimization.nodeEnv('development');
+        // Override Taro's internal react$ alias to always use the development build
+        // in H5 dev mode. React 18's package.json does not export ./cjs/, so we use
+        // the absolute file path directly.
+        chain.resolve.alias
+          .set('react$', reactDev)
+          .set('react/jsx-runtime$', reactJsxRuntimeDev);
+      }
 
       // Treat SVG files as static assets so they can be used with Image src.
       chain.module

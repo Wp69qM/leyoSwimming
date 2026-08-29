@@ -28,6 +28,23 @@ MANDATORY workflow:
 
 - **tdd-guide** - Use PROACTIVELY for new features, enforces write-tests-first
 
+## 执行检查清单（新功能 / Bug 修复 / 重构前必须完成）
+
+- [ ] 已使用 `tdd-guide` agent 或按 RED-GREEN-IMPROVE 流程开发
+- [ ] 新增/修改的业务代码有对应单元测试
+- [ ] 涉及数据库/外部接口的有集成测试
+- [ ] 关键用户流程有 E2E 测试或用例记录
+- [ ] 本地运行 `./mvnw test`、`pytest`、`vitest run` 全部通过
+- [ ] 覆盖率未低于 80%（新增代码优先达到 100%）
+- [ ] `code-reviewer` agent 已确认测试存在且覆盖核心路径
+
+## code-reviewer 强制检查项
+
+- 任何新增 public 方法必须有测试
+- 任何 bug 修复必须包含回归测试
+- 任何删除/修改现有测试必须说明原因
+- 未达 80% 覆盖率 → 高亮问题，要求补充
+
 ## Test Structure (AAA Pattern)
 
 Prefer Arrange-Act-Assert structure for tests:

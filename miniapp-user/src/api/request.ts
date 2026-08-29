@@ -34,7 +34,11 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = '/api';
+const BASE_URL =
+  (typeof process !== 'undefined' &&
+    process.env &&
+    process.env.TARO_APP_API_BASE_URL) ||
+  '/api';
 
 function getAccessToken(): string | null {
   return getStorageItem<string>(STORAGE_KEYS.ACCESS_TOKEN);
