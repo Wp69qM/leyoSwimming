@@ -1,0 +1,156 @@
+.wechat-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1890ff 0%, #096dd9 50%, #0050b3 100%);
+  position: relative;
+
+  &__brand {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 32rpx;
+
+    &--dimmed {
+      opacity: 0.85;
+    }
+  }
+
+  &__logo {
+    width: 96rpx;
+    height: 96rpx;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 15%);
+  }
+
+  &__name {
+    margin-top: 24rpx;
+    font-size: 24rpx;
+    font-weight: 600;
+    color: #fff;
+    line-height: 32rpx;
+  }
+
+  &__slogan {
+    margin-top: 16rpx;
+    font-size: 14rpx;
+    color: rgb(255 255 255 / 85%);
+    line-height: 20rpx;
+  }
+
+  &__guide {
+    margin-top: 48rpx;
+    font-size: 14rpx;
+    color: rgb(255 255 255 / 80%);
+    line-height: 20rpx;
+  }
+
+  &__footer {
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 16rpx 16rpx 0 0;
+    padding: 24rpx 16rpx calc(16rpx + env(safe-area-inset-bottom));
+    box-shadow: 0 -8rpx 16rpx rgb(0 0 0 / 8%);
+  }
+
+  &__error {
+    background: rgb(255 241 240 / 95%);
+    border-radius: 16rpx;
+    padding: 10rpx 12rpx;
+    margin-bottom: 12rpx;
+    display: flex;
+    align-items: center;
+  }
+
+  &__error-icon {
+    width: 20rpx;
+    height: 20rpx;
+    border-radius: 50%;
+    background: #ff4d4f;
+    margin-right: 16rpx;
+    flex-shrink: 0;
+    position: relative;
+
+    &::before {
+      content: '!';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 12rpx;
+      font-weight: 600;
+      line-height: 1;
+    }
+  }
+
+  &__error-text {
+    flex: 1;
+    font-size: 14rpx;
+    color: #ff4d4f;
+    line-height: 20rpx;
+  }
+
+  &__reauth {
+    width: 100%;
+    height: 36rpx;
+    line-height: 36rpx;
+    background: #fff;
+    color: #1890ff;
+    font-size: 14rpx;
+    border-radius: 16rpx;
+    padding: 0;
+    margin: 0 0 12rpx;
+    border: 1rpx solid #1890ff;
+
+    &::after {
+      border: none;
+    }
+  }
+
+  &__button {
+    margin-top: 16rpx;
+    width: 100%;
+    height: 48rpx;
+    line-height: 48rpx;
+    background: #07c160;
+    color: #fff;
+    font-size: 16rpx;
+    font-weight: 500;
+    border-radius: 8rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &-icon {
+      width: 22rpx;
+      height: 33rpx;
+      margin-right: 8rpx;
+      flex-shrink: 0;
+    }
+
+    &--loading {
+      background: #06ad56;
+    }
+
+    &[disabled] {
+      opacity: 0.7;
+    }
+
+    &::after {
+      border: none;
+    }
+  }
+
+  &__phone-link {
+    display: block;
+    margin-top: 16rpx;
+    text-align: center;
+    font-size: 14rpx;
+    color: #1890ff;
+    font-weight: 500;
+    line-height: 20rpx;
+  }
+}

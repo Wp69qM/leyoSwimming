@@ -1,0 +1,673 @@
+@use '@/styles/calicat-overrides' as *;
+
+.custom-config {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 $calicat-page-horizontal;
+  }
+
+  &__back {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    color: $calicat-white;
+    font-size: 24px;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+
+  &__navbar-placeholder {
+    width: 25px;
+  }
+
+  &__content {
+    flex: 1;
+    padding: 12px $calicat-page-horizontal #{$calicat-bottom-bar-height + 12px};
+    overflow-y: auto;
+  }
+
+  &--skeleton {
+    .skeleton-card {
+      height: 120px;
+      background-color: $calicat-white;
+      border-radius: $calicat-card-radius;
+      margin-bottom: $calicat-card-gap;
+      box-shadow: $calicat-card-shadow;
+    }
+  }
+}
+
+.conflict-banner,
+.coach-unavailable-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: $calicat-card-gap;
+  background-color: $calicat-warning-bg;
+  border-radius: $calicat-card-radius;
+
+  &__icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: $calicat-warning;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: 12px;
+    line-height: 1.4;
+    color: $calicat-warning-text;
+  }
+}
+
+.conflict-banner {
+  &__action {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: $calicat-link;
+  }
+}
+
+.section-card {
+  background-color: $calicat-white;
+  border-radius: $calicat-card-radius;
+  padding: $calicat-card-padding;
+  margin-bottom: $calicat-card-gap;
+  box-shadow: $calicat-card-shadow;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: $calicat-section-title-gap;
+
+  &__decoration {
+    width: 5px;
+    height: 16px;
+    background-color: $calicat-primary;
+    border-radius: 2px;
+  }
+
+  &__text {
+    font-size: 16px;
+    font-weight: 700;
+    color: $calicat-text-title;
+  }
+}
+
+.selected-coach-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    flex-shrink: 0;
+
+    &--placeholder {
+      background-color: $calicat-avatar-placeholder-bg;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &__avatar-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-primary;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__name {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__rating {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__star {
+    color: $calicat-star-icon;
+    font-size: 13px;
+  }
+
+  &__rating-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: $calicat-star-icon;
+  }
+
+  &__meta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: $calicat-text-secondary;
+    line-height: 1.4;
+  }
+
+  &__price {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $calicat-primary;
+  }
+
+  &__arrow {
+    color: $calicat-icon-arrow;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.hours-selector {
+  &__quick {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  &__option {
+    flex: 1;
+    height: 46px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0.7px solid $calicat-border;
+    border-radius: $calicat-button-radius;
+    background-color: $calicat-white;
+
+    &--selected {
+      border-width: 2px;
+      border-color: $calicat-primary;
+      background-color: $calicat-option-selected-bg;
+    }
+  }
+
+  &__option-text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+
+    &--selected {
+      font-weight: 600;
+      color: $calicat-primary;
+    }
+  }
+
+  &__custom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  &__custom-label {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+  }
+
+  &__custom-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__adjust {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $calicat-button-radius;
+
+    &--minus {
+      border: 0.7px solid $calicat-border;
+      background-color: $calicat-white;
+    }
+
+    &--plus {
+      background-color: $calicat-primary;
+    }
+  }
+
+  &__adjust-icon {
+    font-size: 18px;
+    font-weight: 500;
+    color: $calicat-text-primary;
+
+    .hours-selector__adjust--plus & {
+      color: $calicat-white;
+    }
+  }
+
+  &__input {
+    width: 66px;
+    height: 38px;
+    border: 0.7px solid $calicat-primary;
+    border-radius: $calicat-button-radius;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: $calicat-primary;
+  }
+
+  &__unit {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: $calicat-text-tertiary;
+  }
+
+  &__error {
+    font-size: 11px;
+    color: $calicat-text-price-red;
+  }
+}
+
+.validity-selector {
+  &__options {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__option {
+    flex: 1;
+    height: 46px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0.7px solid $calicat-border;
+    border-radius: $calicat-button-radius;
+    background-color: $calicat-white;
+
+    &--selected {
+      border-width: 2px;
+      border-color: $calicat-primary;
+      background-color: $calicat-option-selected-bg;
+    }
+  }
+
+  &__option-text {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+
+    &--selected {
+      font-weight: 600;
+      color: $calicat-primary;
+    }
+  }
+}
+
+.stroke-selector {
+  &__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  &__pill {
+    height: 38px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0.7px solid $calicat-border;
+    border-radius: 18px;
+    background-color: $calicat-white;
+
+    &--selected {
+      border-width: 1.3px;
+      border-color: $calicat-primary;
+      background-color: $calicat-option-selected-bg;
+    }
+  }
+
+  &__pill-text {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+
+    &--selected {
+      font-weight: 600;
+      color: $calicat-primary;
+    }
+  }
+}
+
+.price-breakdown {
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &--total {
+      margin-top: 4px;
+    }
+  }
+
+  &__label {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+
+    &--total {
+      font-size: 16px;
+      font-weight: 600;
+      color: $calicat-text-primary;
+    }
+  }
+
+  &__value {
+    font-size: 14px;
+    color: $calicat-text-primary;
+
+    &--total {
+      font-size: 24px;
+      font-weight: 700;
+      color: $calicat-text-price-red;
+    }
+  }
+
+  &__divider {
+    height: 1px;
+    background-color: $calicat-divider;
+    margin-top: 4px;
+  }
+}
+
+.agreement-section {
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    margin-bottom: 14px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__checkbox {
+    width: 24px;
+    height: 24px;
+    border: 0.7px solid $calicat-border;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &--checked {
+      background-color: $calicat-primary;
+      border-color: $calicat-primary;
+    }
+  }
+
+  &__check-icon {
+    color: $calicat-white;
+    font-size: 14px;
+  }
+
+  &__text-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  &__text {
+    font-size: 14px;
+    color: $calicat-text-primary;
+  }
+
+  &__link {
+    font-size: 14px;
+    font-weight: 600;
+    color: $calicat-link;
+  }
+}
+
+.guardian-section {
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    margin-bottom: 8px;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    margin-bottom: 12px;
+  }
+
+  &__input-wrap {
+    width: 100%;
+    height: 44px;
+    border: 0.7px solid $calicat-border;
+    border-radius: $calicat-button-radius;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__input-icon {
+    color: $calicat-icon-default;
+    font-size: 18px;
+  }
+
+  &__input {
+    flex: 1;
+    height: 100%;
+    font-size: 14px;
+    color: $calicat-text-primary;
+  }
+}
+
+.bottom-submit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background-color: $calicat-white;
+  padding: 12px $calicat-page-horizontal #{$calicat-safe-bottom + 12px};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: $calicat-bottom-bar-shadow;
+
+  @media (width >=768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
+
+  &__total {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  &__symbol {
+    font-size: 12px;
+    font-weight: 600;
+    color: $calicat-text-price-red;
+    margin-bottom: 4px;
+  }
+
+  &__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-price-red;
+  }
+
+  &__button {
+    width: 160px;
+    height: 44px;
+    border-radius: 22px;
+    background: linear-gradient(
+      90deg,
+      $calicat-primary 0%,
+      $calicat-primary-dark 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    &--disabled {
+      background: $calicat-text-tertiary;
+      opacity: 1;
+    }
+  }
+
+  &__button-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+
+  &__button-icon {
+    color: $calicat-white;
+    font-size: 20px;
+  }
+}
+
+.custom-config-error,
+.custom-config-empty {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 160px;
+  }
+
+  &__illustration {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 24px;
+    border-radius: 60px;
+    background-color: $calicat-divider;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__illustration-icon {
+    font-size: 48px;
+    color: $calicat-icon-arrow;
+  }
+
+  &__warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    margin: 0 $calicat-page-horizontal 24px;
+    background-color: $calicat-warning-bg;
+    border-radius: $calicat-card-radius;
+  }
+
+  &__warning-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: $calicat-warning;
+  }
+
+  &__warning-text {
+    flex: 1;
+    font-size: 12px;
+    line-height: 1.4;
+    color: $calicat-warning-text;
+  }
+
+  &__text,
+  &__title {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    margin-bottom: 16px;
+  }
+
+  &__retry,
+  &__action {
+    padding: 10px 24px;
+    background-color: $calicat-primary;
+    border-radius: $calicat-button-radius;
+    font-size: 14px;
+    color: $calicat-white;
+  }
+}

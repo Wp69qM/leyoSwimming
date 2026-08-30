@@ -1,0 +1,70 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "ff5458ce-7aae-4c9a-9196-f959c29082c3",
+  "page_name": "U-自定义套餐配置页",
+  "states": {
+    "normal": "ff5458ce-7aae-4c9a-9196-f959c29082c3",
+    "minor": "95bc70ea-ba67-4d70-85bc-d22b3625543d",
+    "conflict": "44bbd398-ed98-4fbf-a912-a488f941d7e2"
+  },
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "primary": "#1890FF",
+    "primary_dark": "#0050B3",
+    "price": "#FF4D4F",
+    "text_primary": "#262626",
+    "text_title": "#1D2129",
+    "text_secondary": "#4E5969",
+    "text_auxiliary": "#868C9C",
+    "text_tertiary": "#BFBFBF",
+    "card_bg": "#FFFFFF",
+    "border": "#E8E8E8",
+    "divider": "#F0F0F0",
+    "option_selected_bg": "#EFF6FF",
+    "avatar_placeholder_bg": "#E6F7FF",
+    "star": "#FAAD14",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "nav_title": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "section_title": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 },
+    "card_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "body_bold": { "fontSize": 14, "fontWeight": 600, "lineHeight": 1.2 },
+    "caption": { "fontSize": 13, "fontWeight": 600, "lineHeight": 1.2 },
+    "small": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "hint": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "price_large": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1.2 },
+    "price_symbol": { "fontSize": 12, "fontWeight": 600, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "page_horizontal": 16,
+    "page_top": 12,
+    "section_gap": 12,
+    "card_padding": 16,
+    "card_gap": 12,
+    "safe_bottom": 34,
+    "bottom_bar_padding_top": 12,
+    "bottom_bar_height": 78
+  },
+  "radius": {
+    "card": 12,
+    "button": 22,
+    "option": 8,
+    "pill": 18,
+    "avatar": 24,
+    "checkbox": 2
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottom_bar": "0 -1px 0 rgba(240,240,240,1), 0 -4px 12px rgba(0,0,0,0.04)"
+  },
+  "navbar": {
+    "status_bar_height": 44,
+    "navbar_height": 44,
+    "gradient": {
+      "start": "#1890FF",
+      "end": "#0050B3"
+    }
+  }
+}

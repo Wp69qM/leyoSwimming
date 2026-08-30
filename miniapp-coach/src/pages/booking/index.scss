@@ -1,0 +1,11 @@
+.booking {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+
+  &__title {
+    font-size: 16px;
+    color: #333;
+  }
+}

@@ -1,0 +1,19 @@
+#!/bin/sh
+# Post-commit hook: auto-update project daily log after each commit.
+# This hook runs in the repository root by default.
+
+# Resolve repository root (in case hook is invoked from elsewhere)
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+# On Windows, use PowerShell to run the update script.
+# On Unix-like systems, pwsh should be available; adjust if needed.
+if command -v pwsh >/dev/null 2>&1; then
+    POWERSHELL="pwsh"
+elif command -v powershell >/dev/null 2>&1; then
+    POWERSHELL="powershell"
+else
+    echo "[post-commit] PowerShell not found. Skipping daily log auto-update."
+    exit 0
+fi
+
+"$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$REPO_ROOT/scripts/update-daily-log.ps1"

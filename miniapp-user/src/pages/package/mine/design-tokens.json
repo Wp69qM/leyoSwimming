@@ -1,0 +1,91 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "27f804b2-0cd4-49b0-b598-2043a5a55ca6",
+  "page_name": "U-我的套餐页",
+  "frame_name": "U-我的套餐列表页-正常",
+  "canvas_id": "2083742072270229504",
+  "screenshots": {
+    "normal": "src/assets/calicat/screenshots/U-my-package-normal.png",
+    "frozen": "src/assets/calicat/screenshots/U-my-package-frozen.png",
+    "empty": "src/assets/calicat/screenshots/U-my-package-empty.png"
+  },
+  "colors": {
+    "page_bg": "#F5F7FA",
+    "white": "#FFFFFF",
+    "primary": "#1890FF",
+    "primary_dark": "#0050B3",
+    "success": "#52C41A",
+    "warning": "#FA8C16",
+    "danger": "#FF4D4F",
+    "price": "#FF6B35",
+    "text_primary": "#262626",
+    "text_secondary": "#8C8C8C",
+    "text_tertiary": "#BFBFBF",
+    "tag_standard_bg": "#E6F7FF",
+    "tag_standard_text": "#1890FF",
+    "tag_experience_bg": "#FFF7E6",
+    "tag_experience_text": "#FA8C16",
+    "tag_success_bg": "#F6FFED",
+    "tag_success_text": "#52C41A",
+    "tag_default_bg": "#F5F5F5",
+    "tag_default_text": "#8C8C8C",
+    "divider": "#F0F0F0",
+    "summary_gradient_start": "#1890FF",
+    "summary_gradient_end": "#0050B3",
+    "summary_number": "#FFFFFF",
+    "summary_label": "rgba(255, 255, 255, 0.8)",
+    "summary_divider": "rgba(255, 255, 255, 0.3)",
+    "shadow_card": "rgba(0, 0, 0, 0.08)"
+  },
+  "typography": {
+    "nav_title": { "fontSize": 17, "fontWeight": 600, "lineHeight": 1.2 },
+    "section_title": { "fontSize": 16, "fontWeight": 700, "lineHeight": 1.2 },
+    "card_title": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.4 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "body_bold": { "fontSize": 14, "fontWeight": 700, "lineHeight": 1.2 },
+    "small": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "caption": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "caption_semibold": { "fontSize": 12, "fontWeight": 600, "lineHeight": 1 },
+    "tiny": { "fontSize": 11, "fontWeight": 400, "lineHeight": 1.2 },
+    "tiny_semibold": { "fontSize": 10, "fontWeight": 600, "lineHeight": 1 },
+    "summary_number": { "fontSize": 28, "fontWeight": 700, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "page_horizontal": 16,
+    "page_top": 12,
+    "page_bottom": 34,
+    "section_gap": 16,
+    "card_gap": 12,
+    "card_inner_gap": 12,
+    "card_padding": 16,
+    "group_header_padding_vertical": 12,
+    "summary_padding_vertical": 20,
+    "summary_number_label_gap": 6,
+    "hours_gap": 16,
+    "tag_gap": 8
+  },
+  "radius": {
+    "card": 12,
+    "tag": 9,
+    "status_tag": 10,
+    "count": 9,
+    "button": 14,
+    "notice": 8,
+    "avatar": 10,
+    "empty_button": 22
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0, 0, 0, 0.08)"
+  },
+  "sizes": {
+    "status_bar_height": 44,
+    "navbar_height": 44,
+    "summary_height": "fit_content",
+    "mode_tag_height": 18,
+    "status_tag_height": 20,
+    "refund_button_height": 30,
+    "coach_avatar": 20,
+    "group_arrow": 20,
+    "card_arrow": 22
+  }
+}

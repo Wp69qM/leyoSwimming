@@ -1,0 +1,54 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "42c37cb6-14b3-40c2-80ab-6010d0b17706",
+  "page_name": "C-我的学员列表页",
+  "colors": {
+    "primary": "#1890FF",
+    "primaryLight": "#E6F7FF",
+    "experience": "#FA8C16",
+    "experienceLight": "#FFF7E6",
+    "minor": "#FAAD14",
+    "minorLight": "#FFFBEE",
+    "success": "#52C41A",
+    "successLight": "#F6FFED",
+    "background": "#F5F7FA",
+    "surface": "#FFFFFF",
+    "textPrimary": "#262626",
+    "textSecondary": "#8C8C8C",
+    "textDisabled": "#BFBFBF",
+    "divider": "#F0F0F0"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 34, "fontWeight": 600, "lineHeight": 44 },
+    "studentName": { "fontSize": 32, "fontWeight": 700, "lineHeight": 40 },
+    "studentMeta": { "fontSize": 24, "fontWeight": 400, "lineHeight": 32 },
+    "tabSelected": { "fontSize": 28, "fontWeight": 600, "lineHeight": 36 },
+    "tabNormal": { "fontSize": 28, "fontWeight": 400, "lineHeight": 36 },
+    "tag": { "fontSize": 20, "fontWeight": 400, "lineHeight": 28 },
+    "minorTag": { "fontSize": 20, "fontWeight": 400, "lineHeight": 28 },
+    "placeholder": { "fontSize": 28, "fontWeight": 400, "lineHeight": 36 },
+    "avatarText": { "fontSize": 32, "fontWeight": 600, "lineHeight": 40 },
+    "tabBarLabel": { "fontSize": 20, "fontWeight": 400, "lineHeight": 28 }
+  },
+  "spacing": {
+    "xs": 8,
+    "sm": 12,
+    "md": 16,
+    "lg": 24,
+    "xl": 32
+  },
+  "radius": {
+    "card": 24,
+    "button": 22,
+    "tab": 18,
+    "tabItem": 15,
+    "tag": 10,
+    "minorTag": 9,
+    "avatar": 24
+  },
+  "shadows": {
+    "card": "0 2px 16px rgba(0,0,0,0.08)",
+    "tabSelected": "0 2px 16px rgba(0,0,0,0.06)",
+    "tabBar": "0 -1px 0 rgba(240,240,240,1), 0 8px 48px rgba(0,0,0,0.12)"
+  }
+}

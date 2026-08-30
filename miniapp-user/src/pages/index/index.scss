@@ -1,0 +1,127 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #1890ff 0%, #096dd9 50%, #0050b3 100%);
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: -80rpx;
+  }
+
+  &__brand-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &--dimmed {
+      opacity: 0.6;
+    }
+  }
+
+  &__logo {
+    position: relative;
+    width: 96rpx;
+    height: 96rpx;
+    background: rgb(255 255 255 / 15%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__logo-icon {
+    width: 48rpx;
+    height: 48rpx;
+  }
+
+  &__brand {
+    margin-top: 24rpx;
+    font-size: 24rpx;
+    font-weight: 700;
+    color: #fff;
+    line-height: 32rpx;
+  }
+
+  &__slogan {
+    margin-top: 16rpx;
+    font-size: 14rpx;
+    font-weight: 400;
+    color: rgb(255 255 255 / 85%);
+    line-height: 20rpx;
+  }
+
+  &__loading {
+    margin-top: 40rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16rpx;
+  }
+
+  &__loading-dot {
+    width: 20rpx;
+    height: 20rpx;
+    border: 3rpx solid rgb(255 255 255 / 35%);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: splash-spin 1s linear infinite;
+  }
+
+  &__loading-text {
+    font-size: 14rpx;
+    font-weight: 400;
+    color: rgb(255 255 255 / 70%);
+    line-height: 20rpx;
+  }
+
+  &__error {
+    margin-top: 48rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12rpx;
+  }
+
+  &__error-illustration {
+    width: 120rpx;
+    height: 120rpx;
+    background: rgb(255 255 255 / 15%);
+    border-radius: 16rpx;
+  }
+
+  &__error-text {
+    font-size: 14rpx;
+    color: rgb(255 255 255 / 90%);
+    line-height: 20rpx;
+  }
+
+  &__retry {
+    padding: 16rpx 20rpx;
+    background: #fff;
+    border-radius: 16rpx;
+  }
+
+  &__retry-text {
+    font-size: 14rpx;
+    font-weight: 500;
+    color: #1890ff;
+    line-height: 20rpx;
+  }
+}
+
+@keyframes splash-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

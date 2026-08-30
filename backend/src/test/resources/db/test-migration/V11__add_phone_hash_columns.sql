@@ -1,0 +1,3 @@
+ALTER TABLE `user` ADD COLUMN `phone_hash` VARCHAR(64) NULL DEFAULT NULL AFTER `phone`;
+ALTER TABLE `user` ADD COLUMN `guardian_phone_hash` VARCHAR(64) NULL DEFAULT NULL AFTER `guardian_phone`;
+ALTER TABLE `coach` ADD COLUMN `phone_hash` VARCHAR(64) NULL DEFAULT NULL AFTER `phone`;

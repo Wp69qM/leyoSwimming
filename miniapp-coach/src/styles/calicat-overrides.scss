@@ -1,0 +1,52 @@
+// Calicat design tokens for coach miniapp
+// Generated from file_id: 2083742072257646592
+
+// Brand / functional colors
+$color-primary: #1890FF;
+$color-primary-light: #E6F7FF;
+$color-experience: #FA8C16;
+$color-experience-light: #FFF7E6;
+$color-minor: #FAAD14;
+$color-minor-light: #FFFBEE;
+$color-success: #52C41A;
+$color-success-light: #F6FFED;
+
+// Neutral colors
+$color-bg: #F5F7FA;
+$color-surface: #FFFFFF;
+$color-text-primary: #262626;
+$color-text-secondary: #8C8C8C;
+$color-text-disabled: #BFBFBF;
+$color-divider: #F0F0F0;
+
+// Typography (px, pxtransform 会按 375 设计稿转为 rpx，H5/小程序保持一致)
+$font-size-nav-title: 17px;
+$font-size-student-name: 16px;
+$font-size-student-meta: 12px;
+$font-size-tab: 14px;
+$font-size-tag: 10px;
+$font-size-placeholder: 14px;
+$font-size-avatar: 16px;
+$font-size-tab-bar: 10px;
+$font-size-minor-tag: 10px;
+
+// Spacing (rpx)
+$spacing-xs: 8rpx;
+$spacing-sm: 12rpx;
+$spacing-md: 16rpx;
+$spacing-lg: 24rpx;
+$spacing-xl: 32rpx;
+
+// Border radius (rpx)
+$radius-card: 12rpx;
+$radius-search: 22rpx;
+$radius-tab: 18rpx;
+$radius-tab-item: 15rpx;
+$radius-tag: 10rpx;
+$radius-minor-tag: 9rpx;
+$radius-avatar: 24rpx;
+
+// Shadows
+$shadow-card: 0 2px 16px rgba(0, 0, 0, 0.08);
+$shadow-tab-selected: 0 2px 16px rgba(0, 0, 0, 0.06);
+$shadow-tab-bar: 0 -1px 0 rgba(240, 240, 240, 1), 0 8px 48px rgba(0, 0, 0, 0.12);

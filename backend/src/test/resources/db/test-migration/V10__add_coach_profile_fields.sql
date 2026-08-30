@@ -1,0 +1,6 @@
+ALTER TABLE `coach` ADD COLUMN `age` INT DEFAULT NULL COMMENT '年龄 18-99';
+ALTER TABLE `coach` ADD COLUMN `gender` VARCHAR(10) DEFAULT NULL COMMENT '性别: male/female';
+ALTER TABLE `coach` ADD COLUMN `personal_desc` VARCHAR(512) DEFAULT NULL COMMENT '个人描述';
+ALTER TABLE `coach` ADD COLUMN `teaching_years` INT DEFAULT NULL COMMENT '执教年限';
+ALTER TABLE `coach` ADD COLUMN `certificates` JSON DEFAULT NULL COMMENT '资质证书 JSON 列表';
+ALTER TABLE `coach` ADD COLUMN `profile_completed` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否已完善资料：0-否，1-是';

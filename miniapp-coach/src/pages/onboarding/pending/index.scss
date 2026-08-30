@@ -1,0 +1,290 @@
+@use '@/styles/variables.scss' as *;
+
+.coach-onboarding-pending {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding-bottom: 80rpx;
+
+  &__navbar {
+    height: 44rpx;
+    background-color: #fff;
+    border-bottom: 1rpx solid #F0F0F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__nav-title {
+    font-size: 17rpx;
+    font-weight: 500;
+    color: #262626;
+  }
+
+  &__loading {
+    display: block;
+    text-align: center;
+    padding-top: 100rpx;
+    color: #8C8C8C;
+    font-size: 14rpx;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 100rpx;
+  }
+
+  &__error-text {
+    color: #8C8C8C;
+    font-size: 14rpx;
+    margin-bottom: 12rpx;
+  }
+
+  &__error-btn {
+    width: 120rpx;
+    height: 36rpx;
+    line-height: 36rpx;
+    font-size: 14rpx;
+    color: #fff;
+    background-color: #1890FF;
+    border-radius: 4rpx;
+  }
+
+  &__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 48rpx;
+    padding-bottom: 24rpx;
+  }
+
+  &__status-icon {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 40rpx;
+    background-color: #FFFBE6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16rpx;
+  }
+
+  &__status-icon-img {
+    width: 40rpx;
+    height: 40rpx;
+  }
+
+  &__status-title {
+    font-size: 20rpx;
+    font-weight: 500;
+    color: #262626;
+    margin-bottom: 8rpx;
+  }
+
+  &__status-subtitle {
+    font-size: 14rpx;
+    color: #8C8C8C;
+  }
+
+  &__card {
+    margin: 0 16rpx 16rpx;
+    padding: 16rpx;
+    background-color: #fff;
+    border-radius: 12rpx;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12rpx;
+  }
+
+  &__card-title {
+    font-size: 14rpx;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  &__status-tag {
+    padding: 4rpx 10rpx;
+    font-size: 12rpx;
+    color: #FAAD14;
+    background-color: #FFFBE6;
+    border-radius: 12rpx;
+  }
+
+  &__profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12rpx;
+  }
+
+  &__avatar {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 24rpx;
+    margin-right: 12rpx;
+    background-color: #F5F7FA;
+  }
+
+  &__profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-size: 16rpx;
+    font-weight: 500;
+    color: #262626;
+    margin-bottom: 4rpx;
+  }
+
+  &__phone {
+    font-size: 14rpx;
+    color: #8C8C8C;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__meta-item {
+    font-size: 14rpx;
+    color: #595959;
+    margin-bottom: 6rpx;
+
+    &:last-child {
+      margin-bottom: 0;
+      font-size: 12rpx;
+      color: #8C8C8C;
+    }
+  }
+
+  &__btn {
+    margin: 0 16rpx 16rpx;
+    height: 48rpx;
+    line-height: 48rpx;
+    font-size: 16rpx;
+    font-weight: 500;
+    color: #1890FF;
+    background-color: #fff;
+    border: 1rpx solid #1890FF;
+    border-radius: 8rpx;
+    width: calc(100% - 32rpx);
+  }
+
+  &__help {
+    display: block;
+    text-align: center;
+    font-size: 14rpx;
+    color: #1890FF;
+  }
+
+  &__sheet {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  &__sheet-content {
+    height: 70vh;
+    background-color: #fff;
+    border-radius: 16rpx 16rpx 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  &__sheet-header {
+    height: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1rpx solid #F0F0F0;
+  }
+
+  &__sheet-title {
+    font-size: 16rpx;
+    font-weight: 500;
+    color: #262626;
+  }
+
+  &__sheet-close {
+    position: absolute;
+    right: 16rpx;
+    font-size: 18rpx;
+    color: #8C8C8C;
+    padding: 8rpx;
+  }
+
+  &__sheet-body {
+    flex: 1;
+  }
+
+  &__sheet-body-inner {
+    padding: 12rpx 16rpx;
+  }
+
+  &__sheet-section {
+    margin-bottom: 16rpx;
+  }
+
+  &__sheet-section-title {
+    font-size: 15rpx;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 10rpx;
+  }
+
+  &__sheet-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8rpx;
+  }
+
+  &__sheet-label {
+    font-size: 14rpx;
+    color: #8C8C8C;
+    flex-shrink: 0;
+    margin-right: 12rpx;
+  }
+
+  &__sheet-value {
+    font-size: 14rpx;
+    color: #262626;
+    text-align: right;
+    word-break: break-all;
+  }
+
+  &__sheet-cert {
+    margin-bottom: 12rpx;
+  }
+
+  &__sheet-cert-title {
+    font-size: 14rpx;
+    color: #8C8C8C;
+    margin-bottom: 6rpx;
+  }
+
+  &__sheet-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8rpx;
+  }
+
+  &__sheet-image {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 8rpx;
+    background-color: #F5F7FA;
+  }
+}

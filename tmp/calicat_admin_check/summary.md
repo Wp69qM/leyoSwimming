@@ -1,0 +1,3239 @@
+# Calicat Admin First Batch Design Summary
+
+## A-admin-create-modal
+
+- 尺寸: 520 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: 新建管理员  (fontSize=18, fill=rgba(29,33,41,1), w=fill_container)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 姓名  (fontSize=14, fill=rgba(29,33,41,1), w=29)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-           [图层]: 请输入管理员姓名  (fontSize=14, fill=rgba(201,205,212,1), w=113)
+-           [图层]: 登录账号  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-           [图层]: 请输入登录账号  (fontSize=14, fill=rgba(201,205,212,1), w=99)
+-           [图层]: 3-32位，字母/数字/下划线  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-           [图层]: 初始密码  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-           [图层]: 请输入初始密码  (fontSize=14, fill=rgba(201,205,212,1), w=99)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 8-32位，需包含字母+数字+特殊字符  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-           [图层]: 确认密码  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-           [图层]: 请再次输入密码  (fontSize=14, fill=rgba(201,205,212,1), w=99)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 角色  (fontSize=14, fill=rgba(29,33,41,1), w=29)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-             [图层]: 超级管理员  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-             [图层]: 普通管理员  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- E-新建管理员弹窗 2 520xfit_content layout=vertical padding=None
+-   弹窗容器 fill_containerxfit_content layout=vertical padding=None
+-     标题栏 fill_containerx56 layout=horizontal padding=[0, 24, 0, 24]
+-       标题 90xfit_content layout=vertical padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     表单区 fill_containerxfit_content layout=vertical padding=[24, 24, 8, 24]
+-       表单项-姓名 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-       表单项-登录账号 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         提示 fill_containerxfit_content layout=vertical padding=None
+-       表单项-初始密码 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         密码输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         提示 fill_containerxfit_content layout=vertical padding=None
+-       表单项-确认密码 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         密码输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-       表单项-角色 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         单选组 fill_containerxfit_content layout=horizontal padding=None
+-           选项-超级管理员 fit_contentxfit_content layout=horizontal padding=None
+-             单选-选中 20x20 layout=horizontal padding=None
+-           选项-普通管理员 fit_contentxfit_content layout=horizontal padding=None
+-     底部操作栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       取消按钮 fit_contentx40 layout=horizontal padding=[0, 20, 0, 20]
+-       保存按钮 fit_contentx40 layout=horizontal padding=[0, 24, 0, 24]
+
+---
+
+## A-admin-edit-modal
+
+- 尺寸: 520 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: 编辑管理员  (fontSize=18, fill=rgba(29,33,41,1), w=fill_container)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 登录账号  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: admin  (fontSize=14, fill=rgba(134,144,156,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]: 姓名  (fontSize=14, fill=rgba(29,33,41,1), w=29)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-           [图层]: 张管理  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-           [图层]: 角色  (fontSize=14, fill=rgba(29,33,41,1), w=29)
+-           [图层]: *  (fontSize=14, fill=rgba(255,77,79,1), w=8)
+-             [图层]: 超级管理员  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-             [图层]: 普通管理员  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- F-编辑管理员弹窗 2 520xfit_content layout=vertical padding=None
+-   弹窗容器 fill_containerxfit_content layout=vertical padding=None
+-     标题栏 fill_containerx56 layout=horizontal padding=[0, 24, 0, 24]
+-       标题 90xfit_content layout=vertical padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     表单区 fill_containerxfit_content layout=vertical padding=[24, 24, 8, 24]
+-       表单项-登录账号 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         只读框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-           container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 387.7999954223633]
+-       表单项-姓名 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-       表单项-角色 fill_containerxfit_content layout=vertical padding=None
+-         标签行 fill_containerxfit_content layout=horizontal padding=None
+-         单选组 fill_containerxfit_content layout=horizontal padding=None
+-           选项-超级管理员 fit_contentxfit_content layout=horizontal padding=None
+-             单选-选中 20x20 layout=horizontal padding=None
+-           选项-普通管理员 fit_contentxfit_content layout=horizontal padding=None
+-     底部操作栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       取消按钮 fit_contentx40 layout=horizontal padding=[0, 20, 0, 20]
+-       保存按钮 fit_contentx40 layout=horizontal padding=[0, 24, 0, 24]
+
+---
+
+## A-admin-login-page-disabled
+
+- 尺寸: 1440 x 900
+- 布局: vertical, align: center, justify: center
+- 背景: [{"type": "linearGradient", "gradientUnits": "percentage", "coords": {"x1": 0.5, "y1": 0, "x2": 0.5, "y2": 1}, "colorStops": [{"offset": 0, "color": "rgba(230,247,255,1)"}, {"offset": 1, "color": "rgb
+
+### 文本内容（按出现顺序）
+
+-         [图层]:   (fontSize=32, w=35)
+-           [图层]: leyoSwimming 管理后台  (fontSize=24, fill=rgba(38,38,38,1), w=fill_container)
+-           [图层]: 管理员登录  (fontSize=14, fill=rgba(140,140,140,1), w=fill_container)
+-             [图层]: 用户名  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=18, w=20)
+-                 [图层]: admin  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-               [图层]: 密码  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]:   (fontSize=18, w=20)
+-                   [图层]: ••••••••  (fontSize=14, fill=rgba(38,38,38,1), w=315)
+-                 [图层]:   (fontSize=18, w=20)
+-             [图层]:   (fontSize=14, w=16)
+-               [图层]: 账号已被禁用，请联系超级管理员  (fontSize=12, fill=rgba(255,77,79,1), w=181)
+-             [图层]: 登 录  (fontSize=16, fill=rgba(255,255,255,1), w=37)
+-       [图层]: © 2026 leyoSwimming. All rights reserved.  (fontSize=12, fill=rgba(140,140,140,1), w=236)
+
+### 主要 Frame 容器
+
+- A-管理员登录页-账号禁用 1440x900 layout=vertical padding=None
+-   登录卡片 480xfit_content layout=vertical padding=48
+-     卡片头部 fill_containerxfit_content layout=vertical padding=None
+-       Logo 64x64 layout=horizontal padding=None
+-       container fit_contentxfit_content layout=vertical padding=[16, 0, 0, 0]
+-         系统名称 278xfit_content layout=vertical padding=None
+-       container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         副标题 70xfit_content layout=vertical padding=None
+-     container fill_containerxfit_content layout=vertical padding=[40, 0, 0, 0]
+-       登录表单 fill_containerxfit_content layout=vertical padding=None
+-         用户名输入区 fill_containerxfit_content layout=vertical padding=None
+-           用户名标签 fill_containerxfit_content layout=vertical padding=None
+-           container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-             用户名输入框 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           密码输入区 fill_containerxfit_content layout=vertical padding=None
+-             密码标签 fill_containerxfit_content layout=vertical padding=None
+-             container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-               密码输入框 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           错误提示-账号禁用 fill_containerxfit_content layout=horizontal padding=None
+-             container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 4.000001907348633]
+-         container fit_contentxfit_content layout=vertical padding=[32, 0, 0, 0]
+-           登录按钮 384x44 layout=horizontal padding=None
+-   container 960x42 layout=horizontal padding=None
+-     底部版权 960x42 layout=horizontal padding=[0, 0, 24, 0]
+
+---
+
+## A-admin-login-page-error
+
+- 尺寸: 1440 x 900
+- 布局: vertical, align: center, justify: center
+- 背景: [{"type": "linearGradient", "gradientUnits": "percentage", "coords": {"x1": 0.5, "y1": 0, "x2": 0.5, "y2": 1}, "colorStops": [{"offset": 0, "color": "rgba(230,247,255,1)"}, {"offset": 1, "color": "rgb
+
+### 文本内容（按出现顺序）
+
+-         [图层]:   (fontSize=32, w=35)
+-           [图层]: leyoSwimming 管理后台  (fontSize=24, fill=rgba(38,38,38,1), w=fill_container)
+-           [图层]: 管理员登录  (fontSize=14, fill=rgba(140,140,140,1), w=fill_container)
+-             [图层]: 用户名  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=18, w=20)
+-                 [图层]: admin  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-               [图层]: 密码  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]:   (fontSize=18, w=20)
+-                   [图层]: ••••••••  (fontSize=14, fill=rgba(38,38,38,1), w=315)
+-                 [图层]:   (fontSize=18, w=20)
+-             [图层]:   (fontSize=14, w=16)
+-               [图层]: 用户名或密码错误  (fontSize=12, fill=rgba(255,77,79,1), w=97)
+-             [图层]: 登 录  (fontSize=16, fill=rgba(255,255,255,1), w=37)
+-       [图层]: © 2026 leyoSwimming. All rights reserved.  (fontSize=12, fill=rgba(140,140,140,1), w=236)
+
+### 主要 Frame 容器
+
+- A-管理员登录页-错误状态 1440x900 layout=vertical padding=None
+-   登录卡片 480xfit_content layout=vertical padding=48
+-     卡片头部 fill_containerxfit_content layout=vertical padding=None
+-       Logo 64x64 layout=horizontal padding=None
+-       container fit_contentxfit_content layout=vertical padding=[16, 0, 0, 0]
+-         系统名称 278xfit_content layout=vertical padding=None
+-       container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         副标题 70xfit_content layout=vertical padding=None
+-     container fill_containerxfit_content layout=vertical padding=[40, 0, 0, 0]
+-       登录表单 fill_containerxfit_content layout=vertical padding=None
+-         用户名输入区 fill_containerxfit_content layout=vertical padding=None
+-           用户名标签 fill_containerxfit_content layout=vertical padding=None
+-           container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-             用户名输入框-错误 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           密码输入区 fill_containerxfit_content layout=vertical padding=None
+-             密码标签 fill_containerxfit_content layout=vertical padding=None
+-             container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-               密码输入框-错误 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           错误提示 fill_containerxfit_content layout=horizontal padding=None
+-             container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 4.000001907348633]
+-         container fit_contentxfit_content layout=vertical padding=[32, 0, 0, 0]
+-           登录按钮 384x44 layout=horizontal padding=None
+-   container 960x42 layout=horizontal padding=None
+-     底部版权 960x42 layout=horizontal padding=[0, 0, 24, 0]
+
+---
+
+## A-admin-login-page-loading
+
+- 尺寸: 1440 x 900
+- 布局: vertical, align: center, justify: center
+- 背景: [{"type": "linearGradient", "gradientUnits": "percentage", "coords": {"x1": 0.5, "y1": 0, "x2": 0.5, "y2": 1}, "colorStops": [{"offset": 0, "color": "rgba(230,247,255,1)"}, {"offset": 1, "color": "rgb
+
+### 文本内容（按出现顺序）
+
+-         [图层]:   (fontSize=32, w=35)
+-           [图层]: leyoSwimming 管理后台  (fontSize=24, fill=rgba(38,38,38,1), w=fill_container)
+-           [图层]: 管理员登录  (fontSize=14, fill=rgba(140,140,140,1), w=fill_container)
+-             [图层]: 用户名  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=18, w=20)
+-                 [图层]: admin  (fontSize=14, fill=rgba(191,191,191,1), w=43)
+-               [图层]: 密码  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]:   (fontSize=18, w=20)
+-                   [图层]: ••••••••  (fontSize=14, fill=rgba(191,191,191,1), w=315)
+-                 [图层]:   (fontSize=18, w=20)
+-             [图层]:   (fontSize=18, w=20)
+-               [图层]: 登录中...  (fontSize=16, fill=rgba(255,255,255,1), w=64)
+-       [图层]: © 2026 leyoSwimming. All rights reserved.  (fontSize=12, fill=rgba(140,140,140,1), w=236)
+
+### 主要 Frame 容器
+
+- A-管理员登录页-加载中 1440x900 layout=vertical padding=None
+-   登录卡片 480xfit_content layout=vertical padding=48
+-     卡片头部 fill_containerxfit_content layout=vertical padding=None
+-       Logo 64x64 layout=horizontal padding=None
+-       container fit_contentxfit_content layout=vertical padding=[16, 0, 0, 0]
+-         系统名称 278xfit_content layout=vertical padding=None
+-       container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         副标题 70xfit_content layout=vertical padding=None
+-     container fill_containerxfit_content layout=vertical padding=[40, 0, 0, 0]
+-       登录表单 fill_containerxfit_content layout=vertical padding=None
+-         用户名输入区 fill_containerxfit_content layout=vertical padding=None
+-           用户名标签 fill_containerxfit_content layout=vertical padding=None
+-           container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-             用户名输入框-禁用 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           密码输入区 fill_containerxfit_content layout=vertical padding=None
+-             密码标签 fill_containerxfit_content layout=vertical padding=None
+-             container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-               密码输入框-禁用 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fit_contentxfit_content layout=vertical padding=[40, 0, 0, 0]
+-           登录按钮-loading 384x44 layout=horizontal padding=None
+-             container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-   container 960x91 layout=horizontal padding=None
+-     底部版权 960x42 layout=horizontal padding=[0, 0, 24, 0]
+
+---
+
+## A-admin-login-page-token-expired
+
+- 尺寸: 1440 x 900
+- 布局: vertical, align: center, justify: center
+- 背景: [{"type": "linearGradient", "gradientUnits": "percentage", "coords": {"x1": 0.5, "y1": 0, "x2": 0.5, "y2": 1}, "colorStops": [{"offset": 0, "color": "rgba(230,247,255,1)"}, {"offset": 1, "color": "rgb
+
+### 文本内容（按出现顺序）
+
+-       [图层]:   (fontSize=16, w=18)
+-         [图层]: 登录信息已过期，请重新登录  (fontSize=12, fill=rgba(38,38,38,1), w=157)
+-           [图层]:   (fontSize=32, w=35)
+-             [图层]: leyoSwimming 管理后台  (fontSize=24, fill=rgba(38,38,38,1), w=fill_container)
+-             [图层]: 管理员登录  (fontSize=14, fill=rgba(140,140,140,1), w=fill_container)
+-             [图层]: 用户名  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=18, w=20)
+-                 [图层]: 请输入管理员账号  (fontSize=14, fill=rgba(191,191,191,1), w=113)
+-               [图层]: 密码  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]:   (fontSize=18, w=20)
+-                   [图层]: 请输入密码  (fontSize=14, fill=rgba(191,191,191,1), w=315)
+-                 [图层]:   (fontSize=18, w=20)
+-             [图层]: 登 录  (fontSize=16, fill=rgba(255,255,255,1), w=37)
+-       [图层]: © 2026 leyoSwimming. All rights reserved.  (fontSize=12, fill=rgba(140,140,140,1), w=236)
+
+### 主要 Frame 容器
+
+- A-管理员登录页-token过期 1440x900 layout=vertical padding=None
+-   登录卡片 480xfit_content layout=vertical padding=48
+-     token过期提示 384xfit_content layout=horizontal padding=[10, 12, 10, 12]
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-     container fill_containerxfit_content layout=vertical padding=[24.00000762939453, 0, 0, 0]
+-       卡片头部 fill_containerxfit_content layout=vertical padding=None
+-         Logo 64x64 layout=horizontal padding=None
+-         container fit_contentxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           系统名称 278xfit_content layout=vertical padding=None
+-         container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           副标题 70xfit_content layout=vertical padding=None
+-     container fill_containerxfit_content layout=vertical padding=[40, 0, 0, 0]
+-       登录表单 fill_containerxfit_content layout=vertical padding=None
+-         用户名输入区 fill_containerxfit_content layout=vertical padding=None
+-           用户名标签 fill_containerxfit_content layout=vertical padding=None
+-           container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-             用户名输入框 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           密码输入区 fill_containerxfit_content layout=vertical padding=None
+-             密码标签 fill_containerxfit_content layout=vertical padding=None
+-             container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-               密码输入框 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fit_contentxfit_content layout=vertical padding=[40, 0, 0, 0]
+-           登录按钮 384x44 layout=horizontal padding=None
+-   container 960x42 layout=horizontal padding=None
+-     底部版权 960x42 layout=horizontal padding=[0, 0, 24, 0]
+
+---
+
+## A-admin-login-page
+
+- 尺寸: 1440 x 900
+- 布局: vertical, align: center, justify: center
+- 背景: [{"type": "linearGradient", "gradientUnits": "percentage", "coords": {"x1": 0.5, "y1": 0, "x2": 0.5, "y2": 1}, "colorStops": [{"offset": 0, "color": "rgba(230,247,255,1)"}, {"offset": 1, "color": "rgb
+
+### 文本内容（按出现顺序）
+
+-         [图层]:   (fontSize=32, w=35)
+-           [图层]: leyoSwimming 管理后台  (fontSize=24, fill=rgba(38,38,38,1), w=fill_container)
+-           [图层]: 管理员登录  (fontSize=14, fill=rgba(140,140,140,1), w=fill_container)
+-             [图层]: 用户名  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=18, w=20)
+-                 [图层]: 请输入管理员账号  (fontSize=14, fill=rgba(191,191,191,1), w=113)
+-               [图层]: 密码  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]:   (fontSize=18, w=20)
+-                   [图层]: 请输入密码  (fontSize=14, fill=rgba(191,191,191,1), w=315)
+-                 [图层]:   (fontSize=18, w=20)
+-             [图层]: 登 录  (fontSize=16, fill=rgba(255,255,255,1), w=37)
+-     [图层]: © 2026 leyoSwimming. All rights reserved.  (fontSize=12, fill=rgba(140,140,140,1), w=236)
+
+### 主要 Frame 容器
+
+- A-管理员登录页-空状态 1440x900 layout=vertical padding=None
+-   登录卡片 480xfit_content layout=vertical padding=48
+-     卡片头部 fill_containerxfit_content layout=vertical padding=None
+-       Logo 64x64 layout=horizontal padding=None
+-       container fit_contentxfit_content layout=vertical padding=[16, 0, 0, 0]
+-         系统名称 278xfit_content layout=vertical padding=None
+-       container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         副标题 70xfit_content layout=vertical padding=None
+-     container fill_containerxfit_content layout=vertical padding=[40, 0, 0, 0]
+-       登录表单 fill_containerxfit_content layout=vertical padding=None
+-         用户名输入区 fill_containerxfit_content layout=vertical padding=None
+-           用户名标签 fill_containerxfit_content layout=vertical padding=None
+-           container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-             用户名输入框 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           密码输入区 fill_containerxfit_content layout=vertical padding=None
+-             密码标签 fill_containerxfit_content layout=vertical padding=None
+-             container fit_contentxfit_content layout=vertical padding=[8, 0, 0, 0]
+-               密码输入框 384x44 layout=horizontal padding=[0, 12, 0, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8.000003814697266]
+-         container fit_contentxfit_content layout=vertical padding=[40, 0, 0, 0]
+-           登录按钮 384x44 layout=horizontal padding=None
+-   底部版权 960x42 layout=horizontal padding=[0, 0, 24, 0]
+
+---
+
+## A-admin-management-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(24,144,255,1), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 管理员账号  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-           [图层]: 管理员账号  (fontSize=24, fill=rgba(29,33,41,1), w=fit_content)
+-             [图层]: 管理后台管理员账号，支持创建、编辑、分配角色及权限控制  (fontSize=14, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 全部角色  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]: 全部状态  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]:   (fontSize=18, w=20)
+-               [图层]: 姓名 / 登录账号 / ID  (fontSize=14, fill=rgba(201,205,212,1), w=123)
+-               [图层]: 查询  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-               [图层]: 重置  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 新建管理员  (fontSize=14, fill=rgba(255,255,255,1), w=71)
+-                 [图层]: 管理员ID  (fontSize=14, fill=rgba(38,38,38,1), w=49)
+-                 [图层]: 姓名  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 登录账号  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 角色  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 状态  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 最近登录时间  (fontSize=14, fill=rgba(38,38,38,1), w=85)
+-                 [图层]: 创建时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 操作  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 1  (fontSize=13, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 张管理  (fontSize=13, fill=rgba(29,33,41,1), w=40)
+-                 [图层]: admin  (fontSize=14, fill=rgba(29,33,41,1), w=44)
+-                   [图层]: 超级管理员  (fontSize=12, fill=rgba(24,144,255,1), w=61)
+-                   [图层]: 启用  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-08-07 09:00  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 2025-01-01 00:00  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 2  (fontSize=13, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 李运营  (fontSize=13, fill=rgba(29,33,41,1), w=40)
+-                 [图层]: operator01  (fontSize=14, fill=rgba(29,33,41,1), w=75)
+-                   [图层]: 普通管理员  (fontSize=12, fill=rgba(82,196,26,1), w=61)
+-                   [图层]: 启用  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-08-07 08:30  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 2025-03-15 10:00  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 3  (fontSize=13, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 王客服  (fontSize=13, fill=rgba(29,33,41,1), w=40)
+-                 [图层]: cs_agent01  (fontSize=14, fill=rgba(29,33,41,1), w=77)
+-                   [图层]: 普通管理员  (fontSize=12, fill=rgba(82,196,26,1), w=61)
+-                   [图层]: 启用  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-08-06 17:20  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 2025-06-01 09:00  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 4  (fontSize=13, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 赵财务  (fontSize=13, fill=rgba(29,33,41,1), w=40)
+-                 [图层]: finance01  (fontSize=14, fill=rgba(29,33,41,1), w=67)
+-                   [图层]: 普通管理员  (fontSize=12, fill=rgba(82,196,26,1), w=61)
+-                   [图层]: 禁用  (fontSize=12, fill=rgba(255,77,79,1), w=25)
+-                 [图层]: 2026-07-20 11:00  (fontSize=13, fill=rgba(201,205,212,1), w=104)
+-                 [图层]: 2025-04-10 14:00  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 5  (fontSize=13, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 陈技术  (fontSize=13, fill=rgba(29,33,41,1), w=40)
+-                 [图层]: tech_support  (fontSize=14, fill=rgba(29,33,41,1), w=91)
+-                   [图层]: 普通管理员  (fontSize=12, fill=rgba(82,196,26,1), w=61)
+-                   [图层]: 启用  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-08-07 07:45  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 2025-08-20 16:00  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 共  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 5  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 个管理员账号  (fontSize=14, fill=rgba(134,144,156,1), w=85)
+-                   [图层]:   (fontSize=18, w=20)
+-                   [图层]: 1  (fontSize=14, fill=rgba(255,255,255,1), w=9)
+-                   [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- A-管理员账号页 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1200 layout=horizontal padding=None
+-       侧边栏 220x1200 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-工单列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-系统 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-管理员账号 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+
+---
+
+## A-admin-reset-password-modal
+
+- 尺寸: 480 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: 重置密码成功  (fontSize=18, fill=rgba(29,33,41,1), w=fill_container)
+-         [图层]:   (fontSize=20, w=22)
+-         [图层]:   (fontSize=28, w=31)
+-         [图层]: 新密码已生成，请妥善保存  (fontSize=16, fill=rgba(29,33,41,1), w=fill_container)
+-         [图层]: 密码仅显示一次，关闭后将无法再次查看  (fontSize=14, fill=rgba(255,77,79,1), w=fill_container)
+-         [图层]: Kp8#mR2xWq  (fontSize=16, fill=rgba(29,33,41,1), w=128)
+-             [图层]:   (fontSize=16, w=18)
+-             [图层]: 复制  (fontSize=13, fill=rgba(255,255,255,1), w=27)
+-         [图层]: 关闭  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- H-重置密码成功弹窗 480xfit_content layout=vertical padding=None
+-   弹窗容器 fill_containerxfit_content layout=vertical padding=None
+-     标题栏 fill_containerx56 layout=horizontal padding=[0, 24, 0, 24]
+-       标题 108xfit_content layout=vertical padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     内容区 fill_containerxfit_content layout=vertical padding=[32, 24, 24, 24]
+-       成功图标 56x56 layout=horizontal padding=None
+-       主文案 192xfit_content layout=vertical padding=None
+-       警告文案 252xfit_content layout=vertical padding=None
+-       临时密码展示 fill_containerx48 layout=horizontal padding=[0, 16, 0, 16]
+-         container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 201.2749900817871]
+-           复制按钮 fit_contentx32 layout=horizontal padding=[0, 12, 0, 12]
+-     底部操作栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       关闭按钮 fit_contentx40 layout=horizontal padding=[0, 24, 0, 24]
+
+---
+
+## A-admin-view-modal
+
+- 尺寸: 560 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: 管理员详情  (fontSize=18, fill=rgba(29,33,41,1), w=fill_container)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 张  (fontSize=22, fill=rgba(24,144,255,1), w=23)
+-           [图层]: 张管理  (fontSize=20, fill=rgba(29,33,41,1), w=fit_content)
+-             [图层]: ID: 1  (fontSize=12, fill=rgba(134,144,156,1), w=26)
+-               [图层]: 超级管理员  (fontSize=12, fill=rgba(24,144,255,1), w=61)
+-               [图层]: 启用  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-           [图层]:   (fontSize=16, w=18)
+-           [图层]: 基础信息  (fontSize=15, fill=rgba(29,33,41,1), w=61)
+-               [图层]: 管理员 ID  (fontSize=13, fill=rgba(134,144,156,1), w=57)
+-               [图层]: 1  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-               [图层]: 姓名  (fontSize=13, fill=rgba(134,144,156,1), w=27)
+-               [图层]: 张管理  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-               [图层]: 登录账号  (fontSize=13, fill=rgba(134,144,156,1), w=53)
+-               [图层]: admin  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-               [图层]: 角色  (fontSize=13, fill=rgba(134,144,156,1), w=27)
+-                 [图层]: 超级管理员  (fontSize=12, fill=rgba(24,144,255,1), w=61)
+-               [图层]: 状态  (fontSize=13, fill=rgba(134,144,156,1), w=27)
+-                 [图层]: 启用  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-               [图层]: 最近登录时间  (fontSize=13, fill=rgba(134,144,156,1), w=79)
+-               [图层]: 2026-08-07 09:00:00  (fontSize=14, fill=rgba(29,33,41,1), w=131)
+-               [图层]: 创建时间  (fontSize=13, fill=rgba(134,144,156,1), w=53)
+-               [图层]: 2025-01-01 00:00:00  (fontSize=14, fill=rgba(29,33,41,1), w=131)
+-               [图层]: 更新时间  (fontSize=13, fill=rgba(134,144,156,1), w=53)
+-               [图层]: 2026-08-07 09:00:00  (fontSize=14, fill=rgba(29,33,41,1), w=131)
+-           [图层]:   (fontSize=16, w=18)
+-           [图层]: 操作日志  (fontSize=15, fill=rgba(29,33,41,1), w=61)
+-           [图层]: 最近 5 条  (fontSize=12, fill=rgba(134,144,156,1), w=50)
+-               [图层]: 2026-08-07 09:00  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 张管理  (fontSize=13, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=fill_container)
+-               [图层]: 修改了姓名和角色信息  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 2026-08-05 14:30  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 系统  (fontSize=13, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 重置密码  (fontSize=13, fill=rgba(24,144,255,1), w=fill_container)
+-               [图层]: 密码已重置，已发送通知  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 2026-07-20 11:00  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 张管理  (fontSize=13, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 禁用  (fontSize=13, fill=rgba(255,77,79,1), w=fill_container)
+-               [图层]: 账号被临时禁用  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 2026-07-20 10:30  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 张管理  (fontSize=13, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 启用  (fontSize=13, fill=rgba(82,196,26,1), w=fill_container)
+-               [图层]: 账号已重新启用  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 2025-01-01 00:00  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 系统  (fontSize=13, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 创建  (fontSize=13, fill=rgba(24,144,255,1), w=fill_container)
+-               [图层]: 账号创建成功，角色为超级管理员  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-         [图层]: 关闭  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 编辑资料  (fontSize=14, fill=rgba(255,255,255,1), w=57)
+
+### 主要 Frame 容器
+
+- G-管理员详情弹窗 2 560xfit_content layout=vertical padding=None
+-   弹窗容器 fill_containerxfit_content layout=vertical padding=None
+-     标题栏 fill_containerx56 layout=horizontal padding=[0, 24, 0, 24]
+-       标题 90xfit_content layout=vertical padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     内容区 fill_containerxfit_content layout=vertical padding=[20, 24, 8, 24]
+-       信息卡 fill_containerxfit_content layout=horizontal padding=20
+-         头像 56x56 layout=horizontal padding=None
+-         信息 fit_contentxfit_content layout=vertical padding=None
+-           副行 fit_contentxfit_content layout=horizontal padding=None
+-             角色标签 fit_contentx22 layout=horizontal padding=[0, 8, 0, 8]
+-             状态标签 fit_contentx22 layout=horizontal padding=[0, 8, 0, 8]
+-       基础信息分组 fill_containerxfit_content layout=vertical padding=None
+-         分组标题 fill_containerxfit_content layout=horizontal padding=None
+-         信息网格 fill_containerxfit_content layout=vertical padding=None
+-           行-管理员ID fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-           行-姓名 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-           行-登录账号 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-           行-角色 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-               角色标签 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-           行-状态 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-               状态标签 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-           行-最近登录 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-           行-创建时间 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+-             值 fill_containerx44 layout=horizontal padding=[0, 16, 0, 16]
+-           行-更新时间 fill_containerx44 layout=horizontal padding=None
+-             标签 120x44 layout=horizontal padding=[0, 16, 0, 16]
+
+---
+
+## A-coach-audit-detail-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(24,144,255,1), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练入驻审核  (fontSize=14, fill=rgba(134,144,156,1), w=85)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 审核详情  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-           [图层]: 教练入驻资料详情  (fontSize=24, fill=rgba(29,33,41,1), w=193)
+-               [图层]: 待审核  (fontSize=13, fill=rgba(24,144,255,1), w=40)
+-                 [图层]: 李  (fontSize=32, fill=rgba(24,144,255,1), w=33)
+-                 [图层]: 李明辉  (fontSize=20, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 申请 ID：APP20260807001  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                     [图层]: 首次入驻  (fontSize=12, fill=rgba(140,140,140,1), w=49)
+-               [图层]: 基础信息  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-                   [图层]: 姓名/昵称  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 李明辉  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                   [图层]: 手机号  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 138****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                   [图层]: 性别  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-                   [图层]: 年龄  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 34岁  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                   [图层]: 邮箱  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: liminghui@example.com  (fontSize=14, fill=rgba(29,33,41,1), w=164)
+-                   [图层]: 微信二维码  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 点击预览  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-               [图层]: 教学履历  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-                   [图层]: 任教年限  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 5年  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                   [图层]: 总学员数  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 326人  (fontSize=14, fill=rgba(29,33,41,1), w=39)
+-                   [图层]: 总课时数  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 1,280节  (fontSize=14, fill=rgba(29,33,41,1), w=50)
+-                   [图层]: 擅长泳姿  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                       [图层]: 自由泳  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                       [图层]: 蛙泳  (fontSize=12, fill=rgba(24,144,255,1), w=25)
+-                 [图层]: 个人简介  (fontSize=14, fill=rgba(134,144,156,1), w=fit_content)
+-                   [图层]: 国家一级游泳运动员，曾获得全国大学生游泳锦标赛自由泳冠军。从事游泳教学5年，擅长儿童及成人游泳培训，教学风格耐心细致，注重学员基本功训练和水性培养。  (fontSize=14, fill=rgba(78,89,105,1), w=fill_container)
+-               [图层]: 服务设置  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 参考单价  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 300.00 元/节  (fontSize=14, fill=rgba(29,33,41,1), w=81)
+-               [图层]: 提交时间：2026-08-07 09:30  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-             [图层]: 实名与资质照片  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 身份证号：320***********1234  (fontSize=14, fill=rgba(134,144,156,1), w=fill_container)
+-                   [图层]: 身份证正面  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                 [图层]: 身份证正面  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                   [图层]: 身份证反面  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                 [图层]: 身份证反面  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                   [图层]: 教练资格证  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                 [图层]: 教练资格证  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                   [图层]: 健康证  (fontSize=12, fill=rgba(134,144,156,1), w=37)
+-                 [图层]: 健康证  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                   [图层]: 个人形象照  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                 [图层]: 个人形象照  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-             [图层]: 审核检查清单  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-                   [图层]:   (fontSize=14, w=16)
+-                 [图层]: 证件清晰可辨  (fontSize=14, fill=rgba(29,33,41,1), w=85)
+-                 [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]:   (fontSize=14, w=16)
+-                 [图层]: 信息一致  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-                 [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 无不良记录  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-                 [图层]: 待确认  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                   [图层]:   (fontSize=14, w=16)
+-                 [图层]: 单价在合理区间  (fontSize=14, fill=rgba(29,33,41,1), w=99)
+-                 [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-             [图层]: 申请历史  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-             [图层]: 该教练共有 2 条申请记录  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: APP20260807001  (fontSize=13, fill=rgba(24,144,255,1), w=141)
+-                   [图层]: 待审核  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 2026-08-07 09:30  (fontSize=13, fill=rgba(29,33,41,1), w=141)
+-                 [图层]: -  (fontSize=13, fill=rgba(134,144,156,1), w=141)
+-                 [图层]: -  (fontSize=13, fill=rgba(134,144,156,1), w=101)
+-                 [图层]: -  (fontSize=13, fill=rgba(134,144,156,1), w=6)
+-                 [图层]: APP20260715002  (fontSize=13, fill=rgba(24,144,255,1), w=141)
+-                   [图层]: 已驳回  (fontSize=12, fill=rgba(255,77,79,1), w=37)
+-                 [图层]: 2026-07-15 14:00  (fontSize=13, fill=rgba(29,33,41,1), w=141)
+-                 [图层]: 2026-07-16 10:30  (fontSize=13, fill=rgba(29,33,41,1), w=141)
+-                 [图层]: 张管理  (fontSize=13, fill=rgba(29,33,41,1), w=101)
+-                 [图层]: 证件照片不清晰  (fontSize=13, fill=rgba(255,77,79,1), w=92)
+-               [图层]: 审核时间轴  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-                   [图层]: 提交申请  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-                   [图层]: 2026-08-07 09:30  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                   [图层]: 等待管理员审核  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-                   [图层]: 当前状态  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-             [图层]: 审核操作  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 审核意见  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 请输入审核意见（选填，驳回时建议填写原因）  (fontSize=14, fill=rgba(201,205,212,1), w=295)
+-                 [图层]:   (fontSize=18, w=20)
+-                 [图层]: 审核通过  (fontSize=15, fill=rgba(255,255,255,1), w=61)
+-                 [图层]:   (fontSize=18, w=20)
+-                 [图层]: 驳回申请  (fontSize=15, fill=rgba(255,255,255,1), w=61)
+-                   [图层]:   (fontSize=16, w=18)
+-                   [图层]: 返回列表  (fontSize=15, fill=rgba(78,89,105,1), w=61)
+
+### 主要 Frame 容器
+
+- A-教练入驻资料详情页 3 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerx1983 layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1800 layout=horizontal padding=None
+-       侧边栏 220x1800 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       内容区 fill_containerxfit_content layout=vertical padding=24
+-         面包屑 fill_containerxfit_content layout=horizontal padding=None
+-           面包屑项 fit_contentxfit_content layout=horizontal padding=None
+-         页面标题区 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           返回按钮 36x36 layout=horizontal padding=None
+-           container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 16]
+-             状态标签 fit_contentx28 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           审核资料卡 fill_containerxfit_content layout=vertical padding=24
+-             卡片头部 fill_containerxfit_content layout=horizontal padding=None
+-               头像 80x80 layout=horizontal padding=None
+-               头部信息 fit_contentxfit_content layout=vertical padding=None
+-                 标签行 fit_contentxfit_content layout=horizontal padding=[4, 0, 0, 0]
+-                   入驻类型标签 fit_contentx22 layout=horizontal padding=[0, 8, 0, 8]
+-             基础信息 fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-               信息网格 fill_containerxfit_content layout=None padding=None
+-                 项 280x20 layout=horizontal padding=None
+-                 项 280x20 layout=horizontal padding=None
+-                 项 280x20 layout=horizontal padding=None
+-                 项 280x20 layout=horizontal padding=None
+-                 项 280x20 layout=horizontal padding=None
+-                 项 280x20 layout=horizontal padding=None
+
+---
+
+## A-coach-audit-queue-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(24,144,255,1), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(255,255,255,0.65), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练入驻审核  (fontSize=14, fill=rgba(29,33,41,1), w=85)
+-           [图层]: 教练入驻审核  (fontSize=24, fill=rgba(29,33,41,1), w=fill_container)
+-               [标签]: 待审核  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [数值]: 8  (fontSize=28, fill=rgba(24,144,255,1), w=fit_content)
+-               [标签]: 今日通过  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [数值]: 3  (fontSize=28, fill=rgba(82,196,26,1), w=fit_content)
+-               [标签]: 今日驳回  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [数值]: 1  (fontSize=28, fill=rgba(255,77,79,1), w=fit_content)
+-               [标签]: 累计入驻  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [数值]: 126  (fontSize=28, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 待审核  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]:   (fontSize=16, w=18)
+-               [图层]: 提交时间范围  (fontSize=14, fill=rgba(201,205,212,1), w=85)
+-               [图层]:   (fontSize=18, w=20)
+-               [图层]: 姓名 / 手机号  (fontSize=14, fill=rgba(201,205,212,1), w=83)
+-               [图层]: 查询  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-               [图层]: 重置  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 教练 ID  (fontSize=14, fill=rgba(38,38,38,1), w=47)
+-                 [图层]: 姓名  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 教学年限  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 擅长  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 申请时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 流程状态  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 入驻类型  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 最新申请 ID  (fontSize=14, fill=rgba(38,38,38,1), w=75)
+-                 [图层]: 操作  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: C10001  (fontSize=13, fill=rgba(134,144,156,1), w=46)
+-                 [图层]: 李明辉  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 34  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 5 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 自由泳  (fontSize=11, fill=rgba(24,144,255,1), w=34)
+-                     [图层]: 蛙泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                 [图层]: 2026-08-07 09:30  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                   [图层]: 待审核  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 首次入驻  (fontSize=13, fill=rgba(29,33,41,1), w=53)
+-                 [图层]: APP20260807001  (fontSize=13, fill=rgba(134,144,156,1), w=105)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 通过  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 驳回  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: C10002  (fontSize=13, fill=rgba(134,144,156,1), w=46)
+-                 [图层]: 王海燕  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 女  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 29  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 8 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 蝶泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                     [图层]: 仰泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                 [图层]: 2026-08-07 08:15  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                   [图层]: 待审核  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 已驳回重新入驻  (fontSize=13, fill=rgba(29,33,41,1), w=92)
+-                 [图层]: APP20260807002  (fontSize=13, fill=rgba(134,144,156,1), w=105)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 通过  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 驳回  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: C10003  (fontSize=13, fill=rgba(134,144,156,1), w=46)
+-                 [图层]: 张伟强  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 26  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 3 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 自由泳  (fontSize=11, fill=rgba(24,144,255,1), w=34)
+-                 [图层]: 2026-08-06 16:45  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                   [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 首次入驻  (fontSize=13, fill=rgba(29,33,41,1), w=53)
+-                 [图层]: APP20260806003  (fontSize=13, fill=rgba(134,144,156,1), w=105)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: C10004  (fontSize=13, fill=rgba(134,144,156,1), w=46)
+-                 [图层]: 刘洋  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 31  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 6 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 蛙泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                     [图层]: 自由泳  (fontSize=11, fill=rgba(24,144,255,1), w=34)
+-                 [图层]: 2026-08-06 14:20  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                   [图层]: 已驳回  (fontSize=12, fill=rgba(255,77,79,1), w=37)
+-                 [图层]: 已离职重新入驻  (fontSize=13, fill=rgba(29,33,41,1), w=92)
+-                 [图层]: APP20260806004  (fontSize=13, fill=rgba(134,144,156,1), w=105)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: C10005  (fontSize=13, fill=rgba(134,144,156,1), w=46)
+-                 [图层]: 陈思远  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 38  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 10 年  (fontSize=13, fill=rgba(29,33,41,1), w=32)
+-                     [图层]: 仰泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                     [图层]: 蝶泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                 [图层]: 2026-08-05 11:00  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                   [图层]: 待审核  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 首次入驻  (fontSize=13, fill=rgba(29,33,41,1), w=53)
+-                 [图层]: APP20260805005  (fontSize=13, fill=rgba(134,144,156,1), w=105)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 通过  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 驳回  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: 共  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 8  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 条待审核  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-                   [图层]:   (fontSize=18, w=20)
+-                   [图层]: 1  (fontSize=14, fill=rgba(255,255,255,1), w=9)
+-                   [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- A-教练入驻审核队列页 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1300 layout=horizontal padding=None
+-       侧边栏 220x1300 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-工单列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-系统 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-管理员账号 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+
+---
+
+## A-coach-detail-page-basic
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(255,255,255,0.65), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练详情  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-           [图层]: 教练详情  (fontSize=24, fill=rgba(29,33,41,1), w=97)
+-                 [图层]: 李  (fontSize=32, fill=rgba(24,144,255,1), w=33)
+-                 [图层]: 李明辉  (fontSize=20, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 教练 ID：C001  (fontSize=12, fill=rgba(140,140,140,1), w=fit_content)
+-                     [图层]: 在职  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                     [图层]: 空闲中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 编辑  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 排班  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 取消入驻  (fontSize=14, fill=rgba(255,77,79,1), w=57)
+-                 [图层]: 手机号  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 138****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                 [图层]: 性别  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-                 [图层]: 年龄  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 34岁  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                 [图层]: 邮箱  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: liminghui@example.com  (fontSize=14, fill=rgba(29,33,41,1), w=164)
+-                 [图层]: 任教年限  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 5年  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                 [图层]: 参考单价  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 300.00 元/节  (fontSize=14, fill=rgba(29,33,41,1), w=81)
+-                 [图层]: 评分  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 4.8 / 5.0  (fontSize=14, fill=rgba(29,33,41,1), w=52)
+-                 [图层]: 学员数  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 12人  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                 [图层]: 累计课时  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 1,280节  (fontSize=14, fill=rgba(29,33,41,1), w=50)
+-             [图层]: 状态变更记录  (fontSize=16, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 提交入驻  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-14  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 审核通过  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-15  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 入职  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-15  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 申请离职  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 审批通过离职  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 基本信息  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-                 [图层]: 学员列表  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 排班  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 上课记录  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 操作日志  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-                     [图层]: 姓名/昵称  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 李明辉  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                     [图层]: 手机号  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 138****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                     [图层]: 性别  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-                     [图层]: 年龄  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 34岁  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                     [图层]: 邮箱  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: liminghui@example.com  (fontSize=14, fill=rgba(29,33,41,1), w=164)
+-                     [图层]: 微信二维码  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 点击预览  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-                 [图层]: 实名与资质  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-                     [图层]: 身份证号  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 320***********1234  (fontSize=14, fill=rgba(29,33,41,1), w=128)
+-                       [图层]: 身份证正面  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                     [图层]: 身份证正面  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                       [图层]: 身份证反面  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                     [图层]: 身份证反面  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                       [图层]: 教练资格证  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                     [图层]: 教练资格证  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                       [图层]: 健康证  (fontSize=12, fill=rgba(134,144,156,1), w=37)
+-                     [图层]: 健康证  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                       [图层]: 个人形象照  (fontSize=12, fill=rgba(134,144,156,1), w=61)
+-                     [图层]: 个人形象照  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 教学履历  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-                     [图层]: 任教年限  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 5年  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                     [图层]: 总学员数  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 326人  (fontSize=14, fill=rgba(29,33,41,1), w=39)
+-                     [图层]: 总课时数  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                     [图层]: 1,280节  (fontSize=14, fill=rgba(29,33,41,1), w=50)
+-                     [图层]: 擅长泳姿  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                         [图层]: 自由泳  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                         [图层]: 蛙泳  (fontSize=12, fill=rgba(24,144,255,1), w=25)
+-                   [图层]: 个人简介  (fontSize=14, fill=rgba(134,144,156,1), w=fit_content)
+-                     [图层]: 国家一级游泳运动员，曾获得全国大学生游泳锦标赛自由泳冠军。从事游泳教学5年，擅长儿童及成人游泳培训，教学风格耐心细致，注重学员基本功训练和水性培养。  (fontSize=14, fill=rgba(78,89,105,1), w=fill_container)
+-                 [图层]: 服务设置  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-                   [图层]: 参考单价  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                   [图层]: 300.00 元/节  (fontSize=14, fill=rgba(29,33,41,1), w=81)
+
+### 主要 Frame 容器
+
+- C-教练详情页-在职-基本信息Tab 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerx1660 layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1600 layout=horizontal padding=None
+-       侧边栏 220x1600 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-工单列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-系统 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-管理员账号 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+
+---
+
+## A-coach-detail-page-schedule
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练详情  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-           [图层]: 教练详情  (fontSize=24, fill=rgba(29,33,41,1), w=97)
+-                 [图层]: 李  (fontSize=32, fill=rgba(24,144,255,1), w=33)
+-                 [图层]: 李明辉  (fontSize=20, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 教练 ID：C001  (fontSize=12, fill=rgba(140,140,140,1), w=fit_content)
+-                     [图层]: 在职  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                     [图层]: 空闲中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 编辑  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 排班  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 取消入驻  (fontSize=14, fill=rgba(255,77,79,1), w=57)
+-                 [图层]: 手机号  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 138****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                 [图层]: 性别  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-                 [图层]: 年龄  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 34岁  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                 [图层]: 邮箱  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: liminghui@example.com  (fontSize=14, fill=rgba(29,33,41,1), w=164)
+-                 [图层]: 任教年限  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 5年  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                 [图层]: 参考单价  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 300.00 元/节  (fontSize=14, fill=rgba(29,33,41,1), w=81)
+-                 [图层]: 评分  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 4.8 / 5.0  (fontSize=14, fill=rgba(29,33,41,1), w=52)
+-                 [图层]: 学员数  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 12人  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                 [图层]: 累计课时  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 1,280节  (fontSize=14, fill=rgba(29,33,41,1), w=50)
+-             [图层]: 状态变更记录  (fontSize=16, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 提交入驻  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-14  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 审核通过  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-15  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 入职  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-15  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 申请离职  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 审批通过离职  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 基本信息  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 学员列表  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 排班  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                 [图层]: 上课记录  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 操作日志  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 本周排班：2026-08-10 至 2026-08-16  (fontSize=14, fill=rgba(78,89,105,1), w=236)
+-                   [图层]:   (fontSize=16, w=18)
+-                   [图层]: 去排班管理  (fontSize=14, fill=rgba(255,255,255,1), w=71)
+-                     [图层]: 时段  (fontSize=13, fill=rgba(134,144,156,1), w=27)
+-                     [图层]: 周一 8/10  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 周二 8/11  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 周三 8/12  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 周四 8/13  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 周五 8/14  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 周六 8/15  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 周日 8/16  (fontSize=13, fill=rgba(38,38,38,1), w=58)
+-                     [图层]: 上午 9-12  (fontSize=13, fill=rgba(78,89,105,1), w=57)
+-                       [图层]: 自由泳初级  (fontSize=12, fill=rgba(24,144,255,1), w=61)
+-                       [图层]: 自由泳初级  (fontSize=12, fill=rgba(24,144,255,1), w=61)
+-                       [图层]: 自由泳初级  (fontSize=12, fill=rgba(24,144,255,1), w=61)
+-                       [图层]: 蛙泳提高  (fontSize=12, fill=rgba(82,196,26,1), w=49)
+-                     [图层]: 下午 14-18  (fontSize=13, fill=rgba(78,89,105,1), w=65)
+-                       [图层]: 蛙泳提高  (fontSize=12, fill=rgba(82,196,26,1), w=49)
+-                       [图层]: 蛙泳提高  (fontSize=12, fill=rgba(82,196,26,1), w=49)
+
+### 主要 Frame 容器
+
+- C-教练详情页-在职-排班Tab 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1300 layout=horizontal padding=None
+-       侧边栏 220x1300 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       内容区 fill_containerxfit_content layout=vertical padding=[24, 24, 80, 24]
+-         面包屑 fill_containerxfit_content layout=horizontal padding=None
+-           面包屑项 fit_contentxfit_content layout=horizontal padding=None
+-         页面标题区 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           返回按钮 36x36 layout=horizontal padding=None
+-         container fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-           教练信息卡 fill_containerxfit_content layout=vertical padding=24
+-             卡片头部 fill_containerxfit_content layout=horizontal padding=None
+-               头像 80x80 layout=horizontal padding=None
+-               头部信息 fit_contentxfit_content layout=vertical padding=None
+-                 标签行 fit_contentxfit_content layout=horizontal padding=[4, 0, 0, 0]
+-                   状态标签-在职 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-                   实时状态徽标-空闲中 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 581.5750732421875]
+-                 操作区 fit_contentxfit_content layout=horizontal padding=None
+-                   编辑按钮 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-                   排班入口 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-                   取消入驻 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-             信息行 fill_containerxfit_content layout=None padding=None
+-               项-手机号 260x20 layout=horizontal padding=None
+-               项-性别 260x20 layout=horizontal padding=None
+-               项-年龄 260x20 layout=horizontal padding=None
+
+---
+
+## A-coach-detail-page-students
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练详情  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-           [图层]: 教练详情  (fontSize=24, fill=rgba(29,33,41,1), w=97)
+-                 [图层]: 李  (fontSize=32, fill=rgba(24,144,255,1), w=33)
+-                 [图层]: 李明辉  (fontSize=20, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 教练 ID：C001  (fontSize=12, fill=rgba(140,140,140,1), w=fit_content)
+-                     [图层]: 在职  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                     [图层]: 空闲中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 编辑  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 排班  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 取消入驻  (fontSize=14, fill=rgba(255,77,79,1), w=57)
+-                 [图层]: 手机号  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 138****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                 [图层]: 性别  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-                 [图层]: 年龄  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 34岁  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                 [图层]: 邮箱  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: liminghui@example.com  (fontSize=14, fill=rgba(29,33,41,1), w=164)
+-                 [图层]: 任教年限  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 5年  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                 [图层]: 参考单价  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 300.00 元/节  (fontSize=14, fill=rgba(29,33,41,1), w=81)
+-                 [图层]: 评分  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 4.8 / 5.0  (fontSize=14, fill=rgba(29,33,41,1), w=52)
+-                 [图层]: 学员数  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 12人  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                 [图层]: 累计课时  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]: 1,280节  (fontSize=14, fill=rgba(29,33,41,1), w=50)
+-             [图层]: 状态变更记录  (fontSize=16, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 提交入驻  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-14  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 审核通过  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-15  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 入职  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 2026-03-15  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 申请离职  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 审批通过离职  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 基本信息  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 学员列表  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-                 [图层]: 排班  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 上课记录  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]: 操作日志  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                   [图层]: 学员  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                   [图层]: 套餐状态  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 剩余课时  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 到期时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 操作  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                   [图层]: 张小明  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                     [图层]: 生效中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]: 8节  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                   [图层]: 2026-12-31  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                   [图层]: 查看学员  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 查看套餐  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 李小红  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                     [图层]: 即将到期  (fontSize=12, fill=rgba(250,173,20,1), w=49)
+-                   [图层]: 2节  (fontSize=14, fill=rgba(29,33,41,1), w=23)
+-                   [图层]: 2026-08-15  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                   [图层]: 查看学员  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 查看套餐  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 王建国  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                     [图层]: 已过期  (fontSize=12, fill=rgba(140,140,140,1), w=37)
+-                   [图层]: 0节  (fontSize=14, fill=rgba(201,205,212,1), w=23)
+-                   [图层]: 2026-06-30  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                   [图层]: 查看学员  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 查看套餐  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 陈思思  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                     [图层]: 生效中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]: 15节  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                   [图层]: 2027-03-20  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                   [图层]: 查看学员  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 查看套餐  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 刘洋  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                     [图层]: 生效中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]: 22节  (fontSize=14, fill=rgba(29,33,41,1), w=31)
+-                   [图层]: 2027-06-10  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                   [图层]: 查看学员  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                   [图层]: 查看套餐  (fontSize=13, fill=rgba(24,144,255,1), w=53)
+-                 [图层]: 共 12 名学员  (fontSize=14, fill=rgba(134,144,156,1), w=79)
+-                     [图层]:   (fontSize=18, w=20)
+-                     [图层]: 1  (fontSize=14, fill=rgba(255,255,255,1), w=9)
+-                     [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- C-教练详情页-在职-学员列表Tab 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1400 layout=horizontal padding=None
+-       侧边栏 220x1400 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       内容区 fill_containerxfit_content layout=vertical padding=[24, 24, 80, 24]
+-         面包屑 fill_containerxfit_content layout=horizontal padding=None
+-           面包屑项 fit_contentxfit_content layout=horizontal padding=None
+-         页面标题区 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           返回按钮 36x36 layout=horizontal padding=None
+-         container fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-           教练信息卡 fill_containerxfit_content layout=vertical padding=24
+-             卡片头部 fill_containerxfit_content layout=horizontal padding=None
+-               头像 80x80 layout=horizontal padding=None
+-               头部信息 fit_contentxfit_content layout=vertical padding=None
+-                 标签行 fit_contentxfit_content layout=horizontal padding=[4, 0, 0, 0]
+-                   状态标签-在职 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-                   实时状态徽标-空闲中 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 581.5750732421875]
+-                 操作区 fit_contentxfit_content layout=horizontal padding=None
+-                   编辑按钮 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-                   排班入口 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-                   取消入驻 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-             信息行 fill_containerxfit_content layout=None padding=None
+-               项-手机号 260x20 layout=horizontal padding=None
+-               项-性别 260x20 layout=horizontal padding=None
+-               项-年龄 260x20 layout=horizontal padding=None
+
+---
+
+## A-coach-edit-modal
+
+- 尺寸: 680 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-       [图层]: 编辑教练资料  (fontSize=18, fill=rgba(29,33,41,1), w=109)
+-         [图层]:   (fontSize=20, w=22)
+-         [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]:   (fontSize=24, w=fit_content)
+-             [图层]: 上传  (fontSize=11, fill=rgba(201,205,212,1), w=fit_content)
+-             [图层]: 个人形象照  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-             [图层]: 请上传个人形象照 80*80px  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-             [图层]: 姓名/昵称  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 李明辉  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]: 手机号  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 138****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-             [图层]: 性别  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-                 [图层]: 女  (fontSize=14, fill=rgba(29,33,41,1), w=15)
+-             [图层]: 年龄  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 34  (fontSize=14, fill=rgba(29,33,41,1), w=17)
+-             [图层]: 邮箱  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: liminghui@example.com  (fontSize=14, fill=rgba(29,33,41,1), w=164)
+-             [图层]:   (fontSize=28, w=fit_content)
+-             [图层]: 上传二维码  (fontSize=11, fill=rgba(201,205,212,1), w=fit_content)
+-             [图层]: 微信二维码  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-             [图层]: JPG/PNG，≤5MB  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-         [图层]: 实名与资质  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: 身份证号  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 320***********1234  (fontSize=14, fill=rgba(29,33,41,1), w=128)
+-               [图层]:   (fontSize=24, w=fit_content)
+-             [图层]: 身份证正面  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [图层]:   (fontSize=24, w=fit_content)
+-             [图层]: 身份证反面  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [图层]:   (fontSize=24, w=fit_content)
+-             [图层]: 教练资格证  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-               [图层]:   (fontSize=24, w=fit_content)
+-             [图层]: 健康证  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-         [图层]: 教学履历  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: 任教年限  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 5  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-             [图层]: 总学员数  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 326  (fontSize=14, fill=rgba(29,33,41,1), w=25)
+-             [图层]: 总课时数  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 1280  (fontSize=14, fill=rgba(29,33,41,1), w=33)
+-           [图层]: 擅长泳姿  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]:   (fontSize=14, w=16)
+-               [图层]: 自由泳  (fontSize=13, fill=rgba(255,255,255,1), w=40)
+-               [图层]:   (fontSize=14, w=16)
+-               [图层]: 蛙泳  (fontSize=13, fill=rgba(255,255,255,1), w=27)
+-               [图层]: 仰泳  (fontSize=13, fill=rgba(78,89,105,1), w=27)
+-               [图层]: 蝶泳  (fontSize=13, fill=rgba(78,89,105,1), w=27)
+-           [图层]: 个人简介  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-             [图层]: 国家一级游泳运动员，曾获得全国大学生游泳锦标赛自由泳冠军。从事游泳教学5年，擅长儿童及成人游泳培训。  (fontSize=14, fill=rgba(29,33,41,1), w=561)
+-         [图层]: 服务设置  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: 参考单价  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 300  (fontSize=14, fill=rgba(29,33,41,1), w=25)
+-               [图层]: 元/节  (fontSize=14, fill=rgba(134,144,156,1), w=39)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- D-编辑教练信息弹窗 3 680xfit_content layout=vertical padding=None
+-   弹窗容器 fill_containerxfit_content layout=vertical padding=None
+-     标题栏 fill_containerx56 layout=horizontal padding=[0, 24, 0, 24]
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     内容区 fill_containerxfit_content layout=vertical padding=24
+-       基础信息分组 fill_containerxfit_content layout=vertical padding=16
+-         个人形象照行 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           上传区 80x80 layout=vertical padding=None
+-           提示 fit_contentxfit_content layout=vertical padding=None
+-         表单行1 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           表单项-姓名 180xfit_content layout=vertical padding=None
+-             输入框 fill_containerx32 layout=horizontal padding=[0, 12, 0, 12]
+-           表单项-手机号 180xfit_content layout=vertical padding=None
+-             输入框 fill_containerx32 layout=horizontal padding=[0, 12, 0, 12]
+-           表单项-性别 fit_contentxfit_content layout=vertical padding=None
+-             单选组 fit_contentx32 layout=horizontal padding=None
+-               选项-男 fit_contentxfit_content layout=horizontal padding=None
+-                 单选-选中 16x16 layout=horizontal padding=None
+-               选项-女 fit_contentxfit_content layout=horizontal padding=None
+-         表单行2 fill_containerxfit_content layout=horizontal padding=[12, 0, 0, 0]
+-           表单项-年龄 100xfit_content layout=vertical padding=None
+-             输入框 fill_containerx32 layout=horizontal padding=[0, 12, 0, 12]
+-           表单项-邮箱 240xfit_content layout=vertical padding=None
+-             输入框 fill_containerx32 layout=horizontal padding=[0, 12, 0, 12]
+-         微信二维码行 fill_containerxfit_content layout=horizontal padding=[12, 0, 0, 0]
+-           上传区 100x100 layout=vertical padding=None
+-           提示 fit_contentxfit_content layout=vertical padding=None
+-       实名与资质分组 fill_containerxfit_content layout=vertical padding=16
+-         身份证号行 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           表单项-身份证号 240xfit_content layout=vertical padding=None
+-             输入框 fill_containerx32 layout=horizontal padding=[0, 12, 0, 12]
+-         图片上传行 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           图片-身份证正面 fit_contentxfit_content layout=vertical padding=None
+-             上传区 100x100 layout=vertical padding=None
+-           图片-身份证反面 fit_contentxfit_content layout=vertical padding=None
+-             上传区 100x100 layout=vertical padding=None
+-           图片-教练资格证 fit_contentxfit_content layout=vertical padding=None
+-             上传区 100x100 layout=vertical padding=None
+-           图片-健康证 fit_contentxfit_content layout=vertical padding=None
+-             上传区 100x100 layout=vertical padding=None
+
+---
+
+## A-coach-management-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(255,255,255,0.65), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练管理  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: 教练管理  (fontSize=24, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]:   (fontSize=18, w=20)
+-               [图层]: 新建教练  (fontSize=14, fill=rgba(255,255,255,1), w=57)
+-               [图层]: 全部状态  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]: 全部实时状态  (fontSize=14, fill=rgba(78,89,105,1), w=85)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]:   (fontSize=18, w=20)
+-               [图层]: 姓名 / 手机号  (fontSize=14, fill=rgba(201,205,212,1), w=83)
+-               [图层]: 查询  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-               [图层]: 重置  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 教练 ID  (fontSize=14, fill=rgba(38,38,38,1), w=47)
+-                 [图层]: 姓名  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 教学年限  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 擅长  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 创建时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 在职时长  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 在职状态  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 当前学员数  (fontSize=14, fill=rgba(38,38,38,1), w=71)
+-                 [图层]: 实时状态  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 操作  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: C001  (fontSize=13, fill=rgba(134,144,156,1), w=31)
+-                 [图层]: 李明辉  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 34  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 5 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 自由泳  (fontSize=11, fill=rgba(24,144,255,1), w=34)
+-                     [图层]: 蛙泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                 [图层]: 2026-03-15  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                 [图层]: 2 年 3 个月  (fontSize=13, fill=rgba(29,33,41,1), w=64)
+-                   [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 12  (fontSize=14, fill=rgba(24,144,255,1), w=17)
+-                   [图层]: 空闲中  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 排班  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: C002  (fontSize=13, fill=rgba(134,144,156,1), w=31)
+-                 [图层]: 王海燕  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 女  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 29  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 8 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 蝶泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                     [图层]: 仰泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                 [图层]: 2026-01-20  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                 [图层]: 2 年 5 个月  (fontSize=13, fill=rgba(29,33,41,1), w=64)
+-                   [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 18  (fontSize=14, fill=rgba(24,144,255,1), w=17)
+-                   [图层]: 上课中  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 排班  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: C003  (fontSize=13, fill=rgba(134,144,156,1), w=31)
+-                 [图层]: 张伟强  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 26  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 3 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 自由泳  (fontSize=11, fill=rgba(24,144,255,1), w=34)
+-                 [图层]: 2026-06-10  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                 [图层]: 5 个月  (fontSize=13, fill=rgba(29,33,41,1), w=38)
+-                   [图层]: 申请离职中  (fontSize=12, fill=rgba(250,173,20,1), w=61)
+-                 [图层]: 6  (fontSize=14, fill=rgba(24,144,255,1), w=9)
+-                   [图层]: 休息中  (fontSize=12, fill=rgba(250,173,20,1), w=37)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 排班  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: C004  (fontSize=13, fill=rgba(134,144,156,1), w=31)
+-                 [图层]: 刘洋  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 31  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 6 年  (fontSize=13, fill=rgba(29,33,41,1), w=25)
+-                     [图层]: 蛙泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                     [图层]: 自由泳  (fontSize=11, fill=rgba(24,144,255,1), w=34)
+-                 [图层]: 2026-04-05  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                 [图层]: 2 年 2 个月  (fontSize=13, fill=rgba(29,33,41,1), w=64)
+-                   [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 9  (fontSize=14, fill=rgba(24,144,255,1), w=9)
+-                   [图层]: 请假中  (fontSize=12, fill=rgba(255,77,79,1), w=37)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 排班  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: C005  (fontSize=13, fill=rgba(134,144,156,1), w=31)
+-                 [图层]: 陈思远  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 38  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                 [图层]: 10 年  (fontSize=13, fill=rgba(29,33,41,1), w=32)
+-                     [图层]: 仰泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                     [图层]: 蝶泳  (fontSize=11, fill=rgba(24,144,255,1), w=23)
+-                 [图层]: 2025-11-08  (fontSize=13, fill=rgba(29,33,41,1), w=68)
+-                 [图层]: -  (fontSize=13, fill=rgba(29,33,41,1), w=6)
+-                   [图层]: 已离职  (fontSize=12, fill=rgba(140,140,140,1), w=37)
+-                 [图层]: -  (fontSize=14, fill=rgba(201,205,212,1), w=6)
+-                   [图层]: 已下班  (fontSize=12, fill=rgba(140,140,140,1), w=37)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 排班  (fontSize=13, fill=rgba(201,205,212,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 共  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 156  (fontSize=14, fill=rgba(29,33,41,1), w=25)
+-                 [图层]: 名教练  (fontSize=14, fill=rgba(134,144,156,1), w=43)
+-                   [图层]:   (fontSize=18, w=20)
+-                   [图层]: 1  (fontSize=14, fill=rgba(255,255,255,1), w=9)
+-                   [图层]: 2  (fontSize=14, fill=rgba(78,89,105,1), w=9)
+-                   [图层]: 3  (fontSize=14, fill=rgba(78,89,105,1), w=9)
+-                   [图层]: ...  (fontSize=14, fill=rgba(134,144,156,1), w=13)
+-                   [图层]: 8  (fontSize=14, fill=rgba(78,89,105,1), w=9)
+-                   [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- A-教练管理页 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1200 layout=horizontal padding=None
+-       侧边栏 220x1200 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-工单列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-系统 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-管理员账号 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+
+---
+
+## A-dashboard-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(240,242,245,1)"
+
+### 文本内容（按出现顺序）
+
+-       [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-           [图层]:   (fontSize=20, w=fit_content)
+-             [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-           [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-           [图层]:   (fontSize=16, w=18)
+-         [图层]:   (fontSize=18, w=20)
+-         [图层]: 首页  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(255,255,255,0.65), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-         [图层]:   (fontSize=14, w=16)
+-         [图层]: 数据看板  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: 数据看板  (fontSize=24, fill=rgba(29,33,41,1), w=fill_container)
+-             [图层]: 欢迎回来，以下是今日运营数据概览  (fontSize=14, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 今日营收（元）  (fontSize=14, fill=rgba(134,144,156,1), w=99)
+-                 [图层]:   (fontSize=22, w=24)
+-               [图层]: ¥12,580.00  (fontSize=28, fill=rgba(29,33,41,1), w=fill_container)
+-                 [图层]:   (fontSize=14, w=16)
+-                 [图层]: +12.5%  (fontSize=12, fill=rgba(82,196,26,1), w=43)
+-                 [图层]: 较昨日  (fontSize=12, fill=rgba(134,144,156,1), w=37)
+-               [图层]: 今日订单数  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]:   (fontSize=22, w=24)
+-               [图层]: 86  (fontSize=28, fill=rgba(29,33,41,1), w=fill_container)
+-                 [图层]:   (fontSize=14, w=16)
+-                 [图层]: +8.3%  (fontSize=12, fill=rgba(82,196,26,1), w=36)
+-                 [图层]: 较昨日  (fontSize=12, fill=rgba(134,144,156,1), w=37)
+-               [图层]: 活跃用户数  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]:   (fontSize=22, w=24)
+-               [图层]: 1,245  (fontSize=28, fill=rgba(29,33,41,1), w=fill_container)
+-                 [图层]:   (fontSize=14, w=16)
+-                 [图层]: -3.2%  (fontSize=12, fill=rgba(255,77,79,1), w=33)
+-                 [图层]: 较昨日  (fontSize=12, fill=rgba(134,144,156,1), w=37)
+-               [图层]: 待处理事项  (fontSize=14, fill=rgba(134,144,156,1), w=71)
+-                 [图层]:   (fontSize=22, w=24)
+-               [图层]: 23  (fontSize=28, fill=rgba(29,33,41,1), w=fill_container)
+-                 [图层]: 审核 8  (fontSize=12, fill=rgba(255,77,79,1), w=35)
+-                 [图层]: |  (fontSize=12, fill=rgba(134,144,156,1), w=5)
+-                 [图层]: 退款 12  (fontSize=12, fill=rgba(250,173,20,1), w=42)
+-                 [图层]: |  (fontSize=12, fill=rgba(134,144,156,1), w=5)
+-                 [图层]: 工单 3  (fontSize=12, fill=rgba(24,144,255,1), w=35)
+-               [图层]: 近7日营收趋势  (fontSize=16, fill=rgba(29,33,41,1), w=107)
+-                   [图层]: 近7天  (fontSize=12, fill=rgba(255,255,255,1), w=fill_container)
+-                   [图层]: 近30天  (fontSize=12, fill=rgba(78,89,105,1), w=fill_container)
+-                 [20,000]: 20,000  (fontSize=12, w=36.64)
+-                 [15,000]: 15,000  (fontSize=12, w=36.64)
+-                 [10,000]: 10,000  (fontSize=12, w=36.64)
+-                 [5,000]: 5,000  (fontSize=12, w=29.98)
+-                 [0]: 0  (fontSize=12, w=6.66)
+-                 [08/01]: 08/01  (fontSize=12, w=31.34)
+-                 [08/02]: 08/02  (fontSize=12, w=31.34)
+-                 [08/03]: 08/03  (fontSize=12, w=31.34)
+-                 [08/04]: 08/04  (fontSize=12, w=31.34)
+-                 [08/05]: 08/05  (fontSize=12, w=31.34)
+-                 [08/06]: 08/06  (fontSize=12, w=31.34)
+-                 [08/07]: 08/07  (fontSize=12, w=31.34)
+-             [图层]: 订单类型分布  (fontSize=16, fill=rgba(29,33,41,1), w=fill_container)
+-                 [次卡 35%]: 次卡 35%  (fontSize=12, w=51.06)
+-                 [月卡 28%]: 月卡 28%  (fontSize=12, w=51.06)
+-                 [季卡 20%]: 季卡 20%  (fontSize=12, w=51.06)
+-                 [年卡 12%]: 年卡 12%  (fontSize=12, w=51.06)
+-                 [体验课 5%]: 体验课 5%  (fontSize=12, w=56.4)
+-               [图层]: 最近订单  (fontSize=16, fill=rgba(29,33,41,1), w=65)
+-                 [图层]: 查看全部  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-                 [图层]:   (fontSize=14, w=16)
+-                       [图层]: 订单号  (fontSize=13, fill=rgba(134,144,156,1), w=143)
+-                       [图层]: 用户  (fontSize=13, fill=rgba(134,144,156,1), w=57)
+-                       [图层]: 套餐  (fontSize=13, fill=rgba(134,144,156,1), w=120)
+-                       [图层]: 金额  (fontSize=13, fill=rgba(134,144,156,1), w=81)
+-                       [图层]: 状态  (fontSize=13, fill=rgba(134,144,156,1), w=104)
+-                       [图层]: 时间  (fontSize=13, fill=rgba(134,144,156,1), w=137)
+-                       [图层]: ORD20260807001  (fontSize=13, fill=rgba(24,144,255,1), w=143)
+-                       [图层]: 张小明  (fontSize=13, fill=rgba(29,33,41,1), w=57)
+-                       [图层]: 月卡套餐  (fontSize=13, fill=rgba(29,33,41,1), w=120)
+-                       [图层]: ¥299.00  (fontSize=13, fill=rgba(29,33,41,1), w=81)
+-                         [图层]: 已支付  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                       [图层]: 2026-08-07 14:30  (fontSize=13, fill=rgba(134,144,156,1), w=137)
+-                       [图层]: ORD20260807002  (fontSize=13, fill=rgba(24,144,255,1), w=143)
+-                       [图层]: 李小红  (fontSize=13, fill=rgba(29,33,41,1), w=57)
+-                       [图层]: 季卡套餐  (fontSize=13, fill=rgba(29,33,41,1), w=120)
+-                       [图层]: ¥799.00  (fontSize=13, fill=rgba(29,33,41,1), w=81)
+-                         [图层]: 退款审批中  (fontSize=12, fill=rgba(250,173,20,1), w=61)
+-                       [图层]: 2026-08-07 13:15  (fontSize=13, fill=rgba(134,144,156,1), w=137)
+-                       [图层]: ORD20260807003  (fontSize=13, fill=rgba(24,144,255,1), w=143)
+-                       [图层]: 王大伟  (fontSize=13, fill=rgba(29,33,41,1), w=57)
+-                       [图层]: 次卡套餐(10次)  (fontSize=13, fill=rgba(29,33,41,1), w=120)
+-                       [图层]: ¥580.00  (fontSize=13, fill=rgba(29,33,41,1), w=81)
+-                         [图层]: 已支付  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                       [图层]: 2026-08-07 11:45  (fontSize=13, fill=rgba(134,144,156,1), w=137)
+-                       [图层]: ORD20260807004  (fontSize=13, fill=rgba(24,144,255,1), w=143)
+-                       [图层]: 赵丽丽  (fontSize=13, fill=rgba(29,33,41,1), w=57)
+-                       [图层]: 年卡套餐  (fontSize=13, fill=rgba(29,33,41,1), w=120)
+-                       [图层]: ¥2,999.00  (fontSize=13, fill=rgba(29,33,41,1), w=81)
+-                         [图层]: 已支付  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                       [图层]: 2026-08-07 10:20  (fontSize=13, fill=rgba(134,144,156,1), w=137)
+-                       [图层]: ORD20260807005  (fontSize=13, fill=rgba(24,144,255,1), w=143)
+-                       [图层]: 陈小华  (fontSize=13, fill=rgba(29,33,41,1), w=57)
+-                       [图层]: 体验课  (fontSize=13, fill=rgba(29,33,41,1), w=120)
+-                       [图层]: ¥49.90  (fontSize=13, fill=rgba(29,33,41,1), w=81)
+-                         [图层]: 已取消  (fontSize=12, fill=rgba(140,140,140,1), w=37)
+-                       [图层]: 2026-08-07 09:05  (fontSize=13, fill=rgba(134,144,156,1), w=137)
+-             [图层]: 快捷入口  (fontSize=16, fill=rgba(29,33,41,1), w=fill_container)
+-                     [图层]:   (fontSize=18, w=20)
+-                     [图层]: 教练入驻审核  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-                     [图层]: 待审核 8 条  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-                   [图层]:   (fontSize=18, w=20)
+-                     [图层]:   (fontSize=18, w=20)
+-                     [图层]: 退款审批  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-                     [图层]: 待处理 12 条  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-                   [图层]:   (fontSize=18, w=20)
+-                     [图层]:   (fontSize=18, w=20)
+-                     [图层]: 客服工单  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-                     [图层]: 待处理 3 条  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-                   [图层]:   (fontSize=18, w=20)
+-                     [图层]:   (fontSize=18, w=20)
+-                     [图层]: 排班管理  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-                     [图层]: 今日 12 名教练在岗  (fontSize=12, fill=rgba(134,144,156,1), w=fill_container)
+-                   [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- A-数据看板页 1440xfit_content layout=vertical padding=None
+-   顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-     Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-     container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 1003.7813262939453]
+-       顶部右侧 fit_contentxfit_content layout=horizontal padding=None
+-         消息通知 fit_contentxfit_content layout=vertical padding=None
+-           container fit_contentxfit_content layout=vertical padding=[4.666666030883789, 0, 0, 0]
+-         管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-           头像 36x36 layout=horizontal padding=None
+-   主体区域 fill_containerx1170 layout=horizontal padding=None
+-     侧边栏 220x1170 layout=vertical padding=None
+-       菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=None
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=None
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=None
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=None
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       container fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=None
+
+---
+
+## A-resignation-approval-queue-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(24,144,255,1), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(255,255,255,0.65), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练离职审批  (fontSize=14, fill=rgba(29,33,41,1), w=85)
+-           [图层]: 教练离职审批  (fontSize=24, fill=rgba(29,33,41,1), w=fill_container)
+-               [图标]:   (fontSize=22, w=fit_content)
+-               [数值]: 4  (fontSize=24, fill=rgba(250,173,20,1), w=fit_content)
+-               [标签]: 待审批  (fontSize=13, fill=rgba(134,144,156,1), w=fit_content)
+-               [图标]:   (fontSize=22, w=fit_content)
+-               [数值]: 2  (fontSize=24, fill=rgba(82,196,26,1), w=fit_content)
+-               [标签]: 今日通过  (fontSize=13, fill=rgba(134,144,156,1), w=fit_content)
+-               [图标]:   (fontSize=22, w=fit_content)
+-               [数值]: 0  (fontSize=24, fill=rgba(255,77,79,1), w=fit_content)
+-               [标签]: 今日拒绝  (fontSize=13, fill=rgba(134,144,156,1), w=fit_content)
+-               [图标]:   (fontSize=22, w=fit_content)
+-               [数值]: 23  (fontSize=24, fill=rgba(140,140,140,1), w=fit_content)
+-               [标签]: 累计离职  (fontSize=13, fill=rgba(134,144,156,1), w=fit_content)
+-               [图层]: 全部状态  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]:   (fontSize=16, w=18)
+-               [图层]: 提交时间范围  (fontSize=14, fill=rgba(201,205,212,1), w=85)
+-               [图层]:   (fontSize=18, w=20)
+-               [图层]: 教练姓名  (fontSize=14, fill=rgba(201,205,212,1), w=57)
+-               [图层]: 查询  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-               [图层]: 重置  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 工单号  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                 [图层]: 教练姓名  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 手机号  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                 [图层]: 在职时长  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 当前学员数  (fontSize=14, fill=rgba(38,38,38,1), w=71)
+-                 [图层]: 离职原因  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 申请时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 处理进度  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 状态  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 操作  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: RES20260807001  (fontSize=13, fill=rgba(24,144,255,1), w=105)
+-                 [图层]: 张伟强  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                 [图层]: 137****0123  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 2个月  (fontSize=13, fill=rgba(29,33,41,1), w=35)
+-                 [图层]: 6  (fontSize=14, fill=rgba(255,77,79,1), w=9)
+-                 [图层]: 个人原因，准备回老家发展  (fontSize=13, fill=rgba(78,89,105,1), w=117)
+-                 [图层]: 2026-08-07 10:30  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 30%  (fontSize=12, fill=rgba(134,144,156,1), w=26)
+-                   [图层]: 待审批  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 通过  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 驳回  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: RES20260806002  (fontSize=13, fill=rgba(24,144,255,1), w=105)
+-                 [图层]: 赵志刚  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                 [图层]: 136****7890  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 1年3个月  (fontSize=13, fill=rgba(29,33,41,1), w=55)
+-                 [图层]: 12  (fontSize=14, fill=rgba(255,77,79,1), w=17)
+-                 [图层]: 身体原因，医生建议减少高强度...  (fontSize=13, fill=rgba(78,89,105,1), w=117)
+-                 [图层]: 2026-08-06 15:20  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 60%  (fontSize=12, fill=rgba(134,144,156,1), w=26)
+-                   [图层]: 待审批  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 通过  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 驳回  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: RES20260805003  (fontSize=13, fill=rgba(24,144,255,1), w=105)
+-                 [图层]: 孙晓峰  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                 [图层]: 135****4567  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 8个月  (fontSize=13, fill=rgba(29,33,41,1), w=35)
+-                 [图层]: 8  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 收到其他游泳馆邀请，薪资更高  (fontSize=13, fill=rgba(78,89,105,1), w=117)
+-                 [图层]: 2026-08-05 09:00  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 100%  (fontSize=12, fill=rgba(82,196,26,1), w=33)
+-                   [图层]: 已通过  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: RES20260804004  (fontSize=13, fill=rgba(24,144,255,1), w=105)
+-                 [图层]: 周建华  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-                 [图层]: 134****2345  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 2年1个月  (fontSize=13, fill=rgba(29,33,41,1), w=55)
+-                 [图层]: 15  (fontSize=14, fill=rgba(29,33,41,1), w=17)
+-                 [图层]: 家庭原因，需要更多时间照顾家人  (fontSize=13, fill=rgba(78,89,105,1), w=117)
+-                 [图层]: 2026-08-04 14:10  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 100%  (fontSize=12, fill=rgba(255,77,79,1), w=33)
+-                   [图层]: 已驳回  (fontSize=12, fill=rgba(255,77,79,1), w=37)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 共  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 4  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 条待审批  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-                   [图层]:   (fontSize=18, w=20)
+-                   [图层]: 1  (fontSize=14, fill=rgba(255,255,255,1), w=9)
+-                   [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- A-离职审批队列页 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1200 layout=horizontal padding=None
+-       侧边栏 220x1200 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-工单列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-系统 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-管理员账号 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+
+---
+
+## A-resignation-ticket-detail-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(24,144,255,1), w=85)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 教练离职审批  (fontSize=14, fill=rgba(134,144,156,1), w=85)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 工单详情  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-           [图层]: 工单详情  (fontSize=24, fill=rgba(29,33,41,1), w=97)
+-                 [图层]: 张  (fontSize=32, fill=rgba(24,144,255,1), w=33)
+-                 [图层]: 张伟强  (fontSize=20, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 工单号：RES20260807001  (fontSize=12, fill=rgba(140,140,140,1), w=fit_content)
+-                     [图层]: 待审批  (fontSize=12, fill=rgba(24,144,255,1), w=37)
+-                     [图层]:   (fontSize=16, w=18)
+-                     [图层]: 查看教练详情  (fontSize=14, fill=rgba(78,89,105,1), w=85)
+-                 [图层]: 手机号  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 137****0123  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                 [图层]: 入职时间  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 2026-06-10  (fontSize=14, fill=rgba(29,33,41,1), w=73)
+-                 [图层]: 提交离职时间  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 2026-08-07 10:30  (fontSize=14, fill=rgba(29,33,41,1), w=111)
+-                 [图层]: Active 学员数  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 6  (fontSize=14, fill=rgba(255,77,79,1), w=9)
+-                 [图层]: 累计课时  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 320节  (fontSize=14, fill=rgba(29,33,41,1), w=39)
+-                 [图层]: 离职原因  (fontSize=14, fill=rgba(134,144,156,1), w=81)
+-                 [图层]: 个人原因，准备回老家发展  (fontSize=14, fill=rgba(29,33,41,1), w=169)
+-             [图层]: 学员处理清单  (fontSize=16, fill=rgba(38,38,38,1), w=fit_content)
+-                   [图层]: 学员  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                   [图层]: 套餐编号  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 剩余课时  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 处理结果  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 处理人  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                   [图层]: 处理时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 张小明  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: PKG20260715001  (fontSize=13, fill=rgba(29,33,41,1), w=106)
+-                 [图层]: 8节  (fontSize=13, fill=rgba(29,33,41,1), w=22)
+-                 [图层]: 待处理  (fontSize=13, fill=rgba(201,205,212,1), w=40)
+-                 [图层]: -  (fontSize=13, fill=rgba(201,205,212,1), w=6)
+-                 [图层]: -  (fontSize=13, fill=rgba(201,205,212,1), w=6)
+-                 [图层]: 李小红  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: PKG20260801002  (fontSize=13, fill=rgba(29,33,41,1), w=106)
+-                 [图层]: 2节  (fontSize=13, fill=rgba(29,33,41,1), w=22)
+-                 [图层]: 待处理  (fontSize=13, fill=rgba(201,205,212,1), w=40)
+-                 [图层]: -  (fontSize=13, fill=rgba(201,205,212,1), w=6)
+-                 [图层]: -  (fontSize=13, fill=rgba(201,205,212,1), w=6)
+-                 [图层]: 王建国  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: PKG20260520003  (fontSize=13, fill=rgba(29,33,41,1), w=106)
+-                 [图层]: 12节  (fontSize=13, fill=rgba(29,33,41,1), w=29)
+-                   [图层]: 转新教练  (fontSize=12, fill=rgba(24,144,255,1), w=49)
+-                 [图层]: 管理员  (fontSize=13, fill=rgba(29,33,41,1), w=40)
+-                 [图层]: 2026-08-08 14:30  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 刘洋  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                 [图层]: PKG20260710004  (fontSize=13, fill=rgba(29,33,41,1), w=106)
+-                 [图层]: 22节  (fontSize=13, fill=rgba(29,33,41,1), w=29)
+-                 [图层]: 待处理  (fontSize=13, fill=rgba(201,205,212,1), w=40)
+-                 [图层]: -  (fontSize=13, fill=rgba(201,205,212,1), w=6)
+-                 [图层]: -  (fontSize=13, fill=rgba(201,205,212,1), w=6)
+-             [图层]: 管理员检查清单（全部通过才可批准）  (fontSize=16, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: Active 学员数 = 0  (fontSize=14, fill=rgba(29,33,41,1), w=108)
+-                 [图层]: 当前仍有 6 名学员未处理  (fontSize=12, fill=rgba(255,77,79,1), w=134)
+-                 [图层]: 所有学员处理结果已登记  (fontSize=14, fill=rgba(29,33,41,1), w=155)
+-                 [图层]: 还有 3 名学员待处理  (fontSize=12, fill=rgba(255,77,79,1), w=110)
+-                 [图层]: 教练费已结算  (fontSize=14, fill=rgba(29,33,41,1), w=85)
+-                 [图层]: 未结算  (fontSize=12, fill=rgba(255,77,79,1), w=37)
+-                   [图层]:   (fontSize=14, w=16)
+-                 [图层]: 排班未来时段已清空  (fontSize=14, fill=rgba(29,33,41,1), w=127)
+-                 [图层]: 已清空  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-             [图层]: 审批记录  (fontSize=16, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 提交离职  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 08-07 10:30  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 学员处理登记  (fontSize=13, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 进行中  (fontSize=12, fill=rgba(134,144,156,1), w=fit_content)
+-                 [图层]: 检查通过  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: 管理员通过  (fontSize=13, fill=rgba(201,205,212,1), w=fit_content)
+-                 [图层]: -  (fontSize=12, fill=rgba(201,205,212,1), w=fit_content)
+-             [图层]: 审批操作  (fontSize=16, fill=rgba(29,33,41,1), w=fit_content)
+-               [图层]: 审批意见  (fontSize=14, fill=rgba(29,33,41,1), w=fit_content)
+-                 [图层]: 请输入审批意见（必填）  (fontSize=14, fill=rgba(201,205,212,1), w=155)
+-                 [图层]:   (fontSize=18, w=20)
+-                 [图层]: 审核通过  (fontSize=15, fill=rgba(255,255,255,1), w=61)
+-                 [图层]:   (fontSize=18, w=20)
+-                 [图层]: 驳回申请  (fontSize=15, fill=rgba(255,255,255,1), w=61)
+-                   [图层]:   (fontSize=16, w=18)
+-                   [图层]: 返回列表  (fontSize=15, fill=rgba(78,89,105,1), w=61)
+
+### 主要 Frame 容器
+
+- A-离职审批工单详情页 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1700 layout=horizontal padding=None
+-       侧边栏 220x1700 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-       内容区 fill_containerxfit_content layout=vertical padding=24
+-         面包屑 fill_containerxfit_content layout=horizontal padding=None
+-           面包屑项 fit_contentxfit_content layout=horizontal padding=None
+-         页面标题区 fill_containerxfit_content layout=horizontal padding=[16, 0, 0, 0]
+-           返回按钮 36x36 layout=horizontal padding=None
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           教练信息卡 fill_containerxfit_content layout=vertical padding=24
+-             卡片头部 fill_containerxfit_content layout=horizontal padding=None
+-               头像 80x80 layout=horizontal padding=None
+-               头部信息 fit_contentxfit_content layout=vertical padding=None
+-                 标签行 fit_contentxfit_content layout=horizontal padding=[4, 0, 0, 0]
+-                   状态标签 fit_contentx24 layout=horizontal padding=[0, 10, 0, 10]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 715.4250183105469]
+-                 操作区 fit_contentxfit_content layout=horizontal padding=None
+-                   查看教练详情 fit_contentx36 layout=horizontal padding=[0, 16, 0, 16]
+-             信息行 fill_containerxfit_content layout=None padding=None
+-               项 260x20 layout=horizontal padding=None
+-               项 260x20 layout=horizontal padding=None
+-               项 260x40 layout=horizontal padding=None
+-               项 260x40 layout=horizontal padding=None
+-               项 260x20 layout=horizontal padding=None
+-               项 520x20 layout=horizontal padding=None
+
+---
+
+## A-user-create-modal-adult-base
+
+- 尺寸: 560 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(255,255,255,1)"
+
+### 文本内容（按出现顺序）
+
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 新建用户  (fontSize=18, fill=rgba(38,38,38,1), w=73)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=30, w=33)
+-                 [图层]:   (fontSize=14, w=16)
+-                 [图层]: 上传头像  (fontSize=13, fill=rgba(78,89,105,1), w=53)
+-                 [图层]: 支持 JPG/PNG，不超过 2MB  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-               [图层]: 手机号  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入手机号  (fontSize=14, fill=rgba(201,205,212,1), w=85)
+-               [图层]: 昵称/姓名  (fontSize=14, fill=rgba(38,38,38,1), w=63)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入昵称或姓名  (fontSize=14, fill=rgba(201,205,212,1), w=113)
+-               [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 男  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                 [图层]: 女  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-               [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入年龄  (fontSize=14, fill=rgba(201,205,212,1), w=71)
+-             [图层]: 游泳档案  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]: 有无游泳基础  (fontSize=14, fill=rgba(38,38,38,1), w=85)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                   [图层]: 有  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-                   [图层]: 无  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                 [图层]: 会什么泳姿  (fontSize=14, fill=rgba(38,38,38,1), w=71)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                   [图层]: 蛙泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                   [图层]: 自由泳  (fontSize=14, fill=rgba(78,89,105,1), w=43)
+-                   [图层]: 仰泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                   [图层]: 蝶泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 游泳年限  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 请输入年限  (fontSize=14, fill=rgba(201,205,212,1), w=71)
+-                   [图层]: 年  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 个人描述  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 请输入个人描述  (fontSize=14, fill=rgba(201,205,212,1), w=99)
+-                     [图层]: 0/512  (fontSize=12, fill=rgba(201,205,212,1), w=33)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- 弹窗-新建用户-成年人有基础 560xfit_content layout=vertical padding=None
+-   弹窗容器 560xfit_content layout=vertical padding=None
+-     弹窗头部 fill_containerxfit_content layout=horizontal padding=[20, 24, 20, 24]
+-       标题区 fit_contentxfit_content layout=horizontal padding=None
+-         图标 36x36 layout=horizontal padding=None
+-         标题文字 fit_contentxfit_content layout=horizontal padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     弹窗内容 fill_containerxfit_content layout=vertical padding=24
+-       分组-基础信息 fill_containerxfit_content layout=vertical padding=None
+-         分组标题 fill_containerxfit_content layout=vertical padding=None
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           头像上传 fill_containerxfit_content layout=horizontal padding=None
+-             头像占位 80x80 layout=horizontal padding=None
+-             上传操作 154xfit_content layout=vertical padding=None
+-               上传按钮 fill_containerxfit_content layout=horizontal padding=[6, 12, 6, 12]
+-               提示文字 fill_containerxfit_content layout=vertical padding=None
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           手机号输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16.000015258789062, 0, 0, 0]
+-           昵称输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2.0000038146972656]
+-             输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           性别输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             单选组 fit_contentxfit_content layout=horizontal padding=None
+-               选项-男 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-               选项-女 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           年龄输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             输入框 160x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=vertical padding=[24.000015258789062, 0, 0, 0]
+-         分组-游泳档案 fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+
+---
+
+## A-user-create-modal-adult-no-base
+
+- 尺寸: 560 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(255,255,255,1)"
+
+### 文本内容（按出现顺序）
+
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 新建用户  (fontSize=18, fill=rgba(38,38,38,1), w=73)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=30, w=33)
+-                 [图层]:   (fontSize=14, w=16)
+-                 [图层]: 上传头像  (fontSize=13, fill=rgba(78,89,105,1), w=53)
+-                 [图层]: 支持 JPG/PNG，不超过 2MB  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-               [图层]: 手机号  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入手机号  (fontSize=14, fill=rgba(201,205,212,1), w=85)
+-               [图层]: 昵称/姓名  (fontSize=14, fill=rgba(38,38,38,1), w=63)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入昵称或姓名  (fontSize=14, fill=rgba(201,205,212,1), w=113)
+-               [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 男  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                 [图层]: 女  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-               [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入年龄  (fontSize=14, fill=rgba(201,205,212,1), w=71)
+-             [图层]: 游泳档案  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]: 有无游泳基础  (fontSize=14, fill=rgba(38,38,38,1), w=85)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                   [图层]: 有  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                   [图层]: 无  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-                 [图层]: 个人描述  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 请输入个人描述  (fontSize=14, fill=rgba(201,205,212,1), w=99)
+-                     [图层]: 0/512  (fontSize=12, fill=rgba(201,205,212,1), w=33)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- 弹窗-新建用户-成年人无基础 560xfit_content layout=vertical padding=None
+-   弹窗容器 560xfit_content layout=vertical padding=None
+-     弹窗头部 fill_containerxfit_content layout=horizontal padding=[20, 24, 20, 24]
+-       标题区 fit_contentxfit_content layout=horizontal padding=None
+-         图标 36x36 layout=horizontal padding=None
+-         标题文字 fit_contentxfit_content layout=horizontal padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     弹窗内容 fill_containerxfit_content layout=vertical padding=24
+-       分组-基础信息 fill_containerxfit_content layout=vertical padding=None
+-         分组标题 fill_containerxfit_content layout=vertical padding=None
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           头像上传 fill_containerxfit_content layout=horizontal padding=None
+-             头像占位 80x80 layout=horizontal padding=None
+-             上传操作 154xfit_content layout=vertical padding=None
+-               上传按钮 fill_containerxfit_content layout=horizontal padding=[6, 12, 6, 12]
+-               提示文字 fill_containerxfit_content layout=vertical padding=None
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           手机号输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16.000015258789062, 0, 0, 0]
+-           昵称输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2.0000038146972656]
+-             输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           性别输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             单选组 fit_contentxfit_content layout=horizontal padding=None
+-               选项-男 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-               选项-女 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           年龄输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             输入框 160x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=vertical padding=[24.000015258789062, 0, 0, 0]
+-         分组-游泳档案 fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+
+---
+
+## A-user-create-modal-minor-base
+
+- 尺寸: 560 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(255,255,255,1)"
+
+### 文本内容（按出现顺序）
+
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 新建用户  (fontSize=18, fill=rgba(38,38,38,1), w=73)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]:   (fontSize=30, w=33)
+-                 [图层]:   (fontSize=14, w=16)
+-                 [图层]: 上传头像  (fontSize=13, fill=rgba(78,89,105,1), w=53)
+-                 [图层]: 支持 JPG/PNG，不超过 2MB  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-               [图层]: 手机号  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入手机号  (fontSize=14, fill=rgba(201,205,212,1), w=85)
+-               [图层]: 昵称/姓名  (fontSize=14, fill=rgba(38,38,38,1), w=63)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 请输入昵称或姓名  (fontSize=14, fill=rgba(201,205,212,1), w=113)
+-               [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 男  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                 [图层]: 女  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-               [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-               [图层]: 14  (fontSize=14, fill=rgba(29,33,41,1), w=17)
+-             [图层]: 游泳档案  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-                 [图层]: 有无游泳基础  (fontSize=14, fill=rgba(38,38,38,1), w=85)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                   [图层]: 有  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-                   [图层]: 无  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                 [图层]: 会什么泳姿  (fontSize=14, fill=rgba(38,38,38,1), w=71)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                   [图层]: 蛙泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                   [图层]: 自由泳  (fontSize=14, fill=rgba(78,89,105,1), w=43)
+-                   [图层]: 仰泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                   [图层]: 蝶泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                 [图层]: 游泳年限  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 请输入年限  (fontSize=14, fill=rgba(201,205,212,1), w=71)
+-                   [图层]: 年  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 个人描述  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                   [图层]: 请输入个人描述  (fontSize=14, fill=rgba(201,205,212,1), w=99)
+-                     [图层]: 0/512  (fontSize=12, fill=rgba(201,205,212,1), w=33)
+-             [图层]: 监护人信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-               [图层]: 用户未满18岁，监护人信息必填  (fontSize=12, fill=rgba(250,173,20,1), w=fill_container)
+-                 [图层]: 监护人姓名  (fontSize=14, fill=rgba(38,38,38,1), w=71)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 请输入监护人姓名  (fontSize=14, fill=rgba(201,205,212,1), w=113)
+-                 [图层]: 监护人手机号  (fontSize=14, fill=rgba(38,38,38,1), w=85)
+-                   [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=7)
+-                 [图层]: 请输入监护人手机号  (fontSize=14, fill=rgba(201,205,212,1), w=127)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-         [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+
+### 主要 Frame 容器
+
+- 弹窗-新建用户-未成年人有基础 560xfit_content layout=vertical padding=None
+-   弹窗容器 560xfit_content layout=vertical padding=None
+-     弹窗头部 fill_containerxfit_content layout=horizontal padding=[20, 24, 20, 24]
+-       标题区 fit_contentxfit_content layout=horizontal padding=None
+-         图标 36x36 layout=horizontal padding=None
+-         标题文字 fit_contentxfit_content layout=horizontal padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     弹窗内容 fill_containerxfit_content layout=vertical padding=24
+-       分组-基础信息 fill_containerxfit_content layout=vertical padding=None
+-         分组标题 fill_containerxfit_content layout=vertical padding=None
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           头像上传 fill_containerxfit_content layout=horizontal padding=None
+-             头像占位 80x80 layout=horizontal padding=None
+-             上传操作 154xfit_content layout=vertical padding=None
+-               上传按钮 fill_containerxfit_content layout=horizontal padding=[6, 12, 6, 12]
+-               提示文字 fill_containerxfit_content layout=vertical padding=None
+-         container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-           手机号输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16.000015258789062, 0, 0, 0]
+-           昵称输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2.0000038146972656]
+-             输入框 fill_containerx44 layout=horizontal padding=[0, 12, 0, 12]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           性别输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             单选组 fit_contentxfit_content layout=horizontal padding=None
+-               选项-男 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-               选项-女 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-         container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-           年龄输入区 fill_containerxfit_content layout=horizontal padding=None
+-             标签区 120xfit_content layout=horizontal padding=[0, 16, 0, 0]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 2]
+-             输入框 160x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=vertical padding=[24.000015258789062, 0, 0, 0]
+-         分组-游泳档案 fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+
+---
+
+## A-user-edit-modal-adult-base
+
+- 尺寸: 560 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(255,255,255,1)"
+
+### 文本内容（按出现顺序）
+
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 编辑用户资料  (fontSize=18, fill=rgba(29,33,41,1), w=109)
+-         [图层]:   (fontSize=20, w=22)
+-         [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-             [图层]: 张  (fontSize=28, fill=rgba(24,144,255,1), w=29)
+-                 [图层]:   (fontSize=14, w=16)
+-                   [图层]: 上传头像  (fontSize=13, fill=rgba(78,89,105,1), w=53)
+-                 [图层]: 支持 JPG/PNG，不超过 2MB  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-             [图层]: 昵称/姓名  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 张小明  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 男  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-                   [图层]: 女  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-             [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 28  (fontSize=14, fill=rgba(29,33,41,1), w=17)
+-           [图层]: 游泳档案  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-             [图层]: 有无游泳基础  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-                 [图层]: 有  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-                   [图层]: 无  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-             [图层]: 会什么泳姿  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-                 [图层]: 蛙泳  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                   [图层]: 自由泳  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                   [图层]: 仰泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                   [图层]: 蝶泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-             [图层]: 游泳年限  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 3  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 年  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-             [图层]: 个人描述  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-               [图层]: 有一定游泳基础，希望提升自由泳技术  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 18/512  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=fill_container)
+-           [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=fill_container)
+
+### 主要 Frame 容器
+
+- A-用户编辑弹窗-成年人有基础 560xfit_content layout=vertical padding=None
+-   弹窗容器 560xfit_content layout=vertical padding=None
+-     弹窗头部 fill_containerxfit_content layout=horizontal padding=[20, 24, 20, 24]
+-       标题区 fit_contentxfit_content layout=horizontal padding=None
+-         图标 36x36 layout=horizontal padding=None
+-         container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 12]
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     弹窗内容 fill_containerxfit_content layout=vertical padding=24
+-       分组标题-基础信息 fill_containerxfit_content layout=vertical padding=None
+-       container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-         头像上传 fill_containerxfit_content layout=horizontal padding=None
+-           头像 80x80 layout=horizontal padding=None
+-           container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 16]
+-             上传操作 154xfit_content layout=vertical padding=None
+-               上传按钮 fill_containerxfit_content layout=horizontal padding=[6, 12, 6, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 5.999994277954102]
+-               container fill_containerxfit_content layout=vertical padding=[6.000009536743164, 0, 0, 0]
+-       container fill_containerxfit_content layout=horizontal padding=[20, 0, 0, 0]
+-         昵称输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+-           container fit_contentxfit_content layout=vertical padding=[0, 0, 0, 16]
+-             输入框 512x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=horizontal padding=[16.000015258789062, 0, 0, 0]
+-         性别输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+-           container fill_containerxfit_content layout=vertical padding=[0, 0, 0, 16]
+-             单选组 fill_containerxfit_content layout=horizontal padding=None
+-               选项-男-选中 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-                 选项-女 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-       container fill_containerxfit_content layout=horizontal padding=[15.999977111816406, 0, 0, 0]
+-         年龄输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+-           container fit_contentxfit_content layout=vertical padding=[0, 0, 0, 16]
+-             输入框 160x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-         分组标题-游泳档案 fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-       container fill_containerxfit_content layout=horizontal padding=[16.000019073486328, 0, 0, 0]
+-         游泳基础输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+
+---
+
+## A-user-edit-modal-minor-base
+
+- 尺寸: 560 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(255,255,255,1)"
+
+### 文本内容（按出现顺序）
+
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 编辑用户资料  (fontSize=18, fill=rgba(29,33,41,1), w=109)
+-         [图层]:   (fontSize=20, w=22)
+-         [图层]: 基础信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-             [图层]: 李  (fontSize=28, fill=rgba(255,107,53,1), w=29)
+-                 [图层]:   (fontSize=14, w=16)
+-                   [图层]: 上传头像  (fontSize=13, fill=rgba(78,89,105,1), w=53)
+-                 [图层]: 支持 JPG/PNG，不超过 2MB  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-             [图层]: 昵称/姓名  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 李小红  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-                 [图层]: 男  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-                   [图层]: 女  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 16  (fontSize=14, fill=rgba(29,33,41,1), w=17)
+-           [图层]: 游泳档案  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-             [图层]: 有无游泳基础  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-                 [图层]: 有  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-                   [图层]: 无  (fontSize=14, fill=rgba(78,89,105,1), w=15)
+-             [图层]: 会什么泳姿  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-                 [图层]: 蛙泳  (fontSize=14, fill=rgba(24,144,255,1), w=29)
+-                   [图层]: 自由泳  (fontSize=14, fill=rgba(78,89,105,1), w=43)
+-                   [图层]: 仰泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-                   [图层]: 蝶泳  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-             [图层]: 游泳年限  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 1  (fontSize=14, fill=rgba(29,33,41,1), w=9)
+-                 [图层]: 年  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-             [图层]: 个人描述  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-               [图层]: 请输入个人描述  (fontSize=14, fill=rgba(201,205,212,1), w=fill_container)
+-               [图层]: 0/512  (fontSize=12, fill=rgba(201,205,212,1), w=fill_container)
+-           [图层]: 监护人信息  (fontSize=14, fill=rgba(38,38,38,1), w=fill_container)
+-           [图层]: 用户未满18岁，监护人信息必填  (fontSize=12, fill=rgba(250,173,20,1), w=fill_container)
+-             [图层]: 监护人姓名  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 李建国  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]: 监护人手机号  (fontSize=14, fill=rgba(38,38,38,1), w=fit_content)
+-             [图层]: *  (fontSize=12, fill=rgba(255,77,79,1), w=fit_content)
+-               [图层]: 139****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-         [图层]: 取消  (fontSize=14, fill=rgba(78,89,105,1), w=fill_container)
+-           [图层]: 保存  (fontSize=14, fill=rgba(255,255,255,1), w=fill_container)
+
+### 主要 Frame 容器
+
+- A-用户编辑弹窗-未成年人有基础 560xfit_content layout=vertical padding=None
+-   弹窗容器 560xfit_content layout=vertical padding=None
+-     弹窗头部 fill_containerxfit_content layout=horizontal padding=[20, 24, 20, 24]
+-       标题区 fit_contentxfit_content layout=horizontal padding=None
+-         图标 36x36 layout=horizontal padding=None
+-         container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 12]
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     弹窗内容 fill_containerxfit_content layout=vertical padding=24
+-       分组标题-基础信息 fill_containerxfit_content layout=vertical padding=None
+-       container fill_containerxfit_content layout=vertical padding=[16, 0, 0, 0]
+-         头像上传 fill_containerxfit_content layout=horizontal padding=None
+-           头像 80x80 layout=horizontal padding=None
+-           container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 16]
+-             上传操作 154xfit_content layout=vertical padding=None
+-               上传按钮 fill_containerxfit_content layout=horizontal padding=[6, 12, 6, 12]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 5.999994277954102]
+-               container fill_containerxfit_content layout=vertical padding=[6.000009536743164, 0, 0, 0]
+-       container fill_containerxfit_content layout=horizontal padding=[20, 0, 0, 0]
+-         昵称输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+-           container fit_contentxfit_content layout=vertical padding=[0, 0, 0, 16]
+-             输入框 512x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=horizontal padding=[16.000015258789062, 0, 0, 0]
+-         性别输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+-           container fill_containerxfit_content layout=vertical padding=[0, 0, 0, 16]
+-             单选组 fill_containerxfit_content layout=horizontal padding=None
+-               选项-男 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-                 选项-女-选中 fit_contentx38 layout=horizontal padding=[0, 16, 0, 16]
+-       container fill_containerxfit_content layout=horizontal padding=[15.999977111816406, 0, 0, 0]
+-         年龄输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+-           container fit_contentxfit_content layout=vertical padding=[0, 0, 0, 16]
+-             输入框 160x44 layout=horizontal padding=[0, 12, 0, 12]
+-       container fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-         分组标题-游泳档案 fill_containerxfit_content layout=vertical padding=[24, 0, 0, 0]
+-       container fill_containerxfit_content layout=horizontal padding=[16.000019073486328, 0, 0, 0]
+-         游泳基础输入区 fill_containerxfit_content layout=horizontal padding=None
+-           标签 120xfit_content layout=horizontal padding=None
+
+---
+
+## A-user-management-page
+
+- 尺寸: 1440 x fit_content
+- 布局: vertical, align: start, justify: start
+
+### 文本内容（按出现顺序）
+
+-         [图层]: leyoSwimming 管理后台  (fontSize=16, fill=rgba(29,33,41,1), w=183)
+-             [图层]:   (fontSize=20, w=22)
+-               [图层]: 管  (fontSize=14, fill=rgba(24,144,255,1), w=15)
+-             [图层]: 管理员  (fontSize=14, fill=rgba(29,33,41,1), w=43)
+-             [图层]:   (fontSize=16, w=18)
+-           [图层]:   (fontSize=18, w=20)
+-           [图层]: 首页  (fontSize=14, fill=rgba(255,255,255,0.65), w=29)
+-             [图层]: 用户管理  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户列表  (fontSize=14, fill=rgba(24,144,255,1), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练入驻审核  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 教练离职审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 课程预约  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 排班管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 请假审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 预约释放配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=85)
+-             [图层]: 套餐订单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 套餐管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 订单管理  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 退款审批  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 场馆运营  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 场馆配置  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 公告/Banner/卡片  (fontSize=14, fill=rgba(255,255,255,0.65), w=115)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户须知  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 闭馆/换水设置  (fontSize=14, fill=rgba(255,255,255,0.65), w=91)
+-             [图层]: 客服工单  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 工单列表  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]: 系统  (fontSize=12, fill=rgba(255,255,255,0.35), w=fill_container)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 管理员账号  (fontSize=14, fill=rgba(255,255,255,0.65), w=71)
+-             [图层]:   (fontSize=18, w=20)
+-             [图层]: 操作日志  (fontSize=14, fill=rgba(255,255,255,0.65), w=57)
+-             [图层]:   (fontSize=14, w=16)
+-             [图层]: 首页  (fontSize=14, fill=rgba(134,144,156,1), w=29)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户管理  (fontSize=14, fill=rgba(134,144,156,1), w=57)
+-           [图层]:   (fontSize=14, w=16)
+-           [图层]: 用户列表  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-           [图层]: 用户列表  (fontSize=24, fill=rgba(29,33,41,1), w=fill_container)
+-                 [图层]: 全部身份  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                   [图层]:   (fontSize=16, w=18)
+-                 [图层]: 全部状态  (fontSize=14, fill=rgba(78,89,105,1), w=57)
+-                   [图层]:   (fontSize=16, w=18)
+-                 [图层]: 资料完善状态  (fontSize=14, fill=rgba(78,89,105,1), w=85)
+-                   [图层]:   (fontSize=16, w=18)
+-                 [图层]:   (fontSize=16, w=18)
+-                 [图层]: 注册时间范围  (fontSize=14, fill=rgba(201,205,212,1), w=85)
+-                 [图层]:   (fontSize=18, w=20)
+-                 [图层]: 昵称 / 手机号 / ID  (fontSize=14, fill=rgba(201,205,212,1), w=109)
+-                 [图层]: 查询  (fontSize=14, fill=rgba(255,255,255,1), w=29)
+-                 [图层]: 重置  (fontSize=14, fill=rgba(78,89,105,1), w=29)
+-               [图层]:   (fontSize=14, w=16)
+-               [图层]: 展开高级筛选  (fontSize=14, fill=rgba(24,144,255,1), w=85)
+-                 [图层]: 用户 ID  (fontSize=14, fill=rgba(38,38,38,1), w=47)
+-                 [图层]: 昵称/姓名  (fontSize=14, fill=rgba(38,38,38,1), w=63)
+-                 [图层]: 手机号  (fontSize=14, fill=rgba(38,38,38,1), w=43)
+-                 [图层]: 性别  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 年龄  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 身份  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 资料完善  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 账号状态  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 注册时间  (fontSize=14, fill=rgba(38,38,38,1), w=57)
+-                 [图层]: 操作  (fontSize=14, fill=rgba(38,38,38,1), w=29)
+-                 [图层]: 10001  (fontSize=13, fill=rgba(134,144,156,1), w=38)
+-                 [图层]: 张小明  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 138****6789  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 28  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                   [图层]: 学员  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                   [图层]: 已完善  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]: 正常  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-06-15 10:30  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 封禁  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 10002  (fontSize=13, fill=rgba(134,144,156,1), w=38)
+-                 [图层]: 李小红  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 139****8901  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 女  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 16  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                   [图层]: 注册用户  (fontSize=12, fill=rgba(24,144,255,1), w=49)
+-                   [图层]: 未完善  (fontSize=12, fill=rgba(250,173,20,1), w=37)
+-                   [图层]: 正常  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-07-02 14:20  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 封禁  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 10003  (fontSize=13, fill=rgba(134,144,156,1), w=38)
+-                 [图层]: 未设置  (fontSize=14, fill=rgba(201,205,212,1), w=43)
+-                 [图层]: 未绑定  (fontSize=13, fill=rgba(201,205,212,1), w=40)
+-                 [图层]: 未知  (fontSize=13, fill=rgba(201,205,212,1), w=27)
+-                 [图层]: 未知  (fontSize=13, fill=rgba(201,205,212,1), w=27)
+-                   [图层]: 游客  (fontSize=12, fill=rgba(140,140,140,1), w=25)
+-                   [图层]: 未完善  (fontSize=12, fill=rgba(250,173,20,1), w=37)
+-                   [图层]: 正常  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                 [图层]: 2026-08-01 09:15  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 封禁  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 10005  (fontSize=13, fill=rgba(134,144,156,1), w=38)
+-                 [图层]: 陈小华  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 135****7890  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 35  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                   [图层]: 学员  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                   [图层]: 已完善  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]: 封禁  (fontSize=12, fill=rgba(255,77,79,1), w=25)
+-                 [图层]: 2026-07-18 11:30  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 解禁  (fontSize=13, fill=rgba(82,196,26,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 10006  (fontSize=13, fill=rgba(134,144,156,1), w=38)
+-                 [图层]: 刘建国  (fontSize=14, fill=rgba(24,144,255,1), w=43)
+-                 [图层]: 134****4567  (fontSize=13, fill=rgba(29,33,41,1), w=76)
+-                 [图层]: 男  (fontSize=13, fill=rgba(29,33,41,1), w=14)
+-                 [图层]: 42  (fontSize=13, fill=rgba(29,33,41,1), w=16)
+-                   [图层]: 注册用户  (fontSize=12, fill=rgba(24,144,255,1), w=49)
+-                   [图层]: 已完善  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-                   [图层]: 注销  (fontSize=12, fill=rgba(140,140,140,1), w=25)
+-                 [图层]: 2026-04-10 08:00  (fontSize=13, fill=rgba(29,33,41,1), w=104)
+-                 [图层]: 查看  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 编辑  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 封禁  (fontSize=13, fill=rgba(255,77,79,1), w=27)
+-                 [图层]: 更多  (fontSize=13, fill=rgba(24,144,255,1), w=27)
+-                 [图层]: 共  (fontSize=14, fill=rgba(134,144,156,1), w=15)
+-                 [图层]: 1,286  (fontSize=14, fill=rgba(29,33,41,1), w=38)
+-                 [图层]: 名用户  (fontSize=14, fill=rgba(134,144,156,1), w=43)
+-                   [图层]:   (fontSize=18, w=20)
+-                   [图层]: 1  (fontSize=14, fill=rgba(255,255,255,1), w=9)
+-                   [图层]: 2  (fontSize=14, fill=rgba(78,89,105,1), w=9)
+-                   [图层]: 3  (fontSize=14, fill=rgba(78,89,105,1), w=9)
+-                   [图层]: ...  (fontSize=14, fill=rgba(134,144,156,1), w=13)
+-                   [图层]: 65  (fontSize=14, fill=rgba(78,89,105,1), w=17)
+-                   [图层]:   (fontSize=18, w=20)
+
+### 主要 Frame 容器
+
+- A-用户管理页 2 1440xfit_content layout=vertical padding=None
+-   页面容器 fill_containerxfit_content layout=vertical padding=None
+-     顶部导航栏 fill_containerx64 layout=horizontal padding=[0, 24, 0, 24]
+-       Logo区域 fit_contentxfit_content layout=horizontal padding=None
+-       container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 997.8999786376953]
+-         右侧区域 fit_contentxfit_content layout=horizontal padding=None
+-           消息通知 fit_contentxfit_content layout=horizontal padding=None
+-           管理员信息 fit_contentxfit_content layout=horizontal padding=None
+-             头像 36x36 layout=horizontal padding=None
+-     主体区域 fill_containerx1200 layout=horizontal padding=None
+-       侧边栏 220x1200 layout=vertical padding=None
+-         菜单-首页 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-用户管理 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-用户列表-选中 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练入驻审核 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-教练离职审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-课程预约 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-排班管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-请假审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-预约释放配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-套餐订单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-套餐管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-订单管理 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-退款审批 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-场馆运营 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-场馆配置 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-公告运营 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-用户须知 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-           菜单项-闭馆换水 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-客服工单 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-工单列表 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+-         菜单分组-系统 fill_containerxfit_content layout=vertical padding=[8, 0, 0, 0]
+-           分组标题 fill_containerxfit_content layout=vertical padding=[8, 20, 8, 20]
+-           菜单项-管理员账号 fill_containerxfit_content layout=horizontal padding=[12, 20, 12, 20]
+
+---
+
+## A-user-view-modal
+
+- 尺寸: 640 x fit_content
+- 布局: vertical, align: start, justify: start
+- 背景: "rgba(255,255,255,1)"
+
+### 文本内容（按出现顺序）
+
+-           [图层]:   (fontSize=18, w=20)
+-             [图层]: 用户详情  (fontSize=18, fill=rgba(29,33,41,1), w=fill_container)
+-             [图层]: 用户ID：10001  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-         [图层]:   (fontSize=20, w=22)
+-           [图层]: 张  (fontSize=24, fill=rgba(24,144,255,1), w=25)
+-             [图层]: 张小明  (fontSize=16, fill=rgba(29,33,41,1), w=fill_container)
+-                     [图层]: 正常  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-                     [图层]: 学员  (fontSize=12, fill=rgba(24,144,255,1), w=fill_container)
+-                     [图层]: 已完善  (fontSize=12, fill=rgba(82,196,26,1), w=fill_container)
+-             [图层]:   (fontSize=16, w=18)
+-               [图层]: 基本信息  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-               [图层]: 用户ID  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 10001  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 昵称/姓名  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 张小明  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 手机号  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 138****6789  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                 [图层]:   (fontSize=16, w=18)
+-               [图层]: 性别  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 男  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 年龄  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 28  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 注册来源  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 微信授权  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 注册时间  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 2026-06-15 10:30:00  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 最后登录  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 2026-08-07 09:15:00  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 账号状态  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-                   [图层]: 正常  (fontSize=12, fill=rgba(82,196,26,1), w=25)
+-               [图层]: 资料完善  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-                 [图层]: 已完善  (fontSize=12, fill=rgba(82,196,26,1), w=37)
+-             [图层]:   (fontSize=16, w=18)
+-               [图层]: 游泳档案  (fontSize=14, fill=rgba(29,33,41,1), w=57)
+-               [图层]: 游泳基础  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 有  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 会什么泳姿  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-                 [图层]: 蛙泳  (fontSize=12, fill=rgba(24,144,255,1), w=fill_container)
+-                   [图层]: 自由泳  (fontSize=12, fill=rgba(24,144,255,1), w=fill_container)
+-               [图层]: 游泳年限  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 3 年  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 个人描述  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 有一定游泳基础，希望提升自由泳技术  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-             [图层]:   (fontSize=16, w=18)
+-               [图层]: 监护人信息  (fontSize=14, fill=rgba(29,33,41,1), w=71)
+-               [图层]: 监护人姓名  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 李建国  (fontSize=14, fill=rgba(29,33,41,1), w=fill_container)
+-               [图层]: 监护人手机号  (fontSize=13, fill=rgba(134,144,156,1), w=fill_container)
+-               [图层]: 139****5678  (fontSize=14, fill=rgba(29,33,41,1), w=82)
+-                 [图层]:   (fontSize=16, w=18)
+-             [图层]:   (fontSize=14, w=16)
+-               [图层]: 封禁用户  (fontSize=13, fill=rgba(255,77,79,1), w=53)
+-           [图层]: 关闭  (fontSize=14, fill=rgba(78,89,105,1), w=fill_container)
+-             [图层]: 编辑资料  (fontSize=14, fill=rgba(255,255,255,1), w=fill_container)
+
+### 主要 Frame 容器
+
+- A-用户查看弹窗 640xfit_content layout=vertical padding=None
+-   弹窗容器 640xfit_content layout=vertical padding=None
+-     弹窗头部 fill_containerxfit_content layout=horizontal padding=[20, 24, 20, 24]
+-       标题区 fit_contentxfit_content layout=horizontal padding=None
+-         图标 36x36 layout=horizontal padding=None
+-         container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 12]
+-           标题文字 88xfit_content layout=vertical padding=None
+-       关闭按钮 32x32 layout=horizontal padding=None
+-     弹窗内容 fill_containerxfit_content layout=vertical padding=24
+-       用户信息卡 fill_containerxfit_content layout=horizontal padding=16
+-         大头像 64x64 layout=horizontal padding=None
+-         container fill_containerxfit_content layout=horizontal padding=[0, 0, 0, 16]
+-           信息 fill_containerxfit_content layout=vertical padding=None
+-             container fill_containerxfit_content layout=vertical padding=[4, 0, 0, 0]
+-               标签行 fill_containerxfit_content layout=horizontal padding=None
+-                 账号状态标签 fit_contentxfit_content layout=horizontal padding=[2, 8, 2, 8]
+-                   container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 4]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-                   身份标签 40xfit_content layout=vertical padding=[2, 8, 2, 8]
+-                 container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-                   资料完善标签 52xfit_content layout=vertical padding=[2, 8, 2, 8]
+-       container fill_containerxfit_content layout=vertical padding=[20, 0, 0, 0]
+-         基础信息分组 fill_containerxfit_content layout=vertical padding=None
+-           区域标题 fill_containerxfit_content layout=horizontal padding=[12, 16, 12, 16]
+-             container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 8]
+-           信息行1 fill_containerx45 layout=horizontal padding=None
+-             标签 100xfill_container layout=vertical padding=[12, 16, 12, 16]
+-             值 fill_containerxfill_container layout=vertical padding=[12, 16, 12, 16]
+-           信息行2 fill_containerx45 layout=horizontal padding=None
+-             标签 100xfill_container layout=vertical padding=[12, 16, 12, 16]
+-             值 fill_containerxfill_container layout=vertical padding=[12, 16, 12, 16]
+-           信息行3 fill_containerx45 layout=horizontal padding=None
+-             标签 100xfill_container layout=vertical padding=[12, 16, 12, 16]
+-             值 fill_containerxfill_container layout=horizontal padding=[12, 16, 12, 16]
+-               container fit_contentxfit_content layout=horizontal padding=[0, 0, 0, 7.999992370605469]
+-           信息行4 fill_containerx45 layout=horizontal padding=None
+-             标签 100xfill_container layout=vertical padding=[12, 16, 12, 16]
+-             值 fill_containerxfill_container layout=vertical padding=[12, 16, 12, 16]
+-           信息行5 fill_containerx45 layout=horizontal padding=None
+-             标签 100xfill_container layout=vertical padding=[12, 16, 12, 16]
+
+---

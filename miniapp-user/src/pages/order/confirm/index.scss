@@ -1,0 +1,555 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.order-confirm {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+  padding-bottom: calc(78px + $calicat-safe-bottom);
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: $calicat-white;
+  }
+
+  &__status-bar {
+    width: 100%;
+  }
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 $calicat-page-horizontal;
+  }
+
+  &__back {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__back-icon {
+    font-size: 24px;
+    color: $calicat-text-primary;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__navbar-placeholder {
+    width: 26px;
+  }
+
+  &__content {
+    padding: $calicat-page-top $calicat-page-horizontal $calicat-page-bottom;
+  }
+}
+
+.section-card {
+  margin-top: $calicat-card-gap;
+  padding: $calicat-card-padding;
+  border-radius: $calicat-card-radius;
+  background-color: $calicat-card-bg;
+  box-shadow: $calicat-card-shadow;
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    line-height: 24px;
+  }
+}
+
+.warning-banners {
+  margin-bottom: $calicat-card-gap;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.warning-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px $calicat-card-padding;
+  border-radius: $calicat-card-radius;
+
+  &--error {
+    background-color: #fff1f0;
+  }
+
+  &--warning {
+    background-color: #fff7e6;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.5;
+    color: $calicat-text-primary;
+  }
+
+  &__action {
+    margin-left: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $calicat-primary;
+    white-space: nowrap;
+  }
+}
+
+.order-coach-card {
+  width: 100%;
+  box-sizing: border-box;
+
+  &__body {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    flex-shrink: 0;
+
+    &--placeholder {
+      background-color: $calicat-avatar-placeholder-bg;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &__avatar-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-primary;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__name {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__meta {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+
+  &__arrow {
+    font-size: 20px;
+    color: $calicat-icon-arrow;
+  }
+
+  &__missing-text {
+    margin-top: 14px;
+    font-size: 14px;
+    color: $calicat-text-secondary;
+  }
+}
+
+.package-info-card {
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__badge {
+    height: 20px;
+    padding: 0 10px;
+    border-radius: $calicat-tag-radius;
+    background-color: $calicat-standard-tag-bg;
+    display: flex;
+    align-items: center;
+  }
+
+  &__badge-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: $calicat-standard-tag-text;
+  }
+
+  &__name {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+  }
+
+  &__meta {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__meta-line {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+    line-height: 1.5;
+  }
+
+  &__price-row {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid $calicat-divider;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  &__price-left {
+    flex: 1;
+  }
+
+  &__price-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  &__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-sale-price;
+    line-height: 1;
+  }
+
+  &__original-price {
+    font-size: 14px;
+    color: $calicat-text-tertiary;
+    text-decoration: line-through;
+  }
+
+  &__quantity-value {
+    font-size: 13px;
+    color: $calicat-text-secondary;
+  }
+}
+
+.price-breakdown {
+  &__row {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &--total {
+      margin-top: 12px;
+      align-items: flex-end;
+    }
+  }
+
+  &__label {
+    font-size: 14px;
+    color: $calicat-text-secondary;
+
+    &--total {
+      font-size: 14px;
+      font-weight: 600;
+      color: $calicat-text-primary;
+    }
+  }
+
+  &__value {
+    font-size: 14px;
+    color: $calicat-text-primary;
+
+    &--discount {
+      color: $calicat-success;
+    }
+  }
+
+  &__divider {
+    margin-top: 12px;
+    height: 1px;
+    background-color: $calicat-divider;
+  }
+
+  &__total {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-price-red;
+    line-height: 1;
+  }
+}
+
+.agreement-section {
+  &__list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.agreement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  &__checkbox {
+    margin-top: 1px;
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    border: 2px solid $calicat-border;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &--checked {
+      background-color: $calicat-primary;
+      border-color: $calicat-primary;
+    }
+  }
+
+  &__check-icon {
+    font-size: 12px;
+    color: $calicat-white;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.5;
+    color: $calicat-text-primary;
+  }
+
+  &__link {
+    color: $calicat-link;
+  }
+}
+
+.guardian-section {
+  &__desc {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: $calicat-text-secondary;
+  }
+
+  &__input-wrap {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: $calicat-page-bg;
+  }
+
+  &__input-label {
+    font-size: 14px;
+    color: $calicat-text-primary;
+    white-space: nowrap;
+  }
+
+  &__input {
+    flex: 1;
+    font-size: 14px;
+    color: $calicat-text-primary;
+
+    &::placeholder {
+      color: $calicat-text-tertiary;
+    }
+  }
+}
+
+.bottom-submit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $calicat-bottom-bar-padding-top $calicat-page-horizontal
+    $calicat-bottom-bar-padding-bottom;
+  background-color: $calicat-white;
+  box-shadow: $calicat-bottom-bar-shadow-strong;
+
+  @media (width >=768px) {
+    left: 50%;
+    right: auto;
+    width: 375px;
+    transform: translateX(-50%);
+  }
+
+  &__price-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__price-label {
+    font-size: 12px;
+    color: $calicat-text-secondary;
+  }
+
+  &__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: $calicat-text-price-red;
+    line-height: 1.2;
+  }
+
+  &__button {
+    width: 151px;
+    height: 44px;
+    border-radius: $calicat-button-radius;
+    background-color: $calicat-primary;
+    box-shadow: $calicat-button-shadow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--disabled {
+      background-color: $calicat-text-disabled;
+      box-shadow: none;
+    }
+  }
+
+  &__button-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: $calicat-white;
+  }
+}
+
+.order-confirm-empty,
+.order-confirm-error {
+  min-height: 100vh;
+  background-color: $calicat-page-bg;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 160px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $calicat-text-primary;
+    text-align: center;
+    padding: 0 40px;
+  }
+
+  &__text {
+    margin-top: 8px;
+    font-size: 14px;
+    color: $calicat-text-secondary;
+    text-align: center;
+    padding: 0 40px;
+  }
+
+  &__actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+  }
+
+  &__action {
+    padding: 8px 24px;
+    border-radius: 20px;
+    background-color: $calicat-primary;
+    font-size: 14px;
+    color: $calicat-white;
+  }
+}
+
+.order-confirm--skeleton {
+  .skeleton-card {
+    height: 120px;
+    border-radius: $calicat-card-radius;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+
+    &--coach {
+      height: 110px;
+    }
+
+    &--package {
+      height: 180px;
+    }
+
+    &--price {
+      height: 140px;
+    }
+
+    &--agreement {
+      height: 120px;
+    }
+  }
+
+  .bottom-submit-bar--skeleton {
+    pointer-events: none;
+  }
+
+  .skeleton-price {
+    width: 80px;
+    height: 28px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+
+  .skeleton-button {
+    width: 151px;
+    height: 44px;
+    border-radius: $calicat-button-radius;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

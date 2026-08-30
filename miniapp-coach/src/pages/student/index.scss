@@ -1,0 +1,284 @@
+@use '../../styles/calicat-overrides.scss' as *;
+
+.student {
+  min-height: 100vh;
+  background-color: $color-bg;
+  display: flex;
+  flex-direction: column;
+
+  &__search {
+    background-color: $color-surface;
+    padding: 8px $spacing-md $spacing-sm;
+  }
+
+  &__search-box {
+    display: flex;
+    align-items: center;
+    height: 44rpx;
+    background-color: $color-bg;
+    border-radius: $radius-search;
+    padding: 0 $spacing-md;
+  }
+
+  &__search-icon {
+    font-size: 9px;
+    margin-right: $spacing-xs;
+    color: $color-text-secondary;
+  }
+
+  &__search-input {
+    flex: 1;
+    font-size: $font-size-placeholder;
+    color: $color-text-primary;
+    height: 44rpx;
+    line-height: 44rpx;
+  }
+
+  &__search-input::placeholder {
+    color: $color-text-disabled;
+  }
+
+  &__tabs {
+    background-color: $color-surface;
+    padding: 0 $spacing-md $spacing-sm;
+  }
+
+  &__tab-container {
+    display: flex;
+    align-items: center;
+    height: 36rpx;
+    background-color: $color-bg;
+    border-radius: $radius-tab;
+    padding: 3rpx;
+  }
+
+  &__tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30rpx;
+    border-radius: $radius-tab-item;
+  }
+
+  &__tab--active {
+    background-color: $color-surface;
+    box-shadow: $shadow-tab-selected;
+  }
+
+  &__tab-text {
+    font-size: $font-size-tab;
+    color: $color-text-secondary;
+    line-height: 18rpx;
+  }
+
+  &__tab--active &__tab-text {
+    color: $color-primary;
+    font-weight: 600;
+  }
+
+  &__content {
+    flex: 1;
+    padding: $spacing-sm $spacing-md 83rpx;
+    overflow-y: auto;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__empty,
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl * 2 0;
+  }
+
+  &__empty-title,
+  &__error-title {
+    font-size: $font-size-student-name;
+    color: $color-text-primary;
+    font-weight: 600;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__empty-desc {
+    font-size: $font-size-student-meta;
+    color: $color-text-secondary;
+  }
+
+  &__error-button {
+    margin-top: $spacing-md;
+    padding: $spacing-sm $spacing-lg;
+    background-color: $color-primary;
+    border-radius: $radius-tab-item;
+  }
+
+  &__error-button-text {
+    font-size: $font-size-tab;
+    color: $color-surface;
+    font-weight: 600;
+  }
+}
+
+.student-card {
+  display: flex;
+  align-items: center;
+  background-color: $color-surface;
+  border-radius: $radius-card;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &__avatar {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: $radius-avatar;
+    background-color: $color-primary-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: $spacing-md;
+    overflow: hidden;
+  }
+
+  &__avatar-img {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: $radius-avatar;
+  }
+
+  &__avatar-text {
+    font-size: $font-size-avatar;
+    font-weight: 600;
+    color: $color-primary;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    flex-wrap: wrap;
+  }
+
+  &__name {
+    font-size: $font-size-student-name;
+    font-weight: 700;
+    color: $color-text-primary;
+    line-height: 20rpx;
+  }
+
+  &__meta {
+    font-size: $font-size-student-meta;
+    color: $color-text-secondary;
+    line-height: 16rpx;
+  }
+
+  &__minor-tag {
+    height: 18rpx;
+    padding: 0 $spacing-xs * 2;
+    background-color: $color-minor-light;
+    border-radius: $radius-minor-tag;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__minor-tag-text {
+    font-size: $font-size-minor-tag;
+    color: $color-minor;
+    line-height: 14rpx;
+  }
+
+  &__tags {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-top: $spacing-xs * 2;
+    flex-wrap: wrap;
+  }
+
+  &__tag {
+    height: 20rpx;
+    padding: 0 $spacing-xs * 2;
+    border-radius: $radius-tag;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__tag--experience {
+    background-color: $color-experience-light;
+  }
+
+  &__tag--standard {
+    background-color: $color-primary-light;
+  }
+
+  &__tag-text {
+    font-size: $font-size-tag;
+    line-height: 14rpx;
+  }
+
+  &__tag--experience &__tag-text {
+    color: $color-experience;
+  }
+
+  &__tag--standard &__tag-text {
+    color: $color-primary;
+  }
+
+  &__arrow {
+    font-size: 20px;
+    color: $color-text-disabled;
+    margin-left: $spacing-xs;
+    flex-shrink: 0;
+  }
+}
+
+.student-card--skeleton {
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.2s infinite;
+  }
+
+  .student-card__avatar.skeleton {
+    background-color: #f0f0f0;
+  }
+
+  .student-card__name-row.skeleton {
+    width: 120rpx;
+    height: 18rpx;
+    border-radius: $radius-tag;
+  }
+
+  .student-card__tags.skeleton {
+    width: 80rpx;
+    height: 20rpx;
+    border-radius: $radius-tag;
+    margin-top: $spacing-xs * 2;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

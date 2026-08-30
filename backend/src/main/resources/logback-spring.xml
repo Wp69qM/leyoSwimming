@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 日志目录：运行时会在项目工作目录下创建 logs/ 文件夹 -->
+    <property name="LOG_DIR" value="logs"/>
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 按日期分文件输出，每天一个文件：logs/leyo-backend-2026-08-28.log -->
+    <appender name="DAILY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/leyo-backend-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留最近 30 天日志 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 应用启动时的日志也单独落盘，便于排查启动问题 -->
+    <appender name="STARTUP_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_DIR}/leyo-backend-startup.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="DAILY_FILE"/>
+    </root>
+
+    <logger name="com.leyoswimming" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="DAILY_FILE"/>
+    </logger>
+
+    <!-- 启动阶段单独记录一份 startup log -->
+    <logger name="org.springframework.boot" level="INFO" additivity="false">
+        <appender-ref ref="STARTUP_FILE"/>
+        <appender-ref ref="DAILY_FILE"/>
+    </logger>
+</configuration>

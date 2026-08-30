@@ -1,0 +1,52 @@
+@use './styles/variables' as *;
+
+page,
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'Segoe UI',
+    Arial, Roboto, 'PingFang SC', miui, 'Hiragino Sans GB', 'Microsoft Yahei',
+    sans-serif;
+  color: $text-color;
+}
+
+.leyo-icon {
+  font-family: remixicon, 'PingFang SC', sans-serif;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+// H5 下 Taro Input 内部 .weui-input 高度默认固定，导致与外框不同高、文字不居中
+.weui-input,
+.weui-textarea,
+.taro-textarea {
+  height: 100% !important;
+}
+
+// 隐藏 H5 textarea 右下角拖拽尺寸控制柄
+.weui-textarea,
+.taro-textarea {
+  resize: none;
+}
+
+// H5 适配：>=768px（web/桌面）时居中展示 375px 内容，<768px（手机/平板）时全屏等比缩放
+@media (width >=768px) {
+
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    background-color: $background-color;
+  }
+
+  #app {
+    // 大写 PX 跳过 pxtransform，保持固定 375px 居中
+    max-width: 375px;
+    margin: 0 auto;
+    min-height: 100%;
+    background-color: #fff;
+    box-shadow: 0 0 20px rgb(0 0 0 / 5%);
+  }
+}

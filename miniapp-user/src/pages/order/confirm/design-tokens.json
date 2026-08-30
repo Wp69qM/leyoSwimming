@@ -1,0 +1,72 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "2de452b1-6820-4493-8150-86f3af11b60c",
+  "page_name": "U-订单确认页",
+  "source": "Calicat",
+  "colors": {
+    "primary": "#1890ff",
+    "primaryDark": "#0050b3",
+    "pageBackground": "#f5f7fa",
+    "cardBackground": "#ffffff",
+    "textPrimary": "#262626",
+    "textSecondary": "#8c8c8c",
+    "textTertiary": "#8c8c8c",
+    "textDisabled": "#bfbfbf",
+    "textPrice": "#ff4d4f",
+    "navBarText": "#ffffff",
+    "white": "#ffffff",
+    "success": "#52c41a",
+    "successBg": "#f6ffed",
+    "divider": "#f0f0f0",
+    "avatarPlaceholderBg": "#e6f7ff",
+    "standardTagBg": "#e6f7ff",
+    "standardTagText": "#1890ff",
+    "errorBannerBg": "#fff1f0",
+    "warningBannerBg": "#fff7e6",
+    "iconDefault": "#8c8c8c",
+    "iconArrow": "#bfbfbf",
+    "link": "#1890ff",
+    "border": "#d9d9d9"
+  },
+  "typography": {
+    "navTitle": { "fontSize": 17, "fontWeight": 600, "lineHeight": 24 },
+    "sectionTitle": { "fontSize": 16, "fontWeight": 600, "lineHeight": 24 },
+    "cardName": { "fontSize": 16, "fontWeight": 600, "lineHeight": 22 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 20 },
+    "meta": { "fontSize": 13, "fontWeight": 400, "lineHeight": 18 },
+    "caption": { "fontSize": 12, "fontWeight": 400, "lineHeight": 18 },
+    "tag": { "fontSize": 11, "fontWeight": 600, "lineHeight": 16 },
+    "status": { "fontSize": 10, "fontWeight": 400, "lineHeight": 14 },
+    "priceLarge": { "fontSize": 24, "fontWeight": 700, "lineHeight": 1 },
+    "button": { "fontSize": 16, "fontWeight": 600, "lineHeight": 22 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "xxl": 24,
+    "pageHorizontal": 16,
+    "pageTop": 12,
+    "pageBottom": 24,
+    "cardPadding": 20,
+    "cardGap": 12,
+    "sectionGap": 14,
+    "safeBottom": 34,
+    "bottomBarHeight": 78
+  },
+  "radius": {
+    "card": 12,
+    "button": 8,
+    "tag": 10,
+    "checkbox": 2,
+    "avatar": 24,
+    "action": 20
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "bottomBar": "0 -8px 24px rgba(0,0,0,0.12)",
+    "button": "0 4px 12px rgba(24,144,255,0.35)"
+  }
+}

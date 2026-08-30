@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外层淡圆 -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.2" />
+  <!-- 主白色曲线 -->
+  <path d="M18 46 C18 32 26 26 32 26 C38 26 44 32 44 40 C44 48 38 54 32 54 C26 54 18 48 18 46" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" />
+  <!-- 次半透明曲线 -->
+  <path d="M22 44 C22 34 28 30 32 30 C36 30 40 34 40 40 C40 46 36 50 32 50 C28 50 22 46 22 44" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.2" stroke-linecap="round" />
+  <!-- 橙色圆点 -->
+  <circle cx="46" cy="28" r="4" fill="#FF6B35" />
+  <!-- 橙色圆环 -->
+  <circle cx="46" cy="28" r="6" fill="none" stroke="rgba(255,107,53,0.4)" stroke-width="1.5" />
+  <!-- 装饰白点 -->
+  <circle cx="44" cy="14" r="2" fill="rgba(255,255,255,0.8)" />
+  <circle cx="38" cy="12" r="1.2" fill="rgba(255,255,255,0.5)" />
+  <circle cx="50" cy="13" r="1.5" fill="rgba(255,255,255,0.6)" />
+</svg>

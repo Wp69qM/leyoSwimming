@@ -1,0 +1,3580 @@
+openapi: 3.0.3
+info:
+  title: leyoSwimming API
+  description: 游泳私教预约平台后端 API 契约（登录注册 + 套餐购买订单退款批次）
+  version: 1.1.0
+  contact:
+    name: leyoSwimming Team
+
+tags:
+  - name: Auth
+  - name: Admin Auth
+  - name: Coach Application
+  - name: Coach
+  - name: Package
+  - name: Order
+  - name: Payment
+  - name: Admin Package
+  - name: Admin Order
+  - name: Admin Package Template
+  - name: Image Upload
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+
+paths:
+  /api/auth/wechatLogin:
+    post:
+      tags:
+        - Auth
+      summary: 微信一键登录
+      description: |
+        用户端 / 教练端共用接口。
+        请求中需携带 `appType=user` 或 `appType=coach`，后端分别写入/查询 `users` 表或 `coaches` 表。
+      operationId: wechatLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WechatLoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWechatLoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/phoneCodeLogin:
+    post:
+      tags:
+        - Auth
+      summary: 手机号验证码登录
+      description: 用户端 / 教练端手机号验证码登录。
+      operationId: phoneCodeLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneCodeLoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/auth/sendPhoneCode:
+    post:
+      tags:
+        - Auth
+      summary: 发送手机验证码
+      description: 向指定手机号发送短信验证码，验证码存入 Redis TTL。
+      operationId: sendPhoneCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendPhoneCodeRequest'
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+
+  /api/admin/auth/login:
+    post:
+      tags:
+        - Admin Auth
+      summary: 管理员账号密码登录
+      description: Web 管理后台登录接口，返回管理员 JWT。
+      operationId: adminLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAdminLoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/auth/logout:
+    post:
+      tags:
+        - Admin Auth
+      summary: 管理员退出登录
+      description: 失效当前管理员会话 token。
+      operationId: adminLogout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 退出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/coach/application/detail:
+    post:
+      tags:
+        - Coach Application
+      summary: 查询教练入驻资料
+      description: 供已登录教练查询当前入驻资料，包含证书列表与提示信息。
+      operationId: getCoachApplication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachApplicationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/coach/application/submit:
+    post:
+      tags:
+        - Coach Application
+      summary: 提交教练入驻资料
+      description: 首次提交、已驳回重新提交、已离职重新入驻均调用本接口。
+      operationId: submitCoachApplication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachApplicationSubmitRequest'
+      responses:
+        '200':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/coach/application/saveDraft:
+    post:
+      tags:
+        - Coach Application
+      summary: 保存教练入驻资料草稿
+      description: 保存草稿，不触发审核状态变更。
+      operationId: saveCoachApplicationDraft
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachApplicationSaveDraftRequest'
+      responses:
+        '200':
+          description: 保存成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+
+  /api/coach/list:
+    post:
+      tags:
+        - Coach
+      summary: 教练列表查询
+      description: 游客可访问，支持分页。
+      operationId: listCoaches
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/coach/detail:
+    post:
+      tags:
+        - Coach
+      summary: 教练详情查询
+      description: 游客可访问。错误码：COACH_NOT_FOUND
+      operationId: getCoachDetail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/order/trial:
+    post:
+      tags:
+        - Order
+      summary: 购买体验课套餐
+      description: 创建体验课订单。错误码：AGREEMENT_REQUIRED, TRIAL_PACKAGE_EXISTS, COACH_UNAVAILABLE, TRIAL_PACKAGE_INACTIVE
+      operationId: createTrialOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderTrialRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderTrialResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/pay:
+    post:
+      tags:
+        - Payment
+      summary: 支付套餐订单
+      description: 发起支付。错误码：ORDER_NOT_FOUND, ORDER_NOT_PAYABLE, ORDER_EXPIRED, INVALID_CHANNEL
+      operationId: payOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderPayRequest'
+      responses:
+        '200':
+          description: 支付结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderPayResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/payment/mock-callback:
+    post:
+      tags:
+        - Payment
+      summary: 支付 Mock 回调
+      description: 模拟第三方支付回调，用于开发/测试环境。
+      operationId: mockPaymentCallback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentMockCallbackRequest'
+      responses:
+        '200':
+          description: 回调结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaymentMockCallbackResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/agreement/status:
+    post:
+      tags:
+        - Order
+      summary: 查询协议签署状态
+      description: 返回用户协议、健康声明、免责声明的签署状态。
+      operationId: getAgreementStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgreementStatusRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAgreementStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/package/list:
+    post:
+      tags:
+        - Package
+      summary: 正价套餐列表查询
+      description: 游客可浏览平台标准套餐列表。
+      operationId: listPackages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePackageListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/coach/package/list:
+    post:
+      tags:
+        - Coach
+      summary: 教练关联套餐列表查询
+      description: 查询某教练可售的标准套餐与自定义课包配置。错误码：COACH_NOT_FOUND
+      operationId: listCoachPackages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachPackageListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachPackageListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/package/detail:
+    post:
+      tags:
+        - Package
+      summary: 套餐详情查询
+      description: 查询套餐详情及适用教练。错误码：PACKAGE_NOT_FOUND
+      operationId: getPackageDetail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePackageDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/order/formal:
+    post:
+      tags:
+        - Order
+      summary: 购买正价套餐
+      description: 创建正式课订单。错误码：AGREEMENT_REQUIRED, COACH_CONFLICT, COACH_UNAVAILABLE, GUARDIAN_PHONE_REQUIRED, PACKAGE_NOT_AVAILABLE, INVALID_CUSTOM_PACKAGE_CONFIG, INVALID_HOURS
+      operationId: createFormalOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderFormalRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderFormalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/guardian/verify:
+    post:
+      tags:
+        - Order
+      summary: 监护人手机号校验
+      description: MVP 阶段仅校验 guardianPhone 已填写。错误码：GUARDIAN_PHONE_REQUIRED, INVALID_VERIFICATION_CODE
+      operationId: verifyGuardian
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuardianVerifyRequest'
+      responses:
+        '200':
+          description: 校验结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseGuardianVerifyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/package/list:
+    post:
+      tags:
+        - Package
+      summary: 我的套餐列表
+      description: 按状态分组查询当前学员的套餐。
+      operationId: listUserPackages
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPackageListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserPackageListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/coach/package/detail:
+    post:
+      tags:
+        - Coach
+      summary: 套餐详情（教练/学员共用）
+      description: 查询某个用户套餐的详情与使用记录。错误码：FORBIDDEN, PACKAGE_NOT_FOUND
+      operationId: getUserPackageDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPackageDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserPackageDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/order/detail:
+    post:
+      tags:
+        - Order
+      summary: 订单详情
+      description: 查询订单详情，返回订单、套餐、教练、支付、退款信息。错误码：ORDER_ACCESS_DENIED, ORDER_NOT_FOUND
+      operationId: getOrderDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/order/list:
+    post:
+      tags:
+        - Order
+      summary: 订单列表
+      description: 查询当前学员订单列表。
+      operationId: listOrders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/package/refund-check:
+    post:
+      tags:
+        - Order
+      summary: 退款资格校验
+      description: 检查套餐是否可退款并计算可退金额。错误码：PACKAGE_NOT_FOUND, PACKAGE_ALREADY_REFUNDED, PACKAGE_FROZEN
+      operationId: checkPackageRefund
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageRefundCheckRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePackageRefundCheckResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/package/refund:
+    post:
+      tags:
+        - Order
+      summary: 申请退款
+      description: 发起套餐退款申请。错误码：REFUND_IN_PROGRESS, PACKAGE_ALREADY_REFUNDED, PACKAGE_FROZEN, REFUND_NOT_SUPPORTED, REFUND_EXPIRED, PACKAGE_EXHAUSTED_NOT_REFUNDABLE
+      operationId: applyPackageRefund
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageRefundRequest'
+      responses:
+        '200':
+          description: 申请成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePackageRefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/coach/student/list:
+    post:
+      tags:
+        - Coach
+      summary: 教练查看学员列表
+      description: 查询当前教练关联学员，支持 active/history 分组。错误码：AUTH_FORBIDDEN
+      operationId: listCoachStudents
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachStudentListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachStudentListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/coach/student/detail:
+    post:
+      tags:
+        - Coach
+      summary: 教练查看学员资料
+      description: 查询指定学员的完整资料。错误码：NOT_ASSOCIATED_STUDENT
+      operationId: getCoachStudentDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachStudentDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachStudentDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/coach/student/update:
+    post:
+      tags:
+        - Coach
+      summary: 教练更新学员资料
+      description: 更新教练视角的学员学习档案。错误码：NOT_ASSOCIATED_STUDENT, READONLY_USER_PROFILE, IDEMPOTENCY_DUPLICATE
+      operationId: updateCoachStudent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachStudentUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/coach/student/package/list:
+    post:
+      tags:
+        - Coach
+      summary: 教练查看学员套餐列表
+      description: 查询某学员在当前教练名下的套餐。错误码：NOT_ASSOCIATED_STUDENT
+      operationId: listCoachStudentPackages
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachStudentPackageListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoachStudentPackageListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/admin/package/list:
+    post:
+      tags:
+        - Admin Package
+      summary: 管理员查看用户套餐列表
+      description: 后台管理用户套餐分页查询。错误码：ADMIN_PERMISSION_DENIED
+      operationId: listAdminPackages
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponsePackageListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/package/detail:
+    post:
+      tags:
+        - Admin Package
+      summary: 管理员查看用户套餐详情
+      description: 查询单个用户套餐的完整信息。错误码：ADMIN_PERMISSION_DENIED, PACKAGE_NOT_FOUND
+      operationId: getAdminPackageDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponsePackageDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/admin/package/freeze:
+    post:
+      tags:
+        - Admin Package
+      summary: 管理员冻结套餐
+      description: 冻结用户套餐。错误码：ADMIN_PERMISSION_DENIED, PACKAGE_NOT_FOUND, PACKAGE_NOT_ACTIVE, PACKAGE_CONCURRENTLY_UPDATED
+      operationId: freezeAdminPackage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageFreezeRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/package/unfreeze:
+    post:
+      tags:
+        - Admin Package
+      summary: 管理员解冻套餐
+      description: 解冻用户套餐。错误码：ADMIN_PERMISSION_DENIED, PACKAGE_NOT_FOUND, PACKAGE_NOT_FROZEN, PACKAGE_CONCURRENTLY_UPDATED
+      operationId: unfreezeAdminPackage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageUnfreezeRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/package/extend:
+    post:
+      tags:
+        - Admin Package
+      summary: 管理员延长套餐有效期
+      description: 延长用户套餐有效期。错误码：ADMIN_PERMISSION_DENIED, PACKAGE_NOT_FOUND, INVALID_EXTENSION_REASON, PACKAGE_NOT_EXTENDABLE, PACKAGE_CONCURRENTLY_UPDATED
+      operationId: extendAdminPackage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageExtendRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/package/refund:
+    post:
+      tags:
+        - Admin Package
+      summary: 管理员发起退款
+      description: 管理员直接发起用户套餐退款。错误码：ADMIN_PERMISSION_DENIED, PACKAGE_NOT_FOUND, PACKAGE_STATUS_NOT_ALLOWED, PACKAGE_NOT_REFUNDABLE, REFUND_AMOUNT_INVALID, REFUND_PENDING_EXISTS, PACKAGE_CONCURRENTLY_UPDATED
+      operationId: refundAdminPackage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageRefundRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseRefundOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/package-template/list:
+    post:
+      tags:
+        - Admin Package Template
+      summary: 管理员查看套餐模板列表
+      description: 查询标准套餐模板分页列表。错误码：FORBIDDEN
+      operationId: listAdminPackageTemplates
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageTemplateListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponsePackageTemplateListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/package-template/add:
+    post:
+      tags:
+        - Admin Package Template
+      summary: 管理员新增套餐模板
+      description: 新增标准或教练专属套餐模板。错误码：FORBIDDEN, INVALID_PACKAGE_PARAM, DUPLICATE_PACKAGE_NAME
+      operationId: addAdminPackageTemplate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageTemplateAddRequest'
+      responses:
+        '200':
+          description: 新增成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseVoid'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/package-template/update:
+    post:
+      tags:
+        - Admin Package Template
+      summary: 管理员更新套餐模板
+      description: 更新套餐模板。错误码：FORBIDDEN, TEMPLATE_NOT_FOUND, INVALID_PACKAGE_PARAM, DUPLICATE_PACKAGE_NAME, CONCURRENT_MODIFY
+      operationId: updateAdminPackageTemplate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageTemplateUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseVoid'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/package-template/toggle-status:
+    post:
+      tags:
+        - Admin Package Template
+      summary: 管理员切换套餐模板状态
+      description: 启用/停用套餐模板。错误码：FORBIDDEN, TEMPLATE_NOT_FOUND
+      operationId: toggleAdminPackageTemplateStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageTemplateToggleRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseVoid'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/admin/package-template/detail:
+    post:
+      tags:
+        - Admin Package Template
+      summary: 管理员查看套餐模板详情
+      description: 查询套餐模板详情。错误码：FORBIDDEN, TEMPLATE_NOT_FOUND
+      operationId: getAdminPackageTemplateDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageTemplateDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponsePackageTemplateDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/admin/package-template/custom-config:
+    post:
+      tags:
+        - Admin Package Template
+      summary: 管理员配置自定义课包规则
+      description: 设置自定义课时上下限等规则。错误码：FORBIDDEN, INVALID_CUSTOM_PACKAGE_CONFIG
+      operationId: configAdminCustomPackage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPackageTemplateCustomConfigRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseVoid'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/image/upload:
+    post:
+      tags:
+        - Image Upload
+      summary: 管理员批量上传图片
+      description: 上传图片文件，返回 URL 列表。错误码：FORBIDDEN, INVALID_IMAGE
+      operationId: uploadAdminImages
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminImageUploadRequest'
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseImageUploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/order/list:
+    post:
+      tags:
+        - Admin Order
+      summary: 管理员查看订单列表
+      description: 后台管理订单分页查询。错误码：FORBIDDEN
+      operationId: listAdminOrders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminOrderListRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseOrderListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/admin/order/detail:
+    post:
+      tags:
+        - Admin Order
+      summary: 管理员查看订单详情
+      description: 查询订单详情及关联记录。错误码：FORBIDDEN, ORDER_NOT_FOUND
+      operationId: getAdminOrderDetail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminOrderDetailRequest'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseOrderDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/admin/order/approve-refund:
+    post:
+      tags:
+        - Admin Order
+      summary: 管理员同意退款
+      description: 处理退款申请并原路退回。错误码：FORBIDDEN, ORDER_NOT_FOUND, ORDER_STATUS_INVALID, REFUND_AMOUNT_INVALID, REFUND_ALREADY_PROCESSED, REFUND_AMOUNT_MISMATCH
+      operationId: approveAdminRefund
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminOrderApproveRefundRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseRefundOperationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/admin/order/reject-refund:
+    post:
+      tags:
+        - Admin Order
+      summary: 管理员拒绝退款
+      description: 拒绝退款申请。错误码：FORBIDDEN, ORDER_NOT_FOUND, ORDER_STATUS_INVALID, REJECT_REASON_REQUIRED, REFUND_ALREADY_PROCESSED
+      operationId: rejectAdminRefund
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminOrderRejectRefundRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminApiResponseRefundOperationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: success
+        data:
+          type: object
+
+    ApiResponseVoid:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              nullable: true
+
+    ApiResponseWechatLoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/WechatLoginResponse'
+
+    ApiResponseTokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenResponse'
+
+    ApiResponseAdminLoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminLoginResponse'
+
+    ApiResponseCoachApplicationResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachApplicationResponse'
+
+    WechatLoginRequest:
+      type: object
+      required:
+        - appType
+        - code
+      properties:
+        appType:
+          type: string
+          enum: [user, coach]
+          description: 登录端类型
+        code:
+          type: string
+          description: 微信登录临时 code
+        invitedBy:
+          type: string
+          nullable: true
+          description: 邀请人 ID（可选）
+
+    WechatLoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          example: 7200
+        isNewUser:
+          type: boolean
+        coachStatus:
+          type: integer
+          nullable: true
+          description: 教练端登录时返回，-1/0/1/2/3/4
+
+    PhoneCodeLoginRequest:
+      type: object
+      required:
+        - phone
+        - code
+        - appType
+      properties:
+        phone:
+          type: string
+          pattern: '^1[3-9]\d{9}$'
+        code:
+          type: string
+          minLength: 4
+          maxLength: 6
+        appType:
+          type: string
+          enum: [user, coach]
+
+    SendPhoneCodeRequest:
+      type: object
+      required:
+        - phone
+        - appType
+        - scene
+      properties:
+        phone:
+          type: string
+          pattern: '^1[3-9]\d{9}$'
+        appType:
+          type: string
+          enum: [user, coach]
+        scene:
+          type: string
+          enum: [login, bind_phone, reset_password]
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          example: 7200
+
+    AdminLoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AdminLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: 管理员会话 token（JWT），有效期 24 小时
+        expiresIn:
+          type: integer
+          example: 86400
+          description: token 有效期（秒）
+        admin:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            name:
+              type: string
+            role:
+              type: string
+
+    CoachApplicationForm:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 32
+        idCardNo:
+          type: string
+        teachingYears:
+          type: integer
+          minimum: 0
+        totalStudents:
+          type: integer
+          minimum: 0
+        totalHours:
+          type: integer
+          minimum: 0
+        teachingStrokes:
+          type: array
+          items:
+            type: string
+        bio:
+          type: string
+          maxLength: 500
+        referencePrice:
+          type: number
+          minimum: 0
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertificateDto'
+
+    CoachApplicationSubmitRequest:
+      allOf:
+        - $ref: '#/components/schemas/CoachApplicationForm'
+        - type: object
+          required:
+            - name
+            - idCardNo
+            - teachingYears
+            - referencePrice
+            - teachingStrokes
+            - bio
+            - certificates
+          properties:
+            idempotentKey:
+              type: string
+              description: 幂等键，建议客户端生成 UUID
+
+    CoachApplicationSaveDraftRequest:
+      allOf:
+        - $ref: '#/components/schemas/CoachApplicationForm'
+        - type: object
+          properties:
+            idempotentKey:
+              type: string
+              description: 幂等键，建议客户端生成 UUID
+
+    CertificateDto:
+      type: object
+      required:
+        - certType
+        - imageUrl
+      properties:
+        certType:
+          type: string
+          enum: [ID_CARD_FRONT, ID_CARD_BACK, COACH_CERT, HEALTH_CERT, PORTRAIT]
+        imageUrl:
+          type: string
+          format: uri
+
+    CoachApplicationResponse:
+      type: object
+      properties:
+        coachId:
+          type: integer
+        name:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        idCardNo:
+          type: string
+        teachingYears:
+          type: integer
+        totalStudents:
+          type: integer
+        totalHours:
+          type: integer
+        teachingStrokes:
+          type: array
+          items:
+            type: string
+        bio:
+          type: string
+        referencePrice:
+          type: number
+        status:
+          type: integer
+          description: '-1 未提交 / 0 待审核 / 1 已通过 / 2 已驳回 / 3 已离职 / 4 申请离职中'
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReason:
+          type: string
+          nullable: true
+        entryType:
+          type: string
+          enum: [first, rejected, reapply]
+        promptMessage:
+          type: string
+          nullable: true
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertificateDto'
+
+    PaginationRequest:
+      type: object
+      properties:
+        page:
+          type: integer
+          default: 1
+          minimum: 1
+        pageSize:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 50
+
+    CoachListRequest:
+      $ref: '#/components/schemas/PaginationRequest'
+
+    CoachListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        status:
+          type: integer
+        avatar:
+          type: string
+        rating:
+          type: number
+        yearsOfTeaching:
+          type: integer
+        teachingStrokes:
+          type: array
+          items:
+            type: string
+        realTimeStatus:
+          type: string
+
+    CoachListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachListItem'
+
+    ApiResponseCoachListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachListPageResponse'
+
+    CoachDetailRequest:
+      type: object
+      required:
+        - coachId
+      properties:
+        coachId:
+          type: integer
+
+    CoachDetailContact:
+      type: object
+      properties:
+        phone:
+          type: string
+        wechatQrCode:
+          type: string
+
+    CoachDetailCertificate:
+      type: object
+      properties:
+        name:
+          type: string
+        level:
+          type: string
+
+    CoachDetailPackage:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: integer
+        hours:
+          type: integer
+
+    CoachReview:
+      type: object
+      properties:
+        id:
+          type: integer
+        rating:
+          type: number
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    TimeSlot:
+      type: object
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+
+    AvailableTime:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSlot'
+
+    CoachDetailResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        gender:
+          type: integer
+        age:
+          type: integer
+        status:
+          type: integer
+        avatar:
+          type: string
+        rating:
+          type: number
+        yearsOfTeaching:
+          type: integer
+        totalStudents:
+          type: integer
+        totalHours:
+          type: integer
+        teachingStrokes:
+          type: array
+          items:
+            type: string
+        bio:
+          type: string
+        referencePrice:
+          type: integer
+        contact:
+          $ref: '#/components/schemas/CoachDetailContact'
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachDetailCertificate'
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachDetailPackage'
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachReview'
+        availableTimes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailableTime'
+        realTimeStatus:
+          type: string
+
+    ApiResponseCoachDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachDetailResponse'
+
+    OrderTrialRequest:
+      type: object
+      required:
+        - coachId
+      properties:
+        coachId:
+          type: integer
+
+    OrderTrialResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        amount:
+          type: integer
+        expireAt:
+          type: string
+          format: date-time
+
+    ApiResponseOrderTrialResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrderTrialResponse'
+
+    OrderPayRequest:
+      type: object
+      required:
+        - orderId
+        - channel
+      properties:
+        orderId:
+          type: integer
+        channel:
+          type: integer
+          description: 0=微信Mock，1=支付宝Mock
+
+    OrderPayResponse:
+      type: object
+      properties:
+        paymentId:
+          type: integer
+        channelTradeNo:
+          type: string
+        status:
+          type: string
+
+    ApiResponseOrderPayResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrderPayResponse'
+
+    PaymentMockCallbackRequest:
+      type: object
+      required:
+        - channel
+        - orderId
+        - channelTradeNo
+        - amount
+        - success
+      properties:
+        channel:
+          type: integer
+        orderId:
+          type: integer
+        channelTradeNo:
+          type: string
+        amount:
+          type: integer
+        success:
+          type: boolean
+
+    PaymentMockCallbackResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SUCCESS
+
+    ApiResponsePaymentMockCallbackResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PaymentMockCallbackResponse'
+
+    AgreementItem:
+      type: object
+      properties:
+        requiredVersion:
+          type: string
+        signedVersion:
+          type: string
+
+    AgreementStatus:
+      type: object
+      properties:
+        userNotice:
+          $ref: '#/components/schemas/AgreementItem'
+        health:
+          type: object
+        disclaimer:
+          type: object
+
+    AgreementStatusRequest:
+      type: object
+
+    ApiResponseAgreementStatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AgreementStatus'
+
+    PackageListRequest:
+      $ref: '#/components/schemas/PaginationRequest'
+
+    PackageListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        packageMode:
+          type: string
+        hours:
+          type: integer
+        price:
+          type: integer
+        originalPrice:
+          type: integer
+        teachingType:
+          type: string
+        durationMinutes:
+          type: integer
+        validityDays:
+          type: integer
+
+    PackageListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageListItem'
+
+    ApiResponsePackageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PackageListPageResponse'
+
+    CoachPackageListRequest:
+      type: object
+      required:
+        - coachId
+      properties:
+        coachId:
+          type: integer
+
+    CoachStandardPackage:
+      type: object
+      properties:
+        id:
+          type: integer
+        hours:
+          type: integer
+        price:
+          type: integer
+        validityDays:
+          type: integer
+
+    CoachPackageListResponse:
+      type: object
+      properties:
+        coachId:
+          type: integer
+        coachStatus:
+          type: integer
+        referencePrice:
+          type: integer
+        standardPackages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachStandardPackage'
+        customPackageEnabled:
+          type: boolean
+        customHoursMin:
+          type: integer
+        customHoursMax:
+          type: integer
+
+    ApiResponseCoachPackageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachPackageListResponse'
+
+    PackageDetailRequest:
+      type: object
+      required:
+        - packageId
+      properties:
+        packageId:
+          type: integer
+        coachId:
+          type: integer
+
+    CoachBrief:
+      type: object
+      properties:
+        coachId:
+          type: integer
+        name:
+          type: string
+        avatarUrl:
+          type: string
+
+    PackageDetailResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        packageMode:
+          type: string
+        hours:
+          type: integer
+        price:
+          type: integer
+        originalPrice:
+          type: integer
+        teachingType:
+          type: string
+        durationMinutes:
+          type: integer
+        validityDays:
+          type: integer
+        refundPolicySummary:
+          type: string
+        applicableCoaches:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachBrief'
+
+    ApiResponsePackageDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PackageDetailResponse'
+
+    AgreementVersions:
+      type: object
+      required:
+        - userNotice
+        - health
+        - disclaimer
+      properties:
+        userNotice:
+          type: string
+        health:
+          type: string
+        disclaimer:
+          type: string
+
+    OrderFormalRequest:
+      type: object
+      required:
+        - coachId
+        - packageTemplateId
+        - agreementVersions
+      properties:
+        coachId:
+          type: integer
+        packageTemplateId:
+          type: integer
+        customHours:
+          type: integer
+        validDays:
+          type: integer
+        strokeIds:
+          type: array
+          items:
+            type: integer
+        agreementVersions:
+          $ref: '#/components/schemas/AgreementVersions'
+
+    OrderFormalResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        amount:
+          type: integer
+        expireAt:
+          type: string
+          format: date-time
+
+    ApiResponseOrderFormalResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrderFormalResponse'
+
+    GuardianVerifyRequest:
+      type: object
+      required:
+        - guardianPhone
+        - verificationCode
+      properties:
+        guardianPhone:
+          type: string
+        verificationCode:
+          type: string
+
+    GuardianVerifyResponse:
+      type: object
+      properties:
+        verified:
+          type: boolean
+
+    ApiResponseGuardianVerifyResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/GuardianVerifyResponse'
+
+    UserPackageListRequest:
+      type: object
+      properties:
+        status:
+          type: string
+
+    UserPackageItem:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        coachId:
+          type: integer
+        coachName:
+          type: string
+        coachAvatar:
+          type: string
+        packageName:
+          type: string
+        packageMode:
+          type: string
+        teachingType:
+          type: string
+        durationMinutes:
+          type: integer
+        validDays:
+          type: integer
+        totalHours:
+          type: integer
+        consumedHours:
+          type: integer
+        availableHours:
+          type: integer
+        reservedHours:
+          type: integer
+        paidAmount:
+          type: integer
+        status:
+          type: string
+        expireAt:
+          type: string
+          format: date-time
+        refundEnabled:
+          type: boolean
+        refundRatio:
+          type: number
+        refundValidDays:
+          type: integer
+        frozenReason:
+          type: string
+
+    UserPackageSummary:
+      type: object
+      properties:
+        totalHours:
+          type: integer
+        consumedHours:
+          type: integer
+        availableHours:
+          type: integer
+
+    UserPackageGroup:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPackageItem'
+        summary:
+          $ref: '#/components/schemas/UserPackageSummary'
+
+    UserPackageListResponse:
+      type: object
+      properties:
+        active:
+          $ref: '#/components/schemas/UserPackageGroup'
+        exhausted:
+          $ref: '#/components/schemas/UserPackageGroup'
+        expired:
+          $ref: '#/components/schemas/UserPackageGroup'
+        refunded:
+          $ref: '#/components/schemas/UserPackageGroup'
+        frozen:
+          $ref: '#/components/schemas/UserPackageGroup'
+
+    ApiResponseUserPackageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserPackageListResponse'
+
+    UserPackageDetailRequest:
+      type: object
+      required:
+        - packageId
+      properties:
+        packageId:
+          type: integer
+
+    PackageUsageRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        lessonId:
+          type: integer
+        consumedHours:
+          type: integer
+        consumedAt:
+          type: string
+          format: date-time
+
+    UserPackageDetailResponse:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        packageMode:
+          type: string
+        status:
+          type: string
+        totalHours:
+          type: integer
+        availableHours:
+          type: integer
+        reservedHours:
+          type: integer
+        consumedHours:
+          type: integer
+        expireAt:
+          type: string
+          format: date-time
+        usageRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageUsageRecord'
+
+    ApiResponseUserPackageDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserPackageDetailResponse'
+
+    OrderDetailRequest:
+      type: object
+      required:
+        - orderId
+      properties:
+        orderId:
+          type: integer
+
+    OrderDetailPackage:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        packageName:
+          type: string
+
+    OrderDetailCoach:
+      type: object
+      properties:
+        coachId:
+          type: integer
+        coachName:
+          type: string
+
+    OrderDetailPayment:
+      type: object
+      properties:
+        paymentId:
+          type: integer
+        channelTradeNo:
+          type: string
+        status:
+          type: string
+
+    OrderDetailRefund:
+      type: object
+      properties:
+        refundOrderId:
+          type: integer
+        status:
+          type: string
+        reason:
+          type: string
+
+    OrderDetailResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        type:
+          type: string
+          enum: [purchase, refund]
+        status:
+          type: string
+        amount:
+          type: integer
+        paidAt:
+          type: string
+          format: date-time
+        packageId:
+          type: integer
+        package:
+          $ref: '#/components/schemas/OrderDetailPackage'
+        coach:
+          $ref: '#/components/schemas/OrderDetailCoach'
+        payment:
+          $ref: '#/components/schemas/OrderDetailPayment'
+        refund:
+          $ref: '#/components/schemas/OrderDetailRefund'
+
+    ApiResponseOrderDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrderDetailResponse'
+
+    OrderListRequest:
+      allOf:
+        - $ref: '#/components/schemas/PaginationRequest'
+        - type: object
+          properties:
+            status:
+              type: string
+
+    OrderListItem:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        type:
+          type: string
+        status:
+          type: string
+        statusName:
+          type: string
+        amount:
+          type: integer
+        packageMode:
+          type: string
+        packageModeLabel:
+          type: string
+        packageName:
+          type: string
+        coachName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+        refundReason:
+          type: string
+        remainingSeconds:
+          type: integer
+
+    OrderListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderListItem'
+
+    ApiResponseOrderListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrderListPageResponse'
+
+    PackageRefundCheckRequest:
+      type: object
+      required:
+        - packageId
+      properties:
+        packageId:
+          type: integer
+
+    RefundCalculation:
+      type: object
+      properties:
+        paidAmount:
+          type: integer
+        totalHours:
+          type: integer
+        consumedCount:
+          type: integer
+        formula:
+          type: string
+
+    RefundReasonCode:
+      type: object
+      properties:
+        code:
+          type: integer
+        label:
+          type: string
+
+    PackageRefundCheckResponse:
+      type: object
+      properties:
+        eligible:
+          type: boolean
+        refundAmount:
+          type: integer
+        calculation:
+          $ref: '#/components/schemas/RefundCalculation'
+        reasonCodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RefundReasonCode'
+
+    ApiResponsePackageRefundCheckResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PackageRefundCheckResponse'
+
+    PackageRefundRequest:
+      type: object
+      required:
+        - packageId
+        - reasonType
+      properties:
+        packageId:
+          type: integer
+        reasonType:
+          type: integer
+          description: 1=教练原因，2=个人原因，3=平台原因
+        reasonDetail:
+          type: string
+
+    PackageRefundResponse:
+      type: object
+      properties:
+        refundOrderId:
+          type: integer
+        status:
+          type: string
+
+    ApiResponsePackageRefundResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PackageRefundResponse'
+
+    CoachStudentListRequest:
+      allOf:
+        - $ref: '#/components/schemas/PaginationRequest'
+        - type: object
+          properties:
+            tab:
+              type: string
+              enum: [active, history]
+              default: active
+
+    CoachStudentListItem:
+      type: object
+      properties:
+        studentUserId:
+          type: integer
+        avatarUrl:
+          type: string
+        name:
+          type: string
+        gender:
+          type: integer
+        age:
+          type: integer
+        isMinor:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+        activePackageTags:
+          type: array
+          items:
+            type: string
+
+    CoachStudentListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        students:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachStudentListItem'
+
+    ApiResponseCoachStudentListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachStudentListPageResponse'
+
+    CoachStudentDetailRequest:
+      type: object
+      required:
+        - studentId
+      properties:
+        studentId:
+          type: integer
+
+    UserProfile:
+      type: object
+      properties:
+        avatarUrl:
+          type: string
+        name:
+          type: string
+        phoneMasked:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: integer
+        hasSwimBasis:
+          type: boolean
+        swimStrokes:
+          type: array
+          items:
+            type: string
+        swimYears:
+          type: integer
+        personalDesc:
+          type: string
+        isMinor:
+          type: boolean
+
+    CoachStudentSlice:
+      type: object
+      properties:
+        learningStrokes:
+          type: array
+          items:
+            type: string
+        swimLevel:
+          type: string
+        basics:
+          type: string
+        notes:
+          type: string
+
+    CoachStudentDetailResponse:
+      type: object
+      properties:
+        studentUserId:
+          type: integer
+        userProfile:
+          $ref: '#/components/schemas/UserProfile'
+        coachSlice:
+          $ref: '#/components/schemas/CoachStudentSlice'
+
+    ApiResponseCoachStudentDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachStudentDetailResponse'
+
+    CoachStudentUpdateRequest:
+      type: object
+      required:
+        - studentId
+        - idempotencyKey
+      properties:
+        studentId:
+          type: integer
+        learningStrokes:
+          type: array
+          items:
+            type: string
+        swimLevel:
+          type: string
+        basics:
+          type: string
+        notes:
+          type: string
+        idempotencyKey:
+          type: string
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ApiResponseMessageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/MessageResponse'
+
+    CoachStudentPackageListRequest:
+      allOf:
+        - $ref: '#/components/schemas/PaginationRequest'
+        - type: object
+          required:
+            - studentId
+          properties:
+            studentId:
+              type: integer
+
+    CoachStudentPackageItem:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        packageName:
+          type: string
+        packageMode:
+          type: string
+        status:
+          type: string
+        statusLabel:
+          type: string
+        validStart:
+          type: string
+          format: date-time
+        validEnd:
+          type: string
+          format: date-time
+        remainingHours:
+          type: integer
+
+    CoachStudentPackageListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachStudentPackageItem'
+
+    ApiResponseCoachStudentPackageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CoachStudentPackageListPageResponse'
+
+    AdminApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          nullable: true
+        error:
+          type: string
+          nullable: true
+
+    AdminApiResponseVoid:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              nullable: true
+
+    AdminApiResponseMessageResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/MessageResponse'
+
+    AdminPackageListRequest:
+      allOf:
+        - $ref: '#/components/schemas/PaginationRequest'
+        - type: object
+          properties:
+            status:
+              type: string
+            packageMode:
+              type: string
+            keyword:
+              type: string
+            expireAtStart:
+              type: string
+              format: date-time
+            expireAtEnd:
+              type: string
+              format: date-time
+
+    AdminPackageListItem:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        packageNo:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        coachId:
+          type: integer
+        coachName:
+          type: string
+        packageMode:
+          type: string
+        teachingType:
+          type: string
+        status:
+          type: string
+        availableCount:
+          type: integer
+        reservedCount:
+          type: integer
+        totalHours:
+          type: integer
+        expireAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminPackageListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminPackageListItem'
+
+    AdminApiResponsePackageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminPackageListPageResponse'
+
+    AdminPackageDetailRequest:
+      type: object
+      required:
+        - packageId
+      properties:
+        packageId:
+          type: integer
+
+    AdminPackageDetailResponse:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        packageNo:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        coachId:
+          type: integer
+        coachName:
+          type: string
+        packageMode:
+          type: string
+        teachingType:
+          type: string
+        strokeIds:
+          type: array
+          items:
+            type: integer
+        totalHours:
+          type: integer
+        consumedCount:
+          type: integer
+        reservedCount:
+          type: integer
+        availableCount:
+          type: integer
+        paidAmount:
+          type: integer
+        originalPrice:
+          type: integer
+        refundEnabled:
+          type: boolean
+        refundRatio:
+          type: number
+        refundValidDays:
+          type: integer
+        status:
+          type: string
+        frozenReason:
+          type: string
+        extendReason:
+          type: string
+        expireAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        order:
+          type: object
+        bookingRecords:
+          type: array
+          items:
+            type: object
+        auditLogs:
+          type: array
+          items:
+            type: object
+
+    AdminApiResponsePackageDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminPackageDetailResponse'
+
+    AdminPackageFreezeRequest:
+      type: object
+      required:
+        - packageId
+        - reasonDetail
+        - version
+      properties:
+        packageId:
+          type: integer
+        reasonDetail:
+          type: string
+          enum:
+            - 投诉处理中
+            - 异常订单
+            - 司法冻结
+        version:
+          type: integer
+
+    AdminPackageUnfreezeRequest:
+      type: object
+      required:
+        - packageId
+        - version
+      properties:
+        packageId:
+          type: integer
+        version:
+          type: integer
+
+    AdminPackageExtendRequest:
+      type: object
+      required:
+        - packageId
+        - newExpireAt
+        - reason
+        - version
+      properties:
+        packageId:
+          type: integer
+        newExpireAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+        version:
+          type: integer
+
+    AdminPackageRefundRequest:
+      type: object
+      required:
+        - packageId
+        - reason
+        - version
+      properties:
+        packageId:
+          type: integer
+        reason:
+          type: string
+        refundAmount:
+          type: integer
+        adjustReason:
+          type: string
+        version:
+          type: integer
+
+    RefundOrderResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        orderNo:
+          type: string
+
+    AdminApiResponseRefundOrderResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RefundOrderResponse'
+
+    AdminPackageTemplateListRequest:
+      allOf:
+        - $ref: '#/components/schemas/PaginationRequest'
+        - type: object
+          properties:
+            coachId:
+              type: integer
+            status:
+              type: string
+
+    AdminPackageTemplateListItem:
+      type: object
+      properties:
+        packageTemplateId:
+          type: integer
+        name:
+          type: string
+        packageMode:
+          type: string
+        teachingType:
+          type: string
+        coachIds:
+          type: array
+          items:
+            type: integer
+        coachNames:
+          type: array
+          items:
+            type: string
+        totalHours:
+          type: integer
+        durationMinutes:
+          type: integer
+        validDays:
+          type: integer
+        originalPrice:
+          type: integer
+        price:
+          type: integer
+        refundEnabled:
+          type: boolean
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminPackageTemplateListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminPackageTemplateListItem'
+
+    AdminApiResponsePackageTemplateListResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminPackageTemplateListPageResponse'
+
+    AdminPackageTemplateAddRequest:
+      type: object
+      required:
+        - name
+        - packageMode
+        - coachIds
+        - teachingType
+        - strokeIds
+        - totalHours
+        - durationMinutes
+        - validDays
+        - originalPrice
+        - price
+        - refundEnabled
+        - status
+        - idempotencyKey
+      properties:
+        name:
+          type: string
+        packageMode:
+          type: string
+        coachIds:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+        teachingType:
+          type: string
+        strokeIds:
+          type: array
+          items:
+            type: integer
+        totalHours:
+          type: integer
+        durationMinutes:
+          type: integer
+        validDays:
+          type: integer
+        originalPrice:
+          type: integer
+        price:
+          type: integer
+        refundEnabled:
+          type: boolean
+        refundRatio:
+          type: number
+        refundValidDays:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        idempotencyKey:
+          type: string
+
+    AdminPackageTemplateUpdateRequest:
+      type: object
+      required:
+        - packageTemplateId
+        - version
+      properties:
+        packageTemplateId:
+          type: integer
+        name:
+          type: string
+        packageMode:
+          type: string
+        coachIds:
+          type: array
+          items:
+            type: integer
+        teachingType:
+          type: string
+        strokeIds:
+          type: array
+          items:
+            type: integer
+        totalHours:
+          type: integer
+        durationMinutes:
+          type: integer
+        validDays:
+          type: integer
+        originalPrice:
+          type: integer
+        price:
+          type: integer
+        refundEnabled:
+          type: boolean
+        refundRatio:
+          type: number
+        refundValidDays:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        version:
+          type: integer
+
+    AdminPackageTemplateToggleRequest:
+      type: object
+      required:
+        - packageTemplateId
+      properties:
+        packageTemplateId:
+          type: integer
+
+    AdminPackageTemplateDetailRequest:
+      type: object
+      required:
+        - packageTemplateId
+      properties:
+        packageTemplateId:
+          type: integer
+
+    AdminPackageTemplateDetailResponse:
+      type: object
+      properties:
+        packageTemplateId:
+          type: integer
+        name:
+          type: string
+        packageMode:
+          type: string
+        teachingType:
+          type: string
+        coachIds:
+          type: array
+          items:
+            type: integer
+        coachList:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachBrief'
+        strokeIds:
+          type: array
+          items:
+            type: integer
+        totalHours:
+          type: integer
+        durationMinutes:
+          type: integer
+        validDays:
+          type: integer
+        originalPrice:
+          type: integer
+        price:
+          type: integer
+        refundEnabled:
+          type: boolean
+        refundRatio:
+          type: number
+        refundValidDays:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AdminApiResponsePackageTemplateDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminPackageTemplateDetailResponse'
+
+    AdminPackageTemplateCustomConfigRequest:
+      type: object
+      required:
+        - minHours
+        - maxHours
+        - defaultValidDays
+      properties:
+        minHours:
+          type: integer
+        maxHours:
+          type: integer
+        defaultValidDays:
+          type: integer
+        unitPriceFloor:
+          type: integer
+
+    AdminImageUploadRequest:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+
+    ImageUploadResponse:
+      type: object
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+
+    AdminApiResponseImageUploadResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ImageUploadResponse'
+
+    AdminOrderListRequest:
+      allOf:
+        - $ref: '#/components/schemas/PaginationRequest'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [purchase, refund]
+            status:
+              type: string
+            coachId:
+              type: integer
+            userId:
+              type: integer
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+
+    AdminOrderListItem:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        orderNo:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        coachId:
+          type: integer
+        coachName:
+          type: string
+        packageId:
+          type: integer
+        packageName:
+          type: string
+        amount:
+          type: integer
+        paidAmount:
+          type: integer
+        paymentMethod:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminOrderListPageResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminOrderListItem'
+
+    AdminApiResponseOrderListResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminOrderListPageResponse'
+
+    AdminOrderDetailRequest:
+      type: object
+      required:
+        - orderId
+      properties:
+        orderId:
+          type: integer
+
+    AdminOrderDetailPackage:
+      type: object
+      properties:
+        packageMode:
+          type: string
+        totalHours:
+          type: integer
+        consumedCount:
+          type: integer
+        paidAmount:
+          type: integer
+        originalPrice:
+          type: integer
+        refundEnabled:
+          type: boolean
+        refundRatio:
+          type: number
+        refundValidDays:
+          type: integer
+
+    AdminOrderDetailResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        orderNo:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        coachId:
+          type: integer
+        coachName:
+          type: string
+        packageId:
+          type: integer
+        package:
+          $ref: '#/components/schemas/AdminOrderDetailPackage'
+        amount:
+          type: integer
+        paidAmount:
+          type: integer
+        paymentMethod:
+          type: string
+        channelTradeNo:
+          type: string
+        purchaseOrderId:
+          type: integer
+        reason:
+          type: string
+        rejectedReason:
+          type: string
+        approvedBy:
+          type: string
+        approvedAt:
+          type: string
+          format: date-time
+        refundedAt:
+          type: string
+          format: date-time
+        refundRecords:
+          type: array
+          items:
+            type: object
+        payment:
+          type: object
+        auditLog:
+          type: array
+          items:
+            type: object
+
+    AdminApiResponseOrderDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminOrderDetailResponse'
+
+    AdminOrderApproveRefundRequest:
+      type: object
+      required:
+        - orderId
+        - amount
+      properties:
+        orderId:
+          type: integer
+        amount:
+          type: integer
+        remark:
+          type: string
+
+    AdminOrderRejectRefundRequest:
+      type: object
+      required:
+        - orderId
+        - reason
+      properties:
+        orderId:
+          type: integer
+        reason:
+          type: string
+
+    AdminRefundOperationResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        refundTransactionId:
+          type: string
+        status:
+          type: string
+
+    AdminApiResponseRefundOperationResponse:
+      allOf:
+        - $ref: '#/components/schemas/AdminApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminRefundOperationResponse'
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 100001
+            message: 请求参数错误
+            data: null
+
+    Unauthorized:
+      description: 未授权或 token 失效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 200001
+            message: 登录已过期，请重新登录
+            data: null
+
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 100002
+            message: 资源不存在
+            data: null
+
+    Forbidden:
+      description: 权限禁止或账号被禁用
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 300001
+            message: 账号已被禁用，请联系超级管理员
+            data: null
+
+    Conflict:
+      description: 资源冲突
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 500001
+            message: 已有待审核申请
+            data: null

@@ -1,0 +1,180 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "6e63137f-c830-48a6-9337-5ebff6d04ca5",
+  "page_name": "U-套餐详情页",
+  "last_synced_at": "2026-08-16T12:50:00+08:00",
+  "colors": {
+    "pageBackground": "#F5F7FA",
+    "statusBarStart": "#1890FF",
+    "statusBarEnd": "#0050B3",
+    "navBarText": "#FFFFFF",
+    "standardCardStart": "#1890FF",
+    "standardCardEnd": "#0050B3",
+    "standardCardShadow": "rgba(24, 144, 255, 0.35)",
+    "experienceCardStart": "#FF6B35",
+    "experienceCardEnd": "#FA541C",
+    "experienceCardShadow": "rgba(255, 107, 53, 0.35)",
+    "sectionCardBackground": "#FFFFFF",
+    "sectionCardShadow": "rgba(0, 0, 0, 0.06)",
+    "sectionTitle": "#262626",
+    "contentText": "#595959",
+    "primaryText": "#262626",
+    "secondaryText": "#8C8C8C",
+    "disabledText": "#BFBFBF",
+    "priceText": "#FF6B35",
+    "cardPrimaryText": "#FFFFFF",
+    "cardSecondaryText": "rgba(255, 255, 255, 0.8)",
+    "cardTertiaryText": "rgba(255, 255, 255, 0.5)",
+    "infoIconBackground": "#EFF6FF",
+    "infoIcon": "#1890FF",
+    "noticeIconBackground": "#FEFCE8",
+    "noticeIcon": "#FAAD14",
+    "starIcon": "#FAAD14",
+    "coachAvatarBackground": "#EFF6FF",
+    "coachAvatarText": "#1890FF",
+    "buttonGradientStart": "#1890FF",
+    "buttonGradientEnd": "#0050B3",
+    "buttonShadow": "rgba(24, 144, 255, 0.35)",
+    "iconArrow": "#BFBFBF",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "navTitle": {
+      "fontSize": 17,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "cardTag": {
+      "fontSize": 12,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "cardCoachName": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "cardTitle": {
+      "fontSize": 24,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "cardInfo": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "cardPrice": {
+      "fontSize": 28,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "cardOriginalPrice": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "sectionTitle": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "contentItem": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "coachName": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "coachInfo": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "bottomPrice": {
+      "fontSize": 24,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "bottomSubtext": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "buttonText": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    }
+  },
+  "spacing": {
+    "pageHorizontal": 16,
+    "pageBottom": 110,
+    "sectionGap": 12,
+    "cardPadding": 20,
+    "sectionPadding": 16,
+    "infoGap": 16,
+    "contentItemGap": 12,
+    "noticeItemGap": 12,
+    "tagGap": 8,
+    "priceGap": 8,
+    "bottomHeight": 78,
+    "safeBottom": 34
+  },
+  "radius": {
+    "card": 12,
+    "tag": 11,
+    "sectionCard": 12,
+    "icon": 4,
+    "avatar": 24,
+    "button": 8,
+    "image": 8
+  },
+  "shadows": {
+    "standardCard": "0 4px 12px rgba(24, 144, 255, 0.35)",
+    "experienceCard": "0 4px 12px rgba(255, 107, 53, 0.35)",
+    "sectionCard": "0 2px 8px rgba(0, 0, 0, 0.06)",
+    "bottomBar": "0 -1px 0 rgba(240, 240, 240, 1), 0 -4px 12px rgba(0, 0, 0, 0.04)",
+    "button": "0 4px 12px rgba(24, 144, 255, 0.35)"
+  },
+  "icons": {
+    "source": "remixicon",
+    "back": "\uea64",
+    "signal": "\uf134",
+    "battery": "\ueaaf",
+    "validity": "\uf20f",
+    "teachingType": "\uf263",
+    "duration": "\uf215",
+    "check": "\ueb7b",
+    "notice": "\ueed9",
+    "star": "\uf186",
+    "arrowRight": "\uea6e"
+  },
+  "screenshots": {
+    "standard": "src/assets/calicat/screenshots/U-package-detail-standard.png",
+    "experience": "src/assets/calicat/screenshots/U-package-detail-experience.png",
+    "conflict": "src/assets/calicat/screenshots/U-package-detail-conflict.png",
+    "empty": "src/assets/calicat/screenshots/U-package-detail-empty.png",
+    "skeleton": "src/assets/calicat/screenshots/U-package-detail-skeleton.png",
+    "coachSelect": "src/assets/calicat/screenshots/U-package-detail-coach-select.png",
+    "custom": "src/assets/calicat/screenshots/U-package-detail-custom.png"
+  },
+  "exported_assets": []
+}

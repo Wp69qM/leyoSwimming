@@ -1,0 +1,77 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "d82a1f63-214d-444a-818b-5df4ffa5f00a",
+  "page_name": "U-手机号登录页",
+  "colors": {
+    "pageGradientStart": "#1890FF",
+    "pageGradientMid": "#096DD9",
+    "pageGradientEnd": "#0050B3",
+    "cardBg": "#FFFFFF",
+    "cardShadow": "rgba(0,0,0,0.08)",
+    "title": "#262626",
+    "subtitle": "#8C8C8C",
+    "inputBg": "#F5F7FA",
+    "inputBorder": "#E8E8E8",
+    "inputIcon": "#9CA3AF",
+    "placeholder": "#BFBFBF",
+    "primary": "#1890FF",
+    "primaryDark": "#0050B3",
+    "primaryShadow": "rgba(24,144,255,0.25)",
+    "wechatGreen": "#07C160",
+    "wechatText": "#595959",
+    "divider": "#F0F0F0",
+    "tip": "#BFBFBF",
+    "link": "#1890FF",
+    "checkboxBorder": "#D9D9D9",
+    "checkboxCheckedBg": "#1890FF",
+    "errorBg": "rgba(255,241,240,0.95)",
+    "errorText": "#FF4D4F"
+  },
+  "typography": {
+    "brandName": { "fontSize": 22, "fontWeight": 600, "lineHeight": 1.2 },
+    "brandSlogan": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "title": { "fontSize": 22, "fontWeight": 700, "lineHeight": 1.2 },
+    "subtitle": { "fontSize": 13, "fontWeight": 400, "lineHeight": 1.2 },
+    "label": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "input": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "codeButton": { "fontSize": 13, "fontWeight": 500, "lineHeight": 1.2 },
+    "loginButton": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "protocol": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "divider": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "wechatEntry": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "tip": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "brandPaddingTop": 32,
+    "brandPaddingBottom": 24,
+    "cardPaddingTop": 28,
+    "cardPaddingHorizontal": 20,
+    "cardPaddingBottom": 40,
+    "fieldGap": 24,
+    "inputGap": 18,
+    "protocolTop": 20,
+    "submitTop": 24,
+    "dividerTop": 28,
+    "wechatEntryTop": 20,
+    "tipTop": 16
+  },
+  "radius": {
+    "card": "20px 20px 0 0",
+    "input": 10,
+    "button": 10,
+    "wechatEntry": 10,
+    "checkbox": 4,
+    "logo": 40
+  },
+  "shadows": {
+    "card": "0 -4px 20px rgba(0,0,0,0.08)",
+    "codeButton": "0 4px 10px rgba(24,144,255,0.25)",
+    "loginButton": "0 4px 14px rgba(24,144,255,0.35)"
+  },
+  "assets": {
+    "logo": "src/assets/calicat/icons/logo-swimming.svg",
+    "phoneIcon": "remixicon: ",
+    "codeIcon": "remixicon: ",
+    "wechatIcon": "remixicon: "
+  }
+}

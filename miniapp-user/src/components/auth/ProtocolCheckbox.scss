@@ -1,0 +1,41 @@
+.protocol-checkbox {
+  display: flex;
+  align-items: center;
+
+  &__box {
+    width: 19rpx;
+    height: 18rpx;
+    margin-right: 8rpx;
+    border: 1rpx solid #d9d9d9;
+    border-radius: 4rpx;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+
+    &--checked {
+      background-color: #1890ff;
+      border-color: #1890ff;
+    }
+  }
+
+  &__check {
+    color: #fff;
+    font-size: 12rpx;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: 12rpx;
+    color: #8c8c8c;
+    line-height: 1.5;
+  }
+
+  &__link {
+    color: #1890ff;
+  }
+}

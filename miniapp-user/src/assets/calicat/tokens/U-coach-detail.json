@@ -1,0 +1,205 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "74edeff7-9969-4606-925e-f04912b86969",
+  "page_name": "U-教练详情页-游客",
+  "colors": {
+    "pageBackground": "#F5F7FA",
+    "cardBackground": "#FFFFFF",
+    "primary": "#1890FF",
+    "primaryDark": "#0050B3",
+    "price": "#FF6B35",
+    "experienceStart": "#FF6B35",
+    "experienceEnd": "#FA541C",
+    "success": "#52C41A",
+    "warning": "#FAAD14",
+    "danger": "#FA541C",
+    "textPrimary": "#262626",
+    "textSecondary": "#595959",
+    "textTertiary": "#8C8C8C",
+    "textDisabled": "#BFBFBF",
+    "textInverse": "#FFFFFF",
+    "textInverseSecondary": "#FFFFFFCC",
+    "statusBadgeBackground": "#FFFFFF33",
+    "statusBadgeText": "#FFFFFF",
+    "buttonPrimaryStart": "#FF6B35",
+    "buttonPrimaryEnd": "#FA541C",
+    "buttonSecondaryStart": "#1890FF",
+    "buttonSecondaryEnd": "#0050B3",
+    "buttonDisabled": "#BFBFBF",
+    "buttonDisabledBackground": "#F5F5F5",
+    "divider": "#FFFFFF4C",
+    "tagBackground": "#E6F7FF",
+    "tagText": "#1890FF",
+    "tagSecondaryBackground": "#FFF2E8",
+    "iconPlaceholderBackground": "#F5F5F5",
+    "loginPromptBackground": "#F5F7FA"
+  },
+  "typography": {
+    "pageTitle": {
+      "fontSize": 17,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "sectionTitle": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "coachName": {
+      "fontSize": 20,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "ratingBig": {
+      "fontSize": 32,
+      "fontWeight": 700,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Bold"
+    },
+    "ratingTag": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "statNumber": {
+      "fontSize": 14,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "statLabel": {
+      "fontSize": 14,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "body": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "bodySmall": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "tagText": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "buttonText": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-SemiBold"
+    },
+    "caption": {
+      "fontSize": 11,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    },
+    "tiny": {
+      "fontSize": 10,
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "fontFamily": "SourceHanSans-Regular"
+    }
+  },
+  "spacing": {
+    "pageHorizontalPadding": 16,
+    "cardPadding": 16,
+    "cardGap": 12,
+    "sectionGap": 12,
+    "ctaHeight": 44,
+    "ctaButtonGap": 12,
+    "safeAreaBottom": 34,
+    "headerPaddingTop": 20,
+    "headerPaddingBottom": 24,
+    "tagGap": 8,
+    "timeSlotGap": 8
+  },
+  "radius": {
+    "card": 12,
+    "avatarLarge": 40,
+    "avatarSmall": 14,
+    "iconBackground": 18,
+    "iconBackgroundLarge": 22,
+    "tag": 13,
+    "tagSmall": 11,
+    "tagPill": 12,
+    "timeSlot": 8,
+    "button": 8,
+    "buttonPill": 18,
+    "loginPrompt": 8
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "experienceCard": "0 4px 12px rgba(255,107,53,0.35)",
+    "ctaBar": "0 -4px 12px rgba(0,0,0,0.08)"
+  },
+  "assets": {
+    "icons": [
+      {
+        "name": "icon-back",
+        "source": "remixicon 返回箭头",
+        "usage": "导航栏返回按钮"
+      },
+      {
+        "name": "icon-share",
+        "source": "remixicon 分享图标",
+        "usage": "导航栏分享按钮"
+      },
+      {
+        "name": "icon-star-fill",
+        "source": "remixicon 实心星",
+        "usage": "评分星星（实心）"
+      },
+      {
+        "name": "icon-star-empty",
+        "source": "remixicon 空心星",
+        "usage": "评分星星（空心，如 4/5 星）"
+      },
+      {
+        "name": "icon-arrow-right",
+        "source": "remixicon 右箭头",
+        "usage": "查看全部、更多套餐、自定义课时入口"
+      },
+      {
+        "name": "icon-phone",
+        "source": "remixicon",
+        "usage": "电话联系（当前设计被登录提示替代，后续可能使用）"
+      },
+      {
+        "name": "icon-wechat",
+        "source": "remixicon 聊天图标",
+        "usage": "在线聊天入口图标"
+      },
+      {
+        "name": "icon-collection",
+        "source": "remixicon 收藏/星形",
+        "usage": "底部收藏按钮"
+      },
+      {
+        "name": "icon-price",
+        "source": "remixicon 价格/钱包图标",
+        "usage": "参考单价区图标背景"
+      },
+      {
+        "name": "icon-custom",
+        "source": "remixicon 自定义图标",
+        "usage": "自定义课时入口图标"
+      }
+    ],
+    "illustrations": [],
+    "notes": "本页所有图标均来自 remixicon 字体，建议从 Calicat 导出为 SVG 或直接使用对应 iconfont；当前设计未使用独立插画资源。"
+  }
+}

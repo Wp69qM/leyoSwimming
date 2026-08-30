@@ -1,0 +1,39 @@
+@use '@/styles/variables' as *;
+@use '@/styles/calicat-overrides' as *;
+
+.coach-detail-price {
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    background-color: $calicat-price-icon-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__icon-inner {
+    font-size: 22px;
+    color: $calicat-price-icon-color;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__value {
+    font-size: 18px;
+    font-weight: 700;
+    color: $calicat-text-price;
+  }
+
+  &__empty {
+    font-size: 14px;
+    color: $calicat-text-disabled;
+  }
+}

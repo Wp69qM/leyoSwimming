@@ -1,0 +1,22 @@
+@use '@/styles/variables' as *;
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: $background-color;
+
+  &__text {
+    margin-bottom: 8px;
+    color: $text-color;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  &__desc {
+    color: $text-color-muted;
+    font-size: 14px;
+  }
+}

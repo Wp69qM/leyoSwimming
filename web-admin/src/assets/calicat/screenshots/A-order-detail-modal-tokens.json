@@ -1,0 +1,63 @@
+{
+  "file_id": "2083742072257646592",
+  "frame_id": "4da77580-7a0e-4613-9668-e0bd5aed001d",
+  "page_name": "A-订单详情弹窗",
+  "colors": {
+    "primary": "#3B82F6",
+    "primaryLight": "#EFF6FF",
+    "textPrimary": "#1D2129",
+    "textSecondary": "#86939C",
+    "textLink": "#165DFF",
+    "success": "#00B42A",
+    "successLight": "#F0FDF4",
+    "danger": "#F53F3F",
+    "dangerLight": "#FEF2F2",
+    "background": "#FFFFFF",
+    "surface": "#F9FAFB",
+    "divider": "#F3F4F6",
+    "border": "#E5E7EB",
+    "mutedText": "#4E5969",
+    "avatarPink": "#FCE7F3",
+    "avatarPinkText": "#EC4899"
+  },
+  "typography": {
+    "dialogTitle": { "fontSize": 18, "fontWeight": 600, "lineHeight": 1.2 },
+    "dialogSubtitle": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "groupTitle": { "fontSize": 15, "fontWeight": 600, "lineHeight": 1.2 },
+    "label": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "value": { "fontSize": 14, "fontWeight": 400, "lineHeight": 1.2 },
+    "valueMedium": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 },
+    "valueSemiBold": { "fontSize": 14, "fontWeight": 600, "lineHeight": 1.2 },
+    "amount": { "fontSize": 16, "fontWeight": 600, "lineHeight": 1.2 },
+    "tag": { "fontSize": 12, "fontWeight": 400, "lineHeight": 1.2 },
+    "button": { "fontSize": 14, "fontWeight": 500, "lineHeight": 1.2 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "xxl": 24
+  },
+  "radius": {
+    "dialog": 16,
+    "card": 12,
+    "button": 8,
+    "tag": 4,
+    "avatar": 9999,
+    "icon": 12
+  },
+  "shadows": {
+    "dialog": "0 8px 32px rgba(0, 0, 0, 0.12)"
+  },
+  "layout": {
+    "dialogWidth": 720,
+    "dialogMaxHeight": "80vh",
+    "dialogPaddingX": 24,
+    "dialogPaddingY": 20,
+    "groupGap": 24,
+    "infoGridColumns": 3,
+    "infoItemGap": 24
+  }
+}

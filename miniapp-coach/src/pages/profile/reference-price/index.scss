@@ -1,0 +1,221 @@
+@use '@/styles/variables.scss' as *;
+
+.reference-price {
+  min-height: 100vh;
+  padding: 0 16rpx 48rpx;
+  background-color: #F5F7FA;
+  box-sizing: border-box;
+
+  &--loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__loading-text {
+    color: $text-color-tertiary;
+    font-size: $font-size-md;
+  }
+
+  &__status-bar {
+    background-color: #ffffff;
+  }
+
+  &__navbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44rpx;
+    padding: 0 16rpx;
+    margin: 0 -16rpx;
+    background-color: #ffffff;
+  }
+
+  &__navbar-back {
+    position: absolute;
+    left: 16rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32rpx;
+    height: 32rpx;
+  }
+
+  &__navbar-back-icon {
+    color: #262626;
+    font-size: 24rpx;
+    line-height: 1;
+  }
+
+  &__navbar-title {
+    color: #262626;
+    font-size: 17rpx;
+    font-weight: 500;
+  }
+
+  &__info-card {
+    padding: 16rpx;
+    margin-top: 16rpx;
+    margin-bottom: 16rpx;
+    background-color: #E6F7FF;
+    border-radius: 12rpx;
+    box-sizing: border-box;
+  }
+
+  &__info-title {
+    display: block;
+    margin-bottom: 8rpx;
+    color: #0050B3;
+    font-size: 14rpx;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__info-content {
+    display: block;
+    color: #262626;
+    font-size: 12rpx;
+    line-height: 1.6;
+  }
+
+  &__card {
+    padding: 16rpx;
+    margin-bottom: 16rpx;
+    background-color: #ffffff;
+    border-radius: 12rpx;
+    box-shadow: 0 2rpx 12rpx 0 rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+  }
+
+  &__card-title {
+    display: block;
+    margin-bottom: 12rpx;
+    color: #262626;
+    font-size: 14rpx;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__input-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8rpx;
+  }
+
+  &__input {
+    flex: 1;
+    height: 44rpx;
+    padding: 0 12rpx;
+    color: #262626;
+    font-size: 16rpx;
+    background-color: #F5F7FA;
+    border-radius: 8rpx;
+    border: 1px solid #E8E8E8;
+    box-sizing: border-box;
+  }
+
+  &__unit {
+    margin-left: 8rpx;
+    color: #8C8C8C;
+    font-size: 14rpx;
+  }
+
+  &__hint-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__range-hint {
+    color: #8C8C8C;
+    font-size: 12rpx;
+  }
+
+  &__remaining {
+    color: #FAAD14;
+    font-size: 12rpx;
+
+    &--zero {
+      color: #FF4D4F;
+    }
+  }
+
+  &__error {
+    display: block;
+    margin-top: 8rpx;
+    color: #FF4D4F;
+    font-size: 12rpx;
+    line-height: 1.4;
+  }
+
+  &__preview-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__preview-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10rpx 0;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__preview-label {
+    color: #262626;
+    font-size: 14rpx;
+  }
+
+  &__preview-price-wrap {
+    display: flex;
+    align-items: baseline;
+  }
+
+  &__preview-price {
+    color: #262626;
+    font-size: 18rpx;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__preview-unit {
+    margin-left: 4rpx;
+    color: #8C8C8C;
+    font-size: 12rpx;
+  }
+
+  &__preview-placeholder {
+    color: #BFBFBF;
+    font-size: 14rpx;
+  }
+
+  &__save {
+    width: 100%;
+    max-width: 343rpx;
+    height: 48rpx;
+    line-height: 48rpx;
+    margin: 24rpx auto 0;
+    color: #ffffff;
+    font-size: 16rpx;
+    background: linear-gradient(90deg, #40a9ff 0%, #1890ff 100%);
+    border-radius: 8rpx;
+    border: none;
+
+    &:active {
+      opacity: 0.9;
+    }
+
+    &--disabled {
+      opacity: 0.5;
+    }
+
+    &::after {
+      border: none;
+    }
+  }
+}

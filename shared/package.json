@@ -1,0 +1,31 @@
+{
+  "name": "@leyo/shared",
+  "version": "0.1.0",
+  "description": "leyoSwimming 跨端共享层：类型、常量、纯函数工具、OpenAPI 契约",
+  "private": true,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "openapi"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "tsc --noEmit && eslint src --ext .ts",
+    "test": "jest",
+    "typegen": "openapi-typescript openapi/leyo-swimming-v1.yaml -o src/types/openapi-generated.ts"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "openapi-typescript": "^6.7.5",
+    "ts-jest": "^29.1.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5"
+  }
+}
