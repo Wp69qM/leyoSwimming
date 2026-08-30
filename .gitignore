@@ -42,3 +42,6 @@ project.private.config.json
 
 # Local uploads
 uploads/
+
+# Deployment state
+.last-deployed-commit
