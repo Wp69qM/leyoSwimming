@@ -98,11 +98,11 @@ curl -s --max-time 5 http://$(curl -s --max-time 3 ifconfig.me 2>/dev/null || ec
 
 echo ""
 echo "测试后端健康检查:"
-curl -s --max-time 5 http://localhost:8080/actuator/health && echo "" || echo "后端 8080 无法访问"
+curl -s --max-time 5 http://localhost:8080/health && echo "" || echo "后端 8080 无法访问"
 
 echo ""
 echo "测试 Nginx 80 端口:"
-curl -s --max-time 5 -o /dev/null -w "%{http_code}" http://localhost/api/actuator/health 2>/dev/null || echo "无法访问"
+curl -s --max-time 5 -o /dev/null -w "%{http_code}" http://localhost/health 2>/dev/null || echo "无法访问"
 echo ""
 
 echo "========================================"

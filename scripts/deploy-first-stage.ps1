@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 #requires -Version 5.1
 
 <#
@@ -938,7 +938,7 @@ services:
     Write-Host "等待后端服务就绪 ..." -ForegroundColor Cyan
     $waitBackendCmds = @(
         "for i in {1..30}; do",
-        '  if wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health 2>/dev/null; then',
+        '  if wget --no-verbose --tries=1 --spider http://localhost:8080/health 2>/dev/null; then',
         '    echo "Backend is healthy"',
         "    exit 0",
         "  fi",

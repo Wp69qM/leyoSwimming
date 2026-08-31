@@ -3,8 +3,8 @@
 > **文档定位**：第二批次开发完成并验证通过后，将 leyoSwimming 前后端部署到一台全新服务器的操作手册。  
 > **目标读者**：运维人员 / 开发工程师。  
 > **部署范围**：后端服务（Spring Boot）、AI 服务（leyo-ai-service）、管理后台 Web 端、用户端 H5、教练端 H5、MySQL、Redis。本阶段前端全部以 H5 形式部署到 Nginx，不依赖微信小程序，也无需申请微信小程序账号。  
-> **版本**：v1.0  
-> **日期**：2026-08-15
+> **版本**：v1.4  
+> **日期**：2026-08-31
 
 ---
 
@@ -19,8 +19,9 @@
 7. [日常运维](#7-日常运维)
 8. [后续升级部署](#8-后续升级部署)
 9. [常见问题](#9-常见问题)
-10. [安全检查清单](#10-安全检查清单)
-11. [附录：生产环境 docker-compose.yml 示例](#11-附录生产环境-docker-composeyml-示例)
+10. [今日部署问题总结](#10-今日部署问题总结)
+11. [安全检查清单](#11-安全检查清单)
+12. [附录：生产环境 docker-compose.yml 示例](#12-附录生产环境-docker-composeyml-示例)
 
 ---
 
@@ -182,36 +183,22 @@ cd /path/to/leyoSwimming/backend
 ./mvnw clean package -DskipTests -B
 ```
 
-构建产物：`backend/target/leyo-swimming-backend-0.1.0-SNAPSHOT.jar`
+构建产物：`backend/target/leyo-swimming-backend-*.jar`（实际文件名随版本号变化，上传后统一重命名为 `leyo-swimming-backend.jar`）
 
-#### 4.1.2 本地构建 AI 服务 Docker 镜像
+#### 4.1.2 准备 AI 服务源码
 
-AI 服务基于 Python/FastAPI，推荐在本地构建 Docker 镜像后上传到服务器（或推送到私有镜像仓库）。
+本阶段 AI 服务在**服务器端直接运行**（systemd + Python 虚拟环境），不需要在本地构建 Docker 镜像。只需确保 `ai-service/` 源码完整即可，部署脚本会自动在服务器上创建虚拟环境并安装依赖。
 
-```bash
-cd /path/to/leyoSwimming/ai-service
+需要检查的源码文件：
 
-# 构建镜像（注意镜像标签建议带版本号，如 v1.0.0）
-docker build -t leyo-ai-service:v1.0.0 .
+- `ai-service/Dockerfile`
+- `ai-service/requirements.txt`
+- `ai-service/app/main.py` 及业务代码
 
-# 方式 A：保存为 tar 文件后上传到服务器
-docker save leyo-ai-service:v1.0.0 -o leyo-ai-service-v1.0.0.tar
-scp leyo-ai-service-v1.0.0.tar root@<服务器IP>:/opt/leyo-swimming/
-
-# 方式 B：推送到私有镜像仓库（推荐生产环境使用）
-# docker tag leyo-ai-service:v1.0.0 your-registry.com/leyo/ai-service:v1.0.0
-# docker push your-registry.com/leyo/ai-service:v1.0.0
-```
-
-如果采用方式 A，在服务器上加载镜像：
-
-```bash
-ssh root@<服务器IP>
-cd /opt/leyo-swimming
-docker load -i leyo-ai-service-v1.0.0.tar
-```
-
-> **说明**：AI 服务镜像不依赖 JDK/Node，生产环境通过 `image: leyo-ai-service:v1.0.0` 直接运行即可。后续升级时重新构建并加载新版本镜像，再重启容器。
+> **说明**：
+> - 本地无需安装 Python 3.11 或构建 AI 镜像；
+> - 服务器端会通过 `python3.11 -m venv /opt/leyo-swimming/ai-service-venv` 创建虚拟环境；
+> - 后续升级只需重新上传 `ai-service/` 源码并重启 `leyo-ai` 服务（详见 §8.3）。
 
 #### 4.1.3 本地构建管理后台 dist
 
@@ -266,24 +253,26 @@ mv dist h5-coach-dist
 #### 4.1.5 上传构建产物到服务器
 
 ```bash
-# 上传 jar 包
-scp backend/target/leyo-swimming-backend-0.1.0-SNAPSHOT.jar root@<服务器IP>:/opt/leyo-swimming/
+# 上传 jar 包（注意替换为实际版本号，服务器上统一使用 leyo-swimming-backend.jar）
+scp backend/target/leyo-swimming-backend-0.1.x.jar root@<服务器IP>:/opt/leyo-swimming/leyo-swimming-backend.jar
 
-# 上传 AI 服务镜像 tar（如已在服务器加载则可跳过）
-scp ai-service/leyo-ai-service-v1.0.0.tar root@<服务器IP>:/opt/leyo-swimming/
+# 上传 AI 服务源码（服务器端构建虚拟环境并运行）
+scp -r ai-service root@<服务器IP>:/opt/leyo-swimming/ai-service
 
-# 上传管理后台静态资源
-scp -r web-admin/dist root@<服务器IP>:/opt/leyo-swimming/web-admin-dist/
+# 上传管理后台静态资源（web-admin/dist 中资源路径必须带 /admin/ 前缀）
+scp -r web-admin/dist/* root@<服务器IP>:/opt/leyo-swimming/web-admin-dist/
 
-# 上传用户端 H5 静态资源
-scp -r miniapp-user/h5-user-dist root@<服务器IP>:/opt/leyo-swimming/h5-user-dist/
+# 上传用户端 H5 静态资源（miniapp-user/dist 中资源路径必须带 /h5/user/ 前缀）
+scp -r miniapp-user/dist/* root@<服务器IP>:/opt/leyo-swimming/h5-user-dist/
 
-# 上传教练端 H5 静态资源
-scp -r miniapp-coach/h5-coach-dist root@<服务器IP>:/opt/leyo-swimming/h5-coach-dist/
+# 上传教练端 H5 静态资源（miniapp-coach/dist 中资源路径必须带 /h5/coach/ 前缀）
+scp -r miniapp-coach/dist/* root@<服务器IP>:/opt/leyo-swimming/h5-coach-dist/
 
 # 上传部署配置（后续在服务器上维护）
 scp -r deploy root@<服务器IP>:/opt/leyo-swimming/
 ```
+
+> **提示**：使用 `scripts/deploy-first-stage.ps1` 部署脚本时，上述上传步骤会自动完成，并会询问每个产物是否重新上传。
 
 #### 4.1.6 在服务器上准备生产环境配置
 
@@ -311,19 +300,26 @@ MYSQL_PASSWORD=YourStrongUserPassword
 # Redis（生产环境必须设置密码）
 REDIS_PASSWORD=YourStrongRedisPassword
 
-# JWT（必须使用强随机字符串，长度 >= 32 字节）
-JWT_SECRET=your-very-strong-random-secret-at-least-64-characters-long
+# JWT（必须为 Base64 编码，长度 >= 32 字节；可用 openssl rand -base64 64 生成）
+# 注意：值中若包含 $ 会被 docker compose / systemd 解析为变量，务必使用 Base64 编码
+JWT_SECRET=g4kbc5SkxlTnITdB10hZPscmZeXfotFXRdNCiylGh68=
 
-# 手机号加密密钥（长度建议 32 字节，一旦设定请勿修改）
-PHONE_ENCRYPTION_KEY=your-32-byte-encryption-key-here
+# 手机号加密密钥（长度建议 32 字节，一旦设定请勿修改；含 $ 时请用单引号包裹）
+PHONE_ENCRYPTION_KEY='your-32-byte-encryption-key-here'
 
-# 身份证号加密密钥（长度建议 32 字节，一旦设定请勿修改）
-ID_CARD_ENCRYPTION_KEY=your-32-byte-id-card-encryption-key-here
+# 身份证号加密密钥（长度建议 32 字节，一旦设定请勿修改；含 $ 时请用单引号包裹）
+ID_CARD_ENCRYPTION_KEY='your-32-byte-id-card-encryption-key-here'
 
 # AI 服务（必填）
 # 当 AI 服务在宿主机直接运行时，指向宿主机 IP:8000
 AI_SERVICE_BASE_URL=http://<服务器IP>:8000
+# 内部接口安全 Token，建议只含字母、数字、-、_，避免 $ 导致 systemd/docker 解析不一致
 INTERNAL_API_TOKEN=your-internal-api-token-at-least-32-characters
+
+# 短信/微信 mock 开关（MVP 阶段保持 true，无需真实服务商账号）
+SMS_MOCK_ENABLED=true
+SMS_MOCK_FIXED_CODE=123456
+WECHAT_MOCK_ENABLED=true
 
 # LLM 配置（默认 DeepSeek，按实际情况填写）
 LLM_MODEL=deepseek-chat
@@ -377,8 +373,31 @@ http {
     default_type  application/octet-stream;
 
     sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
     keepalive_timeout 65;
     client_max_body_size 50M;
+
+    # 日志格式
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+    error_log  /var/log/nginx/error.log warn;
+
+    # Gzip 压缩
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
+
+    # 安全响应头
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
     # 管理后台静态资源缓存
     map $sent_http_content_type $expires {
@@ -432,6 +451,15 @@ http {
             expires 30d;
         }
 
+        location /health {
+            proxy_pass http://leyo-backend:8080/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            access_log off;
+        }
+
         location / {
             return 404;
         }
@@ -445,18 +473,34 @@ http {
 
 #### 4.1.8 生产化改造 docker-compose.yml
 
-当前 `deploy/docker-compose.yml` 为开发环境配置，生产环境需要调整。将 [附录示例](#11-附录生产环境-docker-composeyml-示例) 保存为 `deploy/docker-compose.prod.yml`。
+当前 `deploy/docker-compose.yml` 为开发环境配置，生产环境使用 `deploy/docker-compose.prod.yml`（见 [附录示例](#12-附录生产环境-docker-composeyml-示例)）。
 
 核心调整点：
 
-- 后端容器使用本地 jar 包挂载运行，而不是重新构建（加快部署）
-- AI 服务使用本地构建的镜像 `leyo-ai-service:v1.0.0` 直接运行
+- 后端容器使用本地 jar 包挂载运行，jar 文件名统一为 `leyo-swimming-backend.jar`，不带版本号（方便升级时直接替换）
 - MySQL/Redis 设置密码、持久化卷
-- 后端使用 `prod` 环境配置，并注入 `AI_SERVICE_BASE_URL` 和 `INTERNAL_API_TOKEN`
-- AI 服务注入 LLM、Redis、内部接口 Token 等环境变量
+- 后端使用 `prod` 环境配置，并注入 `AI_SERVICE_BASE_URL`、`INTERNAL_API_TOKEN`、`SMS_MOCK_ENABLED`、`SMS_MOCK_FIXED_CODE`、`WECHAT_MOCK_ENABLED`
 - 挂载管理后台、用户端 H5、教练端 H5 的 dist 目录以及文件上传目录到 Nginx 容器
 - 为所有服务配置 Docker 日志轮转（`json-file` 驱动，单文件 100MB，保留 3-5 份）
-- 不将 MySQL/Redis 端口暴露到宿主机（除非必要）
+- MySQL 不暴露端口到宿主机；Redis 仅暴露 `127.0.0.1:6379:6379`，供宿主机 systemd 运行的 AI 服务访问
+- 后端容器需将 `8080` 映射到宿主机 `127.0.0.1:8080`，供宿主机 systemd 运行的 AI 服务访问内部接口
+- 所有镜像配置 `pull_policy: never`，镜像由部署脚本按需手动拉取，避免 Docker Hub 拉取超时
+
+**AI 服务运行方式说明**
+
+本阶段默认采用**宿主机直接运行** AI 服务（systemd 服务 `leyo-ai`），原因：
+
+1. AI 服务依赖 Python 环境，在服务器本地构建和运行更稳定；
+2. 避免 Docker Hub 拉取/构建超时；
+3. `.env` 中的 `AI_SERVICE_BASE_URL` 直接指向宿主机 IP:8000，逻辑更清晰。
+
+`docker-compose.prod.yml` 中虽然包含 `ai-service` 服务定义，但默认部署脚本会生成 `docker-compose.ai-direct.yml` 覆盖文件：
+
+- 将 `leyo-ai-service` 解析到宿主机（`extra_hosts: leyo-ai-service:host-gateway`）
+- 移除 Nginx 对 `ai-service` 容器的依赖
+- 启动核心服务时只启动 `mysql redis backend nginx`，不启动 `ai-service` 容器
+
+如需改为容器化运行 AI 服务，删除 `docker-compose.ai-direct.yml` 并在 `.env` 中将 `AI_SERVICE_BASE_URL` 改为 `http://leyo-ai-service:8000`，然后启动时包含 `ai-service`。
 
 #### 4.1.9 创建持久化目录
 
@@ -498,37 +542,44 @@ docker exec -i leyo-mysql mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATA
 
 本阶段 AI 服务默认在宿主机直接运行（systemd），核心服务（MySQL/Redis/Backend/Nginx）通过 Docker Compose 启动。
 
+若使用部署脚本 `scripts/deploy-first-stage.ps1`，脚本会自动生成 `docker-compose.ai-direct.yml` 覆盖文件并启动服务。手动启动命令如下：
+
 ```bash
 cd /opt/leyo-swimming/deploy
 
 # 加载环境变量
 source .env
 
-# 拉取镜像并启动核心服务（使用生产配置）
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d mysql redis backend nginx
+# 拉取镜像并启动核心服务（使用生产配置 + AI 服务宿主机运行覆盖）
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml pull
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml up -d mysql redis backend nginx
 
 # 启动宿主机 AI 服务（systemd）
 systemctl start leyo-ai
 
 # 查看核心服务日志
-docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml logs -f backend
 
 # 查看 AI 服务日志（宿主机 systemd）
 journalctl -u leyo-ai -f
 ```
 
+> **注意**：
+> - `docker-compose.ai-direct.yml` 由部署脚本自动生成，手动部署时需要参考 §4.1.8 自行创建；
+> - 若改为容器化运行 AI 服务，使用 `docker compose -f docker-compose.prod.yml up -d` 启动全部服务（含 `ai-service`），并相应调整 `AI_SERVICE_BASE_URL`。
+
 #### 4.1.12 确认服务状态
 
 ```bash
 # 查看容器运行状态
-docker compose ps
+cd /opt/leyo-swimming/deploy
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml ps
 
 # 查看 AI 服务状态
 systemctl status leyo-ai
 
-# 测试后端健康检查
-curl http://<服务器IP>/api/actuator/health
+# 测试后端健康检查（/health 为公开端点，无需认证）
+curl http://<服务器IP>/health
 
 # 测试 API
 curl -X POST http://<服务器IP>/api/admin/auth/login \
@@ -538,6 +589,10 @@ curl -X POST http://<服务器IP>/api/admin/auth/login \
 # 测试 AI 服务健康检查（宿主机）
 curl -s http://localhost:8000/health
 ```
+
+> **健康检查端点说明**：
+> - `/health`：应用自定义公开端点，无需认证，用于 Nginx 反向代理和容器健康检查；
+> - `/actuator/health`：Spring Boot Actuator 端点，生产环境需要认证，**不要**用于外部健康探测。
 
 #### 4.1.13 创建初始管理员账号
 
@@ -564,7 +619,7 @@ EOF
 
 ### 4.2 方式二：在服务器上构建（不推荐，但可行）
 
-如果必须在服务器上构建，需额外安装 JDK 21、Maven、Node.js、Python 3.11 和 Docker 引擎（用于构建 AI 服务镜像）。
+如果必须在服务器上构建，需额外安装 JDK 21、Maven、Node.js、Python 3.11。
 
 #### 4.2.1 安装 JDK 21
 
@@ -595,15 +650,12 @@ npm install -g yarn
 yarn -v
 ```
 
-#### 4.2.4 安装 Python 3.11 与 Docker（用于构建 AI 服务镜像）
+#### 4.2.4 安装 Python 3.11（用于运行 AI 服务）
 
 ```bash
 # 安装 Python 3.11 和 pip
 apt install -y python3.11 python3.11-venv python3-pip
 python3.11 --version
-
-# Docker 已在 §3.3 安装，此处用于构建 AI 服务镜像
-docker --version
 ```
 
 #### 4.2.5 拉取代码并构建
@@ -624,9 +676,12 @@ yarn install
 yarn build
 cd ..
 
-# 构建 AI 服务镜像
+# AI 服务无需在本地/服务器构建 Docker 镜像，
+# 部署时会自动在服务器创建 Python 虚拟环境并安装依赖
 cd ai-service
-docker build -t leyo-ai-service:v1.0.0 .
+python3.11 -m venv ../ai-service-venv
+source ../ai-service-venv/bin/activate
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 cd ..
 ```
 
@@ -732,6 +787,10 @@ http://<服务器IP>/h5/coach/
 
 ```bash
 cd /opt/leyo-swimming/deploy
+# 若使用宿主机 AI 服务覆盖文件（默认）：
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml ps
+
+# 若 AI 服务以容器运行：
 docker compose -f docker-compose.prod.yml ps
 ```
 
@@ -764,16 +823,12 @@ docker exec -it leyo-redis redis-cli -a $REDIS_PASSWORD ping
 ### 6.4 后端健康检查
 
 ```bash
-curl http://<服务器IP>/api/actuator/health
+curl http://<服务器IP>/health
 ```
 
-预期返回：
+预期返回 HTTP 200 及 JSON：`{"code":0,"data":{"status":"UP","time":"..."},"message":"ok"}`。
 
-```json
-{
-  "status": "UP"
-}
-```
+> 生产环境 `/actuator/health` 需要认证，Nginx 中已单独暴露 `/health` 作为无认证健康检查端点。容器健康检查、部署脚本均使用 `/health`。
 
 ### 6.5 AI 服务验证
 
@@ -783,7 +838,7 @@ curl http://<服务器IP>/api/actuator/health
 # 1. 宿主机健康检查
 curl -s http://localhost:8000/health
 
-# 2. 从后端容器测试 AI 服务可达性（后端通过 extra_hosts 将 leyo-ai-service 解析到宿主机）
+# 2. 从后端容器测试 AI 服务可达性（direct 模式下后端通过 extra_hosts 将 leyo-ai-service 解析到宿主机）
 docker exec leyo-backend curl -s http://leyo-ai-service:8000/health
 
 # 3. 测试 AI 对话接口（通过 Java 后端网关）
@@ -800,7 +855,8 @@ curl -X POST http://<服务器IP>/api/ai-assistant/chat \
   }'
 ```
 
-> 如果 `ENABLE_MOCK_DATA=true`，AI 服务会返回 Mock 推荐数据，不调用 LLM 和 Java 内部接口。
+> - 如果 `ENABLE_MOCK_DATA=true`，AI 服务会返回 Mock 推荐数据，不调用 LLM 和 Java 内部接口；
+> - 若 AI 服务以容器运行，使用 `docker exec leyo-ai-service curl -s http://localhost:8000/health` 检查。
 
 ### 6.6 管理后台访问
 
@@ -810,7 +866,7 @@ curl -X POST http://<服务器IP>/api/ai-assistant/chat \
 http://<服务器IP>/admin/
 ```
 
-应能看到管理后台登录页面。
+应能看到管理后台登录页面。若页面空白或控制台报 `/assets/...` 404，说明 `web-admin/dist` 中的资源路径没有 `/admin/` 前缀，需要重新构建（`vite.config.ts` 中已配置 `base: '/admin/'`）并清除浏览器缓存。
 
 ### 6.7 H5 端访问验证
 
@@ -821,6 +877,8 @@ http://<服务器IP>/admin/
 http://<服务器IP>/h5/user/
 http://<服务器IP>/h5/coach/
 ```
+
+> 若 H5 页面空白或资源 404，请检查构建产物 `index.html` 中的 `js/css` 资源路径是否带对应前缀（`/admin/`、`/h5/user/`、`/h5/coach/`），并清除微信开发者工具/浏览器缓存。
 
 ### 6.8 API 接口测试
 
@@ -884,6 +942,10 @@ docker inspect --format="{{.State.Status}} {{.State.Health.Status}}" leyo-mysql
 
 # 查看 Docker Compose 服务状态
 cd /opt/leyo-swimming/deploy
+# 若使用宿主机 AI 服务覆盖文件（默认）：
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml ps
+
+# 若 AI 服务以容器运行：
 docker compose -f docker-compose.prod.yml ps
 ```
 
@@ -892,17 +954,20 @@ docker compose -f docker-compose.prod.yml ps
 ```bash
 cd /opt/leyo-swimming/deploy
 
+# 若使用宿主机 AI 服务覆盖文件（默认），所有 docker compose 命令需追加 -f docker-compose.ai-direct.yml：
 # 查看所有服务日志
-docker compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml logs -f
 
 # 查看后端日志（最近 100 行）
-docker compose -f docker-compose.prod.yml logs -f --tail=100 backend
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml logs -f --tail=100 backend
 
 # 查看 MySQL 日志
-docker compose -f docker-compose.prod.yml logs -f mysql
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml logs -f mysql
 
 # 查看 Nginx 日志
-docker compose -f docker-compose.prod.yml logs -f nginx
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml logs -f nginx
+
+# 若 AI 服务以容器运行，使用：docker compose -f docker-compose.prod.yml logs -f
 
 # 查看 AI 服务日志（宿主机 systemd 运行）
 journalctl -u leyo-ai -f
@@ -998,17 +1063,23 @@ chmod +x /opt/leyo-swimming/diagnose-leyo-backend.sh
    curl -s http://<服务器IP>:8000/health
    ```
 
-5. **检查端口占用和资源：**
+5. **检查后端 /health 端点（注意不是 /actuator/health）：**
+   ```bash
+   curl -s http://localhost:8080/health
+   curl -s http://<服务器IP>/health
+   ```
+
+6. **检查端口占用和资源：**
    ```bash
    ss -tlnp | grep -E ':(80|8080|3306|6379|8000)\b'
    free -h
    df -h /
    ```
 
-6. **手动运行后端容器看完整错误：**
+7. **手动运行后端容器看完整错误：**
    ```bash
    docker run --rm -it \
-     -v /opt/leyo-swimming/leyo-swimming-backend-0.1.0-SNAPSHOT.jar:/app/app.jar:ro \
+     -v /opt/leyo-swimming/leyo-swimming-backend.jar:/app/app.jar:ro \
      -v /opt/leyo-swimming/uploads:/app/uploads \
      --network leyo-network \
      -e SPRING_PROFILES_ACTIVE=prod \
@@ -1022,6 +1093,11 @@ chmod +x /opt/leyo-swimming/diagnose-leyo-backend.sh
 - MySQL 或 Redis 未启动或健康检查失败。
 - 80/8080/3306/6379/8000 端口被其他进程占用。
 - 服务器内存不足导致 JVM 无法启动。
+- `.env` 中 `JWT_SECRET` 未使用 Base64 编码，或含 `$` 的值未加单引号，导致 Spring 启动失败。
+- `SMS_MOCK_ENABLED`/`WECHAT_MOCK_ENABLED` 被解析为 `false`，走真实实现但缺少配置导致启动失败。
+- 后端 jar 包版本过旧，未包含最新的 `FallbackSmsConfig` 或 `HealthController`，导致短信接口 420003 或健康检查 404。
+- `docker-compose.prod.yml` 未映射 `127.0.0.1:8080:8080`，宿主机 AI 服务无法访问后端内部接口。
+- `coach.certificates` 反序列化失败，通常因全局注册了 `StringListJsonTypeHandler` 覆盖了 `CoachCertificateListJsonTypeHandler`。
 
 ### 7.5 停止所有服务
 
@@ -1032,9 +1108,11 @@ cd /opt/leyo-swimming/deploy
 systemctl stop leyo-ai
 
 # 停止所有 Docker 容器（数据卷保留）
-docker compose -f docker-compose.prod.yml down --remove-orphans
-# 如果使用了宿主机 AI 服务的 override 文件：
+# 若使用宿主机 AI 服务覆盖文件（默认）：
 docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml down --remove-orphans
+
+# 若 AI 服务以容器运行：
+docker compose -f docker-compose.prod.yml down --remove-orphans
 ```
 
 或者使用部署脚本一键停止（本地执行）：
@@ -1062,8 +1140,13 @@ docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml down -
 
 ```bash
 cd /opt/leyo-swimming/deploy
-docker compose -f docker-compose.prod.yml restart backend
-docker compose -f docker-compose.prod.yml restart nginx
+# 若使用宿主机 AI 服务覆盖文件（默认）：
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart backend
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart nginx
+
+# 若 AI 服务以容器运行：
+# docker compose -f docker-compose.prod.yml restart backend
+# docker compose -f docker-compose.prod.yml restart nginx
 ```
 
 ### 7.8 清理旧镜像和日志
@@ -1104,30 +1187,31 @@ cd /path/to/leyoSwimming/backend
 ./mvnw clean package -DskipTests -B
 
 # 2. 上传到服务器，保留旧版本备份
-scp backend/target/leyo-swimming-backend-0.1.0-SNAPSHOT.jar \
-  root@<服务器IP>:/opt/leyo-swimming/leyo-swimming-backend-0.1.0-SNAPSHOT-new.jar
+scp backend/target/leyo-swimming-backend-0.1.x.jar \
+  root@<服务器IP>:/opt/leyo-swimming/leyo-swimming-backend-new.jar
 
 ssh root@<服务器IP>
 cd /opt/leyo-swimming
-mv leyo-swimming-backend-0.1.0-SNAPSHOT.jar \
-  leyo-swimming-backend-0.1.0-SNAPSHOT-backup-$(date +%Y%m%d).jar
-mv leyo-swimming-backend-0.1.0-SNAPSHOT-new.jar leyo-swimming-backend-0.1.0-SNAPSHOT.jar
+mv leyo-swimming-backend.jar \
+  leyo-swimming-backend-backup-$(date +%Y%m%d).jar
+mv leyo-swimming-backend-new.jar leyo-swimming-backend.jar
 
 # 3. 重启后端容器（生产配置使用 jar 挂载，替换文件后重启即可）
 cd /opt/leyo-swimming/deploy
-docker compose -f docker-compose.prod.yml restart backend
+# 若使用宿主机 AI 服务覆盖文件（默认）：
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart backend
 
 # 4. 验证
-docker compose -f docker-compose.prod.yml logs -f backend
-curl http://<服务器IP>/api/actuator/health
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml logs -f backend
+curl http://<服务器IP>/health
 ```
 
 ### 8.3 AI 服务升级
 
-本阶段 AI 服务在宿主机直接运行（systemd），升级只需更新源码/依赖后重启服务。
+本阶段 AI 服务在宿主机直接运行（systemd），源码由部署脚本上传到服务器并在服务器端构建虚拟环境。升级步骤如下：
 
 ```bash
-# 1. 上传新的 AI 服务源码到服务器
+# 1. 在本地重新上传 AI 服务源码（使用部署脚本，或手动 scp）
 scp -r /path/to/leyoSwimming/ai-service root@<服务器IP>:/opt/leyo-swimming/ai-service-new
 
 ssh root@<服务器IP>
@@ -1142,7 +1226,8 @@ cd /opt/leyo-swimming/ai-service
 source /opt/leyo-swimming/ai-service-venv/bin/activate
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-# 4. 重启 AI 服务
+# 4. 重新加载 systemd 并重启 AI 服务
+systemctl daemon-reload
 systemctl restart leyo-ai
 
 # 5. 验证
@@ -1150,7 +1235,9 @@ journalctl -u leyo-ai -f
 curl -s http://localhost:8000/health
 ```
 
-> **注意**：AI 服务升级前请确认 `INTERNAL_API_TOKEN` 未变更；若变更需同步修改后端 `.env` 并重启后端容器。
+> **注意**：
+> - AI 服务升级前请确认 `INTERNAL_API_TOKEN` 未变更；若变更需同步修改后端 `.env` 并重启后端容器；
+> - 本阶段不通过 Docker 镜像方式升级 AI 服务，因此无需在本地构建 `leyo-ai-service` 镜像。
 
 ### 8.4 管理后台升级
 
@@ -1192,6 +1279,11 @@ systemctl daemon-reload
 systemctl restart leyo-ai
 
 # 2. 重新创建 Docker 容器以读取新 .env
+# 若使用宿主机 AI 服务覆盖文件（默认）：
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml down
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml up -d
+
+# 若 AI 服务以容器运行：
 docker compose -f docker-compose.prod.yml down
 docker compose -f docker-compose.prod.yml up -d
 ```
@@ -1216,11 +1308,13 @@ docker compose -f docker-compose.prod.yml up -d
 
    ```bash
    cd /opt/leyo-swimming
-   mv leyo-swimming-backend-0.1.0-SNAPSHOT.jar leyo-swimming-backend-0.1.0-SNAPSHOT-bad.jar
-   mv leyo-swimming-backend-0.1.0-SNAPSHOT-backup-YYYYMMDD.jar leyo-swimming-backend-0.1.0-SNAPSHOT.jar
+   mv leyo-swimming-backend.jar leyo-swimming-backend-bad.jar
+   mv leyo-swimming-backend-backup-YYYYMMDD.jar leyo-swimming-backend.jar
    cd deploy
    source .env
-   docker compose -f docker-compose.prod.yml restart backend
+   # 若使用宿主机 AI 服务覆盖文件（默认）：
+   docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart backend
+   # 若 AI 服务以容器运行：docker compose -f docker-compose.prod.yml restart backend
    ```
 
 2. **数据库回滚**（如升级导致数据问题）：
@@ -1230,23 +1324,30 @@ docker compose -f docker-compose.prod.yml up -d
    source .env
 
    # 先停止后端
-   docker compose -f docker-compose.prod.yml stop backend
+   docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml stop backend
 
    # 恢复数据库备份
    docker exec -i leyo-mysql mysql -uroot -p$MYSQL_ROOT_PASSWORD leyo_prod \
      < /opt/backups/leyo_prod_before_upgrade_YYYYMMDD_HHMMSS.sql
 
    # 重新启动后端
-   docker compose -f docker-compose.prod.yml up -d backend
+   docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml up -d backend
    ```
 
 3. **AI 服务回滚**：
 
    ```bash
-   cd /opt/leyo-swimming/deploy
-   # 将 docker-compose.prod.yml 中的 image 改回旧版本标签
-   docker compose -f docker-compose.prod.yml up -d --no-deps ai-service
-   docker compose -f docker-compose.prod.yml logs -f ai-service
+   cd /opt/leyo-swimming
+   # 停止当前 AI 服务
+   systemctl stop leyo-ai
+   # 恢复源码备份
+   mv ai-service ai-service-bad
+   mv ai-service-backup-YYYYMMDD ai-service
+   # 重新加载并启动
+   systemctl daemon-reload
+   systemctl start leyo-ai
+   journalctl -u leyo-ai -f
+   curl -s http://localhost:8000/health
    ```
 
 4. **管理后台回滚**：
@@ -1256,7 +1357,9 @@ docker compose -f docker-compose.prod.yml up -d
    mv web-admin-dist web-admin-dist-bad
    mv web-admin-dist-backup-YYYYMMDD web-admin-dist
    cd deploy
-   docker compose -f docker-compose.prod.yml restart nginx
+   # 若使用宿主机 AI 服务覆盖文件（默认）：
+   docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart nginx
+   # 若 AI 服务以容器运行：docker compose -f docker-compose.prod.yml restart nginx
    ```
 
 ---
@@ -1302,20 +1405,149 @@ docker compose -f docker-compose.prod.yml up -d
 ### Q7：AI 服务无法调用 Java 内部接口
 
 - 确认后端 `/api/internal/ai/**` 接口已正常启动
-- 检查 AI 服务 `JAVA_INTERNAL_BASE_URL` 是否指向 `http://leyo-backend:8080/api/internal/ai`
+- 检查 AI 服务 `JAVA_INTERNAL_BASE_URL`：
+  - 容器化运行 AI 服务：`http://leyo-backend:8080/api/internal/ai`
+  - 宿主机直接运行 AI 服务（默认）：`http://<服务器IP>:8080/api/internal/ai` 或 `http://leyo-backend:8080/api/internal/ai`（若通过 `extra_hosts` 解析到宿主机）
 - 检查后端 `InternalAuthFilter` 中的 Token 是否与 AI 服务发送的 `X-Internal-Token` 一致
 - 查看 AI 服务日志中的具体错误信息
 
 ### Q8：AI 对话返回「leyo 暂时走神了」
 
-- 检查 AI 服务是否能正常访问 LLM：`docker exec leyo-ai-service curl -s http://localhost:8000/health`
+- 检查 AI 服务健康状态：
+  - 宿主机直接运行：`curl -s http://localhost:8000/health`
+  - 容器化运行：`docker exec leyo-ai-service curl -s http://localhost:8000/health`
 - 检查 `.env` 中 `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL` 是否正确有效
 - 查看 AI 服务日志定位 LLM 调用错误
 - 若 Java 内部接口未就绪，可临时开启 `ENABLE_MOCK_DATA=true` 调试，但生产环境必须关闭
 
+### Q9：发送验证码返回 420003「请在生产环境配置真实短信服务商」
+
+- 检查 `docker-compose.prod.yml` 是否传递了 `SMS_MOCK_ENABLED`、`SMS_MOCK_FIXED_CODE`、`WECHAT_MOCK_ENABLED`
+- 检查 `.env` 中 `SMS_MOCK_ENABLED=true` 是否生效：`docker exec leyo-backend printenv SMS_MOCK_ENABLED`
+- 确认 `application-prod.yml` 中 `leyo.sms.mock-enabled` 默认值为 `true`
+- 若仍失败，检查后端是否包含 `FallbackSmsConfig` 兜底配置
+
+### Q10：AI 推荐教练接口返回空或 500
+
+- 确认 AI 服务 `JAVA_INTERNAL_BASE_URL`：
+  - 容器化运行：`http://leyo-backend:8080/api/internal/ai`
+  - 宿主机直接运行（默认）：`http://<服务器IP>:8080/api/internal/ai` 或 `http://leyo-backend:8080/api/internal/ai`（通过 `extra_hosts` 解析）
+- 确认 backend 容器暴露了 `127.0.0.1:8080:8080` 端口映射（供宿主机 AI 服务访问）
+- 确认 `.env` 中 `INTERNAL_API_TOKEN` 与 AI 服务配置一致，且不含 `$` 等特殊字符
+- 查看 AI 服务日志中的具体错误信息
+
+### Q11：教练详情/资料接口返回 500，日志报 coach.certificates 反序列化失败
+
+- 检查 `coach.certificates` 数据库存储格式是否为对象数组 `[{"name":"...","url":"..."}]`
+- 确认 `application.yml` 中没有全局注册 `StringListJsonTypeHandler`（避免泛型擦除覆盖 `CoachCertificateListJsonTypeHandler`）
+- 确认 `Coach.java` 中 `certificates` 字段显式使用 `CoachCertificateListJsonTypeHandler`
+
+### Q12：后端日志正常但容器一直 restarting
+
+- 检查 healthcheck 端点：生产环境 `/actuator/health` 需要认证，应使用公开的 `/health`；`docker-compose.prod.yml` 中 backend 的 healthcheck 应配置为 `http://localhost:8080/health`
+- 确认 Nginx 中配置了 `/health` 反向代理
+- 检查容器内 `/app/logs/leyo-backend-startup.log` 是否有启动错误
+- 检查部署脚本 `deploy-first-stage.ps1` 和排查脚本 `diagnose-leyo-backend.sh` 中是否错用了 `/actuator/health`
+
+### Q13：管理后台或 H5 页面空白，控制台报 `/assets/...` 404
+
+- 检查构建产物 `index.html` 中资源路径是否带对应前缀（`/admin/`、`/h5/user/`、`/h5/coach/`）
+- 确认 `web-admin/vite.config.ts` 中 `base: '/admin/'`
+- 确认 Taro H5 配置中 `publicPath` 为 `/h5/user/` 或 `/h5/coach/`
+- 清除浏览器/微信开发者工具缓存后重新访问
+
+### Q14：`.env` 中含 `$` 的密钥导致 Spring 启动失败或值被截断
+
+- `.env` 文件会被 docker compose 和 systemd 解析，`$` 会被当作变量引用；
+- **解决方案**：
+  - JWT_SECRET 使用 Base64 编码字符串（只含 `A-Za-z0-9+/=`），避免 `$`；
+  - 其他含 `$` 的密钥用单引号包裹，如 `PHONE_ENCRYPTION_KEY='your$key$with$dollar'`；
+  - 生成强随机密钥：`openssl rand -base64 64`。
+
+### Q15：AI 服务调用 Java 内部接口报 `Connection refused` 或 502
+
+- 确认 `docker-compose.prod.yml` 中 backend 服务有端口映射：
+  ```yaml
+  ports:
+    - "127.0.0.1:8080:8080"
+  ```
+- 确认 `docker-compose.ai-direct.yml` 中配置了 `extra_hosts: leyo-ai-service:host-gateway`；
+- 确认 AI 服务 `JAVA_INTERNAL_BASE_URL` 指向可访问后端的地址。
+
+### Q16：用户端发送验证码报 420003，教练端正常
+
+- 原因：用户端 jar 包版本较旧，未包含 `FallbackSmsConfig`，实际走了 `ProductionSmsSender`；
+- 解决：重新构建后端 jar 包并上传到服务器替换：
+  ```bash
+  cd backend
+  ./mvnw clean package -DskipTests -B
+  scp target/leyo-swimming-backend-0.1.0-SNAPSHOT.jar root@<服务器IP>:/opt/leyo-swimming/leyo-swimming-backend.jar
+  # 服务器上重启 backend 容器
+  docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart backend
+  ```
+
+### Q17：Nginx 80 端口返回 502，但后端 /health 正常
+
+- 检查 Nginx 容器是否能访问后端容器：`docker exec leyo-nginx curl -s http://leyo-backend:8080/health`；
+- 检查 `docker-compose.prod.yml` 中 Nginx 的 `depends_on` 是否只依赖 backend（direct 模式下不应依赖 ai-service 容器）；
+- 检查 Nginx 日志：`docker logs leyo-nginx`。
+
 ---
 
-## 10. 安全检查清单
+## 10. 今日部署问题总结
+
+本次部署（2026-08-31）遇到并修复的问题如下，后续部署前请对照检查。
+
+### 10.1 后端容器 healthcheck 路径错误
+
+- **现象**：后端容器状态一直 `restarting`，日志无明显异常，但 `docker inspect` 显示 healthcheck 失败。
+- **根因**：`docker-compose.prod.yml` 中 backend healthcheck 原配置为 `/actuator/health`，而生产环境该端点需要认证，返回 401；部署脚本 `deploy-first-stage.ps1` 和排查脚本 `diagnose-leyo-backend.sh` 也错用了 `/actuator/health`。
+- **修复**：
+  - 后端容器 healthcheck 改为 `http://localhost:8080/health`；
+  - 部署脚本和排查脚本统一改为 `/health`；
+  - Nginx 保留 `/health` 反向代理作为无认证健康检查入口。
+
+### 10.2 后端 jar 包未包含最新短信 Mock 兜底
+
+- **现象**：用户端 `/api/common/sms/sendCode` 返回 `420003 请在生产环境配置真实短信服务商`，教练端正常。
+- **根因**：服务器上运行的 jar 包是 8 月 31 日之前的版本，未包含 `FallbackSmsConfig`。当 `SMS_MOCK_ENABLED` 因某种原因未生效时，实际走了 `ProductionSmsSender`。
+- **修复**：
+  - 重新编译后端，确保包含 `FallbackSmsConfig`；
+  - 上传新 jar 包到服务器替换并重启 backend 容器；
+  - 在 `application-prod.yml` 中保留 `leyo.sms.mock-enabled` 默认 `true`。
+
+### 10.3 环境变量 `$` 字符解析异常
+
+- **现象**：后端启动时 JWT 或加密密钥长度校验失败，或 Spring 注入的密钥值被截断。
+- **根因**：`.env` 中的值含 `$` 时，docker compose 和 systemd 会将其解析为变量引用。
+- **修复**：
+  - JWT_SECRET 使用 Base64 编码（避免 `$`）；
+  - 其他密钥含 `$` 时用单引号包裹；
+  - 文档和 `.env.example` 已补充说明。
+
+### 10.4 宿主机 AI 服务无法访问后端内部接口
+
+- **现象**：AI 服务调用 `/api/internal/ai/**` 报 `Connection refused`。
+- **根因**：后端容器未将 8080 端口映射到宿主机 `127.0.0.1:8080`，宿主机 systemd 运行的 AI 服务无法访问。
+- **修复**：`docker-compose.prod.yml` 中 backend 服务添加：
+  ```yaml
+  ports:
+    - "127.0.0.1:8080:8080"
+  ```
+
+### 10.5 文档与实际配置不一致
+
+- **现象**：按文档手动部署时，发现 `.env` 示例、`docker-compose.prod.yml` 附录、Nginx 配置示例与仓库实际文件不一致。
+- **修正内容**：
+  - `.env.example` 补充 `SMS_MOCK_ENABLED`、`SMS_MOCK_FIXED_CODE`、`WECHAT_MOCK_ENABLED`；
+  - 文档 `.env` 示例同步补充上述配置；
+  - `docker-compose.prod.yml` 附录重写，与实际文件一致（含 `ai-service`、mock 环境变量、`pull_policy: never`、`127.0.0.1:8080:8080` 映射、healthcheck `/health` 等）；
+  - Nginx 配置示例补充安全响应头、日志格式、Gzip 等；
+  - 明确 AI 服务默认宿主机直接运行，需配合 `docker-compose.ai-direct.yml` 覆盖文件。
+
+---
+
+## 11. 安全检查清单
 
 部署完成后，逐项确认：
 
@@ -1337,11 +1569,15 @@ docker compose -f docker-compose.prod.yml up -d
 
 ---
 
-## 11. 附录：生产环境 docker-compose.yml 示例
+## 12. 附录：生产环境 docker-compose.yml 示例
 
-将以下配置保存为 `deploy/docker-compose.prod.yml`，生产环境使用。本阶段 AI 服务在宿主机直接运行（systemd），因此 compose 中**不包含** `ai-service` 容器。
+将以下配置保存为 `deploy/docker-compose.prod.yml`，生产环境使用。
 
-实际使用的 `deploy/docker-compose.prod.yml` 已包含 `pull_policy: never`，避免 Docker Hub 拉取超时；镜像由脚本按需手动拉取。
+> **注意**：
+> - 本配置已包含 `ai-service` 服务定义，但默认部署方式采用**宿主机直接运行** AI 服务（systemd），因此实际启动时会通过 `docker-compose.ai-direct.yml` 覆盖，只启动 `mysql redis backend nginx`；
+> - 所有镜像配置 `pull_policy: never`，由部署脚本按需手动拉取，避免 Docker Hub 拉取超时；
+> - backend healthcheck 使用公开的 `/health` 端点，避免 `/actuator/health` 需要认证导致容器无限重启；
+> - backend 映射 `127.0.0.1:8080:8080`，供宿主机 systemd 运行的 AI 服务访问内部接口。
 
 ```yaml
 version: "3.8"
@@ -1351,6 +1587,7 @@ services:
     image: mysql:8.0
     container_name: leyo-mysql
     restart: unless-stopped
+    pull_policy: never
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -1379,6 +1616,7 @@ services:
     image: redis:7-alpine
     container_name: leyo-redis
     restart: unless-stopped
+    pull_policy: never
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
@@ -1387,9 +1625,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    # 生产环境不暴露端口到宿主机
-    # ports:
-    #   - "127.0.0.1:6379:6379"
+    # AI 服务以 systemd 运行在宿主机，需要访问宿主机的 Redis
+    ports:
+      - "127.0.0.1:6379:6379"
     logging:
       driver: "json-file"
       options:
@@ -1402,9 +1640,10 @@ services:
     image: eclipse-temurin:21-jre-alpine
     container_name: leyo-backend
     restart: unless-stopped
+    pull_policy: never
     working_dir: /app
     volumes:
-      - ../leyo-swimming-backend-0.1.0-SNAPSHOT.jar:/app/app.jar:ro
+      - ../leyo-swimming-backend.jar:/app/app.jar:ro
       - ../uploads:/app/uploads
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -1422,8 +1661,14 @@ services:
       ID_CARD_ENCRYPTION_KEY: ${ID_CARD_ENCRYPTION_KEY}
       AI_SERVICE_BASE_URL: ${AI_SERVICE_BASE_URL}
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
+      SMS_MOCK_ENABLED: ${SMS_MOCK_ENABLED:-true}
+      SMS_MOCK_FIXED_CODE: ${SMS_MOCK_FIXED_CODE:-123456}
+      WECHAT_MOCK_ENABLED: ${WECHAT_MOCK_ENABLED:-true}
       APP_FILE_UPLOAD_DIR: /app/uploads
       APP_FILE_BASE_URL: http://${DOMAIN}/uploads/
+    # 暴露 8080 到宿主机 127.0.0.1，供 systemd 运行的 AI 服务访问内部 API
+    ports:
+      - "127.0.0.1:8080:8080"
     depends_on:
       mysql:
         condition: service_healthy
@@ -1431,11 +1676,63 @@ services:
         condition: service_healthy
     command: ["java", "-jar", "app.jar"]
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    networks:
+      - leyo-network
+
+  ai-service:
+    image: leyo-ai-service:v1.0.0
+    container_name: leyo-ai-service
+    restart: unless-stopped
+    pull_policy: never
+    environment:
+      APP_NAME: ${APP_NAME:-leyo-ai-service}
+      APP_ENV: ${APP_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${PORT:-8000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
+      JAVA_INTERNAL_BASE_URL: http://leyo-backend:8080/api/internal/ai
+      LLM_MODEL: ${LLM_MODEL}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.3}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-2048}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-leyoSwimming}
+      LANGCHAIN_ENDPOINT: ${LANGCHAIN_ENDPOINT:-https://api.smith.langchain.com}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: 0
+      SESSION_MESSAGE_TTL_SECONDS: ${SESSION_MESSAGE_TTL_SECONDS:-604800}
+      SESSION_MAX_MESSAGES: ${SESSION_MAX_MESSAGES:-20}
+      RATE_LIMIT_USER_PER_MINUTE: ${RATE_LIMIT_USER_PER_MINUTE:-30}
+      RATE_LIMIT_IP_PER_MINUTE: ${RATE_LIMIT_IP_PER_MINUTE:-60}
+      TRUSTED_PROXY_COUNT: ${TRUSTED_PROXY_COUNT:-1}
+      ENABLE_MOCK_DATA: ${ENABLE_MOCK_DATA:-false}
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     logging:
       driver: "json-file"
       options:
@@ -1476,10 +1773,31 @@ networks:
     driver: bridge
 ```
 
-使用生产配置启动：
+**宿主机 AI 服务覆盖文件** `docker-compose.ai-direct.yml`：
+
+```yaml
+services:
+  backend:
+    extra_hosts:
+      - "leyo-ai-service:host-gateway"
+  nginx:
+    depends_on:
+      - backend
+```
+
+使用生产配置启动（默认，宿主机 AI 服务）：
 
 ```bash
 cd /opt/leyo-swimming/deploy
+docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml up -d mysql redis backend nginx
+systemctl start leyo-ai
+```
+
+如需容器化运行 AI 服务：
+
+```bash
+cd /opt/leyo-swimming/deploy
+# 确保 .env 中 AI_SERVICE_BASE_URL=http://leyo-ai-service:8000
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -1492,3 +1810,5 @@ docker compose -f docker-compose.prod.yml up -d
 | v1.0 | 2026-08-15 | AI Agent | 初稿：初次部署与升级手册 |
 | v1.1 | 2026-08-27 | AI Agent | 补充 AI 服务（leyo-ai-service）生产环境部署、升级、验证及安全相关内容 |
 | v1.2 | 2026-08-27 | AI Agent | 按第一阶段需求调整：移除 HTTPS/SSL/域名要求，改为 HTTP + IP 访问；前端全部以 H5 部署，移除微信小程序发布、短信、OSS 相关内容 |
+| v1.3 | 2026-08-31 | AI Agent | 修复 backend 端口映射、SMS/WeChat mock 环境变量、JWT_SECRET Base64 编码说明 |
+| v1.4 | 2026-08-31 | AI Agent | 重写 docker-compose.prod.yml 附录与实际配置保持一致；修正 healthcheck 路径为 /health；补充今日部署问题总结；修正 AI 服务运行方式说明；修正 deploy 脚本 healthcheck 路径 |
