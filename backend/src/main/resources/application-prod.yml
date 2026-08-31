@@ -35,6 +35,7 @@ leyo:
     key: ${ID_CARD_ENCRYPTION_KEY}
   sms:
     mock-enabled: ${SMS_MOCK_ENABLED:true}
+    mock-fixed-code: ${SMS_MOCK_FIXED_CODE:123456}
   wechat:
     mock-enabled: ${WECHAT_MOCK_ENABLED:true}
   ai-service:

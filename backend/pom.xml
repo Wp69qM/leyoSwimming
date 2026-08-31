@@ -13,7 +13,7 @@
 
   <groupId>com.leyoswimming</groupId>
   <artifactId>leyo-swimming-backend</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.3</version>
   <packaging>jar</packaging>
 
   <name>leyo-swimming-backend</name>

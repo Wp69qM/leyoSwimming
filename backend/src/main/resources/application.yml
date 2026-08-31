@@ -33,9 +33,8 @@ app:
 
 mybatis-plus:
   # 自定义 TypeHandler 通过实体字段上的 @TableField(typeHandler = ...) 显式指定。
-  # 额外只扫描 com.leyoswimming.common.typehandler 子包，把 StringListJsonTypeHandler
-  # 注册为全局 List 处理器，避免与 CoachCertificateListJsonTypeHandler 冲突。
-  type-handlers-package: com.leyoswimming.common.typehandler
+  # 不注册全局 List 类型处理器，避免 Java 泛型擦除后 StringListJsonTypeHandler
+  # 覆盖 CoachCertificateListJsonTypeHandler 导致 coach.certificates 反序列化失败。
 
 logging:
   level:
