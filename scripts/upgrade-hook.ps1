@@ -160,6 +160,13 @@ function Update-LastDeployedCommit {
     Write-Host "已记录本次部署 commit：$CommitHash" -ForegroundColor Green
 }
 
+function Test-InteractiveShell {
+    # Git hook 等场景通常重定向了 stdin/stdout，Read-Host 会立即返回空值
+    return [Environment]::UserInteractive `
+        -and -not [Console]::IsInputRedirected `
+        -and -not [Console]::IsOutputRedirected
+}
+
 # -------------------------------------------------
 # 主流程
 # -------------------------------------------------
@@ -229,7 +236,12 @@ if (-not $targetServerIP) {
 }
 if (-not $targetServerIP) {
     Write-Host "`n未通过参数或环境变量 LEYO_UPGRADE_SERVER_IP 指定服务器 IP。" -ForegroundColor Yellow
-    $targetServerIP = Read-Host "请输入要升级的服务器 IP（直接回车则仅提醒，不执行部署）"
+    if (Test-InteractiveShell) {
+        $targetServerIP = Read-Host "请输入要升级的服务器 IP（直接回车则仅提醒，不执行部署）"
+    }
+    else {
+        Write-Host "当前处于非交互式环境（如 Git hook），无法提示输入，跳过部署。" -ForegroundColor Yellow
+    }
 }
 
 if ([string]::IsNullOrWhiteSpace($targetServerIP)) {
@@ -250,9 +262,17 @@ if ($AutoDeploy) {
 
 if (-not $AutoDeploy) {
     Write-Host "`n准备使用升级脚本部署到服务器：$targetServerIP" -ForegroundColor Cyan
-    $confirm = Read-Host "是否立即执行升级？(y/N，默认 N)"
-    if ($confirm -notmatch '^(y|Y|yes|YES)$') {
-        Write-Host "已取消部署。" -ForegroundColor Yellow
+    if (Test-InteractiveShell) {
+        $confirm = Read-Host "是否立即执行升级？(y/N，默认 N)"
+        if ($confirm -notmatch '^(y|Y|yes|YES)$') {
+            Write-Host "已取消部署。" -ForegroundColor Yellow
+            exit 0
+        }
+    }
+    else {
+        Write-Host "当前处于非交互式环境（如 Git hook），未启用 -AutoDeploy，跳过部署。" -ForegroundColor Yellow
+        Write-Host "如需自动部署，请设置环境变量 LEYO_UPGRADE_AUTO_DEPLOY=1 或手动执行：" -ForegroundColor Yellow
+        Write-Host "  .\scripts\upgrade-server.ps1 -ServerIP '$targetServerIP' -Modules $($changedModules -join ',')" -ForegroundColor White
         exit 0
     }
 }
@@ -280,8 +300,8 @@ $upgradeArgs = @{
     ArgumentList = @(
         "-ExecutionPolicy", "Bypass",
         "-NoProfile",
-        "-File", "`"$upgradeScript`"",
-        "-ServerIP", "`"$targetServerIP`""
+        "-File", $upgradeScript,
+        "-ServerIP", $targetServerIP
     )
     Wait = $true
     NoNewWindow = $true
@@ -293,7 +313,7 @@ $upgradeArgs.ArgumentList += @("-Modules", ($changedModules -join ','))
 if ($ForceUpload) { $upgradeArgs.ArgumentList += "-ForceUpload" }
 if ($ReinstallAIDeps) { $upgradeArgs.ArgumentList += "-ReinstallAIDeps" }
 if ($effectiveHostKey) {
-    $upgradeArgs.ArgumentList += @("-HostKeyFingerprint", "`"$effectiveHostKey`"")
+    $upgradeArgs.ArgumentList += @("-HostKeyFingerprint", $effectiveHostKey)
 }
 elseif ($AcceptHostKey) {
     $upgradeArgs.ArgumentList += "-AcceptHostKey"

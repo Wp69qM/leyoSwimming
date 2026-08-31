@@ -2,12 +2,12 @@ package com.leyoswimming.service.sms;
 
 import com.leyoswimming.enums.AppType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile("!prod")
+@ConditionalOnProperty(prefix = "leyo.sms", name = "mock-enabled", havingValue = "true", matchIfMissing = true)
 public class MockSmsSender implements SmsSender {
 
   @Override

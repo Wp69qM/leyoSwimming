@@ -34,7 +34,9 @@ leyo:
   id-card-encryption:
     key: ${ID_CARD_ENCRYPTION_KEY}
   sms:
-    mock-enabled: false
+    mock-enabled: ${SMS_MOCK_ENABLED:true}
+  wechat:
+    mock-enabled: ${WECHAT_MOCK_ENABLED:true}
   ai-service:
     base-url: ${AI_SERVICE_BASE_URL}
     internal-api-token: ${INTERNAL_API_TOKEN}

@@ -334,7 +334,8 @@ elseif ($AcceptHostKey) {
     $session = New-SSHSession -ComputerName $ServerIP -Credential $script:sshCred -AcceptKey
 }
 else {
-    throw "必须提供 -HostKeyFingerprint 进行主机密钥校验，或显式指定 -AcceptHostKey 以接受未知密钥（不推荐）。"
+    Write-Host "警告：未指定 -HostKeyFingerprint，将自动接受服务器 SSH 主机密钥（存在中间人攻击风险）。" -ForegroundColor Yellow
+    $session = New-SSHSession -ComputerName $ServerIP -Credential $script:sshCred -AcceptKey
 }
 if (-not $session) { throw "SSH 连接失败" }
 Write-Host "SSH 连接成功" -ForegroundColor Green

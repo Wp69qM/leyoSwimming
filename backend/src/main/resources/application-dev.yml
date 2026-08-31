@@ -42,6 +42,7 @@ leyo:
     mock-enabled: ${SMS_MOCK_ENABLED:true}
     mock-fixed-code: ${SMS_MOCK_FIXED_CODE:123456}
   wechat:
+    mock-enabled: ${WECHAT_MOCK_ENABLED:true}
     appid: ${WECHAT_APPID:wx_mock_appid}
     secret: ${WECHAT_SECRET:wx_mock_secret}
   ai-service:

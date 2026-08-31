@@ -3,11 +3,11 @@ package com.leyoswimming.service.wechat;
 import com.leyoswimming.common.ErrorCode;
 import com.leyoswimming.exception.BusinessException;
 import java.util.UUID;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("!prod")
+@ConditionalOnProperty(prefix = "leyo.wechat", name = "mock-enabled", havingValue = "true", matchIfMissing = true)
 public class MockWechatClient implements WechatClient {
 
   @Override
