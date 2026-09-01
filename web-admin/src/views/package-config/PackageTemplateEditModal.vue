@@ -14,6 +14,7 @@ import {
 } from '@/api/packageTemplate';
 import { getCoachList } from '@/api/coachManagement';
 import { uploadFile } from '@/api/upload';
+import { generateUUID } from '@leyo/shared';
 import { Plus } from '@element-plus/icons-vue';
 
 interface Props {
@@ -290,7 +291,7 @@ function buildAddRequest(): AdminPackageTemplateAddRequest {
     tags: form.tags.length > 0 ? form.tags : undefined,
     description: form.description || undefined,
     images: form.images.length > 0 ? form.images : undefined,
-    idempotencyKey: crypto.randomUUID(),
+    idempotencyKey: generateUUID(),
   };
 }
 

@@ -1,3 +1,7 @@
+import { installCryptoPolyfill } from '@/utils/crypto-polyfill';
+
+installCryptoPolyfill();
+
 import { Component, PropsWithChildren } from 'react';
 import Taro from '@tarojs/taro';
 import { useAuthStore } from '@/stores/authStore';
