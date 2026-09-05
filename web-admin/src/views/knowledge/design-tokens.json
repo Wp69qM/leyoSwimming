@@ -1,0 +1,52 @@
+{
+  "file_id": "2083742072257646592",
+  "canvas_id": "907e32fc-e559-4013-afc5-9c8144f18cc6",
+  "pages": {
+    "A-knowledge-management-page": {
+      "frame_id": "7f3996a0-f0e9-477f-9534-cb2d2b40a479",
+      "screenshot": "src/assets/calicat/screenshots/a-knowledge-management-page.png"
+    },
+    "A-knowledge-delete-confirm-modal": {
+      "frame_id": "6544cd34-6efb-4abc-aceb-d54c07d0e4f0",
+      "screenshot": "src/assets/calicat/screenshots/a-knowledge-delete-confirm-modal.png"
+    },
+    "A-knowledge-upload-modal-manual": {
+      "frame_id": "dd3d918b-6f3c-428d-a78c-70c36d233844",
+      "screenshot": "src/assets/calicat/screenshots/a-knowledge-upload-modal-manual.png"
+    },
+    "A-knowledge-upload-modal-file": {
+      "frame_id": "c8487016-fccc-4ea1-9852-3c0945509f2e",
+      "screenshot": "src/assets/calicat/screenshots/a-knowledge-upload-modal-file.png"
+    }
+  },
+  "extends": "src/assets/calicat/design-tokens-batch2-admin.json",
+  "colors": {
+    "pageBg": "#F0F2F5",
+    "cardBg": "#FFFFFF",
+    "primary": "#1890FF",
+    "success": "#52C41A",
+    "danger": "#FF4D4F",
+    "textPrimary": "#262626",
+    "textSecondary": "#595959",
+    "border": "#D9D9D9",
+    "tableHeaderBg": "#F5F7FA"
+  },
+  "typography": {
+    "pageTitle": { "fontSize": 20, "fontWeight": 500, "lineHeight": 28 },
+    "body": { "fontSize": 14, "fontWeight": 400, "lineHeight": 22 }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24
+  },
+  "radius": {
+    "card": 4,
+    "button": 4,
+    "tag": 12
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0, 0, 0, 0.08)"
+  }
+}

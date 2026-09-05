@@ -13,6 +13,7 @@ from langchain_openai import ChatOpenAI
 from app.clients.java_client import JavaInternalClient, generate_message_id
 from app.config import Settings, get_settings
 from app.models.schemas import ChatReply, ChatRequest, ChatResponse, RecommendationItem
+from app.services.knowledge_service import KnowledgeService
 from app.tools import build_tools
 from app.tools.recommendation_tools import normalize_stroke
 from app.utils.logger import get_logger
@@ -29,22 +30,78 @@ DEFAULT_SUGGESTED_QUESTIONS = [
 RECOMMENDATION_KEYWORDS = [
     "推荐",
     "教练",
+    "老师",
+    "私教",
     "课程",
     "套餐",
-    "私教",
     "体验课",
     "学游泳",
-    "游泳",
-    "自由泳",
-    "蛙泳",
-    "仰泳",
-    "蝶泳",
     "课",
+    "节",
+    "价格",
+    "多少钱",
+    "价位",
     "价",
     "钱",
 ]
 
-SYSTEM_PROMPT = """你是 leyo，一位专业、友好的游泳学习助手。你的任务是根据用户的需求，推荐合适的游泳教练和课程套餐。
+KNOWLEDGE_KEYWORDS = {
+    "安全",
+    "危险",
+    "事故",
+    "抽筋",
+    "呛水",
+    "溺水",
+    "淹",
+    "急救",
+    "心肺复苏",
+    "CPR",
+    "AED",
+    "热身",
+    "拉伸",
+    "放松",
+    "恢复",
+    "换气",
+    "呼吸",
+    "憋气",
+    "姿势",
+    "动作",
+    "技巧",
+    "要领",
+    "训练",
+    "练习",
+    "计划",
+    "健康",
+    "卫生",
+    "水质",
+    "装备",
+    "泳镜",
+    "泳帽",
+    "泳衣",
+    "耳塞",
+    "鼻夹",
+    "耳朵",
+    "眼睛",
+    "皮肤",
+    "氯",
+    "防晒",
+    "饮食",
+    "营养",
+    "空腹",
+    "饭后",
+    "生病",
+    "感冒",
+    "伤口",
+    "生理期",
+    "孕妇",
+    "儿童",
+    "老人",
+    "初学者",
+    "新手",
+    "自学",
+}
+
+SYSTEM_PROMPT = """你是 leyo，一位专业、友好的游泳学习助手。你的任务是根据用户的需求，推荐合适的游泳教练和课程套餐，并回答游泳安全、技巧、急救、健康等知识类问题。
 
 重要规则：
 1. 当用户提到任何与教练、课程、套餐、泳姿相关的需求时，你必须先调用工具获取真实数据，不能仅凭猜测回复。
@@ -54,17 +111,23 @@ SYSTEM_PROMPT = """你是 leyo，一位专业、友好的游泳学习助手。�
    - 用户提到预算（如"1000元左右"）时，必须将 max_price 传给对应工具，只返回不超过预算的结果。
    - 用户只提到泳姿（如"推荐自由泳"）但没有明确教练或套餐时，可以同时调用 query_coaches 和 query_packages。
    - 用户只说"推荐"或"热门"时，调用 get_hot_recommendations。
-3. 只有用户明确在闲聊、打招呼、或询问与游泳无关的问题时，才可以不调用工具直接回复。
-4. 推荐时必须调用工具获取真实数据，不能编造。
-5. 已登录用户可以调用 get_user_profile 和 get_user_packages 做个性化推荐；游客用户只能调用 query_coaches、query_packages、get_hot_recommendations。
-6. 如果用户询问自己的套餐、订单、个人资料等，但你是游客模式（没有 user_hash），请友好地引导用户登录。
-7. 当标准/体验套餐无法满足用户需求（如课时数、班级规模不匹配）时，必须推荐自定义套餐（custom_package）；自定义套餐必须给出 coach_id、hours、class_size、price_per_hour、total_price，且 total_price = price_per_hour * hours。
-8. 回复要简洁、口语化、友好，突出推荐理由，每条推荐理由控制在 30 字以内。
-9. 不要每次推荐都列出相同的教练或套餐，优先根据用户的具体需求（预算、泳姿、课时、班级规模、教练描述、套餐描述）筛选最匹配的项。
-10. 你收到的工具结果中已经包含教练的 description（个人介绍/擅长方向）和套餐的 description（课程介绍/适合人群），请重点参考这些描述来判断是否匹配用户需求，并在推荐理由中体现关键信息。
-11. 你生成的文字回复中提到的教练或套餐，必须和最终返回的 recommendations 列表完全一致：不能提到列表里没有的项，也不能漏掉列表里要展示的关键项。介绍顺序必须严格按照 recommendations 列表从上到下，不要重新排序。
-12. 如果推荐项是 custom_package（自定义套餐），请在理由中引用教练 description 里的核心优势，让用户感受到推荐的针对性。
-13. 最后可以给出 2-3 个用户可能想继续问的问题，用「追问：」开头并换行列出。
+3. 当用户询问游泳安全、技巧、急救、健康等知识类问题时，优先调用 query_knowledge 从知识库检索答案；如果知识库返回的结果为空，则调用 web_search 进行联网搜索兜底。
+4. 只有用户明确在闲聊、打招呼、或询问与游泳无关的问题时，才可以不调用工具直接回复。
+5. 推荐时必须调用工具获取真实数据，不能编造；回答知识类问题时必须基于 query_knowledge 或 web_search 返回的结果，并引用来源。
+6. 已登录用户可以调用 get_user_profile 和 get_user_packages 做个性化推荐；游客用户只能调用 query_coaches、query_packages、get_hot_recommendations。
+7. 如果用户询问自己的套餐、订单、个人资料等，但你是游客模式（没有 user_hash），请友好地引导用户登录。
+8. 当标准/体验套餐无法满足用户需求（如课时数、班级规模不匹配）时，必须推荐自定义套餐（custom_package）；自定义套餐必须给出 coach_id、hours、class_size、price_per_hour、total_price，且 total_price = price_per_hour * hours。
+9. 回复要简洁、口语化、友好，突出推荐理由，每条推荐理由控制在 30 字以内。
+10. 不要每次推荐都列出相同的教练或套餐，优先根据用户的具体需求（预算、泳姿、课时、班级规模、教练描述、套餐描述）筛选最匹配的项。
+11. 你收到的工具结果中已经包含教练的 description（个人介绍/擅长方向）和套餐的 description（课程介绍/适合人群），请重点参考这些描述来判断是否匹配用户需求，并在推荐理由中体现关键信息。
+12. 你生成的文字回复中提到的教练或套餐，必须和最终返回的 recommendations 列表完全一致：不能提到列表里没有的项，也不能漏掉列表里要展示的关键项。介绍顺序必须严格按照 recommendations 列表从上到下，不要重新排序。
+13. 如果推荐项是 custom_package（自定义套餐），请在理由中引用教练 description 里的核心优势，让用户感受到推荐的针对性。
+14. 回答知识类问题时，必须根据工具结果中的 `source_type` 字段判断答案来源：
+    - 当 `source_type` 为 `knowledge_base` 时，回复开头必须写"以下内容来自知识库《{{source}}》"，其中 `{{source}}` 替换为工具结果中的 `source` 字段值；若有多条结果，开头写"以下内容来自知识库"，并在末尾按"1. 《{{source}}》"的格式列出所有 `source` 字段值。
+    - 当 `source_type` 为 `web_search` 时，回复开头必须写"以下内容来自网络，仅供参考"，并在正文中或末尾标注每条结果的标题和链接（格式："{{title}}：{{url}}"）。
+    - 若同时存在知识库和网络搜索结果，先说明知识库来源，再说明网络来源。
+15. 最后可以给出 2-3 个用户可能想继续问的问题，用「追问：」开头并换行列出。
+16. 如果对话中已经包含 query_knowledge 或 web_search 的工具调用结果（由系统或工具消息提供），请直接基于这些结果回答，不要再调用 query_knowledge 或 web_search 工具。
 
 当前时间：{current_time}
 用户身份：{user_identity}
@@ -81,6 +144,7 @@ class ChatService:
         self.client = JavaInternalClient(self.settings)
         self.redis: redis.Redis | None = None
         self._llm: ChatOpenAI | None = None
+        self._knowledge_service: KnowledgeService | None = None
 
     @property
     def llm(self) -> ChatOpenAI:
@@ -94,6 +158,12 @@ class ChatService:
                 timeout=self.settings.llm_timeout_seconds,
             )
         return self._llm
+
+    @property
+    def knowledge_service(self) -> KnowledgeService:
+        if self._knowledge_service is None:
+            self._knowledge_service = KnowledgeService(settings=self.settings)
+        return self._knowledge_service
 
     async def _get_redis(self) -> redis.Redis:
         if self.redis is None:
@@ -613,6 +683,9 @@ class ChatService:
     def _is_recommendation_intent(self, message: str) -> bool:
         return any(keyword in message for keyword in RECOMMENDATION_KEYWORDS)
 
+    def _is_knowledge_intent(self, message: str) -> bool:
+        return any(keyword in message for keyword in KNOWLEDGE_KEYWORDS)
+
     def _detect_recommendation_focus(self, message: str) -> str:
         msg = message.lower()
         coach_keywords = {"教练", "老师", "私教"}
@@ -671,6 +744,136 @@ class ChatService:
             if msg.get("role") == "user"
         ]
         return "\n".join(user_messages[-10:])
+
+    async def _bootstrap_knowledge_data(
+        self,
+        query: str,
+        tools: list[Any],
+        session_id: str | None = None,
+    ) -> tuple[dict[str, Any] | None, list[BaseMessage] | None]:
+        """针对知识类请求，主动检索知识库并将结果注入上下文。
+
+        若知识库未命中，则自动调用 web_search 进行联网搜索兜底。
+        返回的记录和消息列表模拟一次完整的工具调用：
+        - AIMessage 表示助手已决定调用 query_knowledge/web_search；
+        - ToolMessage 表示工具返回的检索结果。
+        这样后续 LLM 会直接基于工具结果生成回答，避免再次输出工具调用标记。
+        """
+        if session_id:
+            structlog.contextvars.bind_contextvars(session_id=session_id)
+        try:
+            logger.info(
+                "bootstrap_knowledge_query",
+                session_id=session_id,
+                query=query,
+            )
+            results = await self.knowledge_service.query(
+                query=query,
+                top_k=3,
+                threshold=0.2,
+            )
+
+            tool_name = "query_knowledge"
+            if not results:
+                logger.info(
+                    "bootstrap_knowledge_empty",
+                    session_id=session_id,
+                    query=query,
+                )
+                web_search_tool = next(
+                    (t for t in tools if getattr(t, "name", None) == "web_search"),
+                    None,
+                )
+                if web_search_tool is None:
+                    logger.warning("web_search_tool_not_found", session_id=session_id)
+                    return None, None
+                try:
+                    web_results = await web_search_tool.ainvoke({"query": query})
+                except Exception as exc:
+                    logger.error(
+                        "bootstrap_web_search_failed",
+                        session_id=session_id,
+                        query=query,
+                        error=str(exc),
+                    )
+                    return None, None
+                if not web_results:
+                    logger.info(
+                        "bootstrap_web_search_empty",
+                        session_id=session_id,
+                        query=query,
+                    )
+                    return None, None
+                results = web_results
+                tool_name = "web_search"
+
+            record = self._bootstrap_record(
+                tool_name,
+                {"query": query},
+                [
+                    {
+                        "content": r.get("content", ""),
+                        "source": r.get("title", ""),
+                        "source_type": "knowledge_base" if tool_name == "query_knowledge" else "web_search",
+                        "category": r.get("category", ""),
+                        "score": r.get("score", 0),
+                        "url": r.get("url", ""),
+                    }
+                    for r in results
+                ],
+            )
+            source_hint = (
+                "以下是与用户问题相关的网络搜索结果，每条结果包含 source_type、标题、链接和内容；"
+                "请基于这些内容回答，并严格按系统提示要求标注来源。如果内容不足以完整回答，"
+                "可以补充通用建议，但不要编造没有的信息。"
+                if tool_name == "web_search"
+                else "以下是与用户问题相关的知识库内容，每条结果包含 source_type、来源标题、分类、相似度和内容；"
+                "请基于这些内容回答，并严格按系统提示要求标注来源。如果内容不足以完整回答，"
+                "可以补充通用建议，但不要编造知识库中没有的信息。"
+            )
+            structured_results = [
+                {
+                    "content": r.get("content", ""),
+                    "source": r.get("title", ""),
+                    "source_type": "knowledge_base" if tool_name == "query_knowledge" else "web_search",
+                    "category": r.get("category", ""),
+                    "score": r.get("score", 0),
+                    "url": r.get("url", ""),
+                }
+                for r in results
+            ]
+            tool_result_content = (
+                f"{source_hint}\n\n"
+                f"检索结果（JSON）：\n{json.dumps(structured_results, ensure_ascii=False, indent=2)}"
+            )
+            tool_call_message = AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "id": record["id"],
+                        "name": record["name"],
+                        "args": record["args"],
+                    }
+                ],
+            )
+            tool_result_message = ToolMessage(
+                content=tool_result_content,
+                tool_call_id=record["id"],
+            )
+            logger.info(
+                "bootstrap_knowledge_finished",
+                session_id=session_id,
+                query=query,
+                tool_name=tool_name,
+                result_count=len(results),
+            )
+            return record, [tool_call_message, tool_result_message]
+        except Exception as exc:
+            logger.error("bootstrap_knowledge_failed", session_id=session_id, query=query, error=str(exc))
+            return None, None
+        finally:
+            if session_id:
+                structlog.contextvars.unbind_contextvars("session_id")
 
     async def _bootstrap_recommendation_data(
         self,
@@ -1052,7 +1255,19 @@ class ChatService:
 
         context_history = history + [{"role": "user", "content": request.message}]
         context_text = self._build_intent_context(context_history)
-        if self._is_recommendation_intent(request.message) or self._is_recommendation_intent(context_text):
+        is_recommendation = (
+            self._is_recommendation_intent(request.message)
+            or self._is_recommendation_intent(context_text)
+        )
+        is_knowledge = self._is_knowledge_intent(request.message)
+        logger.info(
+            "chat_intent_detected",
+            session_id=request.session_id,
+            message=request.message,
+            is_recommendation=is_recommendation,
+            is_knowledge=is_knowledge,
+        )
+        if is_recommendation:
             (
                 bootstrap_records,
                 bootstrap_outputs,
@@ -1068,6 +1283,19 @@ class ChatService:
             tool_call_records.extend(bootstrap_records)
             tool_outputs.extend(bootstrap_outputs)
             messages.extend(bootstrap_messages)
+
+        if is_knowledge:
+            knowledge_record, knowledge_messages = await self._bootstrap_knowledge_data(
+                request.message,
+                tools,
+                session_id=request.session_id,
+            )
+            if knowledge_record and knowledge_messages:
+                bootstrap_records.append(knowledge_record)
+                bootstrap_messages.extend(knowledge_messages)
+                tool_call_records.append(knowledge_record)
+                tool_outputs.append(knowledge_record["output"])
+                messages.extend(knowledge_messages)
 
         config = {
             "metadata": {

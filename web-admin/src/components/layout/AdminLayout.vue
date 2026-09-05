@@ -11,6 +11,7 @@ interface MenuItem {
   title: string;
   path?: string;
   disabled?: boolean;
+  role?: string;
 }
 
 interface MenuGroup {
@@ -65,12 +66,25 @@ const menuGroups: MenuGroup[] = [
   },
   {
     title: '系统设置',
-    children: [{ title: '管理员账号', path: '/admin-account-management' }],
+    children: [
+      { title: '管理员账号', path: '/admin-account-management' },
+      { title: '知识库管理', path: '/knowledge-management', role: 'admin' },
+    ],
   },
 ];
 
 function isMenuActive(path: string): boolean {
   return route.path === path || route.path.startsWith(`${path}/`);
+}
+
+function isMenuVisible(item: MenuItem): boolean {
+  if (item.role === 'admin') {
+    return (
+      authStore.admin?.role === 'admin' ||
+      authStore.admin?.role === 'super_admin'
+    );
+  }
+  return true;
 }
 
 async function handleLogout() {
@@ -105,7 +119,7 @@ async function handleLogout() {
           <div class="nav-group-title">{{ group.title }}</div>
           <template v-for="item in group.children" :key="item.title">
             <router-link
-              v-if="!item.disabled && item.path"
+              v-if="!item.disabled && item.path && isMenuVisible(item)"
               :to="item.path"
               class="nav-item nav-item--secondary"
               :class="{ active: item.path && isMenuActive(item.path) }"
@@ -113,7 +127,7 @@ async function handleLogout() {
               {{ item.title }}
             </router-link>
             <div
-              v-else
+              v-else-if="item.disabled"
               class="nav-item nav-item--secondary nav-item--disabled"
               :title="`${item.title}（暂未开放）`"
             >

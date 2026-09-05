@@ -28,6 +28,8 @@ public class AdminPermissionHelper {
   public static final String PERM_ORDER_WRITE = "ORDER:WRITE";
   public static final String PERM_PACKAGE_READ = "PACKAGE:READ";
   public static final String PERM_PACKAGE_WRITE = "PACKAGE:WRITE";
+  public static final String PERM_KNOWLEDGE_READ = "KNOWLEDGE:READ";
+  public static final String PERM_KNOWLEDGE_WRITE = "KNOWLEDGE:WRITE";
 
   private static final Set<String> SUPER_ADMIN_PERMS =
       Set.of(
@@ -41,7 +43,9 @@ public class AdminPermissionHelper {
           PERM_ORDER_READ,
           PERM_ORDER_WRITE,
           PERM_PACKAGE_READ,
-          PERM_PACKAGE_WRITE);
+          PERM_PACKAGE_WRITE,
+          PERM_KNOWLEDGE_READ,
+          PERM_KNOWLEDGE_WRITE);
 
   private static final Set<String> ADMIN_PERMS =
       Set.of(
@@ -54,7 +58,9 @@ public class AdminPermissionHelper {
           PERM_ORDER_READ,
           PERM_ORDER_WRITE,
           PERM_PACKAGE_READ,
-          PERM_PACKAGE_WRITE);
+          PERM_PACKAGE_WRITE,
+          PERM_KNOWLEDGE_READ,
+          PERM_KNOWLEDGE_WRITE);
 
   private static final Set<String> COACH_MANAGER_PERMS =
       Set.of(PERM_COACH_READ, PERM_COACH_WRITE);

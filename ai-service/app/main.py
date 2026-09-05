@@ -20,6 +20,7 @@ from app.models.schemas import (
     SessionListRequest,
     SessionListResponse,
 )
+from app.routers import knowledge_router
 from app.services.chat_service import ChatService
 from app.utils.logger import configure_logging, get_logger
 
@@ -60,6 +61,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(knowledge_router.router, prefix="/api/ai-assistant")
 
 
 @app.middleware("http")

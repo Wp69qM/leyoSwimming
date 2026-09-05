@@ -37,7 +37,8 @@ public class GlobalExceptionHandler {
         || code == ErrorCode.ADMIN_NOT_FOUND.getCode()
         || code == ErrorCode.USER_NOT_FOUND.getCode()
         || code == ErrorCode.COACH_NOT_FOUND.getCode()
-        || code == ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND.getCode()) {
+        || code == ErrorCode.PACKAGE_TEMPLATE_NOT_FOUND.getCode()
+        || code == ErrorCode.KNOWLEDGE_NOT_FOUND.getCode()) {
       return HttpStatus.NOT_FOUND;
     }
     return HttpStatus.CONFLICT;

@@ -111,6 +111,13 @@ public enum ErrorCode {
   // 教练入驻申请 500xxx
   COACH_APPLICATION_PENDING(500001, "已有待审核申请"),
 
+  // 知识库 610xxx
+  KNOWLEDGE_TITLE_DUPLICATE(610001, "知识库标题已存在"),
+  KNOWLEDGE_NOT_FOUND(610002, "知识库文档不存在"),
+  KNOWLEDGE_INGEST_FAILED(610003, "知识库索引失败"),
+  KNOWLEDGE_FILE_EMPTY(610004, "上传文件内容为空"),
+  KNOWLEDGE_FILE_TYPE_INVALID(610005, "仅支持 txt/md 文件"),
+
   // 系统 900xxx
   INTERNAL_ERROR(900001, "系统繁忙，请稍后重试"),
   AI_SERVICE_ERROR(900002, "AI 服务暂时不可用，请稍后重试"),

@@ -133,18 +133,31 @@ Content-Type: application/json
 
 ### 5.2 列表查询响应
 
+所有分页列表接口统一使用以下结构，**必须使用 `list` 字段承载列表数据**：
+
 ```json
 {
   "code": 0,
   "message": "success",
   "data": {
-    "total": 100,
     "list": [
       { }
-    ]
+    ],
+    "total": 100,
+    "page": 1,
+    "pageSize": 20
   }
 }
 ```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `list` | array | 当前页数据列表 |
+| `total` | integer | 总记录数 |
+| `page` | integer | 当前页码，从 1 开始 |
+| `pageSize` | integer | 每页条数 |
+
+> **强制规范**：列表字段统一命名为 `list`，禁止使用 `items`、`records`、`rows` 等其他命名，确保项目所有列表接口响应字段一致。
 
 ### 5.3 HTTP 状态码
 
@@ -309,3 +322,4 @@ Authorization: Bearer {token}
 | 版本 | 日期 | 作者 | 变更 |
 |------|------|------|------|
 | v1.0 | 2026-08-07 | 开发团队 | 初版：定义 RPC over HTTP 风格 API 规范 |
+| v1.1 | 2026-09-04 | AI | 强化 §5.2 列表查询响应规范：统一使用 `data.list`，禁止使用 `items`/`records`/`rows`，补充分页字段说明 |

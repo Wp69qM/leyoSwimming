@@ -47,6 +47,14 @@ class Settings(BaseSettings):
 
     enable_mock_data: bool = Field(default=False)
 
+    chroma_persist_directory: str = Field(default="./data/chroma")
+    knowledge_similarity_threshold: float = Field(default=0.2)
+    embedding_model: str = Field(default="text-embedding-v2")
+    embedding_base_url: str = Field(default="")
+    embedding_api_key: str = Field(default="")
+    tavily_api_key: str = Field(default="")
+    tavily_max_results: int = Field(default=3)
+
     @property
     def redis_url(self) -> str:
         auth = f":{self.redis_password}@" if self.redis_password else ""

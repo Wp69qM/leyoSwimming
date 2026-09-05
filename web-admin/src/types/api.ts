@@ -629,3 +629,71 @@ export interface AdminPackageTemplateCustomConfigResponse {
   maxHours: number;
   defaultValidDays: number;
 }
+
+export type KnowledgeCategory = 'safety' | 'technique' | 'emergency' | 'other';
+export type KnowledgeContentType = 'text' | 'markdown';
+
+export interface KnowledgeAddRequest {
+  title: string;
+  category: KnowledgeCategory;
+  contentType: KnowledgeContentType;
+  content: string;
+}
+
+export interface KnowledgeUploadRequest {
+  title: string;
+  category: KnowledgeCategory;
+  file: File;
+}
+
+export interface KnowledgeListRequest extends PageRequest {
+  category?: KnowledgeCategory;
+  status?: number | null;
+  keyword?: string;
+}
+
+export interface KnowledgeListItem {
+  documentId: number;
+  title: string;
+  category: KnowledgeCategory;
+  contentType: KnowledgeContentType;
+  sourceType: KnowledgeSourceType;
+  status: number;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface KnowledgeListResponse {
+  list: KnowledgeListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface KnowledgeToggleRequest {
+  documentId: number;
+  status: number;
+}
+
+export interface KnowledgeDeleteRequest {
+  documentId: number;
+}
+
+export interface KnowledgeDetailRequest {
+  documentId: number;
+}
+
+export type KnowledgeSourceType = 'manual' | 'file';
+
+export interface KnowledgeDetail {
+  documentId: number;
+  title: string;
+  category: KnowledgeCategory;
+  contentType: KnowledgeContentType;
+  sourceType: KnowledgeSourceType;
+  content: string;
+  status: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}

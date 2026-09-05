@@ -16,6 +16,7 @@ import OrderDetailView from '@/views/order-management/OrderDetailView.vue';
 import PackageManagementView from '@/views/package-management/PackageManagementView.vue';
 import PackageDetailView from '@/views/package-management/PackageDetailView.vue';
 import PackageConfigView from '@/views/package-config/PackageConfigView.vue';
+import KnowledgeManagementView from '@/views/knowledge/KnowledgeManagementView.vue';
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -95,6 +96,12 @@ export const router = createRouter({
           name: 'package-config',
           component: PackageConfigView,
         },
+        {
+          path: 'knowledge-management',
+          name: 'knowledge-management',
+          component: KnowledgeManagementView,
+          meta: { requiresAdmin: true },
+        },
       ],
     },
     {
@@ -110,6 +117,12 @@ router.beforeEach((to) => {
   const authStore = useAdminAuthStore();
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { path: '/login', query: { redirect: to.fullPath } };
+  }
+  if (
+    to.meta.requiresAdmin &&
+    !['admin', 'super_admin'].includes(authStore.admin?.role ?? '')
+  ) {
+    return { path: '/' };
   }
   if (to.meta.guest && authStore.isAuthenticated) {
     return { path: '/' };

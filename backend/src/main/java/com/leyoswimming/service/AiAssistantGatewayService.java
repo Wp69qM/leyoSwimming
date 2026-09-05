@@ -319,6 +319,64 @@ public class AiAssistantGatewayService {
     return count != null && count > limit;
   }
 
+  public void knowledgeIngest(String documentId, String title, String category, String content) {
+    Map<String, Object> body =
+        Map.of(
+            "document_id", documentId,
+            "title", title,
+            "category", category,
+            "content", content);
+    postToAiServiceForVoid("/api/ai-assistant/knowledge/ingest", body);
+  }
+
+  public void knowledgeDelete(String documentId) {
+    Map<String, Object> body = Map.of("document_id", documentId);
+    postToAiServiceForVoid("/api/ai-assistant/knowledge/delete", body);
+  }
+
+  public void knowledgeRebuild(
+      String documentId, String title, String category, String content) {
+    Map<String, Object> body =
+        Map.of(
+            "document_id", documentId,
+            "title", title,
+            "category", category,
+            "content", content);
+    postToAiServiceForVoid("/api/ai-assistant/knowledge/rebuild", body);
+  }
+
+  private void postToAiServiceForVoid(String path, Object body) {
+    try {
+      restClient
+          .post()
+          .uri(path)
+          .body(body)
+          .retrieve()
+          .onStatus(
+              HttpStatusCode::isError,
+              (clientRequest, clientResponse) -> {
+                String responseBody = "";
+                try (BufferedReader reader =
+                    new BufferedReader(
+                        new InputStreamReader(
+                            clientResponse.getBody(), StandardCharsets.UTF_8))) {
+                  responseBody = reader.lines().collect(Collectors.joining("\n"));
+                } catch (Exception ignored) {
+                }
+                log.error(
+                    "AI service returned non-2xx status: {} url={} response={}",
+                    clientResponse.getStatusCode(),
+                    aiServiceBaseUrl + path,
+                    responseBody);
+                throw new BusinessException(ErrorCode.AI_SERVICE_ERROR);
+              })
+          .toBodilessEntity();
+    } catch (RestClientResponseException e) {
+      log.error("AI service request failed: {}", e.getMessage());
+      throw new BusinessException(ErrorCode.AI_SERVICE_ERROR);
+    }
+  }
+
   private <T> T postToAiService(String path, Object body, Class<T> responseType) {
     try {
       return restClient
