@@ -314,6 +314,7 @@ Authorization: Bearer {token}
 - [前端-后端-开发 setup guide](./frontend-backend-setup-guide.md)
 - [US 拆分规范](../spec/user-story/SPECIFICATION.md)
 - [OpenSpec 变更规范](../spec/openspec/README.md)
+- **硬性规则镜像**：[.trae/rules/java/api-convention.md](../../.trae/rules/java/api-convention.md)（Agent 编码与评审时的强制检查项，与本规范同步维护）
 
 ---
 
@@ -323,3 +324,4 @@ Authorization: Bearer {token}
 |------|------|------|------|
 | v1.0 | 2026-08-07 | 开发团队 | 初版：定义 RPC over HTTP 风格 API 规范 |
 | v1.1 | 2026-09-04 | AI | 强化 §5.2 列表查询响应规范：统一使用 `data.list`，禁止使用 `items`/`records`/`rows`，补充分页字段说明 |
+| v1.2 | 2026-09-06 | AI | 建立硬性规则镜像 `.trae/rules/java/api-convention.md`（16 项约束 + 违规对照表 + code-review 复审清单），本文档保持规范本体地位，两侧同步维护 |
