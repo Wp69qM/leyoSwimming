@@ -44,11 +44,12 @@ def build_tools() -> list[Any]:
             top_k: 最多返回几条知识片段，默认 3
         """
         logger.info("tool_query_knowledge", query=query, top_k=top_k)
-        service = _get_knowledge_service()
+        settings = get_settings()
+        service = _get_knowledge_service(settings)
         raw_results = await service.query(
             query=query,
             top_k=top_k,
-            threshold=DEFAULT_THRESHOLD,
+            threshold=settings.knowledge_similarity_threshold,
         )
         return [
             {
@@ -62,7 +63,9 @@ def build_tools() -> list[Any]:
         ]
 
     @tool
-    async def web_search(query: str, max_results: int = DEFAULT_MAX_RESULTS) -> list[dict[str, Any]]:
+    async def web_search(
+        query: str, max_results: int | None = None
+    ) -> list[dict[str, Any]]:
         """当游泳知识库没有相关内容时，通过联网搜索补充信息。
 
         仅当 query_knowledge 返回空或结果相似度不足时调用。
@@ -70,10 +73,12 @@ def build_tools() -> list[Any]:
 
         Args:
             query: 搜索关键词
-            max_results: 最多返回几条结果，默认 3
+            max_results: 最多返回几条结果，默认读取 TAVILY_MAX_RESULTS 配置
         """
-        logger.info("tool_web_search", query=query, max_results=max_results)
         settings = get_settings()
+        if max_results is None:
+            max_results = settings.tavily_max_results
+        logger.info("tool_web_search", query=query, max_results=max_results)
         if not settings.tavily_api_key:
             logger.warning("tavily_api_key_missing")
             return []

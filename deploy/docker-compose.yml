@@ -75,12 +75,20 @@ services:
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-qwen3-vl-embedding}
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      # 联网搜索配置（知识库未命中时兜底）
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      TAVILY_MAX_RESULTS: ${TAVILY_MAX_RESULTS:-3}
+      # 知识库向量存储配置
+      CHROMA_PERSIST_DIRECTORY: ${CHROMA_PERSIST_DIRECTORY:-/app/data/chroma}
+      KNOWLEDGE_SIMILARITY_THRESHOLD: ${KNOWLEDGE_SIMILARITY_THRESHOLD:-0.2}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       JAVA_INTERNAL_BASE_URL: http://leyo-backend:8080/api/internal/ai
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
       ENABLE_MOCK_DATA: ${ENABLE_MOCK_DATA:-true}
+    volumes:
+      - ai_service_chroma_data:${CHROMA_PERSIST_DIRECTORY:-/app/data/chroma}
     depends_on:
       redis:
         condition: service_healthy
@@ -102,3 +110,4 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  ai_service_chroma_data:

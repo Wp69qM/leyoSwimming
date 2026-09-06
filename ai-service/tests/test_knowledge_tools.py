@@ -59,7 +59,11 @@ async def test_query_knowledge_returns_formatted_results(
 async def test_query_knowledge_uses_default_top_k(
     mock_knowledge_service, monkeypatch, reset_tools
 ):
+    from app.config import Settings
+
+    fake_settings = Settings(knowledge_similarity_threshold=0.7)
     monkeypatch.setattr(knowledge_tools, "_knowledge_service", mock_knowledge_service)
+    monkeypatch.setattr(knowledge_tools, "get_settings", lambda: fake_settings)
     mock_knowledge_service.query.return_value = []
 
     tools = knowledge_tools.build_tools()
@@ -67,7 +71,7 @@ async def test_query_knowledge_uses_default_top_k(
     await query_tool.ainvoke({"query": "游泳"})
 
     mock_knowledge_service.query.assert_called_once_with(
-        query="游泳", top_k=3, threshold=0.2
+        query="游泳", top_k=3, threshold=0.7
     )
 
 
@@ -75,7 +79,11 @@ async def test_query_knowledge_uses_default_top_k(
 async def test_query_knowledge_accepts_custom_top_k(
     mock_knowledge_service, monkeypatch, reset_tools
 ):
+    from app.config import Settings
+
+    fake_settings = Settings(knowledge_similarity_threshold=0.2)
     monkeypatch.setattr(knowledge_tools, "_knowledge_service", mock_knowledge_service)
+    monkeypatch.setattr(knowledge_tools, "get_settings", lambda: fake_settings)
     mock_knowledge_service.query.return_value = []
 
     tools = knowledge_tools.build_tools()

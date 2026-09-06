@@ -770,7 +770,7 @@ class ChatService:
             results = await self.knowledge_service.query(
                 query=query,
                 top_k=3,
-                threshold=0.2,
+                threshold=self.settings.knowledge_similarity_threshold,
             )
 
             tool_name = "query_knowledge"

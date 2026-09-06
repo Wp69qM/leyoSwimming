@@ -129,6 +129,12 @@ services:
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-qwen3-vl-embedding}
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      # 联网搜索配置（知识库未命中时兜底）
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      TAVILY_MAX_RESULTS: ${TAVILY_MAX_RESULTS:-3}
+      # 知识库向量存储配置
+      CHROMA_PERSIST_DIRECTORY: ${CHROMA_PERSIST_DIRECTORY:-/app/data/chroma}
+      KNOWLEDGE_SIMILARITY_THRESHOLD: ${KNOWLEDGE_SIMILARITY_THRESHOLD:-0.2}
       LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
       LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
       LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-leyoSwimming}
@@ -143,6 +149,8 @@ services:
       RATE_LIMIT_IP_PER_MINUTE: ${RATE_LIMIT_IP_PER_MINUTE:-60}
       TRUSTED_PROXY_COUNT: ${TRUSTED_PROXY_COUNT:-1}
       ENABLE_MOCK_DATA: ${ENABLE_MOCK_DATA:-false}
+    volumes:
+      - ai_service_chroma_data:${CHROMA_PERSIST_DIRECTORY:-/app/data/chroma}
     depends_on:
       redis:
         condition: service_healthy
@@ -188,6 +196,7 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  ai_service_chroma_data:
 
 networks:
   leyo-network:
