@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     tavily_api_key: str = Field(default="")
     tavily_max_results: int = Field(default=3)
 
+    mcp_api_token: str = Field(default="")
+    mcp_top_k_max: int = Field(default=10)
+
     @property
     def redis_url(self) -> str:
         auth = f":{self.redis_password}@" if self.redis_password else ""

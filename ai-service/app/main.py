@@ -39,6 +39,9 @@ async def lifespan(app: FastAPI):
     if len(settings.internal_api_token) < 32:
         logger.error("internal_api_token_too_short")
         raise RuntimeError("INTERNAL_API_TOKEN 长度不能少于 32 位，请配置强随机字符串")
+    if len(settings.mcp_api_token) < 32:
+        logger.error("mcp_api_token_too_short")
+        raise RuntimeError("MCP_API_TOKEN 长度不能少于 32 位，请配置强随机字符串")
     yield
     logger.info("ai_service_stopping")
     await chat_service.close()

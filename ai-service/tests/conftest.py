@@ -6,6 +6,9 @@ import pytest
 # 长度需满足启动时 >= 32 位的校验。
 os.environ.setdefault("INTERNAL_API_TOKEN", "test-internal-token-for-ai-service-123")
 
+# MCP Server 独立鉴权 Token（US-066），长度需满足启动时 >= 32 位的校验。
+os.environ.setdefault("MCP_API_TOKEN", "test-mcp-token-for-ai-service-45678")
+
 # 测试环境使用较低的限流阈值，便于验证限流行为。
 os.environ.setdefault("RATE_LIMIT_IP_PER_MINUTE", "3")
 os.environ.setdefault("RATE_LIMIT_USER_PER_MINUTE", "2")
