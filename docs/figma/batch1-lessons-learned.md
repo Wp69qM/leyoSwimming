@@ -72,9 +72,25 @@
 | 23 | 底部输入框绑定 Enter 发送后，发送成功输入框未清空 | 发送成功后主动清空输入状态 | 事件处理只触发发送，未重置输入值 |
 | 24 | 项目根目录堆积临时脚本、diff 文件等中间产出物 | 调试/分析产生的临时文件统一移入 `tmp/`，避免污染根目录 | 缺乏中间产出物整理意识 |
 
+### 2.7 后端与测试工程类问题（batch5：MCP 能力暴露）
+
+> batch5 为纯后端批次（ai-service 的 FastMCP + Streamable HTTP + 4 个只读工具 + Trae 注册验证），无前端页面、无数据表变更，visual-review 检查项按 N/A 处理。以下问题以后端开发/测试/集成为主。
+
+| # | 偏差表现/问题 | 正确做法 | 根因 |
+|---|---|---|---|
+| 25 | 带 `--cov` 运行测试时批量 401/429 失败，不带 cov 全部通过，出现诡异的"cov 依赖"假象 | conftest 中所有测试环境变量**强制赋值**而非 `setdefault`，并写明根因注释；新项目 conftest 一律强制赋值；"只在某运行模式下失败"优先排查进程环境被提前污染 | pytest-cov 启动时 coverage 提前导入 app 包 → 触发 config.py 模块级 `load_dotenv()` → 本地 .env 真实 token/限流值写入进程环境，早于 conftest 执行，`setdefault` 保留真实值 |
+| 26 | pytest-cov 下报 `KeyError: 'pydantic.root_model'` | conftest 顶部 `import pydantic.root_model` 预导入；coverage 报导入期 KeyError 时优先怀疑延迟加载模块，预导入规避 | pytest-cov 的 trace 干扰 pydantic 延迟加载机制 |
+| 27 | `StreamableHTTPSessionManager` 每实例只能 `run()` 一次，测试需多次进入/退出时报错 | 测试在进入前 + 退出后重置 `_has_started` 标志（stateless 模式下 SDK 已清理内部状态，重置安全）；生产 lifespan 全程一次不受影响 | SDK 设计为单次 `run()` 生命周期，测试反复启停与该设计冲突 |
+| 28 | host 为 127.0.0.1 时自定义 Host（如 `http://test`）被 421 拒绝 | 已有独立 Bearer token + IP 限流前提下显式禁用：`TransportSecuritySettings(enable_dns_rebinding_protection=False)`，注释写明安全论证 | FastMCP DNS rebinding 保护默认 allowed_hosts 仅 localhost，与测试自定义 Host 冲突 |
+| 29 | FastMCP 把工具的 list 返回值展开为多个 content 块，破坏单 JSON 块响应 | 工具必须返回 `{"list": [...]}` 包装结构（与项目 API 约定 `data.list` 天然对齐） | 未了解 FastMCP 对 list 返回值的默认展开行为 |
+| 30 | `hmac.compare_digest` 的 str 重载遇非 ASCII token 抛 TypeError，恶意请求得 500 而非 401，且产生错误日志噪音（code-review 发现） | 安全敏感比较一律 bytes 化：`token.encode("utf-8")` 后比较（两处中间件同模式修复 + 2 个回归测试） | 使用 str 重载进行安全比较，未考虑非 ASCII 输入 |
+| 31 | MCP SDK 连接错误包装在 ExceptionGroup 中，直接 `str(exc)` 输出不可读 | 验证脚本增加 `flatten_exception` 解包出根因（ConnectError/401），并输出排查提示（服务未启动/token 不一致/限流） | ExceptionGroup 语义下顶层异常信息不含根因 |
+| 32 | 本机 Trae 的 node utility 进程占用 8000 端口，`/health` 返回 200 造成"服务在运行"假象，实际 POST `/mcp-server/mcp` 返回 404 暴露真相 | 诊断顺序：进程命令行 → 决定性端点探测（404 vs 401）→ 再怀疑代码；无 `--reload` 的服务改代码后必须手动重启；端口被占时果断换端口 | 非决定性探测（`/health` 任何服务都可返回 200）误判 + 旧代码进程未重启 |
+| 33 | `knowledge_similarity_threshold` 代码默认值 0.7→0.2 修正时，deploy/.env.example 残留 0.7（code-review MEDIUM 发现），生产按模板部署会阻断召回 | 调优型配置改默认值时全量 grep 所有配置源（代码 / config.example / deploy 模板 / compose fallback） | 配置默认值分散在多个源，缺乏同步检查机制 |
+
 ---
 
-## 3. 根因总结（6 条）
+## 3. 根因总结（7 条）
 
 1. **规范优先级理解错误**：Sub-Agent 仍把 page-spec 文字描述当视觉来源，未真正落实"Calicat 为唯一最高优先级"。
 2. **开发顺序颠倒**：先搭页面后还原设计稿，导致样式债务累积。
@@ -82,6 +98,7 @@
 4. **缺少视觉还原检查点**：原流程只有 code-reviewer，无 visual-review。
 5. **设计资产导出流程缺失**：Logo、图标、插画未按规则从 Calicat 导出。
 6. **中间产出物缺乏整理**：调试脚本、diff、临时文件散落在根目录，影响代码库整洁与后续排查。
+7. **运行环境时序与多源配置的隐式耦合**（batch5 新增）：测试工具链（pytest-cov）在 conftest 之前导入业务包，模块级副作用（`load_dotenv()`、延迟加载）提前污染进程环境，造成"只在某运行模式下失败"的诡异现象；配置默认值散落在代码、模板、compose 等多个源头，改一处漏多处，直到生产部署或 code-review 才暴露。此类隐式耦合无法靠肉眼发现，必须在检查清单中显式打断（conftest 强制赋值、配置源全量同步）。
 
 ---
 
@@ -191,6 +208,19 @@
 - 实现时优先使用 `<View>` 标签承载段落与列表项，通过 `className` 控制样式。
 - 不要依赖 `<Text>` 标签的默认换行与加粗行为，避免不同端表现不一致。
 
+### 4.6 后端与测试工程检查项（batch5 新增）
+
+适用于后端/测试类批次（如 ai-service MCP 能力暴露）；纯前端批次可跳过本小节。
+
+- [ ] conftest 测试环境变量用强制赋值，禁止 `setdefault`（防 pytest-cov + `load_dotenv` 时序污染）。
+- [ ] 安全 token 比较必须 encode 后 bytes 比较（`compare_digest`），并附非 ASCII 输入回归测试。
+- [ ] 配置默认值调整后全量同步所有配置源（代码 / config.example / deploy 模板 / compose fallback）。
+- [ ] 端到端验证前确认服务进程为新代码（无 `--reload` 须手动重启）；端口冲突时用决定性端点探测（404 vs 401）区分目标服务，再怀疑代码。
+- [ ] 每个 TDD Task GREEN 后立即 commit，保证批次复盘数据完整。
+- [ ] 纯后端批次：visual-review 检查项按 N/A 处理，但 code-reviewer 审查 + 覆盖率 ≥80% + E2E 验证记录归档仍为强制项。
+- [ ] 新协议接入（如 MCP JSON-RPC over Streamable HTTP）豁免项目 REST 三段式 API 约定时，豁免依据必须在 user-story / 技术文档中显式留痕。
+- [ ] 含真实 token 的本地配置文件（如 `.trae/mcp.json`）：`.gitignore` 防线 + example 模板入库；注意 `git update-index --skip-worktree` 对未跟踪文件无效，勿再推荐。
+
 ---
 
 ## 5. 落地到后续批次的 SOP
@@ -266,3 +296,4 @@ Agent 收到前端页面任务后，必须先执行：
 | v1.1 | 2026-08-15 | AI | SOP Step 2 增加读取 page-development-task-template.md 并生成 TodoWrite 检查清单，与新增规则文件对齐 |
 | v1.2 | 2026-08-25 | AI | 新增 §2.5 前端实现细节类问题与 §4.5 H5/小程序前端实现细节规范：固定栏响应式、Icon 尺寸、View/Text 使用、Button 禁用态、H5 1:1 还原 |
 | v1.3 | 2026-08-28 | AI | 新增 §2.6 AI 消息展示与工程管理类问题、§3 第 6 条根因、§4.2/§4.4/§4.5.6 对应检查清单与 Markdown 渲染规范 |
+| v1.4 | 2026-09-07 | AI | 新增 §2.7 后端与测试工程类问题（batch5：MCP 能力暴露 9 项）、§3 第 7 条根因（运行环境时序/多源配置隐式耦合）、§4.6 后端与测试工程检查项（8 条） |

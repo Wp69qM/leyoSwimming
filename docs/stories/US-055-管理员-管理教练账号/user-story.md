@@ -188,7 +188,7 @@ And   HTTP 状态码 404
 
 ### 7.2 API 影响
 
-> 本 US 接口遵循 [API 接口规范](../../../tech/api-convention.md)：统一使用 `POST`，URL 按 `/list`、`/detail`、`/add`、`/update`、业务动作命名，参数通过 JSON body 传递。
+> 本 US 接口遵循 [API 接口规范](../../tech/api-convention.md)：统一使用 `POST`，URL 按 `/list`、`/detail`、`/add`、`/update`、业务动作命名，参数通过 JSON body 传递。
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|

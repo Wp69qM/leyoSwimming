@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
+from app.mcp.auth import MCPAuthMiddleware
+from app.mcp.server import close_mcp_java_client, mcp as mcp_server
 from app.middleware import InternalAuthMiddleware, RateLimitMiddleware
 from app.middleware.rate_limit import close_shared_redis
 from app.models.schemas import (
@@ -42,10 +44,14 @@ async def lifespan(app: FastAPI):
     if len(settings.mcp_api_token) < 32:
         logger.error("mcp_api_token_too_short")
         raise RuntimeError("MCP_API_TOKEN 长度不能少于 32 位，请配置强随机字符串")
-    yield
+    # MCP Streamable HTTP 需要 session manager 运行；mount 的子 app lifespan
+    # 不会被 FastAPI 调用，需在主 app lifespan 中显式管理。
+    async with mcp_server.session_manager.run():
+        yield
     logger.info("ai_service_stopping")
     await chat_service.close()
     await close_shared_redis()
+    await close_mcp_java_client()
 
 
 app = FastAPI(
@@ -66,6 +72,9 @@ app.add_middleware(
 )
 
 app.include_router(knowledge_router.router, prefix="/api/ai-assistant")
+
+# MCP Streamable HTTP endpoint：/mcp-server/mcp（JSON-RPC，独立 Bearer 鉴权）
+app.mount("/mcp-server", MCPAuthMiddleware(mcp_server.streamable_http_app()))
 
 
 @app.middleware("http")

@@ -14,6 +14,10 @@ logger = get_logger(__name__)
 
 WINDOW_SECONDS = 60
 
+# 纳入限流的路径前缀：内部 API 链路与 MCP 协议链路（US-066 §8.2）
+RATE_LIMITED_PATH_PREFIXES = ("/api/ai-assistant/", "/mcp-server/")
+MCP_PATH_PREFIX = "/mcp-server/"
+
 _shared_redis: redis.Redis | None = None
 
 
@@ -44,7 +48,9 @@ async def close_shared_redis() -> None:
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """基于 Redis 的固定窗口限流中间件。
 
-    对 /api/ai-assistant/* 路径按请求 IP 与内部 Token 分别统计每分钟请求数。
+    对 /api/ai-assistant/* 与 /mcp-server/** 路径按请求 IP 统计每分钟请求数；
+    /api/ai-assistant/* 额外按 X-Internal-Token 统计（token 维度），
+    MCP 路径仅 IP 维度（MCP 端点使用独立 Bearer 鉴权，US-066 §8.2）。
     超出配置阈值时返回 429 Too Many Requests；Redis 异常时返回 503，fail-closed。
     """
 
@@ -84,14 +90,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path = request.url.path.lower()
-        if not path.startswith("/api/ai-assistant/"):
+        if not path.startswith(RATE_LIMITED_PATH_PREFIXES):
             return await call_next(request)
 
         try:
             now = int(time.time())
             window = now // WINDOW_SECONDS
             client_ip = self._client_ip(request)
-            token = request.headers.get("X-Internal-Token", "")
+            # token 维度仅适用于内部 API 链路（X-Internal-Token）；
+            # MCP 路径由独立 Bearer 鉴权，仅做 IP 维度限流
+            token = "" if path.startswith(MCP_PATH_PREFIX) else request.headers.get("X-Internal-Token", "")
 
             ip_key = f"ai:ratelimit:ip:{client_ip}:{window}"
             if await self._is_limited(ip_key, self.settings.rate_limit_ip_per_minute):

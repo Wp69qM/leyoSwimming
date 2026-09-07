@@ -15,6 +15,9 @@ target/
 .env.*.local
 !deploy/.env.example
 
+# Trae MCP 客户端注册配置（含真实 MCP_API_TOKEN，仅 example 模板入库）
+.trae/mcp.json
+
 # IDE
 .vscode/
 .idea/

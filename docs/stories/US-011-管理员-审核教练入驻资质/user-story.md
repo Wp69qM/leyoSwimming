@@ -175,7 +175,7 @@ And   coach 表生效资料保持离职前状态不变
 
 ### 7.2 API 影响
 
-> 本 US 接口遵循 [API 接口规范](../../../tech/api-convention.md)：统一使用 `POST`，URL 按 `/list`、`/detail`、`/approve`、`/reject` 动作命名，参数通过 JSON body 传递。
+> 本 US 接口遵循 [API 接口规范](../../tech/api-convention.md)：统一使用 `POST`，URL 按 `/list`、`/detail`、`/approve`、`/reject` 动作命名，参数通过 JSON body 传递。
 
 | # | API | 方法 | 操作 | 说明 |
 |---|-----|------|------|------|

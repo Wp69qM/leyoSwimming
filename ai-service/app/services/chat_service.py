@@ -15,7 +15,7 @@ from app.config import Settings, get_settings
 from app.models.schemas import ChatReply, ChatRequest, ChatResponse, RecommendationItem
 from app.services.knowledge_service import KnowledgeService
 from app.tools import build_tools
-from app.tools.recommendation_tools import normalize_stroke
+from app.tools.normalizers import normalize_stroke
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)

@@ -48,7 +48,8 @@ class Settings(BaseSettings):
     enable_mock_data: bool = Field(default=False)
 
     chroma_persist_directory: str = Field(default="./data/chroma")
-    knowledge_similarity_threshold: float = Field(default=0.7)
+    # text-embedding-v2 调优值：0.7 会阻断有效召回（见 batch4 经验），未显式配置时默认 0.2
+    knowledge_similarity_threshold: float = Field(default=0.2)
     embedding_model: str = Field(default="text-embedding-v2")
     embedding_base_url: str = Field(default="")
     embedding_api_key: str = Field(default="")
@@ -57,6 +58,7 @@ class Settings(BaseSettings):
 
     mcp_api_token: str = Field(default="")
     mcp_top_k_max: int = Field(default=10)
+    mcp_limit_max: int = Field(default=20)
 
     @property
     def redis_url(self) -> str:

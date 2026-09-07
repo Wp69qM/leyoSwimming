@@ -48,7 +48,9 @@ class MCPAuthMiddleware:
         token = self._extract_bearer_token(scope.get("headers") or [])
         expected = self.settings.mcp_api_token
 
-        if not expected or not hmac.compare_digest(token, expected):
+        # token 经 latin-1 解码可能含非 ASCII 字符，compare_digest 的 str 重载
+        # 遇非 ASCII 会抛 TypeError（恶意请求可得 500），统一按 UTF-8 bytes 比较。
+        if not expected or not hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8")):
             logger.warning("unauthorized_mcp_request", path=scope.get("path", ""))
             response = JSONResponse(
                 status_code=401,

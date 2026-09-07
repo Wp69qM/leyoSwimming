@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：1.5 人天
 > **作者**：AI | **最后更新**：2026-09-03
-> **配套文档**：需求：[rag-function-calling-requirements.md](../../../tech/AI-assistant-requirements/rag-function-calling-requirements.md) · 设计：[2026-09-02-ai-assistant-rag-design.md](../../../superpowers/spec/2026-09-02-ai-assistant-rag-design.md) · Figma：[U-AI-assistant-page.md](../../../figma/page-spec/U-AI-assistant-page.md)
+> **配套文档**：需求：[rag-function-calling-requirements.md](../../tech/AI-assistant-requirements/rag-function-calling-requirements.md) · 设计：[2026-09-02-ai-assistant-rag-design.md](../../superpowers/spec/2026-09-02-ai-assistant-rag-design.md) · Figma：[U-AI-assistant-page.md](../../figma/page-spec/U-AI-assistant-page.md)
 
 ---
 

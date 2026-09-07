@@ -119,6 +119,11 @@ services:
       PORT: ${PORT:-8000}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
+      # MCP Server 配置（US-066~068：Trae 等 MCP 客户端调用 /mcp-server/mcp）
+      # token 长度 >= 32，未配置时服务启动即报错（fail-fast）
+      MCP_API_TOKEN: ${MCP_API_TOKEN}
+      MCP_TOP_K_MAX: ${MCP_TOP_K_MAX:-10}
+      MCP_LIMIT_MAX: ${MCP_LIMIT_MAX:-20}
       JAVA_INTERNAL_BASE_URL: http://leyo-backend:8080/api/internal/ai
       LLM_MODEL: ${LLM_MODEL}
       LLM_BASE_URL: ${LLM_BASE_URL}

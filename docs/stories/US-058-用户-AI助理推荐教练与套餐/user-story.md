@@ -4,7 +4,7 @@
 > **优先级**：[MVP]
 > **估时**：4 人天
 > **作者**：AI　|　**最后更新**：2026-08-15
-> **配套文档**：Figma：[U-AI助理页](../../figma/page-spec/U-AI-assistant-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)　·　可行性分析：[docs/tech/AI-assistant-requirements/README.md](../../../tech/AI-assistant-requirements/README.md)
+> **配套文档**：Figma：[U-AI助理页](../../figma/page-spec/U-AI-assistant-page.md)　·　技术设计：[./tech-design.md](./tech-design.md)　·　测试计划：[./test-plan.md](./test-plan.md)　·　可行性分析：[docs/tech/AI-assistant-requirements/README.md](../../tech/AI-assistant-requirements/README.md)
 
 ---
 
@@ -92,11 +92,11 @@
 | # | 规则 | 章节 |
 |---|------|------|
 | 1 | 游客可访问基础推荐；已登录用户可个性化推荐 | 本 US §3 |
-| 2 | 教练公开信息（姓名、头像、评分、教龄、参考价格、擅长泳姿）可进入 LLM Prompt 和前端展示 | [AI-assistant-requirements §8.1](../../../tech/AI-assistant-requirements/README.md) |
-| 3 | 用户敏感信息（手机号、openid、union_id、用户真实姓名）需脱敏，不进入 LLM Prompt | [AI-assistant-requirements §8.1](../../../tech/AI-assistant-requirements/README.md) |
-| 4 | AI 助理推荐结果需基于当前数据库真实教练/套餐数据 | [AI-assistant-requirements §6.2](../../../tech/AI-assistant-requirements/README.md) |
-| 5 | 推荐日志需记录用户输入、Tool 调用链、LLM 回复，用于审计和效果分析 | [AI-assistant-requirements §8.2](../../../tech/AI-assistant-requirements/README.md) |
-| 6 | 多轮对话需维护会话上下文，避免重复询问已知信息 | [AI-assistant-requirements §6.4](../../../tech/AI-assistant-requirements/README.md) |
+| 2 | 教练公开信息（姓名、头像、评分、教龄、参考价格、擅长泳姿）可进入 LLM Prompt 和前端展示 | [AI-assistant-requirements §8.1](../../tech/AI-assistant-requirements/README.md) |
+| 3 | 用户敏感信息（手机号、openid、union_id、用户真实姓名）需脱敏，不进入 LLM Prompt | [AI-assistant-requirements §8.1](../../tech/AI-assistant-requirements/README.md) |
+| 4 | AI 助理推荐结果需基于当前数据库真实教练/套餐数据 | [AI-assistant-requirements §6.2](../../tech/AI-assistant-requirements/README.md) |
+| 5 | 推荐日志需记录用户输入、Tool 调用链、LLM 回复，用于审计和效果分析 | [AI-assistant-requirements §8.2](../../tech/AI-assistant-requirements/README.md) |
+| 6 | 多轮对话需维护会话上下文，避免重复询问已知信息 | [AI-assistant-requirements §6.4](../../tech/AI-assistant-requirements/README.md) |
 
 ---
 
@@ -326,7 +326,7 @@ Then  跳转 U-套餐详情页（携带 coach_id、hours、class_size 等自定�
 | # | 内容 | 链接 | 状态 |
 |---|------|------|------|
 | 1 | AI 助理页 page-spec | [U-AI-assistant-page.md](../../figma/page-spec/U-AI-assistant-page.md) | 📝 |
-| 2 | 可交互原型 | [docs/tech/AI-assistant-requirements/prototype.html](../../../tech/AI-assistant-requirements/prototype.html) | ✅ |
+| 2 | 可交互原型 | [docs/tech/AI-assistant-requirements/prototype.html](../../tech/AI-assistant-requirements/prototype.html) | ✅ |
 
 ### 13.1 状态截图清单
 

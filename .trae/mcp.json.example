@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "leyo-ai-service": {
+      "url": "http://localhost:8000/mcp-server/mcp",
+      "headers": {
+        "Authorization": "Bearer your-mcp-api-token-here"
+      }
+    }
+  }
+}

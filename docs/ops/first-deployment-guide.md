@@ -316,6 +316,14 @@ AI_SERVICE_BASE_URL=http://<服务器IP>:8000
 # 内部接口安全 Token，建议只含字母、数字、-、_，避免 $ 导致 systemd/docker 解析不一致
 INTERNAL_API_TOKEN=your-internal-api-token-at-least-32-characters
 
+# MCP Server 鉴权 Token（US-066~068，供 Trae 等 MCP 客户端调用 /mcp-server/mcp 端点）
+# 独立于 INTERNAL_API_TOKEN，可单独轮换；生成方式：openssl rand -hex 32（长度 >= 32，未配置服务启动即报错）
+MCP_API_TOKEN=your-mcp-api-token-here
+# MCP query_knowledge 工具单次检索条数上限
+MCP_TOP_K_MAX=10
+# MCP 推荐工具单次返回条数上限
+MCP_LIMIT_MAX=20
+
 # 短信/微信 mock 开关（MVP 阶段保持 true，无需真实服务商账号）
 SMS_MOCK_ENABLED=true
 SMS_MOCK_FIXED_CODE=123456
@@ -853,10 +861,32 @@ curl -X POST http://<服务器IP>/api/ai-assistant/chat \
     "sessionId": "<上一步返回的 sessionId>",
     "message": "我想学自由泳，推荐一个教练"
   }'
+
+# 4. 测试 MCP endpoint（US-066~068，Trae 等 MCP 客户端入口）
+# 4.1 无 token 应被拒绝（预期输出 401）
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8000/mcp-server/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0.0.0"}}}'
+
+# 4.2 自动化验证：initialize → tools/list → 4 个工具各真实调用一次
+# 服务器上 ai-service 无独立 .env（环境变量来自 systemd 的 deploy/.env），先加载再执行
+cd /opt/leyo-swimming/ai-service
+source /opt/leyo-swimming/ai-service-venv/bin/activate
+set -a; source /opt/leyo-swimming/deploy/.env; set +a
+python scripts/verify_mcp.py
 ```
 
 > - 如果 `ENABLE_MOCK_DATA=true`，AI 服务会返回 Mock 推荐数据，不调用 LLM 和 Java 内部接口；
-> - 若 AI 服务以容器运行，使用 `docker exec leyo-ai-service curl -s http://localhost:8000/health` 检查。
+> - 若 AI 服务以容器运行，使用 `docker exec leyo-ai-service curl -s http://localhost:8000/health` 检查；
+> - `verify_mcp.py` 的推荐工具需要 backend 运行中，query_knowledge 需要 EMBEDDING_API_KEY 与已同步的知识库数据；backend 未启动时推荐工具返回结构化错误属预期（US-067 故障隔离）。
+
+**MCP 客户端（Trae）注册步骤**（本地开发机，US-068）：
+
+1. 生成 token：`openssl rand -hex 32`，写入服务器 `deploy/.env` 的 `MCP_API_TOKEN` 并 `systemctl restart leyo-ai`（本地开发则写入 `ai-service/.env`）；
+2. 复制 `.trae/mcp.json.example` 为 `.trae/mcp.json`（该文件为用户专有配置，需手动创建），将 `Authorization` header 中的占位符 `your-mcp-api-token-here` 替换为实际 token；
+3. `.trae/mcp.json` 含真实 token，**禁止提交仓库**：项目 `.gitignore` 已忽略 `.trae/mcp.json`（仅 example 模板入库），替换 token 后确认 `git status` 中不出现该文件即可；
+4. 在 Trae 中重载 MCP 配置，确认 `leyo-ai-service` 连接状态正常、工具列表显示 4 个工具（query_knowledge / query_coaches / query_packages / get_hot_recommendations）。
 
 ### 6.6 管理后台访问
 

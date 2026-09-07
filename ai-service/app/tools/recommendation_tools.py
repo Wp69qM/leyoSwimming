@@ -3,42 +3,10 @@ from typing import Any
 from langchain_core.tools import tool
 
 from app.clients.java_client import JavaInternalClient
+from app.tools.normalizers import normalize_gender, normalize_package_mode, normalize_stroke
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
-
-STROKE_MAP = {
-    "自由泳": "freestyle",
-    "蛙泳": "breaststroke",
-    "仰泳": "backstroke",
-    "蝶泳": "butterfly",
-}
-
-
-STROKE_ENS = {"freestyle", "breaststroke", "backstroke", "butterfly"}
-
-
-def normalize_stroke(stroke: str | None) -> str | None:
-    if not stroke:
-        return None
-    lower = stroke.lower()
-    for cn, en in STROKE_MAP.items():
-        if cn in stroke or lower == en:
-            return en
-    logger.warning("unknown_stroke_input", stroke=stroke)
-    return None
-
-
-def normalize_gender(gender: str | None) -> str | None:
-    if not gender:
-        return None
-    g = gender.lower()
-    if g in ("女", "female", "f"):
-        return "female"
-    if g in ("男", "male", "m"):
-        return "male"
-    logger.warning("unknown_gender_input", gender=gender)
-    return None
 
 
 def build_tools(client: JavaInternalClient, user_hash: str | None = None) -> list[Any]:
@@ -102,20 +70,9 @@ def build_tools(client: JavaInternalClient, user_hash: str | None = None) -> lis
             max_price=max_price,
             hours=hours,
         )
-        normalized_mode = None
-        if package_mode:
-            mode = package_mode.lower()
-            if "体验" in package_mode or mode == "experience":
-                normalized_mode = "experience"
-            elif "标准" in package_mode or mode == "standard":
-                normalized_mode = "standard"
-            elif "自定义" in package_mode or mode == "custom":
-                normalized_mode = "custom"
-            else:
-                logger.warning("unknown_package_mode_input", package_mode=package_mode)
         return await client.query_packages(
             stroke=normalize_stroke(stroke),
-            package_mode=normalized_mode,
+            package_mode=normalize_package_mode(package_mode),
             max_price=max_price,
             hours=hours,
             limit=limit,

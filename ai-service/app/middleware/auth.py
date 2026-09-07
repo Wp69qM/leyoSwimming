@@ -38,7 +38,9 @@ class InternalAuthMiddleware(BaseHTTPMiddleware):
         token = request.headers.get("X-Internal-Token", "")
         expected = self.settings.internal_api_token
 
-        if not expected or not hmac.compare_digest(token, expected):
+        # 与 app/mcp/auth.py 一致：非 ASCII token 按 UTF-8 bytes 比较，
+        # 规避 compare_digest str 重载遇非 ASCII 抛 TypeError 返回 500。
+        if not expected or not hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8")):
             logger.warning("unauthorized_internal_request", path=path)
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
