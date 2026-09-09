@@ -5,6 +5,7 @@ import { fetchCoachDetail, fetchUserPackageQualification } from '@/api/coach';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
 import { useAuthStore } from '@/stores/authStore';
+import { getPageQuery } from '@/utils/router';
 import type {
   CoachDetail,
   CoachDetailPackage,
@@ -48,10 +49,7 @@ export default function CoachDetailPage() {
 
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
   const coachId = Number(params.id);
 
   const loadData = useCallback(async () => {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { Icon } from '@/components/common/Icon';
+import { getPageQuery } from '@/utils/router';
 
 import './index.scss';
 
@@ -17,7 +18,7 @@ export default function TermsDetailPage() {
   const [type, setType] = useState<string>('user-notice');
 
   useEffect(() => {
-    const params = Taro.getCurrentInstance().router?.params ?? {};
+    const params = getPageQuery();
     const rawType = params.type ?? 'user-notice';
     setType(String(rawType));
   }, []);

@@ -11,6 +11,7 @@ import { fetchMyPackageDetail, submitRefund } from '@/api/package';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
 import { getTeachingTypeLabel } from '@/constants/teachingType';
+import { getPageQuery } from '@/utils/router';
 import {
   REFUND_REASONS,
   type RefundReason,
@@ -55,10 +56,7 @@ export default function RefundApplyPage() {
     };
   }, []);
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
   const packageId = Number(params.packageId);
 
   const loadData = useCallback(async () => {

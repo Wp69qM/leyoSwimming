@@ -3,6 +3,7 @@ import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { fetchOrderDetail } from '@/api/order';
 import { handleBusinessError } from '@/api/request';
+import { getPageQuery } from '@/utils/router';
 import type { OrderDetail } from '@/types/order';
 
 import {
@@ -47,10 +48,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
 
   const refundProgressRef = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);

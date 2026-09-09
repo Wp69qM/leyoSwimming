@@ -1,4 +1,5 @@
 import Taro from '@tarojs/taro';
+import { getPageQuery } from '@/utils/router';
 import { ProtocolDrawer, type ProtocolTab } from './ProtocolDrawer';
 
 export {
@@ -8,7 +9,7 @@ export {
 } from './ProtocolDrawer';
 
 export default function ProtocolPage() {
-  const { type } = Taro.getCurrentInstance().router?.params || {};
+  const { type } = getPageQuery();
   const initialTab: ProtocolTab = type === 'privacy' ? 'privacy' : 'terms';
 
   function handleClose() {

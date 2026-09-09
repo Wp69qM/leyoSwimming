@@ -7,6 +7,7 @@ import { Icon } from '@/components/common/Icon';
 import { getTeachingTypeLabel } from '@/constants/teachingType';
 import { strokeCodesToLabels } from '@/constants/swimStrokes';
 import { useAuthStore } from '@/stores/authStore';
+import { getPageQuery } from '@/utils/router';
 import type { PackageDetail, PackageDetailCoach } from '@/types/package';
 
 import './index.scss';
@@ -30,10 +31,7 @@ export default function PackageDetailPage() {
     null
   );
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
   const packageId = Number(params.id);
   const coachId = params.coachId ? Number(params.coachId) : undefined;
   const source = params.source ?? 'list';

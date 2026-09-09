@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { fetchCoachPackageDetail } from '@/api/student'
+import { getPageQuery } from '@/utils/router'
 import type {
   CoachPackageDetailData,
   CoachPackageUsageRecord
@@ -44,11 +45,11 @@ const RECORD_THEME: Record<string, { bg: string; text: string; icon: string }> =
 }
 
 export default function StudentPackageDetailPage() {
-  const router = useRouter()
+  const params = useMemo(() => getPageQuery(), [])
   const packageId = useMemo(() => {
-    const raw = router.params.packageId
+    const raw = params.packageId
     return raw ? Number(raw) : 0
-  }, [router.params.packageId])
+  }, [params.packageId])
 
   const [detail, setDetail] = useState<CoachPackageDetailData | null>(null)
   const [loading, setLoading] = useState(true)

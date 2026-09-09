@@ -7,6 +7,7 @@ import { getProfile } from '@/api/profile';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
 import { getTeachingTypeLabel } from '@/constants/teachingType';
+import { getPageQuery } from '@/utils/router';
 import type { PackageDetail, PackageDetailCoach } from '@/types/package';
 import type { UserProfile } from '@/api/profile';
 
@@ -52,10 +53,7 @@ export default function OrderConfirmPage() {
   });
   const [guardianPhone, setGuardianPhone] = useState('');
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
   const packageId = Number(params.packageId);
   const coachId = Number(params.coachId);
   const packageType = Number(params.packageType);

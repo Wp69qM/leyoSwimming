@@ -5,6 +5,7 @@ import { fetchMyPackageDetail } from '@/api/package';
 import { handleBusinessError } from '@/api/request';
 import { Icon } from '@/components/common/Icon';
 import { getTeachingTypeLabel } from '@/constants/teachingType';
+import { getPageQuery } from '@/utils/router';
 import type { UserPackageDetail, UserPackageStatus } from '@/types/package';
 
 import './index.scss';
@@ -40,10 +41,7 @@ export default function MyPackageDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
   const packageId = Number(params.packageId);
 
   const loadData = useCallback(async () => {

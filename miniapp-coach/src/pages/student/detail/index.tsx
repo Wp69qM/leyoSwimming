@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, Textarea, Image } from '@tarojs/components'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import {
   fetchCoachStudentDetail,
   fetchCoachStudentPackageList,
   updateCoachStudent
 } from '@/api/student'
+import { getPageQuery } from '@/utils/router'
 import type {
   CoachStudentDetailData,
   CoachStudentPackageItem,
@@ -26,11 +27,11 @@ const MAX_BASICS_LENGTH = 200
 const MAX_NOTES_LENGTH = 500
 
 export default function StudentDetailPage() {
-  const router = useRouter()
+  const params = useMemo(() => getPageQuery(), [])
   const studentUserId = useMemo(() => {
-    const raw = router.params.studentUserId
+    const raw = params.studentUserId
     return raw ? Number(raw) : 0
-  }, [router.params.studentUserId])
+  }, [params.studentUserId])
 
   const [detail, setDetail] = useState<CoachStudentDetailData | null>(null)
   const [packages, setPackages] = useState<CoachStudentPackageItem[]>([])

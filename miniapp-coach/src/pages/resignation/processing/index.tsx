@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Button } from '@tarojs/components'
 import { getResignationDetail } from '@/api/resignation'
 import { handleBusinessError } from '@/api/request'
+import { getPageQuery } from '@/utils/router'
 import type { ResignationTicket } from '@/types/resignation'
 import './index.scss'
 
@@ -20,8 +21,8 @@ export default function ResignationProcessingPage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const ticketId = useMemo(() => {
-    const params = Taro.getCurrentInstance().router?.params
-    return params?.ticketId ? Number(params.ticketId) : undefined
+    const params = getPageQuery()
+    return params.ticketId ? Number(params.ticketId) : undefined
   }, [])
 
   useEffect(() => {

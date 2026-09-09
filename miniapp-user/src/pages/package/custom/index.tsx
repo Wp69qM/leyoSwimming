@@ -10,6 +10,7 @@ import {
 } from '@/api/package';
 import { getProfile } from '@/api/profile';
 import { getErrorCode, handleBusinessError } from '@/api/request';
+import { getPageQuery } from '@/utils/router';
 import type {
   CustomPackageConfig,
   PackageDetailCoach,
@@ -69,10 +70,7 @@ export default function CustomPackageConfigPage() {
   });
   const [guardianPhone, setGuardianPhone] = useState('');
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
   const packageId = Number(params.packageId);
   const coachId = Number(params.coachId);
 

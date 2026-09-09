@@ -477,7 +477,7 @@ http {
 
 > 注意：`server_name _` 表示接受通过 IP 或任意域名访问。后续如需绑定域名，改为 `server_name your-domain.com;` 即可。
 >
-> AI 服务不直接面向客户端，前端 `/api/ai-assistant/*` 请求由 Java 后端统一代理到 `leyo-ai-service:8000`，因此 Nginx 中 `/api/` 反向代理到后端即可，无需为 AI 服务单独配置 location。
+> AI 服务**对话链路**不直接面向客户端：前端 `/api/ai-assistant/*` 请求由 Java 后端统一代理到 `leyo-ai-service:8000`。但 **MCP 端点**（`/mcp-server/`，US-066~068）供 Trae 等 MCP 客户端从外部直连，必须由 Nginx 单独反代（如上配置）。MCP Streamable HTTP 是 POST + SSE 流式响应，`proxy_buffering off` 与 `proxy_http_version 1.1` 为必配项，缺失会导致 MCP 客户端收不到流式响应而超时。
 
 #### 4.1.8 生产化改造 docker-compose.yml
 
@@ -1501,8 +1501,17 @@ docker compose -f docker-compose.prod.yml up -d
   ports:
     - "127.0.0.1:8080:8080"
   ```
-- 确认 `docker-compose.ai-direct.yml` 中配置了 `extra_hosts: leyo-ai-service:host-gateway`；
+- 确认 `docker-compose.ai-direct.yml` 中 backend 与 nginx 均配置了 `extra_hosts: leyo-ai-service:host-gateway`；
 - 确认 AI 服务 `JAVA_INTERNAL_BASE_URL` 指向可访问后端的地址。
+
+### Q15.1：MCP 端点 `/mcp-server/mcp` 经 Nginx 返回 502 / 404
+
+- **404**：Nginx 未配置 `/mcp-server/` location——确认服务器上的 `deploy/nginx.conf` 已包含该路由（US-066~068 新增），修改后 `docker compose -f docker-compose.prod.yml -f docker-compose.ai-direct.yml restart nginx`；
+- **502**：Nginx 容器无法连到 AI 服务，按顺序排查：
+  1. `docker-compose.ai-direct.yml` 中 nginx 是否有 `extra_hosts: leyo-ai-service:host-gateway`（direct 模式必需，否则容器内解析不到宿主机）；
+  2. 宿主机 AI 服务是否运行：`systemctl status leyo-ai`；
+  3. 容器内连通性：`docker exec leyo-nginx curl -s http://leyo-ai-service:8000/health`（预期返回正常 JSON）；
+- **MCP 客户端超时无响应**：检查 Nginx `/mcp-server/` location 是否包含 `proxy_buffering off` 与 `proxy_http_version 1.1`——SSE 流式响应被缓冲会导致客户端收不到任何数据直至超时。
 
 ### Q16：用户端发送验证码报 420003，教练端正常
 
@@ -1811,6 +1820,9 @@ services:
     extra_hosts:
       - "leyo-ai-service:host-gateway"
   nginx:
+    # Nginx 反代 MCP 端点（/mcp-server/）时，将 leyo-ai-service 解析到宿主机（US-066~068）
+    extra_hosts:
+      - "leyo-ai-service:host-gateway"
     depends_on:
       - backend
 ```

@@ -3,6 +3,7 @@ import { View } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { fetchOrderDetail, mockPaymentCallback, payOrder } from '@/api/order';
 import { handleBusinessError } from '@/api/request';
+import { getPageQuery } from '@/utils/router';
 import type { OrderDetail } from '@/types/order';
 
 import {
@@ -41,10 +42,7 @@ export default function PaymentPage() {
   );
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
-  const params = useMemo(
-    () => Taro.getCurrentInstance().router?.params ?? {},
-    []
-  );
+  const params = useMemo(() => getPageQuery(), []);
 
   const isExpired = remainingSeconds !== null && remainingSeconds <= 0;
   const canPay =

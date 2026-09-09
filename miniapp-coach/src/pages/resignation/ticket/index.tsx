@@ -7,6 +7,7 @@ import {
   submitResignationTicket
 } from '@/api/resignation'
 import { handleBusinessError } from '@/api/request'
+import { getPageQuery } from '@/utils/router'
 import type { CoachPackage, PackageAction, PackageMode, ResignationTicket, ResignationTicketStatus } from '@/types/resignation'
 import './index.scss'
 
@@ -47,8 +48,8 @@ export default function ResignationTicketPage() {
   const [actionSheetPkg, setActionSheetPkg] = useState<CoachPackage | null>(null)
 
   const ticketId = useMemo(() => {
-    const params = Taro.getCurrentInstance().router?.params
-    return params?.ticketId ? Number(params.ticketId) : undefined
+    const params = getPageQuery()
+    return params.ticketId ? Number(params.ticketId) : undefined
   }, [])
 
   const isReadOnly = !ticket || ticket.status !== 'processing'

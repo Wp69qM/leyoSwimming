@@ -873,13 +873,16 @@ if (-not $SkipDeploy) {
     if ($script:aiServiceMode -eq "direct") {
         # 宿主机运行 AI 服务时：
         # 1. 后端容器把 leyo-ai-service 解析到宿主机
-        # 2. nginx 不再依赖 ai-service 容器（因为 ai-service 不在 Docker 里运行）
+        # 2. nginx 把 leyo-ai-service 解析到宿主机（MCP 端点 /mcp-server/ 反代到宿主机 AI 服务）
+        # 3. nginx 不再依赖 ai-service 容器（因为 ai-service 不在 Docker 里运行）
         $composeOverride = @"
 services:
   backend:
     extra_hosts:
       - "leyo-ai-service:host-gateway"
   nginx:
+    extra_hosts:
+      - "leyo-ai-service:host-gateway"
     depends_on:
       - backend
 "@
